@@ -1,0 +1,15 @@
+# gitleaks configuration: the default rules, plus the allowlists below. Every allowlist says why.
+# CI: .github/workflows/secrets.yml. Local: .githooks/pre-commit. Tested with gitleaks 8.24.3.
+
+[extend]
+useDefault = true
+
+# Unsigned JWTs (alg "none") issued by the Firebase Auth emulator for manual tests
+# (api/src/ZenGear.Api/ZenGear.Api.http): without a signature there is nothing to leak.
+# A signed JWT is still reported.
+[[rules]]
+id = "jwt"
+
+[[rules.allowlists]]
+regexTarget = "secret"
+regexes = ['''^eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0\.''']
