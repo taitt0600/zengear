@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 
-namespace ZenGear.Api.Auth;
+namespace ZenGear.Api.Errors;
 
 /// <summary>403 Problem Details written outside MVC, with <c>traceId</c> added by the Problem Details service.</summary>
 internal static class ForbiddenProblem

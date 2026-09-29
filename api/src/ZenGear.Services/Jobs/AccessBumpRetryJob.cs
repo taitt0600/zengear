@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using ZenGear.Services.Common;
+using ZenGear.Services.Integrations.Redis;
 using ZenGear.Services.Identity;
 
 namespace ZenGear.Services.Jobs;

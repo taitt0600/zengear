@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using ZenGear.Data;
 using ZenGear.Services.Common;
 using ZenGear.Services.Identity;
+using ZenGear.Services.Integrations.Redis;
 
 namespace ZenGear.Services;
 

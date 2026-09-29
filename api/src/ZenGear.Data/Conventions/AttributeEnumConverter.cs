@@ -3,7 +3,7 @@ using System.Reflection;
 using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
-namespace ZenGear.Data.Common;
+namespace ZenGear.Data.Conventions;
 
 /// <summary>
 /// Stores an enum as the value of its <see cref="JsonStringEnumMemberNameAttribute"/>, so the

@@ -6,7 +6,7 @@ using Shouldly;
 using StackExchange.Redis;
 using ZenGear.Api.IntegrationTests.Infrastructure;
 using ZenGear.Data.Entities.Identity;
-using ZenGear.Services.Common;
+using ZenGear.Services.Integrations.Redis;
 using ZenGear.Services.Identity;
 
 namespace ZenGear.Api.IntegrationTests.Identity;

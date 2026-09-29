@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
-using ZenGear.Services.Common;
+using ZenGear.Services.Integrations.Redis;
 
 namespace ZenGear.Services.Identity;
 

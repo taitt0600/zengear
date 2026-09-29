@@ -1,4 +1,4 @@
-namespace ZenGear.Services.Common;
+namespace ZenGear.Services.Integrations.Redis;
 
 /// <summary>
 /// Section <c>Redis</c>. The connection string is <c>ConnectionStrings:Redis</c> (user-secrets locally).
