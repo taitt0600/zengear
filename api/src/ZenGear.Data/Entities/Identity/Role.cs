@@ -10,7 +10,7 @@ public class Role : IAggregateRoot
 {
     private readonly List<RolePermission> _rolePermissions = [];
 
-    private Role()
+    protected Role()
     {
     }
 

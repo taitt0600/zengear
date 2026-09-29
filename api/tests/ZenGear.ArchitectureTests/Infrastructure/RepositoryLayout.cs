@@ -19,9 +19,11 @@ internal static partial class RepositoryLayout
 
     public static readonly IReadOnlySet<string> Areas = ReadAreas();
 
+    private static readonly char[] PathSeparators = [Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar];
+
     /// <summary>Folders that are never source folders: build output and generated migrations.</summary>
     public static bool IsExcluded(string relativePath) =>
-        relativePath.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+        relativePath.Split(PathSeparators)
             .Any(segment => segment is "bin" or "obj" or "Migrations");
 
     private static string FindRoot()

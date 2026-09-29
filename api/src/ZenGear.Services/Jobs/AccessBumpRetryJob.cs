@@ -45,6 +45,7 @@ public sealed class AccessBumpRetryJob(
         }
         catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
         {
+            // The host is stopping: cancellation ends the loop normally.
         }
         finally
         {

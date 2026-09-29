@@ -46,10 +46,45 @@ public class AttributeEnumConverterTests
             .Message.ShouldContain(nameof(MissingAttribute.NoName));
     }
 
+    [Test]
+    public void Members_with_the_same_value_are_rejected()
+    {
+        var ex = Should.Throw<InvalidOperationException>(() => new AttributeEnumConverter<SameValue>());
+
+        ex.Message.ShouldContain(nameof(SameValue.Original));
+        ex.Message.ShouldContain(nameof(SameValue.Alias));
+    }
+
+    [Test]
+    public void Members_with_the_same_stored_value_are_rejected()
+    {
+        var ex = Should.Throw<InvalidOperationException>(() => new AttributeEnumConverter<SameStoredValue>());
+
+        ex.Message.ShouldContain(nameof(SameStoredValue.First));
+        ex.Message.ShouldContain(nameof(SameStoredValue.Second));
+        ex.Message.ShouldContain("SAME");
+    }
+
     public enum MissingAttribute
     {
         [JsonStringEnumMemberName("NAMED")]
         Named,
         NoName,
+    }
+
+    public enum SameValue
+    {
+        [JsonStringEnumMemberName("ORIGINAL")]
+        Original = 1,
+        [JsonStringEnumMemberName("ALIAS")]
+        Alias = 1,
+    }
+
+    public enum SameStoredValue
+    {
+        [JsonStringEnumMemberName("SAME")]
+        First,
+        [JsonStringEnumMemberName("SAME")]
+        Second,
     }
 }
