@@ -1,0 +1,25 @@
+# Monthly updates of the GitHub Actions, pinned by commit SHA in .github/workflows.
+# NuGet packages get security updates only: "Dependabot security updates" is enabled in the repository
+# settings (Settings > Advanced Security), which opens a pull request when an advisory affects a package.
+# Title prefixes follow Conventional Commits so the pr-title check passes (CLAUDE.md, Commits).
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+      timezone: Asia/Ho_Chi_Minh
+    commit-message:
+      prefix: ci
+    groups:
+      actions:
+        patterns: ['*']
+
+  # Security updates for api/ read this entry for their title prefix; no version updates are opened.
+  - package-ecosystem: nuget
+    directory: /api
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 0
+    commit-message:
+      prefix: build(api)
