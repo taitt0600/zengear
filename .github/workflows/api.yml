@@ -72,6 +72,7 @@ jobs:
         with:
           global-json-file: api/global.json
       - run: dotnet tool restore
+      - run: dotnet build ZenGear.slnx -c Release
       - name: Snapshot of the specification
         run: |
           psql -v ON_ERROR_STOP=1 -d postgres -f db/zengear_01_database.sql
@@ -81,7 +82,7 @@ jobs:
         run: |
           psql -v ON_ERROR_STOP=1 -d postgres -f db/zengear_01_database.sql
           if ls src/ZenGear.Data/Migrations/*.cs >/dev/null 2>&1; then
-            dotnet ef database update -p src/ZenGear.Data -s src/ZenGear.Api
+            dotnet ef database update -p src/ZenGear.Data -s src/ZenGear.Api --configuration Release --no-build
           fi
           psql -v ON_ERROR_STOP=1 -At -d zengear -f ../tools/schema_snapshot.sql > migrated.txt
       - name: Migrations produce the specified schema
