@@ -52,6 +52,7 @@ app.UseStatusCodePages();
 app.UseSerilogRequestLogging();
 app.UseHttpsRedirection();
 app.UseAuthentication();
+app.UseActiveUser();
 app.UseAuthorization();
 
 app.MapControllers();

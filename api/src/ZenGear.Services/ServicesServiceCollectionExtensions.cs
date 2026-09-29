@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using ZenGear.Data;
 using ZenGear.Services.Common;
+using ZenGear.Services.Identity;
 
 namespace ZenGear.Services;
 
@@ -20,6 +21,10 @@ public static class ServicesServiceCollectionExtensions
 
         services.AddSingleton(TimeProvider.System);
         services.AddSingleton<IClock, Clock>();
+
+        services.AddScoped<IUserAccessReader, UserAccessReader>();
+        services.AddScoped<SignInService>();
+        services.AddScoped<CurrentUserService>();
 
         services.AddHealthChecks().AddDbContextCheck<ZenGearDbContext>();
 
