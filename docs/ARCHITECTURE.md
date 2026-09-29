@@ -99,6 +99,7 @@ Every rule has at least one test whose name starts with its ID (`R_INV_01_...`).
 - CI: `dotnet ef migrations has-pending-model-changes`; build one database from the migrations and one from `api/db/zengear_01_database.sql` plus the phase files up to the phase in progress, run `tools/schema_snapshot.sql` on both and `diff` the output (must be empty); after the last phase `api/db/zengear_07_schema_check.sql` returns 0 rows; `api/db/zengear_06_reconciliation.sql` runs on test data.
 - The build writes `api/openapi/ZenGear.Api.json` (Microsoft.AspNetCore.OpenApi); it is committed and CI fails when it is out of date.
 - Deploy: migration bundle as a separate step before the new API version starts; then `api/db/zengear_08_roles.sql` and `api/seed/`.
+- Behind Azure App Service, `UseForwardedHeaders` runs before authentication and trusts only Azure's front end, so the security log (R-SEC-11) records the client IP (GitHub issue #2).
 - The API connects as a login of `zengear_app`, jobs as `zengear_jobs`, reports as `zengear_readonly` — never as the schema owner (DEC-089).
 
 ## Background jobs

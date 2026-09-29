@@ -1,10 +1,50 @@
 {
   "permissions": {
+    "allow": [
+      "Bash(gh issue list:*)",
+      "Bash(gh issue view:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh pr checks:*)",
+      "Bash(gh pr diff:*)",
+      "Bash(gh run list:*)",
+      "Bash(gh run view:*)"
+    ],
+    "ask": [
+      "Bash(git commit:*)",
+      "Bash(dotnet ef database update:*)",
+      "Bash(gh issue create:*)",
+      "Bash(gh issue comment:*)",
+      "Bash(gh pr create:*)",
+      "Bash(gh pr edit:*)"
+    ],
     "deny": [
       "Bash(git push:*)",
+      "Bash(gh pr merge:*)",
+      "Bash(gh repo delete:*)",
+      "Bash(gh api:*)",
       "Read(./**/.env*)",
       "Read(./**/*service-account*.json)"
-    ],
-    "ask": ["Bash(git commit:*)", "Bash(dotnet ef database update:*)"]
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit|Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell.exe",
+            "args": [
+              "-NoProfile",
+              "-ExecutionPolicy",
+              "Bypass",
+              "-File",
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-spec.ps1"
+            ],
+            "shell": "powershell"
+          }
+        ]
+      }
+    ]
   }
 }
