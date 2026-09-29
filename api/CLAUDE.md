@@ -8,20 +8,23 @@
 api/
 ├─ src/ZenGear.Api/            Presentation: controllers, middleware, auth, ProblemDetails, hosting of jobs
 ├─ src/ZenGear.Services/       Business Logic: services, DTOs, validators, Integrations/, Jobs/
-├─ src/ZenGear.Data/           Data Access: Entities/, ZenGearDbContext, Configurations/, Migrations/
+├─ src/ZenGear.Data/           Data Access: Entities/, ZenGearDbContext, Configurations/, Conventions/, Migrations/
 ├─ tests/ZenGear.Services.Tests/        unit — NUnit, Shouldly, Moq
 ├─ tests/ZenGear.Api.IntegrationTests/  integration — NUnit, Testcontainers (postgres:18), Respawn
+├─ tests/ZenGear.ArchitectureTests/     layers, folders and names — NUnit, NetArchTest (no Docker)
 ├─ db/        schema specification (zengear_00–08) — the migrations must produce exactly this
 ├─ seed/      reference data, run after migrations
 ├─ openapi/   ZenGear.Api.json, generated at build — commit it, never edit it
 └─ docker-compose.yml   local PostgreSQL 18 and Redis (+ ZenGear.Api container)
 ```
 
-Folders inside each project are the business areas of `../docs/ARCHITECTURE.md`, with the same names; namespaces follow folders.
+Folders, file names and type names follow `../docs/ARCHITECTURE.md`, section *Folder structure*: a top-level folder is a business area or a listed technical folder, one type per file, and where a type goes follows from its name. Namespaces follow folders.
 
 ## Rules that must not be broken
 
 - `Api` → `Services` → `Data`; `Data` references no other project.
+- Never create a folder, or a `*Helper`/`*Util`/`*Utility`/`*Manager` type, that *Folder structure* does not allow; `ZenGear.ArchitectureTests` fails `dotnet test` and CI otherwise. If the code needs a new folder, stop and ask.
+- SonarAnalyzer.CSharp runs in every build and its warnings are errors: fix the code. Never silence a rule (`#pragma warning disable`, `[SuppressMessage]`, `.editorconfig` severity) without asking; a suppression that is approved carries its reason (`Justification = "…"` or a comment).
 - Controllers never touch `ZenGearDbContext`; the API returns DTOs only (cost fields and `internal_note` must not leak — R-SEC-09, R-SEC-10).
 - A service writes only the tables of its own area; call the owning service for anything else.
 - Schema changes only through EF Core migrations. The result must match `db/` exactly (names, types, constraints, indexes). Update `db/` and `../docs/DATABASE.md` in the same change.

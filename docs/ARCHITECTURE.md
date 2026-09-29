@@ -34,7 +34,7 @@ zengear/
 └─ tools/                      blueprint export, schema snapshot
 ```
 
-Inside every project the folders are the business areas below, with the same names; namespaces follow folders (`ZenGear.Services.Sales`, `ZenGear.Data.Entities.Sales`).
+Folders inside the three projects follow [Folder structure](#folder-structure); namespaces follow folders (`ZenGear.Services.Sales`, `ZenGear.Data.Entities.Sales`).
 
 ## Dependency rules
 
@@ -67,8 +67,53 @@ Inside every project the folders are the business areas below, with the same nam
 | `Notifications` | `notifications` |
 | `Imports` | `import_jobs` |
 | `Common` | `status_history`, `attachments`, `audit_logs` |
+| `Reporting` | none: read queries only |
 
-`Common` tables are written through shared helpers called by the owning service in the same transaction: status changes (`status_history`, R-HIS-01), evidence files (`attachments`, R-ATT-01) and the EF Core audit interceptor (`audit_logs`, R-AUD-01). `Reporting` owns no tables; it only runs read queries.
+`Common` tables are written through shared helpers called by the owning service in the same transaction: status changes (`status_history`, R-HIS-01), evidence files (`attachments`, R-ATT-01) and the EF Core audit interceptor (`audit_logs`, R-AUD-01).
+
+## Folder structure
+
+Inside `ZenGear.Api` and `ZenGear.Services`, a top-level folder is either a business area of the table above, with the same name, or one of the technical folders below. `ZenGear.Data` has only its technical folders at the top; the areas are the folders inside `Entities` and `Configurations`. No other folder is created without first changing this section; `ZenGear.ArchitectureTests` fails on any folder not listed.
+
+| Project | Technical folder | Holds |
+|---|---|---|
+| `ZenGear.Api` | `Auth` | authentication, authorization attributes, handlers and requirements, claims, the middleware that loads the user |
+| | `Errors` | exception handlers and Problem Details |
+| | `Logging` | security log, masking of sensitive values |
+| | `OpenApi` | document generation |
+| | `Hosting` | pipeline set-up that belongs to none of the above: forwarded headers, security headers, CORS, rate limiting (created with its first file) |
+| `ZenGear.Services` | `Integrations/<System>` | every out-of-process system except PostgreSQL: `Redis`, and later email, e-invoice, payment, storage |
+| | `Jobs` | hosted services |
+| `ZenGear.Data` | `Entities/<Area>` | entities and the enums of their columns |
+| | `Configurations/<Area>` | `IEntityTypeConfiguration` classes |
+| | `Conventions` | value converters and model conventions |
+| | `Migrations` | EF Core migrations |
+
+The `Common` area folder in `ZenGear.Services` holds the `Common` tables (status history, attachments, audit) and the primitives used by two or more areas (`IClock`, `BusinessRuleException`).
+
+Where a type goes follows from its name:
+
+| Type | Folder |
+|---|---|
+| `*Controller` | `ZenGear.Api/<Area>` |
+| `*Middleware`, `*AuthorizationHandler`, `*Requirement`, authorization attributes, claims | `ZenGear.Api/Auth` |
+| `*ExceptionHandler`, `*Problem` | `ZenGear.Api/Errors` |
+| `*Setup`: the set-up of one concern, called by `Program.cs` | the folder of that concern |
+| `*Service`, `I*Service`, `*Dto`, `*Request`, `*Validator` | `ZenGear.Services/<Area>` |
+| `*Job` | `ZenGear.Services/Jobs` |
+| `*Options` | next to the type that reads it |
+| entity, enum | `ZenGear.Data/Entities/<Area>` |
+| `*Configuration` | `ZenGear.Data/Configurations/<Area>` |
+| `*Converter`, `*Convention` | `ZenGear.Data/Conventions` |
+| `<Project>ServiceCollectionExtensions` | the root of its project |
+
+- One top-level type per file, the file named after the type.
+- DTOs, requests, validators and interfaces sit next to the service of their area; an interface sits next to its implementation.
+- Extension methods sit with the code they serve; each project registers its services in `<Project>ServiceCollectionExtensions.cs`.
+- No `Helpers`, `Utilities`, `Extensions`, `Middlewares`, `Interfaces`, `Dtos`, `Models` or `Enums` folders, and no type named `*Helper`, `*Util`, `*Utility` or `*Manager`: a type is named after what it does.
+- No type is added without a caller in the same change.
+
+Tests mirror the folders of the code they test: `ZenGear.Services.Tests/<Area>` (and `Data/` for `ZenGear.Data`), `ZenGear.Api.IntegrationTests/<Area>` with shared fixtures in `Infrastructure/`. The assembly-wide NUnit `[SetUpFixture]` classes (`PostgresContainer`, `RedisContainer`) stay at the root of their project: NUnit applies a set-up fixture only to tests in its namespace and below.
 
 ## Where business rules live
 
