@@ -22,7 +22,7 @@
 | Backend API | Serilog | — | Log có cấu trúc, gồm log bảo mật cho sự kiện đăng nhập (R-SEC-11); không ghi token, mật khẩu, mã OTP | Phase 1 |
 | Backend API | Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore | — | Health check kết nối database cho endpoint /health | Phase 1 |
 | Background Jobs | BackgroundService + PeriodicTimer | .NET 10 | Job nền của Scheduler (A10): hủy đơn quá hạn, gửi thông báo, phát hành hóa đơn, đối soát hằng đêm | Phase 1 |
-| Cache | Redis | — | Cache quyền theo Role (R-SEC-07) | Phase 1 |
+| Cache | Redis + StackExchange.Redis | — | Cache trạng thái user và quyền theo Role với key có phiên bản (R-SEC-07); maxmemory-policy volatile-* hoặc noeviction | Phase 1 |
 | Database | PostgreSQL | 18 | CSDL quan hệ; cần uuidv7() native; file SQL và DBML trong DATABASE.md là đặc tả để CI đối chiếu với kết quả migration | Phase 1 |
 | Database | btree_gist | — | Extension: exclusion constraint cho tax_rates | Phase 1 |
 | Database | unaccent + pg_trgm | — | Extension: tìm kiếm không dấu (PDS-03) | Phase 2 |
@@ -34,7 +34,7 @@
 | Testing | NUnit | — | Test framework cho unit test và integration test | Phase 1 |
 | Testing | Shouldly | — | Assertion | Phase 1 |
 | Testing | Moq | — | Mock dependency trong unit test | Phase 1 |
-| Testing | Testcontainers for .NET | image postgres:18 | PostgreSQL thật cho integration, concurrency và DB constraint test | Phase 1 |
+| Testing | Testcontainers for .NET | image postgres:18, redis | PostgreSQL và Redis thật cho integration, concurrency, DB constraint và cache test | Phase 1 |
 | Testing | Respawn | — | Reset dữ liệu database giữa các integration test | Phase 1 |
 | Testing | Microsoft.Extensions.TimeProvider.Testing | — | FakeTimeProvider: điều khiển thời gian trong test của clock service (R-TZ-01) | Phase 1 |
 | Testing | zengear_07_schema_check.sql | — | Kiểm tra đủ đối tượng không có trên ERD sau mỗi migration | Phase 1 |
