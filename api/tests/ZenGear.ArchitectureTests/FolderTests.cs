@@ -36,8 +36,16 @@ public sealed class FolderTests
         unknown.ShouldBeEmpty();
     }
 
+    /// <summary>
+    /// Folders holding at least one .cs file: git does not track empty folders, so one left behind
+    /// locally must not fail the test when a clean checkout (CI) passes it.
+    /// </summary>
     private static IEnumerable<string> SubFolders(string path) =>
         Directory.Exists(path)
-            ? Directory.GetDirectories(path).Select(Path.GetFileName).OfType<string>().Where(name => name is not ("bin" or "obj"))
+            ? Directory.GetDirectories(path)
+                .Where(folder => Directory.EnumerateFiles(folder, "*.cs", SearchOption.AllDirectories).Any())
+                .Select(Path.GetFileName)
+                .OfType<string>()
+                .Where(name => name is not ("bin" or "obj"))
             : Enumerable.Empty<string>();
 }
