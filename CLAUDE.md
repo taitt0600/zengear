@@ -55,6 +55,14 @@ Every commit follows Conventional Commits 1.0.0, in English:
 - `body`: what changed and why, wrapped at 72 characters; group by project when several are touched.
 - `footer`: `Refs: <Feature ID>, <Rule ID>, <DEC-xxx>` for the blueprint items the commit implements or changes; `BREAKING CHANGE: <description>` (or `!` after the type) when an API contract or schema change breaks existing callers or data.
 - One logical change per commit. An API change and its web change stay in one commit (`feat: …` without scope).
+- Pull request title: the same format as a commit subject, with the feature ID at the end in parentheses (`feat(api): add role-based access control (AUT-04)`); merge with **Rebase and merge** so every commit keeps its message. Checked by `.githooks/commit-msg` (enable once per clone: `git config core.hooksPath .githooks`) and by the `pr-title` workflow.
+
+## Workflow
+
+- One branch per feature from `main` (`feat/aut-04`); never work on `main` except for `docs` commits.
+- `/implement-feature <ID>` plans (reviewed by the `plan-reviewer` agent), tests and builds; `/finish-feature <ID>` verifies, proposes the commits and the pull request.
+- Claude Code never pushes or merges; the user does. Edits to `api/db/`, `docs/blueprint/`, `docs/DATABASE.md` and the blueprint workbook ask for confirmation (`.claude/hooks/guard-spec.ps1`); change them only with the Edit or Write tools, never with shell commands, and never work around the confirmation.
+- `/check-docs` reports inconsistencies between the documentation, the code and CI.
 
 ## Commands
 

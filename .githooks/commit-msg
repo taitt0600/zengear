@@ -1,0 +1,30 @@
+#!/bin/sh
+# Rejects commit messages that do not follow Conventional Commits as described in CLAUDE.md (Commits).
+# Enable once per clone: git config core.hooksPath .githooks
+
+message=$(tr -d '\r' < "$1" | grep -v '^#')
+subject=$(printf '%s\n' "$message" | sed -n '1p')
+second=$(printf '%s\n' "$message" | sed -n '2p')
+
+case "$subject" in
+  "Merge "*|"Revert \""*|"fixup! "*|"squash! "*|"amend! "*) exit 0 ;;
+esac
+
+types='feat|fix|docs|refactor|perf|test|build|ci|chore|revert'
+scopes='api|web|db|seed|docs|ci'
+pattern="^($types)(\\(($scopes)\\))?!?: [^A-Z]"
+
+fail() {
+  echo "commit-msg: $1" >&2
+  echo "  got:      $subject" >&2
+  echo "  expected: <type>(<scope>): <subject>   types: $types   scopes: $scopes" >&2
+  echo "  see CLAUDE.md, section Commits" >&2
+  exit 1
+}
+
+printf '%s\n' "$subject" | grep -Eq "$pattern" || fail "header does not match the convention"
+description=${subject#*: }
+[ ${#description} -le 72 ] || fail "subject longer than 72 characters"
+case "$description" in *.) fail "subject ends with a period" ;; esac
+[ -z "$second" ] || fail "leave a blank line between the header and the body"
+exit 0
