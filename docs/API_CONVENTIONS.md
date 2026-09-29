@@ -29,8 +29,9 @@ The OpenAPI document `api/openapi/ZenGear.Api.json` is generated from the contro
 | 400 | Validation failed |
 | 401 / 403 | Missing or invalid Firebase ID token / permission missing |
 | 404 | Resource does not exist or is outside the caller's scope (a customer asking for another customer's order) |
-| 409 | Business rule or state conflict (order already confirmed, stock not available) |
+| 409 | Business rule or state conflict (order already confirmed, stock not available); a concurrent change to the row when the request sent no `If-Match` |
 | 412 | `If-Match` does not match the current version |
+| 428 | `PUT` / `PATCH` on a resource that has an `ETag` sent without `If-Match` |
 | 422 | Not used — business rule violations are 409, input errors are 400 |
 
 ## Errors
@@ -59,6 +60,8 @@ Validation errors use `ValidationProblemDetails` with an `errors` object keyed b
 ## Concurrency and idempotency
 
 - Resources that can be edited return an `ETag` built from `xmin`; updates send `If-Match` and get 412 when the row changed (optimistic concurrency).
+- `PUT` / `PATCH` on a resource that has an `ETag` without `If-Match` gets 428.
+- A concurrent change detected on save (`xmin`) for a request without `If-Match` (a command such as `POST /orders/{id}/confirm`) gets 409 with `type` `/problems/concurrency-conflict` and no `ruleId`; the caller reloads and retries.
 - `POST` requests that must not run twice (checkout, payments) send an `Idempotency-Key` header; a repeated key returns the first result (R-ORD-12). Payment callbacks are idempotent by the gateway transaction id (R-TX-07).
 
 ## Authentication

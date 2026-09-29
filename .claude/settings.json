@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "deny": [
+      "Bash(git push:*)",
+      "Read(./**/.env*)",
+      "Read(./**/*service-account*.json)"
+    ],
+    "ask": ["Bash(git commit:*)", "Bash(dotnet ef database update:*)"]
+  }
+}

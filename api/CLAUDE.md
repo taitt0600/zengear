@@ -13,7 +13,8 @@ api/
 ├─ tests/ZenGear.Api.IntegrationTests/  integration — NUnit, Testcontainers (postgres:18), Respawn
 ├─ db/        schema specification (zengear_00–08) — the migrations must produce exactly this
 ├─ seed/      reference data, run after migrations
-└─ openapi/   ZenGear.Api.json, generated at build — commit it, never edit it
+├─ openapi/   ZenGear.Api.json, generated at build — commit it, never edit it
+└─ docker-compose.yml   local PostgreSQL 18 and Redis (+ ZenGear.Api container)
 ```
 
 Folders inside each project are the business areas of `../docs/ARCHITECTURE.md`, with the same names; namespaces follow folders.
@@ -29,9 +30,11 @@ Folders inside each project are the business areas of `../docs/ARCHITECTURE.md`,
 - Money is `decimal` in C#, `numeric(15,0)` VND in the database. Time comes from the clock service, never `DateTime.Now`.
 - External systems only through the interfaces in `ZenGear.Services/Integrations` (`IEmailSender`, `IEInvoiceClient`, `IPaymentGateway`, `IFileStorage`, `IAuthProvider`); tests use fakes.
 - Endpoints follow `../docs/API_CONVENTIONS.md`.
+- Never log a token, password or OTP, and never destructure (`{@Dto}`) a DTO or object holding a secret or personal data; log ids and harmless values only (R-SEC-11).
 
 ## Commands
 
+- Restore local tools (dotnet-ef): `dotnet tool restore`
 - Build and test: `dotnet build` · `dotnet test`
 - New migration: `dotnet ef migrations add <Name> -p src/ZenGear.Data -s src/ZenGear.Api`
 - Drift check (must report no changes): `dotnet ef migrations has-pending-model-changes -p src/ZenGear.Data -s src/ZenGear.Api`
@@ -40,9 +43,16 @@ Folders inside each project are the business areas of `../docs/ARCHITECTURE.md`,
 
 ## Local database
 
-1. `docker compose up -d` at the repository root.
+1. Start PostgreSQL and Redis: Visual Studio, startup project `docker-compose`, launch profile `Infrastructure`, Ctrl+F5 — or `docker compose up -d postgres redis` in `api/`.
 2. `db/zengear_01_database.sql` on database `postgres` (creates `zengear` with the Vietnamese ICU collation).
 3. `dotnet ef database update -p src/ZenGear.Data -s src/ZenGear.Api`.
 4. `db/zengear_08_roles.sql`, then `seed/0*.sql` in file order (see `seed/README.md`).
 
-The application connects as a login granted `zengear_app`, jobs as `zengear_jobs`, never as the schema owner (DEC-089).
+Connection strings live in the user-secrets of `ZenGear.Api`, never in `appsettings.json`:
+
+| Key | Used by | Login |
+|---|---|---|
+| `ConnectionStrings:ZenGear` | the running API and jobs | a login granted `zengear_app` (jobs: `zengear_jobs`) |
+| `ConnectionStrings:ZenGearMigrations` | `dotnet ef` (selected when `EF.IsDesignTime`) | the schema owner |
+
+Until the first migration and `db/zengear_08_roles.sql` have run, both keys use the local `postgres` user. The application never connects as the schema owner outside local work (DEC-089).

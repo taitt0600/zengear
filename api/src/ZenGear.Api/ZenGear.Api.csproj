@@ -1,8 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <OpenApiDocumentsDirectory>../../openapi</OpenApiDocumentsDirectory>
-    <UserSecretsId>cf93f573-072e-4596-9a4f-371edd1e478e</UserSecretsId>
+    <OpenApiDocumentsDirectory>../../openapi</OpenApiDocumentsDirectory>    <UserSecretsId>cf93f573-072e-4596-9a4f-371edd1e478e</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerfileContext>..\..</DockerfileContext>
     <DockerComposeProjectPath>..\..\docker-compose.dcproj</DockerComposeProjectPath>

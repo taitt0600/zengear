@@ -35,7 +35,7 @@ Decision: DEC-093 (monorepo), DEC-091 (3-Layer backend).
 
 ## Local environment
 
-`docker compose up -d` at the root starts PostgreSQL 18 and Redis; Firebase runs with the Firebase Local Emulator Suite. Setup order for the database is in `api/CLAUDE.md`.
+`api/docker-compose.yml` (Visual Studio Docker Compose project) runs PostgreSQL 18 and Redis; launch profile `Infrastructure` starts only these two, and the API runs from its own project. Firebase runs with the Firebase Local Emulator Suite. Setup order for the database is in `api/CLAUDE.md`.
 
 ## Commands
 
