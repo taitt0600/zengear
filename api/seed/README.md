@@ -1,6 +1,6 @@
 # Seed data
 
-Reference data needed before the first login. Run in file order after the schema migrations, as the schema owner; every file is re-runnable.
+Reference data needed before the first login. Run in file order after the schema migrations and `db/zengear_08_roles.sql`, and before starting the API, as the schema owner; every file is re-runnable (DEC-095).
 
 | File | Content |
 |---|---|
@@ -12,7 +12,5 @@ Reference data needed before the first login. Run in file order after the schema
 | `06_adjustment_reasons.sql` | DAMAGED, LOST, MISCOUNT |
 | `07_categories_brands.sql` | Categories with `attribute_schema` and brands, from `category_attribute_schemas.json` |
 | `08_business_location.sql` | Template for the store location — fill in before running |
-
-The API synchronizes permissions at startup and does nothing until every role of `01_roles.sql` exists: on a new environment, **restart the API once after the first seed**.
 
 Not seeded here: countries, provinces and wards (loaded from the official list of Quyết định 19/2025/QĐ-TTg), the default bank account, expense categories and the first Admin account (linked to its Firebase user at first sign-in).
