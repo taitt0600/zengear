@@ -40,4 +40,8 @@
     <PackageVersion Include="Testcontainers.PostgreSql" Version="4.15.0" />
     <PackageVersion Include="Testcontainers.Redis" Version="4.15.0" />
   </ItemGroup>
+  <ItemGroup>
+    <!-- analyzers of every project: warnings are errors (TreatWarningsAsErrors), so they fail the build -->
+    <GlobalPackageReference Include="SonarAnalyzer.CSharp" Version="10.35.0.4138" />
+  </ItemGroup>
 </Project>
