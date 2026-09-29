@@ -3,8 +3,10 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Time.Testing;
 using ZenGear.Api.Auth;
+using ZenGear.Api.Logging;
 
 namespace ZenGear.Api.IntegrationTests.Infrastructure;
 
@@ -18,6 +20,9 @@ public class ZenGearApiFactory(string environment = AuthenticationSetup.TestingE
 
     public FakeTimeProvider Time { get; } = new(new DateTimeOffset(2026, 9, 29, 9, 30, 0, TimeSpan.Zero));
 
+    /// <summary>Entries written through <see cref="SecurityLog"/>.</summary>
+    public InMemoryLoggerProvider SecurityLogs { get; } = new();
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment(environment);
@@ -29,6 +34,8 @@ public class ZenGearApiFactory(string environment = AuthenticationSetup.TestingE
         {
             services.RemoveAll<TimeProvider>();
             services.AddSingleton<TimeProvider>(Time);
+            services.RemoveAll<SecurityLog>();
+            services.AddSingleton(new SecurityLog(LoggerFactory.Create(logging => logging.AddProvider(SecurityLogs))));
             services.AddControllers().AddApplicationPart(typeof(ZenGearApiFactory).Assembly);
         });
     }

@@ -35,4 +35,13 @@ public sealed class TestEndpointsController : ControllerBase
     /// <summary>Protected by the fallback policy: no attribute needed.</summary>
     [HttpGet("me")]
     public IActionResult Me() => Ok(new { uid = User.FindFirst("sub")?.Value });
+
+    /// <summary>Protected by the default policy (a bare <c>[Authorize]</c>).</summary>
+    [HttpGet("authorize")]
+    [Authorize]
+    public IActionResult AuthorizeDefault() => Ok();
+
+    [HttpGet("anonymous")]
+    [AllowAnonymous]
+    public IActionResult Anonymous() => Ok();
 }

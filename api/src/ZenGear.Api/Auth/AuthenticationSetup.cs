@@ -15,7 +15,7 @@ public static class AuthenticationSetup
     /// checked when the host starts (<c>ValidateOnStart</c>, skipped during build-time OpenAPI
     /// generation) and the signing keys are fetched at the first request, so the build runs
     /// without configuration or network.
-    /// Every endpoint requires an authenticated user unless it is marked <c>[AllowAnonymous]</c>.
+    /// Every endpoint requires a registered, ACTIVE user unless it is marked <c>[AllowAnonymous]</c>.
     /// </summary>
     public static IServiceCollection AddFirebaseJwtBearer(this IServiceCollection services, IHostEnvironment environment)
     {
@@ -35,11 +35,24 @@ public static class AuthenticationSetup
             .Configure<IOptions<FirebaseAuthOptions>>((options, firebaseOptions) =>
                 ConfigureJwtBearer(options, firebaseOptions.Value));
 
+        // Default ([Authorize]) and fallback (no attribute) both require a registered, ACTIVE user:
+        // the claim is added by ActiveUserMiddleware. Changing only the fallback would let an
+        // unregistered uid through every bare [Authorize].
+        var registeredUser = new AuthorizationPolicyBuilder()
+            .RequireAuthenticatedUser()
+            .RequireClaim(ZenGearClaims.UserId)
+            .Build();
         services.AddAuthorizationBuilder()
-            .SetFallbackPolicy(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
+            .SetDefaultPolicy(registeredUser)
+            .SetFallbackPolicy(registeredUser);
+        services.AddSingleton<IAuthorizationMiddlewareResultHandler, AccountNotRegisteredResultHandler>();
 
         return services;
     }
+
+    /// <summary>Between <c>UseAuthentication</c> and <c>UseAuthorization</c>.</summary>
+    public static IApplicationBuilder UseActiveUser(this IApplicationBuilder app) =>
+        app.UseMiddleware<ActiveUserMiddleware>();
 
     private static void ConfigureJwtBearer(JwtBearerOptions options, FirebaseAuthOptions firebase)
     {

@@ -1,9 +1,6 @@
 using System.Net;
-using System.Net.Http.Headers;
 using System.Text.Json;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.JsonWebTokens;
-using Microsoft.IdentityModel.Tokens;
 using Shouldly;
 using ZenGear.Api.IntegrationTests.Infrastructure;
 
@@ -16,7 +13,9 @@ public class AuthenticationTests : IntegrationTestBase
     [Test]
     public async Task Emulator_token_with_project_issuer_and_audience_is_accepted()
     {
-        var response = await GetMeAsync(EmulatorToken(ZenGearApiFactory.FirebaseProjectId, DateTime.UtcNow.AddHours(1)));
+        await TestUsers.InsertAsync(Uid);
+
+        var response = await GetMeAsync(TestTokens.EmulatorToken(Uid));
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
         var body = JsonDocument.Parse(await response.Content.ReadAsStringAsync()).RootElement;
@@ -35,7 +34,7 @@ public class AuthenticationTests : IntegrationTestBase
     [Test]
     public async Task Token_for_another_project_is_401()
     {
-        var response = await GetMeAsync(EmulatorToken("demo-other-project", DateTime.UtcNow.AddHours(1)));
+        var response = await GetMeAsync(TestTokens.EmulatorToken(Uid, projectId: "demo-other-project"));
 
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
     }
@@ -43,7 +42,7 @@ public class AuthenticationTests : IntegrationTestBase
     [Test]
     public async Task Expired_token_is_401()
     {
-        var response = await GetMeAsync(EmulatorToken(ZenGearApiFactory.FirebaseProjectId, DateTime.UtcNow.AddMinutes(-5)));
+        var response = await GetMeAsync(TestTokens.EmulatorToken(Uid, DateTime.UtcNow.AddMinutes(-5)));
 
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
     }
@@ -59,31 +58,7 @@ public class AuthenticationTests : IntegrationTestBase
 
     private async Task<HttpResponseMessage> GetMeAsync(string? token)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Get, new Uri("/test/me", UriKind.Relative));
-        if (token is not null)
-        {
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-        }
-
+        using var request = TestTokens.Get("/test/me", token);
         return await Client.SendAsync(request);
-    }
-
-    /// <summary>An unsigned ID token (alg "none") shaped like the ones of the Firebase Auth Emulator.</summary>
-    private static string EmulatorToken(string projectId, DateTime expires)
-    {
-        var issuedAt = expires.AddHours(-1);
-        return new JsonWebTokenHandler().CreateToken(new SecurityTokenDescriptor
-        {
-            Issuer = $"https://securetoken.google.com/{projectId}",
-            Audience = projectId,
-            IssuedAt = issuedAt,
-            NotBefore = issuedAt,
-            Expires = expires,
-            Claims = new Dictionary<string, object>
-            {
-                ["sub"] = Uid,
-                ["auth_time"] = EpochTime.GetIntDate(issuedAt),
-            },
-        });
     }
 }
