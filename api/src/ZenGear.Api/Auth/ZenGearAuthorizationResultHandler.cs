@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Policy;
+using ZenGear.Api.Errors;
 
 namespace ZenGear.Api.Auth;
 

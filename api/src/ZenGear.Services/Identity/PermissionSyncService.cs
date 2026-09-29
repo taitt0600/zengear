@@ -6,14 +6,6 @@ using ZenGear.Services.Common;
 
 namespace ZenGear.Services.Identity;
 
-public enum PermissionSyncResult
-{
-    Synchronized,
-
-    /// <summary>A role of the catalog does not exist yet: nothing was written.</summary>
-    RolesMissing,
-}
-
 /// <summary>
 /// Applies <see cref="IPermissionCatalog"/> to the database (DEC-095, R-SEC-03), in one transaction under an
 /// advisory lock so several API instances starting together run it one after the other.

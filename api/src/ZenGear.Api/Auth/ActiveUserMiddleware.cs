@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
+using ZenGear.Api.Errors;
 using ZenGear.Api.Logging;
 using ZenGear.Services.Identity;
 

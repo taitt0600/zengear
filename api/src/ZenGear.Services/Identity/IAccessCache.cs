@@ -1,16 +1,4 @@
-using ZenGear.Data.Entities.Identity;
-
 namespace ZenGear.Services.Identity;
-
-/// <summary>Versions under which entries are read and written: the global epoch and the entry's own version.</summary>
-public readonly record struct AccessVersion(long Epoch, long Version);
-
-/// <summary>A user as cached: everything <see cref="UserAccess"/> needs except the permissions.</summary>
-public sealed record CachedUser(
-    string? FirebaseUid, UserStatus Status, DateTimeOffset? LastLoginAt, bool MustChangePassword, Guid[] RoleIds);
-
-/// <summary>A role as cached: its scope and permission keys.</summary>
-public sealed record CachedRole(ScopingType ScopingType, string[] PermissionKeys);
 
 /// <summary>
 /// Redis cache of user status and permissions per role (R-SEC-07). Entries are stored under versions:

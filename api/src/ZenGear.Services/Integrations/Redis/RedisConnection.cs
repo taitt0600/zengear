@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using StackExchange.Redis;
 
-namespace ZenGear.Services.Common;
+namespace ZenGear.Services.Integrations.Redis;
 
 /// <summary>
 /// The one Redis connection of the process. It connects in the background on first use and never

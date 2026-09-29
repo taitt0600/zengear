@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Shouldly;
-using ZenGear.Data.Common;
+using ZenGear.Data.Conventions;
 using ZenGear.Data.Entities.Identity;
 
 namespace ZenGear.Services.Tests.Data;

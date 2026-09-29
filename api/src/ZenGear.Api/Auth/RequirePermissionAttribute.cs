@@ -14,5 +14,3 @@ public sealed class RequirePermissionAttribute(string key) : AuthorizeAttribute,
 
     public IEnumerable<IAuthorizationRequirement> GetRequirements() => [new PermissionRequirement(Key)];
 }
-
-public sealed record PermissionRequirement(string Key) : IAuthorizationRequirement;
