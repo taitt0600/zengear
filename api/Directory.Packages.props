@@ -40,8 +40,9 @@
     <PackageVersion Include="Testcontainers.PostgreSql" Version="4.15.0" />
     <PackageVersion Include="Testcontainers.Redis" Version="4.15.0" />
   </ItemGroup>
-  <ItemGroup>
-    <!-- analyzers of every project: warnings are errors (TreatWarningsAsErrors), so they fail the build -->
+  <ItemGroup Condition="'$(MSBuildProjectExtension)' == '.csproj'">
+    <!-- analyzers of every C# project: warnings are errors (TreatWarningsAsErrors), so they fail the build.
+         docker-compose.dcproj is excluded: a package reference makes NuGet restore it (NU1105). -->
     <GlobalPackageReference Include="SonarAnalyzer.CSharp" Version="10.35.0.4138" />
   </ItemGroup>
 </Project>
