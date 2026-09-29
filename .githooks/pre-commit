@@ -1,0 +1,10 @@
+#!/bin/sh
+# Scans the staged changes for secrets with gitleaks (.gitleaks.toml). Enabled with the other hooks:
+# git config core.hooksPath .githooks
+# CI scans every pull request and push (.github/workflows/secrets.yml), so without gitleaks installed
+# this hook only warns. Install: winget install Gitleaks.Gitleaks
+if ! command -v gitleaks >/dev/null 2>&1; then
+  echo "pre-commit: gitleaks is not installed; secrets are only checked in CI (winget install Gitleaks.Gitleaks)" >&2
+  exit 0
+fi
+exec gitleaks git --pre-commit --staged --redact --no-banner .

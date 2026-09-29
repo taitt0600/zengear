@@ -56,6 +56,7 @@ Every commit follows Conventional Commits 1.0.0, in English:
 - `footer`: `Refs: <Feature ID>, <Rule ID>, <DEC-xxx>` for the blueprint items the commit implements or changes; `BREAKING CHANGE: <description>` (or `!` after the type) when an API contract or schema change breaks existing callers or data.
 - One logical change per commit. An API change and its web change stay in one commit (`feat: …` without scope).
 - Pull request title: the same format as a commit subject, with the feature ID at the end in parentheses (`feat(api): add role-based access control (AUT-04)`); merge with **Rebase and merge** so every commit keeps its message. Checked by `.githooks/commit-msg` (enable once per clone: `git config core.hooksPath .githooks`) and by the `pr-title` workflow.
+- No secret in any commit: `.githooks/pre-commit` scans the staged changes with gitleaks (warns only if gitleaks is not installed) and the `secrets` workflow scans every pull request; an allowlist entry in `.gitleaks.toml` needs the user's approval and a comment saying why. Never commit with `--no-verify`.
 
 ## Workflow
 
