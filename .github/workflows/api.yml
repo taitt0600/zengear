@@ -1,0 +1,69 @@
+name: api
+
+on:
+  push:
+    branches: [main]
+    paths: ['api/**', 'docs/**', 'tools/**', '.github/workflows/api.yml']
+  pull_request:
+    paths: ['api/**', 'docs/**', 'tools/**', '.github/workflows/api.yml']
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: api/global.json
+      - run: dotnet tool restore
+      - run: dotnet build -c Release
+      - name: OpenAPI contract is committed
+        run: git diff --exit-code -- openapi
+      - run: dotnet test -c Release --no-build
+      - name: Model matches migrations
+        run: dotnet ef migrations has-pending-model-changes -p src/ZenGear.Data -s src/ZenGear.Api
+
+  schema:
+    needs: build-test
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: localhost
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      LAST_PHASE_FILE: '2'   # 2 = Phase 1; đổi thành 3, 4, 5 khi bắt đầu phase sau
+      ConnectionStrings__ZenGearMigrations: Host=localhost;Database=zengear;Username=postgres;Password=postgres
+    defaults:
+      run:
+        working-directory: api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: api/global.json
+      - run: dotnet tool restore
+      - name: Snapshot of the specification
+        run: |
+          psql -v ON_ERROR_STOP=1 -d postgres -f db/zengear_01_database.sql
+          for f in db/zengear_0[2-${LAST_PHASE_FILE}]_*.sql; do psql -v ON_ERROR_STOP=1 -d zengear -f "$f"; done
+          psql -v ON_ERROR_STOP=1 -At -d zengear -f ../tools/schema_snapshot.sql > spec.txt
+      - name: Snapshot of the migrations
+        run: |
+          psql -v ON_ERROR_STOP=1 -d postgres -f db/zengear_01_database.sql
+          if ls src/ZenGear.Data/Migrations/*.cs >/dev/null 2>&1; then
+            dotnet ef database update -p src/ZenGear.Data -s src/ZenGear.Api
+          fi
+          psql -v ON_ERROR_STOP=1 -At -d zengear -f ../tools/schema_snapshot.sql > migrated.txt
+      - name: Migrations produce the specified schema
+        continue-on-error: true   # bỏ dòng này khi migration Phase 1 đã đủ bảng
+        run: diff spec.txt migrated.txt
