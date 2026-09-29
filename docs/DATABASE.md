@@ -1826,7 +1826,7 @@ Table status_history {
   to_status varchar(20) [not null, note: 'Same value set as from_status, per parent']
   note text [null]
   transaction_id bigint [not null, default: `pg_current_xact_id()::text::bigint`, note: 'database transaction that wrote the row; groups the rows of one operation']
-  correlation_id uuid [null, note: 'request id, same as in the application log']
+  correlation_id uuid [null, note: 'W3C trace id of the request, same TraceId as in the application log']
   created_by uuid [null]
   created_at timestamptz [not null, default: `now()`]
 
@@ -1912,7 +1912,7 @@ Table audit_logs {
   old_values jsonb [null]
   new_values jsonb [null]
   transaction_id bigint [not null, default: `pg_current_xact_id()::text::bigint`, note: 'database transaction that wrote the row; groups the rows of one operation']
-  correlation_id uuid [null, note: 'request id, same as in the application log']
+  correlation_id uuid [null, note: 'W3C trace id of the request, same TraceId as in the application log']
   changed_by uuid [null]
   changed_at timestamptz [not null, default: `now()`]
 
@@ -2765,7 +2765,7 @@ Status change timeline of orders, warranty requests and returns.
 | to_status | New status | Confirmed, Processing |
 | note | Reason — required for Cancelled (order) and Rejected (warranty) | "Khách đổi ý", NULL |
 | transaction_id | Database transaction that wrote the row; all rows of one operation share it | 1234567 |
-| correlation_id | Request id, also written to the application log | `9f8e7d6c-...`, NULL |
+| correlation_id | W3C trace id of the request, same TraceId as in the application log | `9f8e7d6c-...`, NULL |
 | order_id | FK to `orders` — set when the row belongs to an order (exactly one of the three parents) | `f8a9b0c1-...`, NULL |
 | warranty_request_id | FK to `warranty_requests` | NULL |
 | return_id | FK to `returns` | NULL |
@@ -2881,7 +2881,7 @@ Field-level change history.
 | old_values | Row state before the change (UPDATE/DELETE only) | `{"price": 27990000}`, NULL |
 | new_values | Row state after the change (INSERT/UPDATE only) | `{"price": 25990000}`, NULL |
 | transaction_id | Database transaction that wrote the row; all rows of one operation share it | 1234567 |
-| correlation_id | Request id, also written to the application log | `9f8e7d6c-...`, NULL |
+| correlation_id | W3C trace id of the request, same TraceId as in the application log | `9f8e7d6c-...`, NULL |
 | changed_by | Who made the change | `a1b2c3d4-...`, NULL |
 | changed_at | Change time | 2026-02-15 09:00:00 |
 

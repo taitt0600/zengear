@@ -67,3 +67,7 @@ Validation errors use `ValidationProblemDetails` with an `errors` object keyed b
 ## Authentication
 
 `Authorization: Bearer <Firebase ID token>` on every request except public storefront endpoints and payment callbacks. Payment callbacks (VNPay IPN) are verified by the gateway signature instead.
+
+## Health
+
+`GET /health` is outside `/api/v1`, anonymous and not in the OpenAPI document. It checks the database connection and returns `text/plain` `Healthy` or `Unhealthy` with 200 or 503; it never returns error details.

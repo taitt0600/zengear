@@ -37,6 +37,25 @@ Decision: DEC-093 (monorepo), DEC-091 (3-Layer backend).
 
 `api/docker-compose.yml` (Visual Studio Docker Compose project) runs PostgreSQL 18 and Redis; launch profile `Infrastructure` starts only these two, and the API runs from its own project. Firebase runs with the Firebase Local Emulator Suite. Setup order for the database is in `api/CLAUDE.md`.
 
+## Commits
+
+Every commit follows Conventional Commits 1.0.0, in English:
+
+```
+<type>(<scope>): <subject>
+
+<body>
+
+<footer>
+```
+
+- `type`: `feat` (new behavior), `fix` (bug fix), `docs`, `refactor` (no behavior change), `perf`, `test`, `build` (packages, SDK, project files), `ci`, `chore` (other tooling), `revert`.
+- `scope`: `api`, `web`, `db` (schema specification and migrations), `seed`, `docs`, `ci`. Omit the scope when a change spans several of them.
+- `subject`: imperative, lowercase, no final period, at most 72 characters (aim for 50).
+- `body`: what changed and why, wrapped at 72 characters; group by project when several are touched.
+- `footer`: `Refs: <Feature ID>, <Rule ID>, <DEC-xxx>` for the blueprint items the commit implements or changes; `BREAKING CHANGE: <description>` (or `!` after the type) when an API contract or schema change breaks existing callers or data.
+- One logical change per commit. An API change and its web change stay in one commit (`feat: …` without scope).
+
 ## Commands
 
 - Implement a feature end to end: `/implement-feature <Feature ID>`

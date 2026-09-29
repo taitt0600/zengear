@@ -10,7 +10,7 @@ Implement feature $ARGUMENTS of ZenGear.
 4. Backend, following `api/CLAUDE.md`:
    - Tests first (`api/tests/ZenGear.Services.Tests` for entity and service logic, `api/tests/ZenGear.Api.IntegrationTests` for transactions, constraints and endpoints), named after rule IDs.
    - Code in the owning area folders of `ZenGear.Data`, `ZenGear.Services`, `ZenGear.Api`; never write another area's tables directly.
-   - From `api/`: `dotnet build`, `dotnet test`, the migration drift check; fix until green. The build refreshes `api/openapi/ZenGear.Api.json`.
+   - From `api/`: `dotnet build ZenGear.slnx`, `dotnet test ZenGear.slnx`, the migration drift check; fix until green. The build refreshes `api/openapi/ZenGear.Api.json`.
 5. Web, following `web/CLAUDE.md` — only when `docs/SCREENS.md` describes the screens of this feature; otherwise stop after the backend and say so:
    - From `web/`: `npm run gen:api`, then pages and components in the matching `features/<area>`.
    - `npm run lint` and `npm run build`.

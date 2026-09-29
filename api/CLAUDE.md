@@ -35,7 +35,7 @@ Folders inside each project are the business areas of `../docs/ARCHITECTURE.md`,
 ## Commands
 
 - Restore local tools (dotnet-ef): `dotnet tool restore`
-- Build and test: `dotnet build` · `dotnet test`
+- Build and test: `dotnet build ZenGear.slnx` · `dotnet test ZenGear.slnx` — always name the solution: `api/` also holds `docker-compose.dcproj`, so a bare `dotnet build` fails with MSB1011
 - New migration: `dotnet ef migrations add <Name> -p src/ZenGear.Data -s src/ZenGear.Api`
 - Drift check (must report no changes): `dotnet ef migrations has-pending-model-changes -p src/ZenGear.Data -s src/ZenGear.Api`
 - Schema check against the specification, on a database built by the migrations:
