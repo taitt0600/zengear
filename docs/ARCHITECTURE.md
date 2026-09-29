@@ -98,13 +98,28 @@ Every rule has at least one test whose name starts with its ID (`R_INV_01_...`).
 - PostgreSQL-only objects (exclusion constraint, triggers, view, functions) through `migrationBuilder.Sql`.
 - CI: `dotnet ef migrations has-pending-model-changes`; build one database from the migrations and one from `api/db/zengear_01_database.sql` plus the phase files up to the phase in progress, run `tools/schema_snapshot.sql` on both and `diff` the output (must be empty); after the last phase `api/db/zengear_07_schema_check.sql` returns 0 rows; `api/db/zengear_06_reconciliation.sql` runs on test data.
 - The build writes `api/openapi/ZenGear.Api.json` (Microsoft.AspNetCore.OpenApi); it is committed and CI fails when it is out of date.
-- Deploy: migration bundle as a separate step before the new API version starts; then `api/db/zengear_08_roles.sql` and `api/seed/`.
+- Deploy: migration bundle as a separate step before the new API version starts; then `api/db/zengear_08_roles.sql` and `api/seed/`. On a new environment, restart the API once after the first seed: the startup permission sync does nothing until every role of `01_roles.sql` exists (DEC-095).
 - Behind Azure App Service, `UseForwardedHeaders` runs before authentication and trusts only Azure's front end, so the security log (R-SEC-11) records the client IP (GitHub issue #2).
 - The API connects as a login of `zengear_app`, jobs as `zengear_jobs`, reports as `zengear_readonly` — never as the schema owner (DEC-089).
 
 ## Background jobs
 
 `BackgroundService` + `PeriodicTimer` in `ZenGear.Services/Jobs`, registered by `ZenGear.Api`: pending order expiry, notification sender, e-invoice issuing, nightly reconciliation (02:00, report only), nightly cleanup. A job takes a PostgreSQL advisory lock (`pg_try_advisory_lock`) so only one API instance runs it at a time.
+
+Two exceptions:
+
+- `PermissionSyncJob` is a one-shot `IHostedService` at startup. It applies the permission catalog of the code (DEC-095) under a blocking `pg_advisory_xact_lock`, so instances starting together run it one after the other. A failure is logged and the API starts with the grants already stored.
+- `AccessBumpRetryJob` retries the access cache bumps that failed (see Caching).
+
+## Caching
+
+Redis caches the user status and the permissions per role (R-SEC-07), behind `IUserAccessReader`; nothing else is cached yet.
+
+- **Versioned keys:** entries are stored under a version: `zengear:access:user:{id}:{epoch}:{ver}` and `…role:{id}:{epoch}:{ver}`, 5-minute TTL. The versions are `…ver:user:{id}`, `…ver:role:{id}` and the global `…epoch`, with no TTL. Every entry is written under the version read before its query, so data read before a change commits never becomes current.
+- **Invalidation:** the version is incremented (INCR) after the commit that changes `users.status`, `users.firebase_uid`, `staff_profiles`, `user_roles` or `role_permissions`. The EF Core interceptor `AccessCacheInvalidationInterceptor` does it for tracked changes. `ExecuteUpdate`, raw SQL and FK cascades bypass it, so their caller calls `IAccessCache.BumpAsync`.
+- **Failed bumps:** a bump that fails stays pending. It is retried every second, and the instance reads PostgreSQL only until it succeeds. A restored connection bumps the epoch. A bump pending on an instance that stops, or a partition affecting one instance, is only limited by the 5-minute TTL safety net.
+- **Redis unavailable:** requests read PostgreSQL. Commands time out after `Redis:CommandTimeoutMs` (250 ms).
+- **Eviction policy:** Redis must run with `maxmemory-policy` `volatile-*` or `noeviction`, never `allkeys-*`. An evicted version key would bring an old entry back.
 
 ## Time and money
 

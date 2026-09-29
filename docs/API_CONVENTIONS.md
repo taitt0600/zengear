@@ -68,6 +68,14 @@ Validation errors use `ValidationProblemDetails` with an `errors` object keyed b
 
 `Authorization: Bearer <Firebase ID token>` on every request except public storefront endpoints and payment callbacks. Payment callbacks (VNPay IPN) are verified by the gateway signature instead.
 
+Every controller action declares its access, checked by a test (AUT-04):
+
+- `[RequirePermission("resource.action")]`: the permission must be granted through one of the caller's roles, never checked by role name (R-SEC-03).
+- `[AnyRegisteredUser]`: any registered, ACTIVE user.
+- `[AllowAnonymous]`: public.
+
+A token for no ZenGear account gets 403 `/problems/account-not-registered`. A registered user without the permission gets 403 `/problems/permission-denied` with `ruleId` `R-SEC-03`. The scope of the permission (NONE = all data, SELF = the caller's own data) is read with `HttpContext.GetUserAccess()`.
+
 Security-sensitive operations (changing the password) need a recent sign-in: when the `auth_time` of the ID token is more than 5 minutes old the API returns 403 with `type` `/problems/recent-login-required`; the web signs the user in again with Firebase and retries (DEC-094).
 
 ## Health

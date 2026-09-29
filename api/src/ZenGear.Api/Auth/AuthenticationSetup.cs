@@ -15,7 +15,8 @@ public static class AuthenticationSetup
     /// checked when the host starts (<c>ValidateOnStart</c>, skipped during build-time OpenAPI
     /// generation) and the signing keys are fetched at the first request, so the build runs
     /// without configuration or network.
-    /// Every endpoint requires a registered, ACTIVE user unless it is marked <c>[AllowAnonymous]</c>.
+    /// Every endpoint requires a registered, ACTIVE user unless it is marked <c>[AllowAnonymous]</c>;
+    /// <see cref="RequirePermissionAttribute"/> adds a permission checked through the caller's roles (R-SEC-03).
     /// </summary>
     public static IServiceCollection AddFirebaseJwtBearer(this IServiceCollection services, IHostEnvironment environment)
     {
@@ -45,7 +46,8 @@ public static class AuthenticationSetup
         services.AddAuthorizationBuilder()
             .SetDefaultPolicy(registeredUser)
             .SetFallbackPolicy(registeredUser);
-        services.AddSingleton<IAuthorizationMiddlewareResultHandler, AccountNotRegisteredResultHandler>();
+        services.AddSingleton<IAuthorizationMiddlewareResultHandler, ZenGearAuthorizationResultHandler>();
+        services.AddSingleton<IAuthorizationHandler, PermissionAuthorizationHandler>();
 
         return services;
     }

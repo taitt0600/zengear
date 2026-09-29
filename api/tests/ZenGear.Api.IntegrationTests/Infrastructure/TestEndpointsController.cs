@@ -3,6 +3,7 @@ using FluentValidation.Results;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using ZenGear.Api.Auth;
 using ZenGear.Services.Common;
 
 namespace ZenGear.Api.IntegrationTests.Infrastructure;
@@ -44,4 +45,11 @@ public sealed class TestEndpointsController : ControllerBase
     [HttpGet("anonymous")]
     [AllowAnonymous]
     public IActionResult Anonymous() => Ok();
+
+    public const string TestPermission = "test.read";
+
+    /// <summary>Requires <see cref="TestPermission"/>; returns its scope for the caller.</summary>
+    [HttpGet("permission")]
+    [RequirePermission(TestPermission)]
+    public IActionResult Permission() => Ok(new { scope = HttpContext.GetUserAccess()!.ScopeOf(TestPermission)?.ToString() });
 }

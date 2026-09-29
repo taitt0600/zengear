@@ -10,7 +10,8 @@ namespace ZenGear.Api.Auth;
 /// Runs after authentication, for requests with a valid Firebase ID token:
 /// <list type="bullet">
 /// <item>a user that is not ACTIVE is refused on every request and logged REJECTED (R-SEC-04, R-SEC-11);</item>
-/// <item>an ACTIVE user gets the <see cref="ZenGearClaims"/> and the first request of each sign-in
+/// <item>an ACTIVE user gets the <see cref="ZenGearClaims"/> and its <c>UserAccess</c> (permissions, read by
+/// <see cref="PermissionAuthorizationHandler"/>), and the first request of each sign-in
 /// (<c>auth_time</c> later than <c>last_login_at</c>) records it and logs SUCCESS (R-SEC-11);</item>
 /// <item>staff who must change their password are refused on protected endpoints not marked
 /// <see cref="AllowWhilePasswordChangeRequiredAttribute"/> (R-USR-03).</item>
@@ -49,6 +50,7 @@ public sealed class ActiveUserMiddleware(RequestDelegate next)
             return;
         }
 
+        context.SetUserAccess(access);
         identity.AddClaim(new Claim(ZenGearClaims.UserId, access.Id.ToString()));
         identity.AddClaim(new Claim(ZenGearClaims.MustChangePassword, access.MustChangePassword ? "true" : "false"));
 

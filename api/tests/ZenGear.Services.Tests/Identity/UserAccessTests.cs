@@ -33,4 +33,54 @@ public class UserAccessTests
     {
         new UserAccess(Guid.NewGuid(), UserStatus.Active, LastLogin, false).IsNewSignIn(LastLogin).ShouldBeFalse();
     }
+
+    [Test]
+    public void R_SEC_03_permission_granted_by_any_role_is_allowed()
+    {
+        var access = WithRoles(
+            (ScopingType.None, ["order.confirm"]),
+            (ScopingType.None, ["price.update"]));
+
+        access.HasPermission("order.confirm").ShouldBeTrue();
+        access.HasPermission("price.update").ShouldBeTrue();
+        access.ScopeOf("order.confirm").ShouldBe(ScopingType.None);
+    }
+
+    [Test]
+    public void R_SEC_03_permission_not_granted_has_no_scope()
+    {
+        var access = WithRoles((ScopingType.None, ["order.confirm"]));
+
+        access.HasPermission("price.update").ShouldBeFalse();
+        access.ScopeOf("price.update").ShouldBeNull();
+    }
+
+    [Test]
+    public void R_SEC_03_user_without_roles_has_no_permission()
+    {
+        new UserAccess(Guid.NewGuid(), UserStatus.Active, null, false).HasPermission("order.confirm").ShouldBeFalse();
+    }
+
+    [TestCase(ScopingType.Self, ScopingType.None)]
+    [TestCase(ScopingType.None, ScopingType.Self)]
+    public void R_SEC_03_NONE_scope_wins_over_SELF(ScopingType first, ScopingType second)
+    {
+        var access = WithRoles((first, ["order.view"]), (second, ["order.view"]));
+
+        access.ScopeOf("order.view").ShouldBe(ScopingType.None);
+    }
+
+    [Test]
+    public void R_SEC_03_SELF_only_role_gives_SELF_scope()
+    {
+        var access = WithRoles((ScopingType.Self, ["order.view"]), (ScopingType.Self, ["order.view"]));
+
+        access.ScopeOf("order.view").ShouldBe(ScopingType.Self);
+    }
+
+    private static UserAccess WithRoles(params (ScopingType Scope, string[] Keys)[] roles) =>
+        new(Guid.NewGuid(), UserStatus.Active, null, false)
+        {
+            Permissions = UserAccess.MergeRoles(roles.Select(r => (r.Scope, (IEnumerable<string>)r.Keys))),
+        };
 }

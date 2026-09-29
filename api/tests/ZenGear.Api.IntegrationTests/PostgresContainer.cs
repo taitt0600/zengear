@@ -1,11 +1,14 @@
+using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using Testcontainers.PostgreSql;
+using ZenGear.Data;
 
 namespace ZenGear.Api.IntegrationTests;
 
 /// <summary>
 /// One PostgreSQL 18 container for the whole test assembly. The database <c>zengear</c> is created
-/// by <c>db/zengear_01_database.sql</c> (Vietnamese ICU collation, timezone UTC), as in every environment.
+/// by <c>db/zengear_01_database.sql</c> (Vietnamese ICU collation, timezone UTC), as in every environment,
+/// then migrated once.
 /// </summary>
 [SetUpFixture]
 public sealed class PostgresContainer
@@ -24,6 +27,14 @@ public sealed class PostgresContainer
         await RunScriptAsync(serverDatabase.ConnectionString, Path.Combine(AppContext.BaseDirectory, "db", "zengear_01_database.sql"));
 
         ConnectionString = new NpgsqlConnectionStringBuilder(serverDatabase.ConnectionString) { Database = "zengear" }.ConnectionString;
+
+        // Before any API host starts: the startup permission sync needs the tables.
+        var options = new DbContextOptionsBuilder<ZenGearDbContext>()
+            .UseNpgsql(ConnectionString)
+            .UseSnakeCaseNamingConvention()
+            .Options;
+        await using var db = new ZenGearDbContext(options);
+        await db.Database.MigrateAsync();
     }
 
     [OneTimeTearDown]

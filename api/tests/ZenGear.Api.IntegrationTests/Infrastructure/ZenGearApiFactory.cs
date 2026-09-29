@@ -11,10 +11,11 @@ using ZenGear.Api.Logging;
 namespace ZenGear.Api.IntegrationTests.Infrastructure;
 
 /// <summary>
-/// The API in environment <c>Testing</c> against the test container, with the Firebase Auth Emulator
+/// The API in environment <c>Testing</c> against the test containers, with the Firebase Auth Emulator
 /// token mode (project <c>demo-zengear</c>), a fake clock and the test-only controllers of this assembly.
 /// </summary>
-public class ZenGearApiFactory(string environment = AuthenticationSetup.TestingEnvironment) : WebApplicationFactory<Program>
+public class ZenGearApiFactory(string environment = AuthenticationSetup.TestingEnvironment, string? redisConnectionString = null)
+    : WebApplicationFactory<Program>
 {
     public const string FirebaseProjectId = "demo-zengear";
 
@@ -27,6 +28,7 @@ public class ZenGearApiFactory(string environment = AuthenticationSetup.TestingE
     {
         builder.UseEnvironment(environment);
         builder.UseSetting("ConnectionStrings:ZenGear", PostgresContainer.ConnectionString);
+        builder.UseSetting("ConnectionStrings:Redis", redisConnectionString ?? RedisContainer.ConnectionString);
         builder.UseSetting("Firebase:ProjectId", FirebaseProjectId);
         builder.UseSetting("Firebase:UseEmulator", "true");
 
