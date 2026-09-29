@@ -6,6 +6,18 @@ on:
     paths: ['api/**', 'docs/**', 'tools/**', '.github/workflows/api.yml']
   pull_request:
     paths: ['api/**', 'docs/**', 'tools/**', '.github/workflows/api.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: api-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
 
 jobs:
   build-test:
@@ -14,17 +26,25 @@ jobs:
       run:
         working-directory: api
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
         with:
           global-json-file: api/global.json
       - run: dotnet tool restore
-      - run: dotnet build -c Release
+      # api/ also holds docker-compose.dcproj (Visual Studio only): name the solution explicitly.
+      - run: dotnet build ZenGear.slnx -c Release
       - name: OpenAPI contract is committed
         run: git diff --exit-code -- openapi
-      - run: dotnet test -c Release --no-build
+      # Integration tests start postgres:18 with Testcontainers on the runner's Docker.
+      - run: dotnet test ZenGear.slnx -c Release --no-build --logger trx --results-directory TestResults
+      - name: Upload test results
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-results
+          path: api/TestResults
       - name: Model matches migrations
-        run: dotnet ef migrations has-pending-model-changes -p src/ZenGear.Data -s src/ZenGear.Api
+        run: dotnet ef migrations has-pending-model-changes -p src/ZenGear.Data -s src/ZenGear.Api --configuration Release --no-build
 
   schema:
     needs: build-test
@@ -47,8 +67,8 @@ jobs:
       run:
         working-directory: api
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
         with:
           global-json-file: api/global.json
       - run: dotnet tool restore
