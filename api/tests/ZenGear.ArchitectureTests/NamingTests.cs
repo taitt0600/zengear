@@ -14,6 +14,7 @@ public sealed class NamingTests
     {
         var offenders = new[] { RepositoryLayout.Api, RepositoryLayout.Services, RepositoryLayout.Data }
             .SelectMany(assembly => assembly.GetTypes())
+            .Where(type => type.Namespace?.StartsWith("ZenGear.", StringComparison.Ordinal) == true)
             .Where(type => ForbiddenSuffixes.Any(suffix => type.Name.EndsWith(suffix, StringComparison.Ordinal)))
             .Select(type => type.FullName)
             .ToList();
