@@ -39,5 +39,7 @@ public class User : IAggregateRoot
 
     public StaffProfile? StaffProfile { get; private set; }
 
+    public ICollection<UserRole> UserRoles { get; private set; } = [];
+
     public uint Version { get; private set; }
 }
