@@ -30,6 +30,8 @@ repository's specifications and code. You never edit files.
    checked through roles, never by role name (R-SEC-03).
 3. **Layers and ownership**: `Api` → `Services` → `Data`; controllers never use `ZenGearDbContext`;
    a service writes only its own area's tables (table ownership in `docs/ARCHITECTURE.md`).
+   Every new file follows *Folder structure* in `docs/ARCHITECTURE.md`: its folder, its name
+   (one type per file) and no folder or `*Helper`/`*Util`/`*Manager` type outside the lists.
 4. **Schema**: entity configurations and migrations reproduce the spec exactly: table, column,
    type, length, nullability, default, every `pk_`/`fk_`/`ck_`/`ix_` name, `ON DELETE` actions,
    partial and expression indexes. PostgreSQL-only objects (triggers, functions, exclusion
