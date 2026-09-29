@@ -1,0 +1,9 @@
+* text=auto eol=lf
+*.cmd text eol=crlf
+*.bat text eol=crlf
+*.xlsx binary
+*.png binary
+*.jpg binary
+
+api/openapi/*.json linguist-generated=true
+web/src/lib/api/schema.d.ts linguist-generated=true
