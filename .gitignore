@@ -361,3 +361,14 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# Secrets
+.env
+.env*.local
+**/*service-account*.json
+**/appsettings.*.local.json
+
+# Firebase emulator
+.firebase/
+firebase-debug.log
+*-debug.log
