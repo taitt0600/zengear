@@ -21,6 +21,14 @@ public class ZenGearDbContext : DbContext
 
     public DbSet<StaffProfile> StaffProfiles => Set<StaffProfile>();
 
+    public DbSet<Role> Roles => Set<Role>();
+
+    public DbSet<Permission> Permissions => Set<Permission>();
+
+    public DbSet<UserRole> UserRoles => Set<UserRole>();
+
+    public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ZenGearDbContext).Assembly);
