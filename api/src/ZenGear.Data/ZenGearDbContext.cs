@@ -61,14 +61,14 @@ public class ZenGearDbContext : DbContext
     /// </summary>
     private static void ApplyXminConcurrency(ModelBuilder modelBuilder)
     {
-        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
-        {
-            if (!typeof(IAggregateRoot).IsAssignableFrom(entityType.ClrType))
-            {
-                continue;
-            }
+        var aggregateRoots = modelBuilder.Model.GetEntityTypes()
+            .Select(entityType => entityType.ClrType)
+            .Where(typeof(IAggregateRoot).IsAssignableFrom)
+            .ToList();
 
-            modelBuilder.Entity(entityType.ClrType)
+        foreach (var clrType in aggregateRoots)
+        {
+            modelBuilder.Entity(clrType)
                 .Property(nameof(IAggregateRoot.Version))
                 .IsRowVersion()
                 .HasColumnName("xmin")

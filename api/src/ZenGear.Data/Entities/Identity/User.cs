@@ -5,7 +5,7 @@ namespace ZenGear.Data.Entities.Identity;
 /// <summary>Login account shared by staff and customers (<c>users</c>).</summary>
 public class User : IAggregateRoot
 {
-    private User()
+    protected User()
     {
     }
 

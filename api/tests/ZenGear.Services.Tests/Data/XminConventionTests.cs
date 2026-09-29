@@ -33,14 +33,15 @@ public class XminConventionTests
         entityType.FindProperty(nameof(TestChild.SortOrder))!.GetColumnName().ShouldBe("sort_order");
     }
 
-    private sealed class TestAggregate : IAggregateRoot
+    // Internal, not private: EF reads and writes these properties, which Sonar cannot see (S1144).
+    internal sealed class TestAggregate : IAggregateRoot
     {
         public Guid Id { get; set; }
 
-        public uint Version { get; private set; }
+        public uint Version { get; set; }
     }
 
-    private sealed class TestChild
+    internal sealed class TestChild
     {
         public Guid Id { get; set; }
 

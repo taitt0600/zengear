@@ -3,7 +3,7 @@ namespace ZenGear.Data.Entities.Identity;
 /// <summary>Staff-only profile data, 1-1 with <see cref="User"/> (<c>staff_profiles</c>).</summary>
 public class StaffProfile
 {
-    private StaffProfile()
+    protected StaffProfile()
     {
     }
 

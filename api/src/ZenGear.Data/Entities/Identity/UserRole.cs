@@ -6,7 +6,7 @@ namespace ZenGear.Data.Entities.Identity;
 /// </summary>
 public class UserRole
 {
-    private UserRole()
+    protected UserRole()
     {
     }
 

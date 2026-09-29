@@ -77,4 +77,4 @@ if (app.Environment.IsDevelopment())
     app.MapScalarApiReference().AllowAnonymous();
 }
 
-app.Run();
+await app.RunAsync();
