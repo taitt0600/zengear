@@ -27,6 +27,7 @@ Folders inside each project are the business areas of `../docs/ARCHITECTURE.md`,
 - Schema changes only through EF Core migrations. The result must match `db/` exactly (names, types, constraints, indexes). Update `db/` and `../docs/DATABASE.md` in the same change.
 - Constraint and index names are set explicitly to the names in `db/` (≤ 63 characters). PostgreSQL-only objects (exclusion constraint, triggers, view, functions) go through `migrationBuilder.Sql`.
 - Every business rule implemented gets at least one test whose name starts with its ID (`R_INV_01_...`).
+- Enums: members in PascalCase, each declares its stored value with `[JsonStringEnumMemberName("ACTIVE")]` exactly as listed in `../docs/DATABASE.md`. `ZenGearDbContext` stores every enum property through `AttributeEnumConverter<TEnum>`, so the database and the JSON carry the same value; never configure `HasConversion<string>()` by hand.
 - Money is `decimal` in C#, `numeric(15,0)` VND in the database. Time comes from the clock service, never `DateTime.Now`.
 - External systems only through the interfaces in `ZenGear.Services/Integrations` (`IEmailSender`, `IEInvoiceClient`, `IPaymentGateway`, `IFileStorage`, `IAuthProvider`); tests use fakes.
 - Endpoints follow `../docs/API_CONVENTIONS.md`.
