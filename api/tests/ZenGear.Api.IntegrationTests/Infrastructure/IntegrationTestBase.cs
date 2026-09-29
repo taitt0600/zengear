@@ -1,13 +1,11 @@
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 using Respawn;
-using ZenGear.Data;
 
 namespace ZenGear.Api.IntegrationTests.Infrastructure;
 
 /// <summary>
-/// One API instance per test class; the database is migrated once and emptied by Respawn before every test.
+/// One API instance per test class. The database (migrated once by <see cref="PostgresContainer"/>) is emptied
+/// by Respawn and Redis is flushed before every test.
 /// </summary>
 public abstract class IntegrationTestBase
 {
@@ -17,14 +15,14 @@ public abstract class IntegrationTestBase
 
     protected HttpClient Client { get; private set; } = null!;
 
-    [OneTimeSetUp]
-    public async Task StartApiAsync()
-    {
-        Factory = new ZenGearApiFactory();
-        Client = Factory.CreateClient();
+    /// <summary>Override to start the API with another factory (e.g. Redis unreachable).</summary>
+    protected virtual ZenGearApiFactory CreateFactory() => new();
 
-        using var scope = Factory.Services.CreateScope();
-        await scope.ServiceProvider.GetRequiredService<ZenGearDbContext>().Database.MigrateAsync();
+    [OneTimeSetUp]
+    public void StartApi()
+    {
+        Factory = CreateFactory();
+        Client = Factory.CreateClient();
     }
 
     [OneTimeTearDown]
@@ -40,12 +38,6 @@ public abstract class IntegrationTestBase
         await using var connection = new NpgsqlConnection(PostgresContainer.ConnectionString);
         await connection.OpenAsync();
 
-        // Respawn fails when there is no table to clear: skip until the first migration adds one.
-        if (_respawner is null && !await HasBusinessTablesAsync(connection))
-        {
-            return;
-        }
-
         _respawner ??= await Respawner.CreateAsync(connection, new RespawnerOptions
         {
             DbAdapter = DbAdapter.Postgres,
@@ -53,13 +45,6 @@ public abstract class IntegrationTestBase
             TablesToIgnore = ["__EFMigrationsHistory"],
         });
         await _respawner.ResetAsync(connection);
-    }
-
-    private static async Task<bool> HasBusinessTablesAsync(NpgsqlConnection connection)
-    {
-        await using var command = new NpgsqlCommand(
-            "SELECT EXISTS (SELECT 1 FROM pg_tables WHERE schemaname = 'public' AND tablename <> '__EFMigrationsHistory')",
-            connection);
-        return (bool)(await command.ExecuteScalarAsync())!;
+        await RedisContainer.FlushAsync();
     }
 }

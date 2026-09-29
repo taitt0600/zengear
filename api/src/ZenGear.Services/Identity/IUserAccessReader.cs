@@ -1,8 +1,8 @@
 namespace ZenGear.Services.Identity;
 
 /// <summary>
-/// The one lookup of the caller per request. The Redis cache of user status and permissions
-/// (R-SEC-07) belongs here, added with AUT-04.
+/// The one lookup of the caller per request: status, sign-in, password flag and permissions,
+/// through the Redis access cache (R-SEC-07).
 /// </summary>
 public interface IUserAccessReader
 {

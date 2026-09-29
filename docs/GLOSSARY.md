@@ -104,6 +104,7 @@ Stored as the English values below; the Vietnamese label is what the UI shows.
 | Kết quả bảo hành | `warranty_requests.resolution_type` | REPAIRED (đã sửa), REPLACED (đổi máy), NO_FAULT (không lỗi), BUYBACK (thu hồi có khấu hao), REJECTED (từ chối) |
 | Mục đích thu chi trong ca | `shift_cash_adjustments.purpose` | EXPENSE (chi phí), OTHER_INCOME (thu khác), BANK_DEPOSIT (nộp tiền vào ngân hàng), TO_SAFE / FROM_SAFE (chuyển giữa ngăn kéo và két) |
 | Chiều phiếu quỹ | `cash_vouchers.direction` | RECEIPT (phiếu thu), PAYMENT (phiếu chi) |
+| Phạm vi truy cập của vai trò | `roles.scoping_type` | NONE (toàn bộ dữ liệu), SELF (chỉ dữ liệu của chính mình) |
 | Trạng thái sản phẩm | `products.status` | DRAFT (nháp), PUBLISHED (đang bán), DISCONTINUED (ngừng kinh doanh) |
 
 ## Business terms
@@ -118,6 +119,8 @@ Stored as the English values below; the Vietnamese label is what the UI shows.
 | Sổ quỹ | cash book | Tập hợp phiếu thu, phiếu chi theo từng quỹ |
 | Đối soát | reconciliation | So số liệu lưu sẵn với nguồn gốc; job đêm chỉ báo cáo, không tự sửa |
 | Đơn tạo hộ / bán tại quầy | assisted order / counter sale | Đơn do nhân viên tạo (`ASSISTED`) |
+| Vai trò hệ thống | system role | Admin và Customer (`is_system_role = true`): quyền do code quy định, ghi đè khi khởi động, không sửa qua API (DEC-095) |
+| Vai trò mặc định | default role | 7 vai trò nhân viên có sẵn: code chỉ cấp quyền mới lần đầu, sau đó Admin chỉnh; không đổi tên, không xóa (DEC-095) |
 | Khách lẻ | walk-in customer | Tài khoản hệ thống cho khách không cho SĐT lẫn email (R-USR-08) |
 | Tài khoản placeholder | placeholder account | Tài khoản khách do nhân viên tạo hộ, chưa gắn Firebase (`firebase_uid` NULL) |
 | PC bộ, PC dựng sẵn | pre-built PC | SKU PC có cấu hình niêm yết; lắp sẵn (STOCK) hoặc lắp theo đơn (BUILD) |

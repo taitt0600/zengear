@@ -14,6 +14,7 @@ public sealed class MeController(CurrentUserService currentUsers) : ControllerBa
     /// <c>/problems/account-disabled</c> (R-SEC-04) or <c>/problems/account-not-registered</c>.
     /// </response>
     [HttpGet]
+    [AnyRegisteredUser]
     [AllowWhilePasswordChangeRequired]
     [ProducesResponseType<CurrentUserDto>(StatusCodes.Status200OK, "application/json")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized, "application/problem+json")]

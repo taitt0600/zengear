@@ -9,6 +9,7 @@ using ZenGear.Api.Errors;
 using ZenGear.Api.Logging;
 using ZenGear.Api.OpenApi;
 using ZenGear.Services;
+using ZenGear.Services.Jobs;
 
 // Nothing here connects to PostgreSQL, Redis or Firebase: the build runs this file to write the
 // OpenAPI document (GetDocument.Insider, Production environment, no user-secrets).
@@ -34,6 +35,11 @@ builder.Services.AddSerilog((services, logger) =>
 builder.Services.AddSingleton<SecurityLog>();
 
 builder.Services.AddZenGearServices(builder.Configuration);
+if (!BuildTimeDocumentGeneration.IsActive)
+{
+    builder.Services.AddHostedService<PermissionSyncJob>();
+    builder.Services.AddHostedService<AccessBumpRetryJob>();
+}
 builder.Services.AddZenGearProblemDetails();
 builder.Services.AddFirebaseJwtBearer(builder.Environment);
 
