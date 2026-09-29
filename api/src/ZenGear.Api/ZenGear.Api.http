@@ -1,6 +1,22 @@
-@ZenGear.Api_HostAddress = http://localhost:5256
+@host = https://localhost:7144
+@tokenOld = eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vZGVtby16ZW5nZWFyIiwiYXVkIjoiZGVtby16ZW5nZWFyIiwic3ViIjoibWFudWFsLXN0YWZmLTAxIiwidXNlcl9pZCI6Im1hbnVhbC1zdGFmZi0wMSIsImF1dGhfdGltZSI6MTc5MDY5NDY1MiwiaWF0IjoxNzkwNjk4MjUyLCJleHAiOjE3OTEzMDMwNTJ9.
+@tokenNew = eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vZGVtby16ZW5nZWFyIiwiYXVkIjoiZGVtby16ZW5nZWFyIiwic3ViIjoibWFudWFsLXN0YWZmLTAxIiwidXNlcl9pZCI6Im1hbnVhbC1zdGFmZi0wMSIsImF1dGhfdGltZSI6MTc5MDY5ODI1MiwiaWF0IjoxNzkwNjk4MjUyLCJleHAiOjE3OTEzMDMwNTJ9.
+@tokenNobody = eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vZGVtby16ZW5nZWFyIiwiYXVkIjoiZGVtby16ZW5nZWFyIiwic3ViIjoibWFudWFsLW5vYm9keSIsInVzZXJfaWQiOiJtYW51YWwtbm9ib2R5IiwiYXV0aF90aW1lIjoxNzkwNjk4MjUyLCJpYXQiOjE3OTA2OTgyNTIsImV4cCI6MTc5MTMwMzA1Mn0.
 
-GET {{ZenGear.Api_HostAddress}}/weatherforecast/
-Accept: application/json
+### 1. Không có token → 401
+GET {{host}}/api/v1/me
 
-###
+### 2. Uid chưa đăng ký → 403 account-not-registered
+GET {{host}}/api/v1/me
+Authorization: Bearer {{tokenNobody}}
+
+### 3. Phiên cũ → 200 (gửi 2 lần)
+GET {{host}}/api/v1/me
+Authorization: Bearer {{tokenOld}}
+
+### 4. Phiên mới → 200
+GET {{host}}/api/v1/me
+Authorization: Bearer {{tokenNew}}
+
+### 5. Health, không cần token
+GET {{host}}/health
