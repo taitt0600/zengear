@@ -28,7 +28,9 @@ Folders, file names and type names follow `../docs/ARCHITECTURE.md`, section *Fo
 - Controllers never touch `ZenGearDbContext`; they take `*Request` and return `*Dto` of `ZenGear.Services` only, one DTO per audience (cost fields and `internal_note` must not leak — R-SEC-09, R-SEC-10).
 - Mapping (AutoMapper) only from entity to DTO, declared in the DTO as a nested `private sealed class Mapping : Profile`; no mapping in `ZenGear.Api`, no map to an entity.
 - No repository or unit of work: services use `ZenGearDbContext`. A query repeated in three or more services becomes a `*Query` class in the owning area.
-- A service writes only the tables of its own area; call the owning service for anything else.
+- A use case lives in the area that owns the aggregate it creates or changes; it writes only that area's tables and calls the owning service for anything else (an IL scan in `ZenGear.ArchitectureTests` checks it).
+- Services are split by audience (`<Entity>Service` for staff, `<Entity>PublicService` for the storefront) and by family of use cases (`<Entity><UseCase>Service`). A file of `ZenGear.Services` has at most 400 lines of code, a `*Service` at most 10 public methods; never add an exception to `ServiceSizeTests` without asking.
+- Type names are unique across the three projects and no public type is nested: a line of a request or DTO is a top-level `*LineRequest` or `*Dto`.
 - Schema changes only through EF Core migrations. The result must match `db/` exactly (names, types, constraints, indexes). Update `db/` and `../docs/DATABASE.md` in the same change.
 - Constraint and index names are set explicitly to the names in `db/` (≤ 63 characters). PostgreSQL-only objects (exclusion constraint, triggers, view, functions) go through `migrationBuilder.Sql`.
 - Every business rule implemented gets at least one test whose name starts with its ID (`R_INV_01_...`).

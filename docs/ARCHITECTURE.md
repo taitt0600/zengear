@@ -43,7 +43,7 @@ Folders inside the three projects follow [Folder structure](#folder-structure); 
 1. `ZenGear.Api` → `ZenGear.Services` → `ZenGear.Data`. `ZenGear.Data` references no other project.
 2. Controllers only call services; they never use `ZenGearDbContext`.
 3. Controllers receive and return the requests and DTOs of `ZenGear.Services`, never entities — cost fields and `internal_note` must not leak (R-SEC-09, R-SEC-10). A DTO serves one audience: staff and customers get different DTOs (`ProductStaffDto`, `ProductPublicDto`), never one shared type.
-4. A service writes only the tables of its own area. To change data of another area it calls that area's service (e.g. `PosCheckoutService` calls `StockService.Issue(...)`; it never updates `stock_balances`). Reading other areas' tables for display is allowed.
+4. A service writes only the tables of its own area. A use case lives in the area that owns the aggregate it creates or changes, and calls the services of the other areas for their tables (e.g. the POS sale is in `Sales`: `OrderPlacementService` calls `StockService.Issue(...)` and never updates `stock_balances`; Inventory recalculates the average cost (R-COST-01) and calls `IProductSkuService.SetAverageCost(...)`). Reading other areas' tables is allowed. `ZenGear.ArchitectureTests` scans the IL of the services: creating an entity, calling one of its setters or void methods (an entity method that changes state returns nothing), a static method of it that returns it, `DbSet.Add/Attach/Update/Remove` and `ExecuteUpdate/ExecuteDelete` must target an entity of the caller's area.
 5. Services use `ZenGearDbContext` directly; no repository and no unit of work: the context is both, and use cases need `SELECT … FOR UPDATE`, `ExecuteUpdate` and one transaction across areas. A query repeated in three or more services becomes a query class (`<Entity><Purpose>Query`) in the owning area. Repositories are reconsidered only for a second database or data access technology.
 6. External systems are called only through the interfaces in `ZenGear.Data/Externals/<System>` (`IEmailSender`, `IEInvoiceClient`, `IPaymentGateway`, `IFileStorage`, `IAuthProvider`, the Redis connection); the packages of those systems are referenced by `ZenGear.Data` only. Business rules built on them stay in `ZenGear.Services` (e.g. the access cache, R-SEC-07). Tests use fakes.
 7. Mapping (AutoMapper) exists only in `ZenGear.Services`, from entity to DTO. Each DTO declares its own map in a nested `private sealed class Mapping : Profile`; there is no mapping folder or profile file. There is no map from a DTO or request to an entity: entities change through their methods (see [Where business rules live](#where-business-rules-live)). `ZenGear.Api` has no mapping.
@@ -101,6 +101,8 @@ ZenGear.Services/
 │  │                     with its own interfaces, records, enums and jobs
 │  └─ services and their interfaces side by side, jobs and other classes that do the area's work
 ├─ Common/               shared code used by two or more areas; not an area
+│  ├─ Models/            requests and DTOs of every list endpoint (PageRequest, PagedDto<T>)
+│  ├─ Validators/        their validators
 │  ├─ Utilities/         pure static functions used by two or more areas
 │  └─ IClock and Clock, BusinessRuleException, AdvisoryLockKeys
 └─ DependencyInjection.cs
@@ -132,11 +134,11 @@ Where a type goes follows from its name:
 | `*Claims` and other constant sets | `ZenGear.Api/Constants` |
 | security log, log masking (`SecurityLog`, `SensitivePropertyMasker`) | `ZenGear.Api/Logging` |
 | environment and pipeline set-up that is not a `*Setup` (`BuildTimeDocumentGeneration`) | `ZenGear.Api/Hosting` |
-| `*Request`, `*Dto`, and records that only carry data | `ZenGear.Services/<Area>/Models` |
+| `*Request`, `*Dto`, and records that only carry data (a record used only inside one mechanism stays in it) | `ZenGear.Services/<Area>/Models`; shared by every list endpoint: `ZenGear.Services/Common/Models` |
 | enum of the Services layer | `ZenGear.Services/<Area>/Enums` |
-| `*Validator` | `ZenGear.Services/<Area>/Validators` |
-| `*Service` and its `I*Service`, `*Query`, `*Job` and other classes that do the area's work | `ZenGear.Services/<Area>` |
-| `*Utility`: static, pure (values in, values out; no framework, database or DI) | `ZenGear.Services/Common/Utilities` |
+| `*Validator`: the FluentValidation validator of one request; other checks are named after what they check | `ZenGear.Services/<Area>/Validators` (`Common/Validators` for `Common/Models`) |
+| `*Service`, `*Query`, `*Job` and other classes that do the area's work; `I*Service` only when another area calls the service, a test replaces it or it has two implementations | `ZenGear.Services/<Area>` |
+| `*Utility`: static, pure (values in, values out; no framework, database or DI), used by two or more areas; a pure function of one area is a static class of that area named after what it computes (`AverageCostCalculator`) | `ZenGear.Services/Common/Utilities` |
 | entity | `ZenGear.Data/Entities/<Area>` |
 | enum of an entity column | `ZenGear.Data/Entities/<Area>/Enums` |
 | `*Configuration` | `ZenGear.Data/Configurations/<Area>` |
@@ -146,9 +148,12 @@ Where a type goes follows from its name:
 
 A type of a mechanism folder (interface, record, enum, job) stays in that folder.
 
-Names put the entity first, so a folder sorts by entity: `<Entity><Action>Request` (`StaffCreateRequest`), `<Entity><Shape>Dto` (`StaffDto`, `StaffListItemDto`), `<Request>Validator` (`StaffCreateRequestValidator`), `<Entity>Service` and `I<Entity>Service`, `<Entity><Purpose>Query`, `<Purpose>Job` (`OrderExpiryJob`).
+Names put the entity first, so a folder sorts by entity: `<Entity><Action>Request` (`StaffCreateRequest`), `<Entity><Shape>Dto` (`StaffDto`, `StaffListItemDto`), `<Request>Validator` (`StaffCreateRequestValidator`), `<Entity>Service` and `I<Entity>Service`, `<Entity><Purpose>Query`, `<Purpose>Job` (`OrderExpiryJob`). A line of a request or DTO is a top-level type (`StockAdjustmentLineRequest`, `OrderItemDto`).
 
-- One top-level type per file, the file named after the type. The nested `Mapping` class of a DTO is not a top-level type.
+Services are split by audience and by use case, as DTOs are (rule 3): `<Entity>Service` serves the staff screens, `<Entity>PublicService` the storefront and never reads cost fields. An entity with many use cases gets one service per family of use cases, `<Entity><UseCase>Service` (`OrderPlacementService`, `OrderCancellationService`), not one `OrderService` for all of them. A file of `ZenGear.Services` has at most 400 lines of code (blank and comment lines not counted) and a `*Service` at most 10 public methods; a larger one is split before it is merged. An exception is listed in `ServiceSizeTests` with its reason.
+
+- One top-level type per file, the file named after the type. A nested type is private, like the `Mapping` class of a DTO; a public type is never nested.
+- Type names are unique across the three projects, `DependencyInjection` excepted: the OpenAPI document names its schemas after the type.
 - An interface sits next to its implementation, in its own file (`IStaffService.cs` beside `StaffService.cs`).
 - Controllers take `*Request` and return `*Dto` only; the other records of `Models/` never leave the services.
 - A utility does one thing, is a static class without state and has unit tests. A shared function that works on HTTP types is an extension method in `ZenGear.Api/Extensions`, not a utility.
@@ -156,6 +161,8 @@ Names put the entity first, so a folder sorts by entity: `<Entity><Action>Reques
 - No type is added without a caller in the same change.
 
 Tests mirror the folders of the code they test: `ZenGear.Services.Tests/<Area>` (and `Data/` for `ZenGear.Data`), `ZenGear.Api.IntegrationTests/<Area>` for the endpoints of an area and `ZenGear.Api.IntegrationTests/<Api folder>` for the pipeline (`Authorization/`, `ExceptionHandling/`, `Logging/`), with shared fixtures in `Infrastructure/`. The assembly-wide NUnit `[SetUpFixture]` classes (`PostgresContainer`, `RedisContainer`) stay at the root of their project: NUnit applies a set-up fixture only to tests in its namespace and below. `ZenGear.Services.Tests` asserts that the AutoMapper configuration of every DTO is valid.
+
+This structure is DEC-097. It is reopened only when `python tools/structure_metrics.py` reports an area root or a mechanism folder above 20 files, a `Models/` folder above 40 files, or more folders touched per `feat` commit in three areas in a row; when `ServiceSizeTests` lists more than three exceptions; or when a second host uses `ZenGear.Services` or the API needs a second version (requests and responses then move to `ZenGear.Api`).
 
 ## Where business rules live
 
