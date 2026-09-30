@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using ZenGear.Data;
+using ZenGear.Services.Identity.Models;
 
 namespace ZenGear.Services.Identity;
 

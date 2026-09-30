@@ -1,3 +1,7 @@
+using ZenGear.Services.Identity.Models;
+
+
+
 namespace ZenGear.Services.Identity;
 
 /// <summary>

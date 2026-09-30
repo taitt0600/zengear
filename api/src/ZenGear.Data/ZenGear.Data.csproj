@@ -6,6 +6,11 @@
   <ItemGroup>
     <PackageReference Include="EFCore.NamingConventions" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <!-- external systems (ARCHITECTURE.md, rule 6): referenced by ZenGear.Data only -->
+    <PackageReference Include="FirebaseAdmin" />
+    <PackageReference Include="Google.Cloud.Storage.V1" />
+    <PackageReference Include="Resend" />
+    <PackageReference Include="StackExchange.Redis" />
   </ItemGroup>
 
 </Project>

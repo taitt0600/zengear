@@ -5,7 +5,8 @@ using Shouldly;
 using ZenGear.Api.IntegrationTests.Infrastructure;
 using ZenGear.Data;
 using ZenGear.Services.Common;
-using ZenGear.Services.Identity;
+using ZenGear.Services.Identity.AccessCache;
+using ZenGear.Services.Identity.Permissions;
 
 namespace ZenGear.Api.IntegrationTests.Identity;
 

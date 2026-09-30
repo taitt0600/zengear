@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Shouldly;
 using ZenGear.Api.IntegrationTests.Infrastructure;
-using ZenGear.Data.Entities.Identity;
-using ZenGear.Services.Identity;
+using ZenGear.Data.Entities.Identity.Enums;
+using ZenGear.Services.Identity.AccessCache;
 
 namespace ZenGear.Api.IntegrationTests.Identity;
 

@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Time.Testing;
-using ZenGear.Api.Auth;
+using ZenGear.Api.Extensions;
 using ZenGear.Api.Logging;
 
 namespace ZenGear.Api.IntegrationTests.Infrastructure;

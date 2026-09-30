@@ -2,8 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using StackExchange.Redis;
 using ZenGear.Data;
-using ZenGear.Data.Entities.Identity;
-using ZenGear.Services.Identity;
+using ZenGear.Data.Entities.Identity.Enums;
+using ZenGear.Services.Identity.AccessCache;
 
 namespace ZenGear.Api.IntegrationTests.Infrastructure;
 

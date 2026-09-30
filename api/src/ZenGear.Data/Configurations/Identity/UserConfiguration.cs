@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using ZenGear.Data.Entities.Identity;
+using ZenGear.Data.Entities.Identity.Enums;
 
 namespace ZenGear.Data.Configurations.Identity;
 

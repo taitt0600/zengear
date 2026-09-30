@@ -1,5 +1,5 @@
 using Shouldly;
-using ZenGear.Services.Identity;
+using ZenGear.Services.Identity.AccessCache;
 
 namespace ZenGear.Services.Tests.Identity;
 

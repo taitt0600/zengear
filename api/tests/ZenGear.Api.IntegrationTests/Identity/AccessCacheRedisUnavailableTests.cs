@@ -25,7 +25,7 @@ public class AccessCacheRedisUnavailableTests : IntegrationTestBase
         granted.Response.StatusCode.ShouldBe(HttpStatusCode.OK);
         granted.Elapsed.ShouldBeLessThan(TimeSpan.FromSeconds(1));
 
-        await Factory.SetUserStatusAsync(userId, Data.Entities.Identity.UserStatus.Disabled);
+        await Factory.SetUserStatusAsync(userId, Data.Entities.Identity.Enums.UserStatus.Disabled);
 
         var refused = await TimedGetAsync("/test/permission");
         await refused.Response.ShouldBeForbiddenProblemAsync("/problems/account-disabled", "R-SEC-04");

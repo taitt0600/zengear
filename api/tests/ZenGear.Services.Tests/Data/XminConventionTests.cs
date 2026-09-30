@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Shouldly;
 using ZenGear.Data;
-using ZenGear.Data.Entities.Common;
+using ZenGear.Data.Common;
 
 namespace ZenGear.Services.Tests.Data;
 

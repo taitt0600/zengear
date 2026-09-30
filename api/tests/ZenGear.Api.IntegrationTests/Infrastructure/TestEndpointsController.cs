@@ -3,7 +3,8 @@ using FluentValidation.Results;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using ZenGear.Api.Auth;
+using ZenGear.Api.Attributes;
+using ZenGear.Api.Extensions;
 using ZenGear.Services.Common;
 
 namespace ZenGear.Api.IntegrationTests.Infrastructure;
