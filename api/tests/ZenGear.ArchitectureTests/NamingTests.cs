@@ -171,7 +171,6 @@ public sealed class NamingTests
         OwnTypes(RepositoryLayout.Api, RepositoryLayout.Services, RepositoryLayout.Data)
             .Where(type => type.Name == "DependencyInjection")
             .Select(type => type.FullName)
-            .ToList()
             .ShouldBe(new[] { "ZenGear.Data.DependencyInjection", "ZenGear.Services.DependencyInjection" }, ignoreOrder: true);
     }
 
