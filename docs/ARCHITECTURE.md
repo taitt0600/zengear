@@ -20,12 +20,14 @@ zengear/
 ├─ api/
 │  ├─ ZenGear.slnx             solution (.slnx is the .NET 10 default; .sln works the same)
 │  ├─ src/
-│  │  ├─ ZenGear.Api/          Presentation: controllers, middleware, auth, ProblemDetails, hosting of jobs
-│  │  ├─ ZenGear.Services/     Business Logic: services, DTOs, validators, integrations, jobs
-│  │  └─ ZenGear.Data/         Data Access: entities, ZenGearDbContext, EF configurations, migrations
+│  │  ├─ ZenGear.Api/          Presentation: controllers, authorization, exception handling, hosting of jobs
+│  │  ├─ ZenGear.Services/     Business Logic: services, models and their mappings, validators, jobs
+│  │  └─ ZenGear.Data/         Data Access: entities, ZenGearDbContext, EF configurations, migrations,
+│  │                           and the clients of external systems
 │  ├─ tests/
 │  │  ├─ ZenGear.Services.Tests/        unit tests — NUnit, Shouldly, Moq
-│  │  └─ ZenGear.Api.IntegrationTests/  integration tests — NUnit, Testcontainers (postgres:18), Respawn
+│  │  ├─ ZenGear.Api.IntegrationTests/  integration tests — NUnit, Testcontainers (postgres:18), Respawn
+│  │  └─ ZenGear.ArchitectureTests/     layers, folders and names — NUnit, NetArchTest (no Docker)
 │  ├─ db/                      database specification: zengear_00–08 SQL files
 │  ├─ seed/                    reference data
 │  └─ openapi/                 ZenGear.Api.json, generated at build — the contract used by web/
@@ -34,16 +36,17 @@ zengear/
 └─ tools/                      blueprint export, schema snapshot
 ```
 
-Folders inside the three projects follow [Folder structure](#folder-structure); namespaces follow folders (`ZenGear.Services.Sales`, `ZenGear.Data.Entities.Sales`).
+Folders inside the three projects follow [Folder structure](#folder-structure); namespaces follow folders (`ZenGear.Api.Controllers`, `ZenGear.Services.Sales`, `ZenGear.Services.Sales.Models`, `ZenGear.Data.Entities.Sales`).
 
 ## Dependency rules
 
 1. `ZenGear.Api` → `ZenGear.Services` → `ZenGear.Data`. `ZenGear.Data` references no other project.
 2. Controllers only call services; they never use `ZenGearDbContext`.
-3. The API only returns DTOs, never entities — cost fields and `internal_note` must not leak (R-SEC-09, R-SEC-10).
+3. Controllers receive and return the requests and DTOs of `ZenGear.Services`, never entities — cost fields and `internal_note` must not leak (R-SEC-09, R-SEC-10). A DTO serves one audience: staff and customers get different DTOs (`ProductStaffDto`, `ProductPublicDto`), never one shared type.
 4. A service writes only the tables of its own area. To change data of another area it calls that area's service (e.g. `PosCheckoutService` calls `StockService.Issue(...)`; it never updates `stock_balances`). Reading other areas' tables for display is allowed.
-5. Services use `ZenGearDbContext` directly; no generic repository.
-6. External systems are called only through interfaces in `ZenGear.Services/Integrations` (`IEmailSender`, `IEInvoiceClient`, `IPaymentGateway`, `IFileStorage`, `IAuthProvider`); tests use fakes.
+5. Services use `ZenGearDbContext` directly; no repository and no unit of work: the context is both, and use cases need `SELECT … FOR UPDATE`, `ExecuteUpdate` and one transaction across areas. A query repeated in three or more services becomes a query class (`<Entity><Purpose>Query`) in the owning area. Repositories are reconsidered only for a second database or data access technology.
+6. External systems are called only through the interfaces in `ZenGear.Data/Externals/<System>` (`IEmailSender`, `IEInvoiceClient`, `IPaymentGateway`, `IFileStorage`, `IAuthProvider`, the Redis connection); the packages of those systems are referenced by `ZenGear.Data` only. Business rules built on them stay in `ZenGear.Services` (e.g. the access cache, R-SEC-07). Tests use fakes.
+7. Mapping (AutoMapper) exists only in `ZenGear.Services`, from entity to DTO. Each DTO declares its own map in a nested `private sealed class Mapping : Profile`; there is no mapping folder or profile file. There is no map from a DTO or request to an entity: entities change through their methods (see [Where business rules live](#where-business-rules-live)). `ZenGear.Api` has no mapping.
 
 ## Business areas and table ownership
 
@@ -66,54 +69,93 @@ Folders inside the three projects follow [Folder structure](#folder-structure); 
 | `Promotions` | `vouchers`, `voucher_codes`, `voucher_targets`, `voucher_usages` |
 | `Notifications` | `notifications` |
 | `Imports` | `import_jobs` |
-| `Common` | `status_history`, `attachments`, `audit_logs` |
+| `Audit` | `status_history`, `attachments`, `audit_logs` |
 | `Reporting` | none: read queries only |
 
-`Common` tables are written through shared helpers called by the owning service in the same transaction: status changes (`status_history`, R-HIS-01), evidence files (`attachments`, R-ATT-01) and the EF Core audit interceptor (`audit_logs`, R-AUD-01).
+`Audit` tables are written through shared services called by the owning service in the same transaction: status changes (`status_history`, R-HIS-01), evidence files (`attachments`, R-ATT-01) and the EF Core audit interceptor (`audit_logs`, R-AUD-01).
 
 ## Folder structure
 
-Inside `ZenGear.Api` and `ZenGear.Services`, a top-level folder is either a business area of the table above, with the same name, or one of the technical folders below. `ZenGear.Data` has only its technical folders at the top; the areas are the folders inside `Entities` and `Configurations`. No other folder is created without first changing this section; `ZenGear.ArchitectureTests` fails on any folder not listed.
+`ZenGear.Api` is organised by technical role only. `ZenGear.Services` is organised by business area (table above, same names), with folders by kind inside each area. `ZenGear.Data` keeps its technical folders at the top and the areas inside `Entities` and `Configurations`. No other folder is created without first changing this section; `ZenGear.ArchitectureTests` fails on any folder not listed.
 
-| Project | Technical folder | Holds |
-|---|---|---|
-| `ZenGear.Api` | `Auth` | authentication, authorization attributes, handlers and requirements, claims, the middleware that loads the user |
-| | `Errors` | exception handlers and Problem Details |
-| | `Logging` | security log, masking of sensitive values |
-| | `OpenApi` | document generation |
-| | `Hosting` | pipeline set-up that belongs to none of the above: forwarded headers, security headers, CORS, rate limiting (created with its first file) |
-| `ZenGear.Services` | `Integrations/<System>` | every out-of-process system except PostgreSQL: `Redis`, and later email, e-invoice, payment, storage |
-| | `Jobs` | hosted services |
-| `ZenGear.Data` | `Entities/<Area>` | entities and the enums of their columns |
-| | `Configurations/<Area>` | `IEntityTypeConfiguration` classes |
-| | `Conventions` | value converters and model conventions |
-| | `Migrations` | EF Core migrations |
+```
+ZenGear.Api/
+├─ Controllers/          every controller, flat
+├─ ExceptionHandling/    IExceptionHandler implementations and the Problem Details they write
+├─ Middlewares/          request pipeline middleware
+├─ Extensions/           *Setup classes called by Program.cs, extension methods (also for functions on HTTP types)
+├─ Attributes/           authorization and endpoint attributes
+├─ Authorization/        authorization handlers, requirements, result handler
+├─ Options/              options classes bound from configuration
+├─ Constants/            claim types and other constant sets
+├─ Logging/              security log, masking of sensitive values
+├─ Hosting/              environment and pipeline types that are not a *Setup (build-time OpenAPI detection,
+│                        custom policies of the request pipeline)
+└─ Program.cs
+ZenGear.Services/
+├─ <Area>/
+│  ├─ Models/            requests, DTOs (each with its nested Mapping) and internal data records
+│  ├─ Enums/             enums used only by the area's services
+│  ├─ Validators/        validators of the area's requests
+│  ├─ <Mechanism>/       five or more types that form one mechanism (e.g. Identity/AccessCache): flat inside,
+│  │                     with its own interfaces, records, enums and jobs
+│  └─ services and their interfaces side by side, jobs and other classes that do the area's work
+├─ Common/               shared code used by two or more areas; not an area
+│  ├─ Utilities/         pure static functions used by two or more areas
+│  └─ IClock and Clock, BusinessRuleException, AdvisoryLockKeys
+└─ DependencyInjection.cs
+ZenGear.Data/
+├─ Common/               building blocks shared by every area's entities and configurations: IAggregateRoot,
+│                        EF Core value converters (the conventions themselves are in ZenGearDbContext)
+├─ Entities/<Area>/      entities; Enums/ below holds the enums of their columns
+├─ Configurations/<Area>/ IEntityTypeConfiguration classes
+├─ Externals/<System>/   clients of external systems and their interfaces (Redis, Email, EInvoice, Payments,
+│                        Storage, Auth)
+├─ Migrations/           EF Core migrations
+├─ DependencyInjection.cs
+└─ ZenGearDbContext.cs
+```
 
-The `Common` area folder in `ZenGear.Services` holds the `Common` tables (status history, attachments, audit) and the primitives used by two or more areas (`IClock`, `BusinessRuleException`).
+A folder is created with its first file (`Validators/`, `Enums/`, `Utilities/`).
 
 Where a type goes follows from its name:
 
 | Type | Folder |
 |---|---|
-| `*Controller` | `ZenGear.Api/<Area>` |
-| `*Middleware`, `*AuthorizationHandler`, `*Requirement`, authorization attributes, claims | `ZenGear.Api/Auth` |
-| `*ExceptionHandler`, `*Problem` | `ZenGear.Api/Errors` |
-| `*Setup`: the set-up of one concern, called by `Program.cs` | the folder of that concern |
-| `*Service`, `I*Service`, `*Dto`, `*Request`, `*Validator` | `ZenGear.Services/<Area>` |
-| `*Job` | `ZenGear.Services/Jobs` |
-| `*Options` | next to the type that reads it |
-| entity, enum | `ZenGear.Data/Entities/<Area>` |
+| `*Controller` | `ZenGear.Api/Controllers` |
+| `*ExceptionHandler`, `*Problem` | `ZenGear.Api/ExceptionHandling` |
+| `*Middleware` | `ZenGear.Api/Middlewares` |
+| `*Setup` (the set-up of one concern, called by `Program.cs`), `*Extensions` (extension methods, including functions on HTTP types) | `ZenGear.Api/Extensions` |
+| `*Attribute` | `ZenGear.Api/Attributes` |
+| `*AuthorizationHandler`, `*ResultHandler`, `*Requirement` | `ZenGear.Api/Authorization` |
+| `*Options` | `ZenGear.Api/Options`; in `ZenGear.Data`, next to the client that reads it |
+| `*Claims` and other constant sets | `ZenGear.Api/Constants` |
+| security log, log masking (`SecurityLog`, `SensitivePropertyMasker`) | `ZenGear.Api/Logging` |
+| environment and pipeline set-up that is not a `*Setup` (`BuildTimeDocumentGeneration`) | `ZenGear.Api/Hosting` |
+| `*Request`, `*Dto`, and records that only carry data | `ZenGear.Services/<Area>/Models` |
+| enum of the Services layer | `ZenGear.Services/<Area>/Enums` |
+| `*Validator` | `ZenGear.Services/<Area>/Validators` |
+| `*Service` and its `I*Service`, `*Query`, `*Job` and other classes that do the area's work | `ZenGear.Services/<Area>` |
+| `*Utility`: static, pure (values in, values out; no framework, database or DI) | `ZenGear.Services/Common/Utilities` |
+| entity | `ZenGear.Data/Entities/<Area>` |
+| enum of an entity column | `ZenGear.Data/Entities/<Area>/Enums` |
 | `*Configuration` | `ZenGear.Data/Configurations/<Area>` |
-| `*Converter`, `*Convention` | `ZenGear.Data/Conventions` |
-| `<Project>ServiceCollectionExtensions` | the root of its project |
+| `*Converter`, `IAggregateRoot` | `ZenGear.Data/Common` |
+| client of an external system and its interface | `ZenGear.Data/Externals/<System>` |
+| `DependencyInjection`: the `Add…` method that registers the project's services (`AddZenGearServices`, `AddZenGearData`) | the root of `ZenGear.Services` and of `ZenGear.Data` |
 
-- One top-level type per file, the file named after the type.
-- DTOs, requests, validators and interfaces sit next to the service of their area; an interface sits next to its implementation.
-- Extension methods sit with the code they serve; each project registers its services in `<Project>ServiceCollectionExtensions.cs`.
-- No `Helpers`, `Utilities`, `Extensions`, `Middlewares`, `Interfaces`, `Dtos`, `Models` or `Enums` folders, and no type named `*Helper`, `*Util`, `*Utility` or `*Manager`: a type is named after what it does.
+A type of a mechanism folder (interface, record, enum, job) stays in that folder.
+
+Names put the entity first, so a folder sorts by entity: `<Entity><Action>Request` (`StaffCreateRequest`), `<Entity><Shape>Dto` (`StaffDto`, `StaffListItemDto`), `<Request>Validator` (`StaffCreateRequestValidator`), `<Entity>Service` and `I<Entity>Service`, `<Entity><Purpose>Query`, `<Purpose>Job` (`OrderExpiryJob`).
+
+- One top-level type per file, the file named after the type. The nested `Mapping` class of a DTO is not a top-level type.
+- An interface sits next to its implementation, in its own file (`IStaffService.cs` beside `StaffService.cs`).
+- Controllers take `*Request` and return `*Dto` only; the other records of `Models/` never leave the services.
+- A utility does one thing, is a static class without state and has unit tests. A shared function that works on HTTP types is an extension method in `ZenGear.Api/Extensions`, not a utility.
+- No `Helpers`, `Interfaces`, `Dtos`, `Mappings`, `Repositories`, `Jobs` or `BackgroundServices` folders; `Utilities` only in `ZenGear.Services/Common`; no type named `*Helper` or `*Manager`.
 - No type is added without a caller in the same change.
 
-Tests mirror the folders of the code they test: `ZenGear.Services.Tests/<Area>` (and `Data/` for `ZenGear.Data`), `ZenGear.Api.IntegrationTests/<Area>` with shared fixtures in `Infrastructure/`. The assembly-wide NUnit `[SetUpFixture]` classes (`PostgresContainer`, `RedisContainer`) stay at the root of their project: NUnit applies a set-up fixture only to tests in its namespace and below.
+Tests mirror the folders of the code they test: `ZenGear.Services.Tests/<Area>` (and `Data/` for `ZenGear.Data`), `ZenGear.Api.IntegrationTests/<Area>` for the endpoints of an area and `ZenGear.Api.IntegrationTests/<Api folder>` for the pipeline (`Authorization/`, `ExceptionHandling/`, `Logging/`), with shared fixtures in `Infrastructure/`. The assembly-wide NUnit `[SetUpFixture]` classes (`PostgresContainer`, `RedisContainer`) stay at the root of their project: NUnit applies a set-up fixture only to tests in its namespace and below. `ZenGear.Services.Tests` asserts that the AutoMapper configuration of every DTO is valid.
 
 ## Where business rules live
 
@@ -122,10 +164,10 @@ Column "Enforced At" of `docs/blueprint/business-rules.md`:
 | Enforced At | Code location |
 |---|---|
 | `Service — <Entity> aggregate` | A rule on one entity: a method on the entity in `ZenGear.Data/Entities/<Area>` that is the only way to change that state (e.g. `Order.Confirm()`); services call it |
-| `Service — <Handler/Service>` | A rule spanning several entities or needing queries: the service of the owning area |
-| `Api — <component>` | Middleware, authorization policies, serializers, query endpoints |
+| `Service — <Handler/Service>` | A rule spanning several entities or needing queries: the service of the owning area, in `ZenGear.Services/<Area>` |
+| `Api — <component>` | Middleware, authorization handlers, serializers, query endpoints (`ZenGear.Api`) |
 | `Database — <object>` | CHECK, unique, exclusion, FK, trigger in the schema; the service still validates first for a clear error |
-| `Scheduled job — <job>` | A `BackgroundService` in `ZenGear.Services/Jobs`, hosted by `ZenGear.Api` |
+| `Scheduled job — <job>` | A `*Job` in the owning area of `ZenGear.Services`, hosted by `ZenGear.Api` |
 
 Every rule has at least one test whose name starts with its ID (`R_INV_01_...`).
 
@@ -149,16 +191,18 @@ Every rule has at least one test whose name starts with its ID (`R_INV_01_...`).
 
 ## Background jobs
 
-`BackgroundService` + `PeriodicTimer` in `ZenGear.Services/Jobs`, registered by `ZenGear.Api`: pending order expiry, notification sender, e-invoice issuing, nightly reconciliation (02:00, report only), nightly cleanup. A job takes a PostgreSQL advisory lock (`pg_try_advisory_lock`) so only one API instance runs it at a time.
+A job is a `*Job` class in the area that owns what it changes (`Sales/OrderExpiryJob`, `Notifications/NotificationSenderJob`, `Invoicing/EInvoiceIssuingJob`, `Reporting/NightlyReconciliationJob`), or in the mechanism folder it serves (`Identity/AccessCache/AccessBumpRetryJob`). `ZenGear.Api` registers every job. A job only orchestrates: it takes the lock, loops and calls the service of its area; business rules stay in that service, and rule 4 applies to jobs as to services.
+
+Periodic jobs are a `BackgroundService` with a `PeriodicTimer`: pending order expiry, notification sender, e-invoice issuing, nightly reconciliation (02:00, report only), nightly cleanup. A job takes a PostgreSQL advisory lock (`pg_try_advisory_lock`) so only one API instance runs it at a time; every lock key is declared once in `ZenGear.Services/Common/AdvisoryLockKeys`, so no two jobs share a key.
 
 Two exceptions:
 
-- `PermissionSyncJob` is a one-shot `IHostedService` at startup. It applies the permission catalog of the code (DEC-095) under a blocking `pg_advisory_xact_lock`, so instances starting together run it one after the other. A failure is logged and the API starts with the grants already stored.
-- `AccessBumpRetryJob` retries the access cache bumps that failed (see Caching).
+- `PermissionSyncJob` (`Identity/Permissions`) is a one-shot `IHostedService` at startup. It applies the permission catalog of the code (DEC-095) under a blocking `pg_advisory_xact_lock`, so instances starting together run it one after the other. A failure is logged and the API starts with the grants already stored.
+- `AccessBumpRetryJob` (`Identity/AccessCache`) retries the access cache bumps that failed (see Caching).
 
 ## Caching
 
-Redis caches the user status and the permissions per role (R-SEC-07), behind `IUserAccessReader`; nothing else is cached yet.
+Redis caches the user status and the permissions per role (R-SEC-07), behind `IUserAccessReader`; nothing else is cached yet. The connection is in `ZenGear.Data/Externals/Redis`; the cache and its rules are in `ZenGear.Services/Identity/AccessCache`.
 
 - **Versioned keys:** entries are stored under a version: `zengear:access:user:{id}:{epoch}:{ver}` and `…role:{id}:{epoch}:{ver}`, 5-minute TTL. The versions are `…ver:user:{id}`, `…ver:role:{id}` and the global `…epoch`, with no TTL. Every entry is written under the version read before its query, so data read before a change commits never becomes current.
 - **Invalidation:** the version is incremented (INCR) after the commit that changes `users.status`, `users.firebase_uid`, `staff_profiles`, `user_roles` or `role_permissions`. The EF Core interceptor `AccessCacheInvalidationInterceptor` does it for tracked changes. `ExecuteUpdate`, raw SQL and FK cascades bypass it, so their caller calls `IAccessCache.BumpAsync`.
