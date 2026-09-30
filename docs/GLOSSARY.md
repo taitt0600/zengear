@@ -80,9 +80,9 @@ Class names are singular PascalCase in `ZenGear.Data/Entities/<Area>`; table nam
 | Lượt dùng voucher | `VoucherUsage` | `voucher_usages` | Promotions |
 | Thông báo (hàng đợi gửi) | `Notification` | `notifications` | Notifications |
 | Lần import Excel | `ImportJob` | `import_jobs` | Imports |
-| Lịch sử trạng thái | `StatusHistory` | `status_history` | Common |
-| Ảnh/video bằng chứng | `Attachment` | `attachments` | Common |
-| Nhật ký thay đổi (audit) | `AuditLog` | `audit_logs` | Common |
+| Lịch sử trạng thái | `StatusHistory` | `status_history` | Audit |
+| Ảnh/video bằng chứng | `Attachment` | `attachments` | Audit |
+| Nhật ký thay đổi (audit) | `AuditLog` | `audit_logs` | Audit |
 
 ## Value sets
 

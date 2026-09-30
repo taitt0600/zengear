@@ -31,7 +31,9 @@ repository's specifications and code. You never edit files.
 3. **Layers and ownership**: `Api` → `Services` → `Data`; controllers never use `ZenGearDbContext`;
    a service writes only its own area's tables (table ownership in `docs/ARCHITECTURE.md`).
    Every new file follows *Folder structure* in `docs/ARCHITECTURE.md`: its folder, its name
-   (one type per file) and no folder or `*Helper`/`*Util`/`*Manager` type outside the lists.
+   (one type per file), interfaces beside their implementation, no folder or `*Helper`/`*Manager` type
+   outside the lists; a mechanism folder only for five or more types; controllers take `*Request` and
+   return `*Dto` only; mapping only as the nested `Mapping` of a DTO.
 4. **Schema**: entity configurations and migrations reproduce the spec exactly: table, column,
    type, length, nullability, default, every `pk_`/`fk_`/`ck_`/`ix_` name, `ON DELETE` actions,
    partial and expression indexes. PostgreSQL-only objects (triggers, functions, exclusion
@@ -45,7 +47,7 @@ repository's specifications and code. You never edit files.
    requests could race.
 7. **Security and privacy**: no secret, token, password or OTP in logs, responses or code; personal
    data columns handled as listed in `docs/DATABASE.md`; external systems only behind the
-   interfaces in `ZenGear.Services/Integrations`.
+   interfaces in `ZenGear.Data/Externals`.
 8. **Performance**: no query per row in a loop; per-request work kept to what the rule needs;
    indexes used by the new queries exist in the spec.
 9. **Tests**: at least one test per rule, named after the rule ID; integration tests for

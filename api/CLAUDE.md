@@ -6,9 +6,9 @@
 
 ```
 api/
-├─ src/ZenGear.Api/            Presentation: controllers, middleware, auth, ProblemDetails, hosting of jobs
-├─ src/ZenGear.Services/       Business Logic: services, DTOs, validators, Integrations/, Jobs/
-├─ src/ZenGear.Data/           Data Access: Entities/, ZenGearDbContext, Configurations/, Conventions/, Migrations/
+├─ src/ZenGear.Api/            Presentation: Controllers/ and technical folders (ExceptionHandling/, Middlewares/, Extensions/, …)
+├─ src/ZenGear.Services/       Business Logic: <Area>/ (services, Models/, Enums/, Validators/, mechanisms, jobs), Common/
+├─ src/ZenGear.Data/           Data Access: Common/, Entities/<Area>/, Configurations/<Area>/, Externals/<System>/, Migrations/
 ├─ tests/ZenGear.Services.Tests/        unit — NUnit, Shouldly, Moq
 ├─ tests/ZenGear.Api.IntegrationTests/  integration — NUnit, Testcontainers (postgres:18), Respawn
 ├─ tests/ZenGear.ArchitectureTests/     layers, folders and names — NUnit, NetArchTest (no Docker)
@@ -23,16 +23,19 @@ Folders, file names and type names follow `../docs/ARCHITECTURE.md`, section *Fo
 ## Rules that must not be broken
 
 - `Api` → `Services` → `Data`; `Data` references no other project.
-- Never create a folder, or a `*Helper`/`*Util`/`*Utility`/`*Manager` type, that *Folder structure* does not allow; `ZenGear.ArchitectureTests` fails `dotnet test` and CI otherwise. If the code needs a new folder, stop and ask.
+- Never create a folder that *Folder structure* does not allow, nor a `*Helper` or `*Manager` type (`*Utility` only in `ZenGear.Services/Common/Utilities`); `ZenGear.ArchitectureTests` fails `dotnet test` and CI otherwise. If the code needs a new folder, stop and ask.
 - SonarAnalyzer.CSharp runs in every build and its warnings are errors: fix the code. Never silence a rule (`#pragma warning disable`, `[SuppressMessage]`, `.editorconfig` severity) without asking; a suppression that is approved carries its reason (`Justification = "…"` or a comment).
-- Controllers never touch `ZenGearDbContext`; the API returns DTOs only (cost fields and `internal_note` must not leak — R-SEC-09, R-SEC-10).
+- Controllers never touch `ZenGearDbContext`; they take `*Request` and return `*Dto` of `ZenGear.Services` only, one DTO per audience (cost fields and `internal_note` must not leak — R-SEC-09, R-SEC-10).
+- Mapping (AutoMapper) only from entity to DTO, declared in the DTO as a nested `private sealed class Mapping : Profile`; no mapping in `ZenGear.Api`, no map to an entity.
+- No repository or unit of work: services use `ZenGearDbContext`. A query repeated in three or more services becomes a `*Query` class in the owning area.
 - A service writes only the tables of its own area; call the owning service for anything else.
 - Schema changes only through EF Core migrations. The result must match `db/` exactly (names, types, constraints, indexes). Update `db/` and `../docs/DATABASE.md` in the same change.
 - Constraint and index names are set explicitly to the names in `db/` (≤ 63 characters). PostgreSQL-only objects (exclusion constraint, triggers, view, functions) go through `migrationBuilder.Sql`.
 - Every business rule implemented gets at least one test whose name starts with its ID (`R_INV_01_...`).
 - Enums: members in PascalCase, each declares its stored value with `[JsonStringEnumMemberName("ACTIVE")]` exactly as listed in `../docs/DATABASE.md`. `ZenGearDbContext` stores every enum property through `AttributeEnumConverter<TEnum>`, so the database and the JSON carry the same value; never configure `HasConversion<string>()` by hand.
 - Money is `decimal` in C#, `numeric(15,0)` VND in the database. Time comes from the clock service, never `DateTime.Now`.
-- External systems only through the interfaces in `ZenGear.Services/Integrations` (`IEmailSender`, `IEInvoiceClient`, `IPaymentGateway`, `IFileStorage`, `IAuthProvider`); tests use fakes.
+- External systems only through the interfaces in `ZenGear.Data/Externals/<System>` (`IEmailSender`, `IEInvoiceClient`, `IPaymentGateway`, `IFileStorage`, `IAuthProvider`, the Redis connection); their packages are referenced by `ZenGear.Data` only; tests use fakes.
+- A job (`*Job`) lives in the area it serves and only orchestrates; its advisory lock key is declared in `ZenGear.Services/Common/AdvisoryLockKeys`.
 - Endpoints follow `../docs/API_CONVENTIONS.md`.
 - Never log a token, password or OTP, and never destructure (`{@Dto}`) a DTO or object holding a secret or personal data; log ids and harmless values only (R-SEC-11).
 
