@@ -43,9 +43,10 @@ public sealed class FolderTests
     }
 
     [Test]
-    public void Services_common_has_only_utilities()
+    public void Services_common_has_models_validators_and_utilities_only()
     {
-        Unlisted(SubFolders(Services, "Common"), ["Utilities"]).ShouldBeEmpty(MoveOrDocument);
+        Unlisted(SubFolders(Services, "Common"), ["Models", "Validators", "Utilities"]).ShouldBeEmpty(MoveOrDocument);
+        SubFolders(Services, "Common").SelectMany(folder => SubFolders(Services, "Common", folder)).ShouldBeEmpty();
     }
 
     [Test]
