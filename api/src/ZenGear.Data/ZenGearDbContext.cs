@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using ZenGear.Data.Conventions;
-using ZenGear.Data.Entities.Common;
+using ZenGear.Data.Common;
 using ZenGear.Data.Entities.Identity;
 
 namespace ZenGear.Data;

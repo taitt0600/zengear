@@ -4,12 +4,12 @@ using Microsoft.AspNetCore.Mvc.ModelBinding.Metadata;
 using Scalar.AspNetCore;
 using Serilog;
 using Serilog.Formatting.Compact;
-using ZenGear.Api.Auth;
-using ZenGear.Api.Errors;
+using ZenGear.Api.Extensions;
+using ZenGear.Api.Hosting;
 using ZenGear.Api.Logging;
-using ZenGear.Api.OpenApi;
 using ZenGear.Services;
-using ZenGear.Services.Jobs;
+using ZenGear.Services.Identity.AccessCache;
+using ZenGear.Services.Identity.Permissions;
 
 // Nothing here connects to PostgreSQL, Redis or Firebase: the build runs this file to write the
 // OpenAPI document (GetDocument.Insider, Production environment, no user-secrets).

@@ -1,4 +1,8 @@
-using ZenGear.Data.Entities.Common;
+using ZenGear.Data.Common;
+using ZenGear.Data.Entities.Identity.Enums;
+
+
+
 
 namespace ZenGear.Data.Entities.Identity;
 

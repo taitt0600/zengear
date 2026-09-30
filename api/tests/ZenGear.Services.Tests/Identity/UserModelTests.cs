@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using Shouldly;
 using ZenGear.Data;
 using ZenGear.Data.Entities.Identity;
+using ZenGear.Data.Entities.Identity.Enums;
 
 namespace ZenGear.Services.Tests.Identity;
 

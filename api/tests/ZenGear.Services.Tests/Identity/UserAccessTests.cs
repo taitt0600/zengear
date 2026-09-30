@@ -1,6 +1,6 @@
 using Shouldly;
-using ZenGear.Data.Entities.Identity;
-using ZenGear.Services.Identity;
+using ZenGear.Data.Entities.Identity.Enums;
+using ZenGear.Services.Identity.Models;
 
 namespace ZenGear.Services.Tests.Identity;
 

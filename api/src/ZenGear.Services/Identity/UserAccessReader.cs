@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using ZenGear.Data;
+using ZenGear.Services.Identity.AccessCache;
+using ZenGear.Services.Identity.Models;
 
 namespace ZenGear.Services.Identity;
 

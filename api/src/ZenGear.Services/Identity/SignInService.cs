@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using ZenGear.Data;
+using ZenGear.Services.Identity.AccessCache;
 
 namespace ZenGear.Services.Identity;
 

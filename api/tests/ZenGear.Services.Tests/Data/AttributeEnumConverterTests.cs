@@ -1,8 +1,8 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Shouldly;
-using ZenGear.Data.Conventions;
-using ZenGear.Data.Entities.Identity;
+using ZenGear.Data.Common;
+using ZenGear.Data.Entities.Identity.Enums;
 
 namespace ZenGear.Services.Tests.Data;
 
