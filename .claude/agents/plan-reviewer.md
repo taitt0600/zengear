@@ -29,11 +29,14 @@ repository's specifications and code. You never edit files.
    endpoints that must accept unregistered users are not blocked by middleware; permissions are
    checked through roles, never by role name (R-SEC-03).
 3. **Layers and ownership**: `Api` → `Services` → `Data`; controllers never use `ZenGearDbContext`;
-   a service writes only its own area's tables (table ownership in `docs/ARCHITECTURE.md`).
+   the use case sits in the area that owns the aggregate it creates or changes and writes only that
+   area's tables (table ownership in `docs/ARCHITECTURE.md`); new services are split by audience and
+   by family of use cases and stay within 400 lines of code and 10 public methods.
    Every new file follows *Folder structure* in `docs/ARCHITECTURE.md`: its folder, its name
    (one type per file), interfaces beside their implementation, no folder or `*Helper`/`*Manager` type
    outside the lists; a mechanism folder only for five or more types; controllers take `*Request` and
-   return `*Dto` only; mapping only as the nested `Mapping` of a DTO.
+   return `*Dto` only; mapping only as the nested `Mapping` of a DTO; type names unique across the
+   projects and no public nested type.
 4. **Schema**: entity configurations and migrations reproduce the spec exactly: table, column,
    type, length, nullability, default, every `pk_`/`fk_`/`ck_`/`ix_` name, `ON DELETE` actions,
    partial and expression indexes. PostgreSQL-only objects (triggers, functions, exclusion
