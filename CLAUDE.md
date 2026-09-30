@@ -61,7 +61,7 @@ Every commit follows Conventional Commits 1.0.0, in English:
 ## Workflow
 
 - One branch per feature from `main` (`feat/aut-04`); never work on `main` except for `docs` commits.
-- `/implement-feature <ID>` plans (reviewed by the `plan-reviewer` agent), tests and builds; `/finish-feature <ID>` verifies (build, tests, the `code-reviewer` agent), proposes the commits and the pull request.
+- `/implement-feature <ID>` plans (reviewed by the `plan-reviewer` agent), tests and builds; `/finish-feature <ID>` verifies (build, tests, the `code-reviewer` agent, `/security-review` for security-sensitive changes), proposes the commits and the pull request.
 - Claude Code never pushes or merges; the user does. Edits to `api/db/`, `docs/blueprint/`, `docs/DATABASE.md` and the blueprint workbook ask for confirmation (`.claude/hooks/guard-spec.ps1`); change them only with the Edit or Write tools, never with shell commands, and never work around the confirmation.
 - `/check-docs` reports inconsistencies between the documentation, the code and CI.
 - Before a turn that changed the backend ends, `.claude/hooks/stop-check.ps1` builds `api/ZenGear.slnx` and runs `ZenGear.ArchitectureTests`; a failure is sent back once to fix and then only shown to the user; a build blocked by files locked by a running API or Visual Studio is only reported. It never runs the Docker tests: `/finish-feature` and CI do.
