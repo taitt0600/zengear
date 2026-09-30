@@ -1,6 +1,7 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using AutoMapper;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 using Shouldly;
@@ -79,19 +80,21 @@ public sealed class NamingTests
     {
         OwnTypes(RepositoryLayout.Services)
             .Where(type => NameOf(type).EndsWith("Request", StringComparison.Ordinal) || NameOf(type).EndsWith("Dto", StringComparison.Ordinal))
-            .Where(type => !IsInAreaFolder(type, "Models"))
+            .Where(type => !IsInAreaFolder(type, "Models") && type.Namespace != "ZenGear.Services.Common.Models")
             .Select(type => type.FullName)
             .ShouldBeEmpty();
     }
 
     [Test]
-    public void Validators_are_in_the_validators_folder_of_their_area()
+    public void Validators_are_request_validators_in_the_validators_folder()
     {
         OwnTypes(RepositoryLayout.Services)
-            .Where(type => NameOf(type).EndsWith("Validator", StringComparison.Ordinal))
-            .Where(type => !IsInAreaFolder(type, "Validators"))
+            .Where(type => NameOf(type).EndsWith("Validator", StringComparison.Ordinal) || typeof(IValidator).IsAssignableFrom(type))
+            .Where(type => !NameOf(type).EndsWith("Validator", StringComparison.Ordinal)
+                || !typeof(IValidator).IsAssignableFrom(type)
+                || (!IsInAreaFolder(type, "Validators") && type.Namespace != "ZenGear.Services.Common.Validators"))
             .Select(type => type.FullName)
-            .ShouldBeEmpty();
+            .ShouldBeEmpty("*Validator is the FluentValidation validator of a request, in Validators/; name other checks after what they check.");
     }
 
     [Test]
@@ -170,6 +173,29 @@ public sealed class NamingTests
             .Select(type => type.FullName)
             .ToList()
             .ShouldBe(new[] { "ZenGear.Data.DependencyInjection", "ZenGear.Services.DependencyInjection" }, ignoreOrder: true);
+    }
+
+    [Test]
+    public void Type_names_are_unique_across_the_projects()
+    {
+        OwnTypes(RepositoryLayout.Api, RepositoryLayout.Services, RepositoryLayout.Data)
+            .Where(type => type.Name != "DependencyInjection")
+            .GroupBy(NameOf)
+            .Where(group => group.Count() > 1)
+            .Select(group => $"{group.Key}: {string.Join(", ", group.Select(type => type.Namespace))}")
+            .ShouldBeEmpty("The OpenAPI document names its schemas after the type; put the entity in the name.");
+    }
+
+    [Test]
+    public void No_public_type_is_nested()
+    {
+        new[] { RepositoryLayout.Api, RepositoryLayout.Services, RepositoryLayout.Data }
+            .SelectMany(assembly => assembly.GetTypes())
+            .Where(type => type.IsNestedPublic && !type.Name.Contains('<', StringComparison.Ordinal)
+                && type.GetCustomAttribute<CompilerGeneratedAttribute>() is null
+                && type.Namespace?.StartsWith("ZenGear.", StringComparison.Ordinal) == true)
+            .Select(type => type.FullName)
+            .ShouldBeEmpty("A line of a request or DTO is a top-level type (StockAdjustmentLineRequest).");
     }
 
     /// <summary>Top-level types written in this repository (no compiler-generated or nested types).</summary>

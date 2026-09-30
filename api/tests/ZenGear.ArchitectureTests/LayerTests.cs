@@ -82,7 +82,7 @@ public sealed class LayerTests
         RepositoryLayout.Api.GetTypes().Where(type => typeof(ControllerBase).IsAssignableFrom(type) && !type.IsAbstract);
 
     // Task<ActionResult<List<X>>> → Task, ActionResult, List, X
-    private static IEnumerable<Type> Unwrap(Type type) =>
+    internal static IEnumerable<Type> Unwrap(Type type) =>
         new[] { type }.Concat(type.IsGenericType ? type.GetGenericArguments().SelectMany(Unwrap) : Enumerable.Empty<Type>());
 
     private static bool IsServicesType(Type type) => type.Assembly == RepositoryLayout.Services && !type.IsEnum;
