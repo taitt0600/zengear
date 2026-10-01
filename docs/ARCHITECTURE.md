@@ -30,7 +30,9 @@ zengear/
 │  │  └─ ZenGear.ArchitectureTests/     layers, folders and names — NUnit, NetArchTest (no Docker)
 │  ├─ db/                      database specification: zengear_00–08 SQL files
 │  ├─ seed/                    reference data
-│  └─ openapi/                 ZenGear.Api.json, generated at build — the contract used by web/
+│  ├─ openapi/                 ZenGear.Api.json, generated at build — the contract used by web/
+│  └─ acceptance/              acceptance environment: compose file, Firebase Auth Emulator, database set-up
+│                              (docs/ACCEPTANCE.md)
 ├─ web/                        Next.js app (docs/FRONTEND.md)
 ├─ docs/                       specifications shared by api/ and web/
 └─ tools/                      blueprint export, schema snapshot and comparison, PR gates, pull request steps

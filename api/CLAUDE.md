@@ -15,6 +15,7 @@ api/
 ├─ db/        schema specification (zengear_00–08) — the migrations must produce exactly this
 ├─ seed/      reference data, run after migrations
 ├─ openapi/   ZenGear.Api.json, generated at build — commit it, never edit it
+├─ acceptance/          acceptance environment (../docs/ACCEPTANCE.md): compose.yml, Firebase Auth Emulator, database set-up
 └─ docker-compose.yml   local PostgreSQL 18 and Redis (+ ZenGear.Api container)
 ```
 
