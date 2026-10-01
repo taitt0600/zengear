@@ -43,10 +43,16 @@ AGENT_EMAIL = 'noreply@anthropic.com'
 AGENT_TRAILER = re.compile(r'^\s*(Co-Authored-By|Claude-Session)\s*:', re.IGNORECASE | re.MULTILINE)
 
 
+def fail(message):
+    # An error annotation, since the job log cannot be read from a cloud session.
+    print(f'::error::{message}')
+    sys.exit(1)
+
+
 def git(*args, ok=(0,)):
     run = subprocess.run(['git', *args], capture_output=True, text=True, encoding='utf-8')
     if run.returncode not in ok:
-        raise SystemExit(f'git {" ".join(args)} failed: {run.stderr.strip()}')
+        fail(f'git {" ".join(args)} failed: {run.stderr.strip()}')
     return run.stdout
 
 
@@ -116,7 +122,7 @@ def commits(base, head):
             continue
         fields = record.lstrip('\n').split('\x1f', 3)
         if len(fields) != 4:
-            raise SystemExit(f'unreadable commit record: {record[:80]!r}')
+            fail(f'unreadable commit record: {record[:80]!r}')
         changed = git('diff-tree', '--no-commit-id', '--name-only', '-r', '--no-renames', '--root', fields[0]).split()
         result.append((*fields, changed))
     return result

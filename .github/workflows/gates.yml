@@ -10,7 +10,8 @@ on:
 
 permissions:
   contents: read
-  pull-requests: read   # which app opened the pull request
+  pull-requests: read
+  issues: read   # the app that opened a pull request is recorded on its issue only
 
 concurrency:
   group: gates-${{ github.event.pull_request.number }}
@@ -38,5 +39,8 @@ jobs:
           NUMBER: ${{ github.event.pull_request.number }}
           GH_TOKEN: ${{ github.token }}
         run: |
-          app=$(gh api "repos/$GITHUB_REPOSITORY/issues/$NUMBER" --jq '.performed_via_github_app.slug // ""')
+          if ! app=$(gh api "repos/$GITHUB_REPOSITORY/issues/$NUMBER" --jq '.performed_via_github_app.slug // ""'); then
+            echo "::error::cannot read which app opened #$NUMBER (issues API, workflow token)"
+            exit 1
+          fi
           python3 tools/pr_gates.py check "$BASE_SHA" "$HEAD_SHA" "$TITLE" "$app"
