@@ -10,6 +10,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: read   # which app opened the pull request
 
 concurrency:
   group: gates-${{ github.event.pull_request.number }}
@@ -29,9 +30,13 @@ jobs:
         env:
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: git fetch --no-tags origin "$HEAD_SHA"
-      - name: Check rule coverage, decisions and build files
+      - name: Check rule coverage, decisions, commit identity and owner files
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           TITLE: ${{ github.event.pull_request.title }}
-        run: python3 tools/pr_gates.py check "$BASE_SHA" "$HEAD_SHA" "$TITLE"
+          NUMBER: ${{ github.event.pull_request.number }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          app=$(gh api "repos/$GITHUB_REPOSITORY/issues/$NUMBER" --jq '.performed_via_github_app.slug // ""')
+          python3 tools/pr_gates.py check "$BASE_SHA" "$HEAD_SHA" "$TITLE" "$app"

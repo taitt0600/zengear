@@ -1,6 +1,6 @@
 """Pull request gates that stand in for a person's approval (CLAUDE.md, Workflow).
 
-  python tools/pr_gates.py check <base sha> <head sha> "<pull request title>"
+  python tools/pr_gates.py check <base sha> <head sha> "<pull request title>" [<app that opened it>]
   python tools/pr_gates.py coverage <Feature ID>
 
 check, run by .github/workflows/gates.yml on every pull request:
@@ -15,6 +15,8 @@ check, run by .github/workflows/gates.yml on every pull request:
      same way.
   4. Commit identity: no commit is authored or committed as Claude (noreply@anthropic.com), and no commit
      message carries a Co-Authored-By or Claude-Session trailer (CLAUDE.md, Commits).
+  5. Owner merges: a pull request opened through a GitHub App (a Claude Code cloud session opens it through the
+     Claude app) changes no file of owner_paths; the owner opens those pull requests on GitHub.
 check reads the pull request from git objects only: nothing of the pull request is checked out or run.
 coverage reads the working tree, new files included (used by /implement-feature and /finish-feature).
 owner_paths lists the changed files that only the owner merges (tools/github_pr.py refuses auto-merge for them)."""
@@ -120,7 +122,7 @@ def commits(base, head):
     return result
 
 
-def check(base, head, title):
+def check(base, head, title, app=''):
     for rev in (base, head):
         git('rev-parse', '--verify', '--quiet', f'{rev}^{{commit}}')
     errors = []
@@ -160,7 +162,11 @@ def check(base, head, title):
         if AGENT_TRAILER.search(message):
             errors.append(f'commit {commit} has a Co-Authored-By or Claude-Session trailer (CLAUDE.md, Commits)')
 
-    for path in owner_paths(changed):
+    owned = owner_paths(changed)
+    if owned and app:
+        errors.append(f'opened through the {app} app, but changes files the owner merges: {", ".join(owned)}; '
+                      'the owner opens this pull request on GitHub')
+    for path in owned:
         print(f'::notice::merged by the owner, not by auto-merge: {path}')
     for error in errors:
         print(f'::error::{error}')
@@ -179,8 +185,8 @@ def coverage(feature):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) == 5 and sys.argv[1] == 'check':
-        sys.exit(check(sys.argv[2], sys.argv[3], sys.argv[4]))
+    if len(sys.argv) in (5, 6) and sys.argv[1] == 'check':
+        sys.exit(check(*sys.argv[2:]))
     if len(sys.argv) == 3 and sys.argv[1] == 'coverage':
         sys.exit(coverage(sys.argv[2]))
     print(__doc__)
