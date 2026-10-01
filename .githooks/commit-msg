@@ -6,6 +6,17 @@ message=$(tr -d '\r' < "$1" | grep -v '^#')
 subject=$(printf '%s\n' "$message" | sed -n '1p')
 second=$(printf '%s\n' "$message" | sed -n '2p')
 
+# Every commit carries the owner's name only (CLAUDE.md, Commits); the PR gates check it again.
+case "$(git var GIT_AUTHOR_IDENT) $(git var GIT_COMMITTER_IDENT)" in
+  *"<noreply@anthropic.com>"*)
+    echo "commit-msg: commit as the owner: set git user.name and user.email (CLAUDE.md, Commits)" >&2
+    exit 1 ;;
+esac
+if printf '%s\n' "$message" | grep -Eiq '^[[:space:]]*(Co-Authored-By|Claude-Session)[[:space:]]*:'; then
+  echo "commit-msg: remove the Co-Authored-By and Claude-Session trailers (CLAUDE.md, Commits)" >&2
+  exit 1
+fi
+
 case "$subject" in
   "Merge "*|"Revert \""*|"fixup! "*|"squash! "*|"amend! "*) exit 0 ;;
 esac

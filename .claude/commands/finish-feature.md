@@ -1,29 +1,76 @@
 ---
-description: Verify a finished feature, then propose commits and the pull request
+description: Verify a finished feature, commit it, open the pull request with auto-merge, follow CI and report
 argument-hint: <Feature ID, e.g. AUT-04>
 ---
-Finish feature $ARGUMENTS of ZenGear. Stop at the first failing step, report it and fix it before going on.
+Finish feature $ARGUMENTS of ZenGear without waiting for anyone (CLAUDE.md, Workflow). When a step fails, fix it
+and run the steps it depends on again; what cannot be fixed under the policy of `/implement-feature` (step 4)
+becomes a Needs decision item. `python3` is `python` on Windows.
 
-1. **Branch**: `git branch --show-current` must not be `main`. `git status` lists what will be committed; nothing under `bin/`, `obj/`, secrets or `.env` files.
-2. **Build and test** (from `api/`): `dotnet build ZenGear.slnx`, then `dotnet test ZenGear.slnx` (Docker must be running). The build refreshes `api/openapi/ZenGear.Api.json`; it belongs to the commit that changes the API.
-3. **Drift check** (from `api/`): `dotnet ef migrations has-pending-model-changes -p src/ZenGear.Data -s src/ZenGear.Api` reports no changes.
-4. **Schema check** — only when `api/src/ZenGear.Data/Migrations/` changed on this branch. It recreates the local `zengear` database, so tell the user to stop the API first. From `api/` in Bash:
-   ```bash
-   export MSYS_NO_PATHCONV=1   # Git Bash on Windows: keep /tmp paths for docker exec
-   pg=$(docker ps --filter "ancestor=postgres:18" --format "{{.Names}}")
-   docker cp db/zengear_01_database.sql "$pg:/tmp/01.sql"
-   docker cp db/zengear_02_schema_phase1_store.sql "$pg:/tmp/02.sql"   # add later phase files once that phase starts
-   docker cp ../tools/schema_snapshot.sql "$pg:/tmp/snap.sql"
-   docker exec "$pg" psql -U postgres -d postgres -v ON_ERROR_STOP=1 -q -f /tmp/01.sql
-   docker exec "$pg" psql -U postgres -d zengear -v ON_ERROR_STOP=1 -q -f /tmp/02.sql
-   docker exec "$pg" psql -U postgres -d zengear -At -f /tmp/snap.sql -o /tmp/spec.txt
-   docker exec "$pg" psql -U postgres -d postgres -v ON_ERROR_STOP=1 -q -f /tmp/01.sql
-   dotnet ef database update -p src/ZenGear.Data -s src/ZenGear.Api
-   docker exec "$pg" psql -U postgres -d zengear -At -f /tmp/snap.sql -o /tmp/migrated.txt
-   ```
-   For every table the migrations create (`grep '^relation ' /tmp/migrated.txt` inside the container), the `relation`, `column <table>.`, `constraint <table>.`, `index … ON public.<table> ` and `trigger … ON public.<table> ` lines of `/tmp/spec.txt` and `/tmp/migrated.txt` must be identical. Show the differing lines if any; the remaining difference is the tables not implemented yet.
-5. **Specification**: every rule of the feature has a test whose name starts with its ID; if `api/db/`, `docs/DATABASE.md` or `docs/blueprint/` changed, name the approved Decision that allows it, otherwise stop.
-6. **Code review**: give the `code-reviewer` agent the feature ID and the branch. Fix every Blocking item and every Should fix item, or say why one is not fixed; after a fix, run steps 2–3 again. Keep its final verdict and the number of Blocking items found and fixed for the pull request.
-7. **Security review**: run `/security-review` when the branch touches authentication or authorization (`ZenGear.Api/Authorization`, `Attributes`, `Middlewares`, `Extensions/AuthenticationSetup.cs`, the `Identity` area), payments, invoicing, a column listed under Personal data in `docs/DATABASE.md`, raw SQL, file uploads or an `[AllowAnonymous]` endpoint; otherwise skip it and say so. Fix every finding, or say why it is not a vulnerability; after a fix, run steps 2–3 again. Keep the number of findings and of fixed findings for the pull request.
-8. **Commits**: propose the commits per the `Commits` section of `CLAUDE.md` — `feat(db)` for entities, configurations and migrations; `feat(api)` for behavior, endpoints, the OpenAPI document and their tests; `test(api)` or `docs` for the rest — each with body and `Refs:` footer, plus `Closes #<issue>` for issues it resolves. Wait for the user's approval, then create them with `git commit`.
-9. **Pull request**: never push. Give the user the PR title (same format as a commit subject, feature ID at the end in parentheses, e.g. `feat(api): add role-based access control (AUT-04)`) and a body: summary, rules covered, how it was verified (steps 2–4 and the code-reviewer verdict with Blocking items found and fixed, the security review findings found and fixed or why it was skipped), follow-ups. When the user says the branch is pushed, create it with `gh pr create --base main --title "…" --body-file <file>`.
+1. **Branch**: `git branch --show-current` is not `main`. `git status` lists what will be committed; nothing under
+   `bin/`, `obj/`, `out/`, secrets or `.env` files.
+2. **Build and test** (from `api/`): `dotnet build ZenGear.slnx`, then `dotnet test ZenGear.slnx`. The build refreshes
+   `api/openapi/ZenGear.Api.json`; it belongs to the commit that changes the API.
+3. **Drift check** (from `api/`): `dotnet ef migrations has-pending-model-changes -p src/ZenGear.Data -s src/ZenGear.Api`
+   reports no changes.
+4. **Schema check** — only when `api/src/ZenGear.Data/Migrations/` changed on this branch, and only in a cloud
+   session: locally it would recreate the user's `zengear` database, and the `schema` job of CI runs it anyway.
+   Run that job of `.github/workflows/api.yml` here: a `postgres:18` container named `zengear-schema` as in its
+   `services`, its `env`, then its last three steps from `api/`; the last one,
+   `python3 ../tools/schema_compare.py spec.txt migrated.txt`, prints the lines that differ for the tables the
+   migrations build. Remove the container afterwards.
+5. **Specification**: `python3 tools/pr_gates.py coverage $ARGUMENTS` exits 0. If `api/db/`, `docs/DATABASE.md` or
+   `docs/blueprint/` changed, a commit must name the accepted Decision that allows it; otherwise it is a Needs
+   decision item and the change is reverted.
+6. **Code review**: give the `code-reviewer` agent the feature ID and the branch. Fix every Blocking and every
+   Should fix item, then run steps 2–3 and the review again, at most three rounds; an item you do not fix gets its
+   reason in the report, and a Blocking item left after three rounds is a Needs decision item. Keep the final
+   verdict and the number of Blocking items found and fixed.
+7. **Security review**: run `/security-review` when the branch touches authentication or authorization
+   (`ZenGear.Api/Authorization`, `Attributes`, `Middlewares`, `Extensions/AuthenticationSetup.cs`, the `Identity`
+   area), payments, invoicing, a column listed under Personal data in `docs/DATABASE.md`, raw SQL, file uploads or
+   an `[AllowAnonymous]` endpoint; otherwise skip it and say so. Fix every finding, or give the reason it is not a
+   vulnerability; after a fix, run steps 2–3 again. Keep the number of findings and of fixed findings.
+8. **Commits**, per the `Commits` section of `CLAUDE.md`, without asking: first `git config user.name taitt0600`,
+   `git config user.email taitt.dev@gmail.com` and `git config core.hooksPath .githooks`. Then `feat(db)` for
+   entities, configurations and migrations; `feat(api)` for behavior, endpoints, the OpenAPI document and their
+   tests; `test(api)` or `docs` for the rest — each with a body and a `Refs:` footer, plus `Closes #<issue>` for
+   issues it resolves, and no `Co-Authored-By` or `Claude-Session` trailer. Never `--no-verify`, never amend a
+   pushed commit.
+9. **Pull request**:
+   - `git push -u origin HEAD`.
+   - Write the body to `out/pr-body.md` (ignored by git), in English: summary, rules covered, decisions made,
+     Needs decision items, how it was verified (steps 2–5, the plan and code-reviewer verdicts with the Blocking
+     items found and fixed, the security review findings or why it was skipped).
+   - `python3 tools/github_pr.py create --title "<title>" --body-file out/pr-body.md`, with `--draft` when there
+     is a Needs decision item or a step still fails; run again without `--draft` once both are gone, which makes
+     the pull request ready. Title: the format of a commit subject with the feature ID at the end, e.g.
+     `feat(api): add role-based access control (AUT-04)` — the PR gates check the rules of that feature.
+   - Not a draft: `python3 tools/github_pr.py auto-merge <number>`. Exit code 5 means the owner merges: the pull
+     request changes a file only the owner merges, or `main` does not enforce every required check. Leave
+     auto-merge off and say so in the report.
+10. **CI**: `python3 tools/github_pr.py checks <number> --wait 540` with a Bash timeout of 10 minutes; exit code 3
+    means still running (or auto-merge has not merged yet), so run it again, at most six times. Exit code 0: the
+    pull request is merged, or open with every check passed for the owner to merge. Exit code 4: GitHub was not
+    reachable; run it again. Exit code 1:
+    - A failed check: read its annotations, reproduce it with the commands of its job in `.github/workflows/`
+      (job logs are not reachable from a cloud session), fix it, run steps 2–3, commit the fix as its own commit
+      typed by what it changes (`fix` only for a bug already on `main`; never amend), `git push origin HEAD`, and
+      wait again.
+    - A conflict with `main`, or the branch behind it: `git fetch origin main`, `git rebase origin/main`, resolve,
+      run steps 2–3, `git push --force-with-lease origin HEAD`, and wait again.
+    - At most three rounds of fixes; then `python3 tools/github_pr.py auto-merge <number> --off` and make the
+      failure a Needs decision item.
+11. **Report** for acceptance, in Vietnamese: write it to `out/report.md`, post it with
+    `python3 tools/github_pr.py comment <number> --body-file out/report.md` when there is a pull request, and end
+    your last reply with the same text. Sections:
+    - **Kết quả**: merged into `main`, open with auto-merge, draft waiting for a decision, or stopped at the ready
+      check — with the pull request link.
+    - **Chức năng**: what a user can now do, in the words of the user story.
+    - **Cách chạy để kiểm thử**: the steps of `docs/ACCEPTANCE.md` when it exists; otherwise the commands of
+      `api/CLAUDE.md` (Local database) to start PostgreSQL and Redis, apply the migrations and seeds and run the API,
+      and the Scalar page of the API.
+    - **Kịch bản kiểm thử**: for every acceptance criterion of the feature, the account or role to use, the actions
+      (screen, or API call with method, path and a sample body) and the expected result, including at least one
+      refusal per rule.
+    - **Rule đã có test**, **Quyết định Claude đã tự chọn**, **Cần bạn quyết định** (each Needs decision item with
+      the options and their consequences), **Đã kiểm tra** (steps 2–7 and CI, with the numbers kept above).
