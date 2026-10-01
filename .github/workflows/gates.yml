@@ -1,0 +1,37 @@
+name: gates
+
+# Checks that stand in for a person's approval before auto-merge (tools/pr_gates.py, CLAUDE.md, Workflow).
+# pull_request_target runs this file and tools/pr_gates.py as they are on main, so a pull request cannot
+# change the gates that judge it. The pull request is read as git objects: nothing of it is checked out
+# or run, and the token can only read.
+on:
+  pull_request_target:
+    types: [opened, reopened, edited, synchronize]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gates-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  gates:
+    name: PR gates
+    runs-on: ubuntu-latest
+    steps:
+      # The read-only token stays in .git/config for the fetch below; no step runs code of the pull request
+      # and nothing is uploaded.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Fetch the pull request
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: git fetch --no-tags origin "$HEAD_SHA"
+      - name: Check rule coverage, decisions and build files
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          TITLE: ${{ github.event.pull_request.title }}
+        run: python3 tools/pr_gates.py check "$BASE_SHA" "$HEAD_SHA" "$TITLE"
