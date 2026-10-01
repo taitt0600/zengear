@@ -37,6 +37,9 @@ becomes a Needs decision item. `python3` is `python` on Windows.
    issues it resolves, and no `Co-Authored-By` or `Claude-Session` trailer. Never `--no-verify`, never amend a
    pushed commit.
 9. **Pull request**:
+   - `python3 tools/pr_gates.py check origin/main HEAD "<title>" claude` runs the PR gates as CI will; fix what it
+     reports. When it reports files the owner merges, push the branch but do not open the pull request: the
+     report gives the owner the link `https://github.com/<owner>/<repo>/pull/new/<branch>` to open it.
    - `git push -u origin HEAD`.
    - Write the body to `out/pr-body.md` (ignored by git), in English: summary, rules covered, decisions made,
      Needs decision items, how it was verified (steps 2–5, the plan and code-reviewer verdicts with the Blocking
