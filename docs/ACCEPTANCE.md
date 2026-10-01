@@ -67,7 +67,9 @@ docker compose -f api/acceptance/compose.yml down -v   # reset: remove the datab
 ```
 
 The emulator exports its accounts when it stops and imports them when it starts, so the users in the database
-and the accounts in the emulator stay together; `down -v` removes both.
+and the accounts in the emulator stay together; `down -v` removes both. A stop gives it 30 seconds to export
+(`stop_grace_period`); a container that is killed (`docker kill`, `docker rm -f`) loses the accounts created
+since it started.
 
 ## CI
 

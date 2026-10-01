@@ -9,7 +9,7 @@ WORKDIR /home/node/firebase
 COPY --chown=node:node firebase.json firebase.no-ui.json ./
 COPY --chown=node:node --chmod=0755 start.sh ./
 # The UI is downloaded once here; without it (no access to storage.googleapis.com) only the Auth Emulator starts.
-# /home/node/data keeps the accounts between restarts.
+# /home/node/data is where the volume that keeps the accounts between restarts is mounted (start.sh).
 RUN (firebase setup:emulators:ui || echo "Emulator UI not downloaded") && mkdir -p /home/node/data
 EXPOSE 9099 4000
 CMD ["./start.sh"]
