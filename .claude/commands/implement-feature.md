@@ -6,7 +6,7 @@ Implement feature $ARGUMENTS of ZenGear and take it to a merged pull request wit
 (CLAUDE.md, Workflow). Never stop to ask: decide what the policy of step 4 lets you decide, and turn everything
 else into a **Needs decision** item for the report. A cloud session (`CLAUDE_CODE_REMOTE=true`) has nobody watching.
 
-1. **Ready check** — if one fails, stop and write only the report of `/finish-feature` (step 11), without a
+1. **Ready check** — if one fails, stop and write only the report of `/finish-feature` (step 12), without a
    pull request:
    - The branch: in a cloud session, the branch the session was given; locally, `git fetch origin main` and
      `git switch -c feat/<id in lowercase> origin/main`. Never `main`. `git status` shows no change.

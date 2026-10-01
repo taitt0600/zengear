@@ -14,7 +14,7 @@ Fix this defect of ZenGear without waiting for anyone (CLAUDE.md, Workflow): $AR
    of test. Run it and see it fail.
 4. **Fix** the code, the smallest change that makes the test pass without weakening another test, then
    `dotnet build ZenGear.slnx`, `dotnet test ZenGear.slnx` and the drift check from `api/`.
-5. **Finish** with the steps 1–11 of `/finish-feature` for this feature, with these differences: one commit
+5. **Finish** with the steps 1–12 of `/finish-feature` for this feature, with these differences: one commit
    `fix(<scope>): <subject>` with `Refs:` (and `Closes #<issue>`); pull request title
    `fix(<scope>): <subject> (<Feature ID>)`; in the report, **Kịch bản kiểm thử** repeats the steps that showed the
    defect, with the result now expected.
