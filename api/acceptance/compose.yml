@@ -1,0 +1,80 @@
+# Acceptance environment (docs/ACCEPTANCE.md): the API in Development with the Firebase Auth Emulator, PostgreSQL 18
+# and Redis; a one-off service sets up the database. Separate from the Visual Studio compose project in api/.
+# Every port is bound to 127.0.0.1 only: the passwords below are for this environment alone.
+name: zengear-acceptance
+
+services:
+  postgres:
+    image: postgres:18
+    environment:
+      POSTGRES_PASSWORD: acceptance
+    ports:
+      - "127.0.0.1:55432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  redis:
+    image: redis:7.4-alpine
+    # The access cache keeps version keys without TTL: Redis must never evict them (R-SEC-07).
+    command: ["redis-server", "--maxmemory-policy", "volatile-lru"]
+
+  firebase:
+    build: ./firebase
+    init: true
+    stop_grace_period: 30s   # the accounts are exported when the emulator stops
+    ports:
+      - "127.0.0.1:9099:9099"   # Auth Emulator
+      - "127.0.0.1:4000:4000"   # Emulator UI
+    volumes:
+      - firebase:/home/node/data
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:9099/').then(r => process.exit(r.ok ? 0 : 1), () => process.exit(1))"]
+      interval: 2s
+      timeout: 3s
+      retries: 60
+
+  init:
+    build:
+      context: ..
+      dockerfile: acceptance/init/Dockerfile
+    environment:
+      PGHOST: postgres
+      PGUSER: postgres
+      PGPASSWORD: acceptance
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  api:
+    build:
+      context: ..
+      dockerfile: src/ZenGear.Api/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_HTTP_PORTS: "8080"
+      # The schema owner until zengear_08_roles.sql can run on the migrated schema (DEC-089, api/CLAUDE.md).
+      ConnectionStrings__ZenGear: Host=postgres;Database=zengear;Username=postgres;Password=acceptance
+      ConnectionStrings__Redis: redis:6379
+      Firebase__ProjectId: demo-zengear
+      Firebase__UseEmulator: "true"
+      # Where the Firebase Admin SDK finds the emulator and the project.
+      FIREBASE_AUTH_EMULATOR_HOST: firebase:9099
+      GOOGLE_CLOUD_PROJECT: demo-zengear
+    ports:
+      - "127.0.0.1:8180:8080"
+    depends_on:
+      init:
+        condition: service_completed_successfully
+      redis:
+        condition: service_started
+      firebase:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+  firebase:
