@@ -27,9 +27,10 @@ pulling new code, run the same `up -d --build`: the database set-up applies the 
 | Scalar: API reference and requests | http://localhost:8180/scalar |
 | Firebase Emulator UI: accounts | http://localhost:4000/auth |
 | PostgreSQL (database `zengear`) | `localhost:55432`, user `postgres`, password `acceptance` |
+| Redis: the access cache, keys `zengear:access:*` | `localhost:56379`, no password |
 
-Every port is bound to `127.0.0.1`: the environment is not reachable from another machine. Its passwords serve
-this environment only.
+pgAdmin and Redis Insight, installed on the machine, connect to these ports. Every port is bound to `127.0.0.1`:
+the environment is not reachable from another machine. Its passwords serve this environment only.
 
 ## What the set-up does
 
