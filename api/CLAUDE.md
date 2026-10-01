@@ -48,7 +48,7 @@ Folders, file names and type names follow `../docs/ARCHITECTURE.md`, section *Fo
 - New migration: `dotnet ef migrations add <Name> -p src/ZenGear.Data -s src/ZenGear.Api`
 - Drift check (must report no changes): `dotnet ef migrations has-pending-model-changes -p src/ZenGear.Data -s src/ZenGear.Api`
 - Schema check against the specification, on a database built by the migrations:
-  `psql -At -d zengear -f ../tools/schema_snapshot.sql > migrated.txt`, the same on a database built from `db/zengear_01_database.sql` then `db/zengear_02…` up to the phase in progress, then `diff` the two files — empty means identical.
+  `psql -At -d zengear -f ../tools/schema_snapshot.sql -o migrated.txt`, the same into `spec.txt` on a database built from `db/zengear_01_database.sql` then `db/zengear_02…` up to the phase in progress, then `python3 ../tools/schema_compare.py spec.txt migrated.txt`: every table, view and function the migrations build matches the specification line for line (the tables not built yet are left out).
 
 ## Local database
 

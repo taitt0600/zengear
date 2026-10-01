@@ -33,7 +33,7 @@ zengear/
 │  └─ openapi/                 ZenGear.Api.json, generated at build — the contract used by web/
 ├─ web/                        Next.js app (docs/FRONTEND.md)
 ├─ docs/                       specifications shared by api/ and web/
-└─ tools/                      blueprint export, schema snapshot
+└─ tools/                      blueprint export, schema snapshot and comparison, PR gates, pull request steps
 ```
 
 Folders inside the three projects follow [Folder structure](#folder-structure); namespaces follow folders (`ZenGear.Api.Controllers`, `ZenGear.Services.Sales`, `ZenGear.Services.Sales.Models`, `ZenGear.Data.Entities.Sales`).
@@ -190,7 +190,7 @@ Every rule has at least one test whose name starts with its ID (`R_INV_01_...`).
 - EF Core Migrations are the only way the schema changes (DEC-088). Each phase is a group of migrations (`Phase1_Store`, `Phase2_Online`, …).
 - `UseSnakeCaseNamingConvention()` (EFCore.NamingConventions); constraint and index names set explicitly to the names in `api/db/` (`pk_`, `fk_`, `ix_`, `ck_`, ≤ 63 characters).
 - PostgreSQL-only objects (exclusion constraint, triggers, view, functions) through `migrationBuilder.Sql`.
-- CI: `dotnet ef migrations has-pending-model-changes`; build one database from the migrations and one from `api/db/zengear_01_database.sql` plus the phase files up to the phase in progress, run `tools/schema_snapshot.sql` on both and `diff` the output (must be empty); after the last phase `api/db/zengear_07_schema_check.sql` returns 0 rows; `api/db/zengear_06_reconciliation.sql` runs on test data.
+- CI: `dotnet ef migrations has-pending-model-changes`; build one database from the migrations and one from `api/db/zengear_01_database.sql` plus the phase files up to the phase in progress, run `tools/schema_snapshot.sql` on both and compare them with `tools/schema_compare.py`: every table, view and function the migrations build matches the specification line for line, and the migrations build nothing the specification does not have (the tables of the phase not built yet are left out); after the last phase `api/db/zengear_07_schema_check.sql` returns 0 rows; `api/db/zengear_06_reconciliation.sql` runs on test data.
 - The build writes `api/openapi/ZenGear.Api.json` (Microsoft.AspNetCore.OpenApi); it is committed and CI fails when it is out of date.
 - Deploy, in this order: migration bundle → `api/db/zengear_08_roles.sql` → `api/seed/` (re-runnable) → start the new API version (DEC-095). The startup permission sync needs the roles of `01_roles.sql`; its guard (nothing is written while a role is missing) is only a safety net for a deploy run out of this order.
 - Behind Azure App Service, `UseForwardedHeaders` runs before authentication and trusts only Azure's front end, so the security log (R-SEC-11) records the client IP (GitHub issue #3).
