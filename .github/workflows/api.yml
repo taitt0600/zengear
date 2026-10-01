@@ -76,14 +76,14 @@ jobs:
         run: |
           psql -v ON_ERROR_STOP=1 -d postgres -f db/zengear_01_database.sql
           for f in db/zengear_0[2-${LAST_PHASE_FILE}]_*.sql; do psql -v ON_ERROR_STOP=1 -d zengear -f "$f"; done
-          psql -v ON_ERROR_STOP=1 -At -d zengear -f ../tools/schema_snapshot.sql > spec.txt
+          psql -v ON_ERROR_STOP=1 -At -d zengear -f ../tools/schema_snapshot.sql -o spec.txt
       - name: Snapshot of the migrations
         run: |
           psql -v ON_ERROR_STOP=1 -d postgres -f db/zengear_01_database.sql
           if ls src/ZenGear.Data/Migrations/*.cs >/dev/null 2>&1; then
             dotnet ef database update -p src/ZenGear.Data -s src/ZenGear.Api --configuration Release --no-build
           fi
-          psql -v ON_ERROR_STOP=1 -At -d zengear -f ../tools/schema_snapshot.sql > migrated.txt
+          psql -v ON_ERROR_STOP=1 -At -d zengear -f ../tools/schema_snapshot.sql -o migrated.txt
+      # The tables, views and functions the migrations have built so far match the specification exactly.
       - name: Migrations produce the specified schema
-        continue-on-error: true   # bỏ dòng này khi migration Phase 1 đã đủ bảng
-        run: diff spec.txt migrated.txt
+        run: python3 ../tools/schema_compare.py spec.txt migrated.txt
