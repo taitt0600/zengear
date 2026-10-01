@@ -35,7 +35,7 @@ Decision: DEC-093 (monorepo), DEC-091 (3-Layer backend).
 
 ## Local environment
 
-`api/docker-compose.yml` (Visual Studio Docker Compose project) runs PostgreSQL 18 and Redis; launch profile `Infrastructure` starts only these two, and the API runs from its own project. Firebase runs with the Firebase Local Emulator Suite. Setup order for the database is in `api/CLAUDE.md`.
+`api/docker-compose.yml` (Visual Studio Docker Compose project) runs PostgreSQL 18, Redis, the Firebase Auth Emulator (UI at http://localhost:4000) and Redis Insight (http://localhost:5540); launch profile `Infrastructure` starts these four, and the API runs from its own project. Setup order for the database is in `api/CLAUDE.md`.
 
 The acceptance environment (`api/acceptance/compose.yml`, `docs/ACCEPTANCE.md`) runs the whole API with the Firebase Auth Emulator in Docker: the owner tests features there, and `/finish-feature` runs the scenarios of its report there first.
 

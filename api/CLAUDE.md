@@ -53,7 +53,7 @@ Folders, file names and type names follow `../docs/ARCHITECTURE.md`, section *Fo
 
 ## Local database
 
-1. Start PostgreSQL and Redis: Visual Studio, startup project `docker-compose`, launch profile `Infrastructure`, Ctrl+F5 — or `docker compose up -d postgres redis` in `api/`.
+1. Start PostgreSQL, Redis, the Firebase Auth Emulator and Redis Insight: Visual Studio, startup project `docker-compose`, launch profile `Infrastructure`, Ctrl+F5 — or `docker compose up -d postgres redis firebase redisinsight` in `api/`. The emulator uses the ports of the acceptance environment (9099, 4000): run one of the two at a time.
 2. `db/zengear_01_database.sql` on database `postgres` (creates `zengear` with the Vietnamese ICU collation).
 3. `dotnet ef database update -p src/ZenGear.Data -s src/ZenGear.Api`.
 4. `db/zengear_08_roles.sql`, then `seed/0*.sql` in file order (see `seed/README.md`).

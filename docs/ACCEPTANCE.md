@@ -3,8 +3,9 @@
 Where the owner tests a finished feature as an end user, and where an unattended session runs the scenarios of
 its acceptance report before posting it (`/finish-feature`, step 8). It runs the API in the Development
 environment against the Firebase Auth Emulator, PostgreSQL 18 and Redis, all in Docker
-(`api/acceptance/compose.yml`). It is separate from the Visual Studio compose project in `api/`, so both can
-run side by side.
+(`api/acceptance/compose.yml`). It is separate from the Visual Studio compose project in `api/`; both can run
+side by side, except the Firebase Auth Emulator, which takes ports 9099 and 4000 in each: stop the `firebase`
+service of one before starting the other.
 
 Requirements: Docker Desktop (WSL 2 on Windows), Python 3 and Git Bash. Every command below runs in Git Bash from
 the root of the repository.
