@@ -1,12 +1,12 @@
 # Stop hook: before Claude Code ends a turn that changed backend code, build the solution and run the
 # architecture tests (no Docker, under a minute). The full test suite stays in /finish-feature and CI.
 # A guardrail, not a gate: CI is the gate. Each state of the backend is checked once.
-# Written for Windows PowerShell 5.1 (powershell.exe), like guard-spec.ps1.
+# Runs on PowerShell 7 (pwsh), on Windows and in cloud sessions, like guard-spec.ps1.
 
-# 'Continue', not 'Stop': in Windows PowerShell 5.1 a native command writing to stderr under
-# 2>&1 would otherwise throw, and the hook would fail silently instead of reporting the errors.
+# 'Continue', not 'Stop': a native command writing to stderr under 2>&1 must not end the script,
+# which reports the build errors itself.
 $ErrorActionPreference = 'Continue'
-# Windows PowerShell 5.1 writes stdout in the console code page; the JSON read by Claude Code is UTF-8.
+# On Windows the console writes in its code page; the JSON read by Claude Code is UTF-8.
 [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding $false
 
 $payload = [Console]::In.ReadToEnd() | ConvertFrom-Json
@@ -60,7 +60,7 @@ if ($last -eq "fail $fingerprint") {
 }
 
 if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) {
-    Say @{ systemMessage = 'stop-check: not checked, dotnet is not on the PATH of powershell.exe.' }
+    Say @{ systemMessage = 'stop-check: not checked, dotnet is not on the PATH of pwsh.' }
 }
 
 # CopyRetryCount=0: a file locked by a running API fails at once instead of after ten retries per file.
