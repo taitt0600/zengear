@@ -34,15 +34,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell.exe",
+            "command": "pwsh",
             "args": [
               "-NoProfile",
-              "-ExecutionPolicy",
-              "Bypass",
               "-File",
               "${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-spec.ps1"
-            ],
-            "shell": "powershell"
+            ]
           }
         ]
       }
@@ -52,15 +49,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell.exe",
+            "command": "pwsh",
             "args": [
               "-NoProfile",
-              "-ExecutionPolicy",
-              "Bypass",
               "-File",
               "${CLAUDE_PROJECT_DIR}/.claude/hooks/stop-check.ps1"
             ],
-            "shell": "powershell",
             "timeout": 300
           }
         ]
