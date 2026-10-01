@@ -75,4 +75,5 @@ since it started.
 
 The `acceptance` workflow starts this environment on every pull request that changes `api/`, and checks that the
 set-up completes, `/health` answers `Healthy`, `GET /api/v1/me` refuses a request without a token (401) and
-accepts an emulator token (403 `account-not-registered` for an unknown user). It is not a required check.
+accepts an emulator token (403 `account-not-registered` for an unknown user), and that an account of the emulator
+still signs in with the same uid after a restart. It is not a required check.
