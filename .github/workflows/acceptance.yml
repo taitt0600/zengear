@@ -53,6 +53,27 @@ jobs:
           body=$(curl -s -H "Authorization: Bearer $token" "$API/api/v1/me")
           echo "$body" | grep -q 'account-not-registered' \
             || { echo "::error::GET /api/v1/me with an emulator token of an unknown user: $body"; exit 1; }
+      # The emulator exports its accounts when it stops and imports them when it starts: the account of the step
+      # above signs in with the same uid after a restart, and the Emulator UI comes back.
+      - name: The emulator keeps its accounts across a restart
+        run: |
+          # The uid line (stderr) of a sign-in; the token (stdout) is not needed.
+          uid() { { python3 tools/emulator_token.py smoke@zengear.test smoke-password >/dev/null; } 2>&1; }
+          before=$(uid)
+          $COMPOSE restart firebase
+          after=""
+          for _ in $(seq 1 60); do
+            if after=$(uid); then break; fi
+            sleep 2
+          done
+          [ "$after" = "$before" ] \
+            || { echo "::error::after a restart of the emulator: '$after', expected '$before'"; exit 1; }
+          for _ in $(seq 1 30); do
+            if curl -sf -o /dev/null http://127.0.0.1:4000/; then exit 0; fi
+            sleep 2
+          done
+          echo "::error::the Emulator UI did not answer on port 4000 after the restart"
+          exit 1
       # Job logs cannot be read from a cloud session: the end of the build output and of each service's log
       # becomes an annotation.
       - name: Logs as annotations
