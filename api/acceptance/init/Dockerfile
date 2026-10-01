@@ -3,7 +3,9 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS bundle
 WORKDIR /src
 COPY . .
+# dotnet ef reads the project metadata before it builds, so the projects are restored first.
 RUN dotnet tool restore \
+ && dotnet restore src/ZenGear.Api/ZenGear.Api.csproj -r linux-x64 \
  && dotnet ef migrations bundle -p src/ZenGear.Data -s src/ZenGear.Api --configuration Release \
       --self-contained -r linux-x64 -o /out/efbundle
 
