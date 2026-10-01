@@ -25,8 +25,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # The output goes to files too: on failure their end becomes an annotation (last step).
+      - name: Build the images
+        run: |
+          set -o pipefail
+          $COMPOSE --progress plain build 2>&1 | tee "$RUNNER_TEMP/build.log"
       - name: Start the acceptance environment
-        run: $COMPOSE up -d --build
+        run: |
+          set -o pipefail
+          $COMPOSE up -d 2>&1 | tee "$RUNNER_TEMP/up.log"
       - name: The API is healthy
         run: |
           for _ in $(seq 1 120); do
@@ -46,11 +53,20 @@ jobs:
           body=$(curl -s -H "Authorization: Bearer $token" "$API/api/v1/me")
           echo "$body" | grep -q 'account-not-registered' \
             || { echo "::error::GET /api/v1/me with an emulator token of an unknown user: $body"; exit 1; }
-      # Job logs cannot be read from a cloud session: the end of each service's log becomes an annotation.
-      - name: Service logs
+      # Job logs cannot be read from a cloud session: the end of the build output and of each service's log
+      # becomes an annotation.
+      - name: Logs as annotations
         if: failure()
         run: |
+          annotate() {
+            text=$(printf '%s' "$2" | sed -e 's/%/%25/g' -e 's/\r//g' | sed -e ':a;N;$!ba;s/\n/%0A/g')
+            if [ -n "$text" ]; then echo "::error title=$1::$text"; fi
+          }
+          for step in build up; do
+            if [ -f "$RUNNER_TEMP/$step.log" ]; then
+              annotate "docker compose $step" "$(grep -v -E '^#[0-9]+ (sha256:|extracting|DONE|CACHED|resolve)' "$RUNNER_TEMP/$step.log" | tail -n 60)"
+            fi
+          done
           for service in init api firebase postgres; do
-            log=$($COMPOSE logs --no-color --tail 30 "$service" 2>&1 | sed -e 's/%/%25/g' | sed -e ':a;N;$!ba;s/\n/%0A/g')
-            echo "::error title=$service log::$log"
+            annotate "$service log" "$($COMPOSE logs --no-color --tail 30 "$service" 2>&1)"
           done
