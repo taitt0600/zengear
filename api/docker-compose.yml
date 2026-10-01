@@ -6,9 +6,13 @@ services:
       dockerfile: src/ZenGear.Api/Dockerfile
     environment:
       - ConnectionStrings__Redis=redis:6379
+      # Where the Firebase Admin SDK finds the emulator and the project (Development only).
+      - FIREBASE_AUTH_EMULATOR_HOST=firebase:9099
+      - GOOGLE_CLOUD_PROJECT=demo-zengear
     depends_on:
       - postgres
       - redis
+      - firebase
   postgres:
     image: postgres:18
     environment:
@@ -25,5 +29,20 @@ services:
     ports:
       - "6379:6379"
 
+  # Firebase Auth Emulator (project demo-zengear of appsettings.Development.json) and its UI at
+  # http://localhost:4000. Same image and ports as the acceptance environment (docs/ACCEPTANCE.md): run one
+  # of the two at a time.
+  firebase:
+    build:
+      context: acceptance/firebase
+    init: true
+    stop_grace_period: 30s   # the accounts are exported when the emulator stops
+    ports:
+      - "127.0.0.1:9099:9099"
+      - "127.0.0.1:4000:4000"
+    volumes:
+      - firebase:/home/node/data
+
 volumes:
   pgdata:
+  firebase:

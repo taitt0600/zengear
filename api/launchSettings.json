@@ -6,7 +6,8 @@
       "serviceActions": {
         "zengear.api": "StartDebugging",
         "postgres": "StartWithoutDebugging",
-        "redis": "StartWithoutDebugging"
+        "redis": "StartWithoutDebugging",
+        "firebase": "StartWithoutDebugging"
       }
     },
     "Infrastructure": {
@@ -15,7 +16,8 @@
       "serviceActions": {
         "zengear.api": "DoNotStart",
         "postgres": "StartWithoutDebugging",
-        "redis": "StartWithoutDebugging"
+        "redis": "StartWithoutDebugging",
+        "firebase": "StartWithoutDebugging"
       }
     }
   }
