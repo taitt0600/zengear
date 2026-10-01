@@ -46,7 +46,7 @@ $protectedPrefixes = @(
 )
 
 $codePrefixes = @('.claude/', '.githooks/', '.github/workflows/', '.gitleaks.toml', 'tools/pr_gates.py',
-    'tools/schema_snapshot.sql', 'tools/schema_compare.py', 'api/tests/ZenGear.ArchitectureTests/',
+    'tools/github_pr.py', 'tools/schema_snapshot.sql', 'tools/schema_compare.py', 'api/tests/ZenGear.ArchitectureTests/',
     'docs/ARCHITECTURE.md')
 $codeSuffixes = @('.csproj', '.props', '.targets')
 
@@ -76,13 +76,13 @@ if ($path) {
 }
 
 # Shell commands: ask when the command names a protected file and can write to it.
-# Running the PR gates or the schema comparison is not a write: those invocations are removed first.
+# Running the workflow tools is not a write: those invocations are removed before the command is checked.
 $command = [string]$payload.tool_input.command
-$command = $command -replace '(^|[;&|]\s*)python3?\s+(\.\.[\\/]+)?tools[\\/]+(pr_gates\.py\s+(check|coverage)|schema_compare\.py)\b', '$1'
+$command = $command -replace '(^|[;&|]\s*)python3?\s+(\.\.[\\/]+)?tools[\\/]+(pr_gates\.py\s+(check|coverage)|github_pr\.py\s+(create|ready|auto-merge|checks|comment)|schema_compare\.py)\b', '$1'
 if ($command) {
     $mentionsSpec = '(api[\\/]+db[\\/]|(^|[\s''"=])db[\\/]+zengear_|docs[\\/]+blueprint[\\/]|DATABASE\.md|product-domain-blueprint-MVP\.xlsx)'
     $canWrite = '(>(?!>?\s*(&|/dev/null\b|\$null\b))|\btee\b|\bsed\b[^|;&]*\s-i|\bperl\b[^|;&]*\s-i|(^|[;&|(]\s*)(cp|mv|rm|truncate|touch|dd|install|unzip|tar)\b|\bgit\s+(checkout|restore|apply|mv|rm|reset|stash)\b|Out-File|Set-Content|Add-Content|Remove-Item|Move-Item|Copy-Item|New-Item|Rename-Item|\bpython\d*\b|\bnode\b|\bpwsh\b|\bpowershell\b)'
-    $mentionsTooling = '(\.claude[\\/]|\.githooks[\\/]|\.github[\\/]+workflows|\.gitleaks\.toml|pr_gates\.py|schema_snapshot\.sql|schema_compare\.py|ZenGear\.ArchitectureTests[\\/]|ARCHITECTURE\.md)'
+    $mentionsTooling = '(\.claude[\\/]|\.githooks[\\/]|\.github[\\/]+workflows|\.gitleaks\.toml|pr_gates\.py|github_pr\.py|schema_snapshot\.sql|schema_compare\.py|ZenGear\.ArchitectureTests[\\/]|ARCHITECTURE\.md)'
     $mentionsBuild = '\.(csproj|props|targets)\b'
     if ($command -match $mentionsSpec) {
         $target = $Matches[0]

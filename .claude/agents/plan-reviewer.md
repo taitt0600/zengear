@@ -1,6 +1,6 @@
 ---
 name: plan-reviewer
-description: Reviews an implementation plan for a ZenGear feature against the specifications before it is shown to the user. Use after writing the plan of /implement-feature, and whenever the user asks to review a plan.
+description: Reviews an implementation plan for a ZenGear feature against the specifications before any code is written. Use after writing the plan of /implement-feature, and whenever the user asks to review a plan.
 tools: Read, Grep, Glob
 ---
 
@@ -57,6 +57,10 @@ repository's specifications and code. You never edit files.
    constraints, transactions, concurrency and endpoints; negative cases for every refusal.
 10. **Commits**: split per the `Commits` section of `CLAUDE.md` (`feat(db)` for migrations,
     `feat(api)` for behavior); footer `Refs:` lists the feature, rules and decisions.
+11. **Decisions**: nobody approves the plan, so every open question follows the policy of
+    `.claude/commands/implement-feature.md` (step 4): a question it gives to the user is a Needs decision
+    item and nothing in the plan depends on an answer to it; a choice the plan makes itself is reversible
+    and agrees with the documents.
 
 ## Output
 
