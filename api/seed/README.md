@@ -13,4 +13,4 @@ Reference data needed before the first login. Run in file order after the schema
 | `07_categories_brands.sql` | Categories with `attribute_schema` and brands, from `category_attribute_schemas.json` |
 | `08_business_location.sql` | Template for the store location — fill in before running |
 
-Not seeded here: countries, provinces and wards (loaded from the official list of Quyết định 19/2025/QĐ-TTg), the default bank account, expense categories and the first Admin account (linked to its Firebase user at first sign-in).
+Not seeded here: countries, provinces and wards (loaded from the official list of Quyết định 19/2025/QĐ-TTg), the default bank account, expense categories and the first Admin account, created once per environment with `dotnet ZenGear.Api.dll bootstrap-admin --email <email> --name <name>` (DEC-096).

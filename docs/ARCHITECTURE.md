@@ -90,7 +90,7 @@ ZenGear.Api/
 ├─ Constants/            claim types and other constant sets
 ├─ Logging/              security log, masking of sensitive values
 ├─ Hosting/              environment and pipeline types that are not a *Setup (build-time OpenAPI detection,
-│                        custom policies of the request pipeline)
+│                        custom policies of the request pipeline, one-off commands such as bootstrap-admin)
 └─ Program.cs
 ZenGear.Services/
 ├─ <Area>/
@@ -133,7 +133,7 @@ Where a type goes follows from its name:
 | `*Options` | `ZenGear.Api/Options`; in `ZenGear.Data`, next to the client that reads it |
 | `*Claims` and other constant sets | `ZenGear.Api/Constants` |
 | security log, log masking (`SecurityLog`, `SensitivePropertyMasker`) | `ZenGear.Api/Logging` |
-| environment and pipeline set-up that is not a `*Setup` (`BuildTimeDocumentGeneration`) | `ZenGear.Api/Hosting` |
+| environment and pipeline set-up that is not a `*Setup` (`BuildTimeDocumentGeneration`), a one-off command of the host (`bootstrap-admin`, DEC-096) | `ZenGear.Api/Hosting` |
 | `*Request`, `*Dto`, and records that only carry data (a record used only inside one mechanism stays in it) | `ZenGear.Services/<Area>/Models`; shared by every list endpoint: `ZenGear.Services/Common/Models` |
 | enum of the Services layer | `ZenGear.Services/<Area>/Enums` |
 | `*Validator`: the FluentValidation validator of one request; other checks are named after what they check | `ZenGear.Services/<Area>/Validators` (`Common/Validators` for `Common/Models`) |
