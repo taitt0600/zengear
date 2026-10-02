@@ -85,6 +85,14 @@ def accepted_decisions(rev):
     return {row[0] for row in rows if len(row) == 8 and row[7] == 'Accepted'}
 
 
+def missing_decision(named):
+    """Why a commit that needs a decision has none, for its error message."""
+    if not named:
+        return 'without an accepted decision (DEC-xxx) in its message'
+    return (f'naming {", ".join(sorted(named))}, but no row of {DECISIONS} at the head has that ID as its first cell '
+            'and "Accepted" as its Status (look in the workbook for a hidden character or a date in the ID cell)')
+
+
 def tested_rules(rev):
     # Exit code 1 of git grep means no match.
     where = [rev] if rev else []
@@ -146,9 +154,10 @@ def check(base, head, title, app=''):
                       'e.g. "(STF-01)", so that its rules are checked')
 
     accepted = accepted_decisions(head)
-    needs = 'without an accepted decision (DEC-xxx) in its message'
     for commit, author, committer, message, files in commits(base, head):
-        decided = bool(set(DECISION.findall(message)) & accepted)
+        named = set(DECISION.findall(message))
+        decided = bool(named & accepted)
+        needs = missing_decision(named)
         spec = [path for path in files if path.startswith(SPEC_PATHS)]
         build = [path for path in files if path.endswith(BUILD_SUFFIXES) and any(
             line.startswith('+') and RUNS_CODE.search(line)
