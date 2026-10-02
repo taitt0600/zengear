@@ -11,31 +11,31 @@ is hard to migrate, packages, build code) and merging a pull request that change
 1. Pick a feature of `docs/blueprint/features.md` whose *Depends On* features are done, and start it in a local
    session: open VS Code on the repository, `git switch main`, `git pull`, then `/implement-feature <Feature ID>`
    in Claude Code. Approve its three checkpoints: the plan, with the Needs decision items asked there; the failing
-   tests; the diff before the commit, where it also asks how many minutes you spent. When the owner is away, a cloud
-   session can still run the same command, unattended as before; its Needs decision items then wait in the report.
+   tests; the diff before the commit, where it also asks how many minutes you spent. Cloud sessions no longer run
+   features or fixes (DEC-100): they run only the two notification routines below, `/report-review` and
+   `/decision-draft`.
 2. Wait for a notification on the phone from the routine **ZenGear PR merged** or **ZenGear PR needs decision**:
    - *"AUT-04 đã merge — sẵn sàng test …"*: test it with the scenarios of the report on the pull request, on the
      acceptance environment (`docs/ACCEPTANCE.md`);
    - *"AUT-04 cần anh/chị quyết định …"*: answer each item; `/decision-draft <what was decided>` drafts the
      Decision for the workbook, and the owner opens that specification pull request.
 3. Report each defect as an issue with the form **Acceptance defect** (label `defect`), one defect per issue, the
-   title starting with the Feature ID. Nothing else: the routine **ZenGear fix defects** takes it, the fix pull
-   request closes it when it merges, and step 2 starts again for that pull request.
+   title starting with the Feature ID, then run `/fix-defect <Feature ID> #<issue>` in a local session; the fix pull
+   request closes the issue when it merges, and step 2 starts again for that pull request.
 
 ## What runs by itself
 
 | Step | Mechanism | Where it lives |
 |---|---|---|
-| Docker and gitleaks in every cloud session | SessionStart hook `.claude/hooks/session-start.ps1` (cloud only; gitleaks 8.24.3 checked against its SHA-256) | Repository |
 | Plan, tests, code, verification, commits, pull request, CI, report | `/implement-feature` → `/finish-feature`, with the `plan-reviewer`, `code-reviewer` and `report-reviewer` agents; locally they stop at the three checkpoints | Repository |
 | Merge | Auto-merge once the required checks of `main` pass (`tools/github_pr.py`) | GitHub |
 | Notify the owner, log the numbers | Routines **ZenGear PR merged** (pull request merged) and **ZenGear PR needs decision** (pull request opened as a draft), on GitHub events | The owner's claude.ai account |
-| Turn a defect issue into a fix | Routine **ZenGear fix defects**, every two hours from 07:52 to 21:52 (Asia/Ho_Chi_Minh) | The owner's claude.ai account |
+| Turn a defect issue into a fix | Routine **ZenGear fix defects** — **disabled since 2026-10-02** (DEC-100); the owner runs `/fix-defect` locally | The owner's claude.ai account |
 
 The routines are managed at [claude.ai/code/routines](https://claude.ai/code/routines): pause one with its switch,
 start one at once with **Run now**. Each routine has taitt0600/zengear as its repository (a routine created
-without one runs in an empty session). They run as cloud sessions on this repository, so the hook, the skills and
-the agents above apply to them. Their prompts below are the reference: change a prompt here and in the routine
+without one runs in an empty session). They run as cloud sessions on this repository, so the skills and the agents
+above apply to them; no SessionStart hook prepares them any more, since they only read. Their prompts below are the reference: change a prompt here and in the routine
 together.
 
 ## Tools of local sessions (DEC-100)
@@ -91,10 +91,9 @@ notification a routine sends to the phone. A defect issue may be written in Engl
 
 ## Labels and recovery
 
-- `defect`: set by the issue form; the routine takes only open issues labeled `defect`, opened by `taitt0600`.
-- `fixing`: set by the routine when it takes an issue, so that two runs never fix the same defect. A run that stops
-  before opening a pull request leaves `fixing` and comments the reason on the issue; remove `fixing` once the cause
-  is fixed to have the next run take the issue again.
+- `defect`: set by the issue form; `/fix-defect <Feature ID> #<issue>` takes the issue in a local session.
+- `fixing`: set by the routine **ZenGear fix defects** while it ran (disabled since 2026-10-02); an issue still
+  labeled `fixing` from that time can be fixed locally like any other once the label is removed.
 - A notification that says *"chưa có báo cáo nghiệm thu"* means the session stopped before step 12 of
   `/finish-feature`: open the session from the pull request to see why.
 
@@ -148,9 +147,10 @@ nothing, and write every comment on GitHub in English.
    - no report: "<Feature ID>: PR #<n> chưa có báo cáo nghiệm thu, cần xem phiên đã chạy".
 ```
 
-### ZenGear fix defects
+### ZenGear fix defects (disabled since 2026-10-02)
 
-Trigger: schedule `CRON_TZ=Asia/Ho_Chi_Minh 52 7-21/2 * * *`. Repository: taitt0600/zengear. Notifications: push.
+Kept for reference: DEC-100 moved defect fixes to local sessions, and the routine stays switched off at
+claude.ai/code/routines. Trigger: schedule `CRON_TZ=Asia/Ho_Chi_Minh 52 7-21/2 * * *`. Repository: taitt0600/zengear. Notifications: push.
 
 ```
 Fix the next acceptance defect the owner reported on taitt0600/zengear, unattended. Write every comment on GitHub
