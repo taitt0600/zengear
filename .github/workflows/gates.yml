@@ -1,9 +1,9 @@
 name: gates
 
-# Checks that stand in for a person's approval before auto-merge (tools/pr_gates.py, CLAUDE.md, Workflow).
-# pull_request_target runs this file and tools/pr_gates.py as they are on main, so a pull request cannot
-# change the gates that judge it. The pull request is read as git objects: nothing of it is checked out
-# or run, and the token can only read.
+# Checks that stand in for a person's approval before auto-merge (tools/pr_gates.py, CLAUDE.md, Workflow), and the
+# title of the pull request. pull_request_target runs this file and tools/pr_gates.py as they are on main, so a pull
+# request cannot change the gates that judge it. The pull request is read as git objects: nothing of it is checked
+# out or run, and the token can only read. The other checks run in pipeline.yml.
 on:
   pull_request_target:
     types: [opened, reopened, edited, synchronize]
@@ -44,3 +44,37 @@ jobs:
             exit 1
           fi
           python3 tools/pr_gates.py check "$BASE_SHA" "$HEAD_SHA" "$TITLE" "$app"
+
+  # The PR title becomes the subject of the merge; it follows Conventional Commits (CLAUDE.md, Commits).
+  pr-title:
+    name: Validate PR title
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    steps:
+      - uses: amannn/action-semantic-pull-request@48f256284bd46cdaab1048c3721360e808335d50 # v6.1.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |
+            feat
+            fix
+            docs
+            refactor
+            perf
+            test
+            build
+            ci
+            chore
+            revert
+          scopes: |
+            api
+            web
+            db
+            seed
+            docs
+            ci
+          requireScope: false
+          subjectPattern: ^(?![A-Z]).+[^.]$
+          subjectPatternError: |
+            The subject "{subject}" must start with a lowercase letter and must not end with a period.
