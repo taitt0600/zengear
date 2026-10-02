@@ -27,7 +27,7 @@ from pr_gates import owner_paths  # noqa: E402
 API = 'https://api.github.com'
 PROXY_TOKEN = 'proxy-injected'
 BASE = 'main'
-REQUIRED_CHECKS = ('Scan for secrets', 'Validate PR title', 'build-test', 'schema', 'PR gates')
+REQUIRED_CHECKS = ('Scan for secrets', 'Validate PR title', 'build-test', 'schema', 'tools-test', 'PR gates')
 PASSED = ('success', 'neutral', 'skipped')
 POLL_SECONDS = 30
 ATTEMPTS = 3

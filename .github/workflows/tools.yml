@@ -27,5 +27,9 @@ jobs:
         with:
           global-json-file: api/global.json
       # pwsh and python3 come with ubuntu-latest. The dossier test reads the real specification, the guard test
-      # runs .claude/hooks/guard-spec.ps1 and the env_doctor test reads user-secrets through dotnet.
-      - run: python3 -m unittest discover -s tools/tests -v
+      # runs .claude/hooks/guard-spec.ps1, the env_doctor test reads user-secrets through dotnet, and the export
+      # test needs openpyxl, pinned, in a venv because the Python of the runner is externally managed (PEP 668).
+      - run: |
+          python3 -m venv .venv
+          .venv/bin/pip install --quiet --no-deps openpyxl==3.1.5 et-xmlfile==2.0.0
+      - run: .venv/bin/python -m unittest discover -s tools/tests -v
