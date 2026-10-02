@@ -1,10 +1,14 @@
 ---
-description: Implement one blueprint feature end to end, unattended (rules → tests → code → pull request)
+description: Implement one blueprint feature end to end, with checkpoints locally or unattended in the cloud (rules → tests → code → pull request)
 argument-hint: <Feature ID, e.g. POS-01>
 ---
-Implement feature $ARGUMENTS of ZenGear and take it to a merged pull request without waiting for anyone
-(CLAUDE.md, Workflow). Never stop to ask: decide what the policy of step 4 lets you decide, and turn everything
-else into a **Needs decision** item for the report. A cloud session (`CLAUDE_CODE_REMOTE=true`) has nobody watching.
+Implement feature $ARGUMENTS of ZenGear and take it to a merged pull request (CLAUDE.md, Workflow; DEC-099).
+Where it runs decides where it stops:
+- **Locally** (`CLAUDE_CODE_REMOTE` is not `true`, the usual place): the owner is at the machine. Stop at the
+  checkpoints marked **Checkpoint** (two here, one in `/finish-feature`) and nowhere else; between them, decide what
+  the policy of step 4 lets you decide and keep going.
+- **In a cloud session** (`CLAUDE_CODE_REMOTE=true`): nobody is watching. Skip the checkpoints, never stop to ask,
+  and turn everything the policy does not let you decide into a **Needs decision** item for the report.
 
 1. **Ready check** — if one fails, stop and write only the report of `/finish-feature` (step 12), without a
    pull request:
@@ -27,6 +31,12 @@ else into a **Needs decision** item for the report. A cloud session (`CLAUDE_COD
    `out/feature-$ARGUMENTS.md` to the `plan-reviewer` agent and fix every Blocking and Should fix item; repeat until
    it answers READY, at most three rounds. A Blocking item left after three rounds becomes a Needs decision item.
    Keep the final verdict for the report.
+   **Checkpoint 1 (local)**: show the owner the plan (endpoints, service and entity methods, migrations, tests per
+   rule), the plan-reviewer verdict and the decisions you made, then ask every Needs decision item at once
+   (AskUserQuestion; options with their consequences, your recommendation first). An answer becomes a decision made,
+   credited to the owner. An answer that changes a specification stops the run: draft the Decision with
+   `/decision-draft` and write the report of `/finish-feature` (step 12) without a pull request. Go on when the
+   owner approves the plan; apply the changes they ask for and show the plan again only if it changed.
 4. **Decision policy** for every question the specification does not answer:
    - Decide it yourself, and list the choice under "Decisions made" in the report, when it is reversible, stays
      inside the code and agrees with the documents: names of private members, how a service is split within the
@@ -39,10 +49,14 @@ else into a **Needs decision** item for the report. A cloud session (`CLAUDE_COD
      `docs/GLOSSARY.md`, a new package, a build file that runs code, a new folder, a suppressed analyzer rule or an
      exception to an architecture test. The same applies wherever `CLAUDE.md`, `api/CLAUDE.md` or `web/CLAUDE.md`
      says to ask or to stop and ask, and whenever a hook denies a change. Build what does not depend on it.
+   - Locally, a Needs decision item is asked at Checkpoint 1, or at once when it appears later, instead of being
+     left for the report; only an item the owner chooses to leave open goes to the report.
 5. **Backend**, following `api/CLAUDE.md`:
    - Tests first (`api/tests/ZenGear.Services.Tests` for entity and service logic,
      `api/tests/ZenGear.Api.IntegrationTests` for transactions, constraints and endpoints), named after rule IDs;
      run them and see them fail for the expected reason.
+   - **Checkpoint 2 (local)**: list the tests by rule ID with the reason each one fails, and go on when the owner
+     agrees; add or change the tests they ask for first.
    - Code in the owning area folders of `ZenGear.Data`, `ZenGear.Services`, `ZenGear.Api`; never write another
      area's tables directly.
    - From `api/`: `dotnet build ZenGear.slnx`, `dotnet test ZenGear.slnx`, the migration drift check; fix until
@@ -52,4 +66,5 @@ else into a **Needs decision** item for the report. A cloud session (`CLAUDE_COD
    - From `web/`: `npm run gen:api`, then pages and components in the matching `features/<area>`.
    - `npm run lint` and `npm run build`.
 7. Run `/finish-feature $ARGUMENTS` with the plan verdict, the decisions made and the Needs decision items: it
-   verifies, commits, opens the pull request, enables auto-merge, follows CI and reports.
+   verifies, stops at its checkpoint before the commits (locally), commits, opens the pull request, enables
+   auto-merge, follows CI and reports.
