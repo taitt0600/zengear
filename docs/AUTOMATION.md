@@ -29,7 +29,8 @@ request that changes the specification or the tooling (`owner_paths` in `tools/p
 | Turn a defect issue into a fix | Routine **ZenGear sửa lỗi nghiệm thu**, every two hours from 07:52 to 21:52 (Asia/Ho_Chi_Minh) | The owner's claude.ai account |
 
 The routines are managed at [claude.ai/code/routines](https://claude.ai/code/routines): pause one with its switch,
-start one at once with **Run now**. They run as cloud sessions on this repository, so the hook, the skills and
+start one at once with **Run now**. Each routine has taitt0600/zengear as its repository (a routine created
+without one runs in an empty session). They run as cloud sessions on this repository, so the hook, the skills and
 the agents above apply to them. Their prompts below are the reference: change a prompt here and in the routine
 together.
 
@@ -54,7 +55,7 @@ feature. Compare features with it before changing the workflow.
 
 Triggers, both with the filter *title* matches regex `.*\([A-Z]{3}-[0-9]{2}\)` (a feature or fix pull request):
 GitHub event *pull request closed* with *is merged* = true, and GitHub event *pull request opened* with
-*is draft* = true. Notifications: push.
+*is draft* = true. Repository: taitt0600/zengear. Notifications: push.
 
 ```
 A pull request of taitt0600/zengear was just merged, or opened as a draft: the pull request of the GitHub event
@@ -80,7 +81,7 @@ nothing.
 
 ### ZenGear sửa lỗi nghiệm thu
 
-Trigger: schedule `CRON_TZ=Asia/Ho_Chi_Minh 52 7-21/2 * * *`. Notifications: push.
+Trigger: schedule `CRON_TZ=Asia/Ho_Chi_Minh 52 7-21/2 * * *`. Repository: taitt0600/zengear. Notifications: push.
 
 ```
 Fix the next acceptance defect the owner reported on taitt0600/zengear, unattended.
