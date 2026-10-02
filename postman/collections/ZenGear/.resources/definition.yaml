@@ -26,7 +26,7 @@ scripts:
           throw new Error(`emulatorUrl ${emulator} is not a local Firebase Auth Emulator: sign-in refused`);
         }
         const cacheKey = `token:${email}`;
-        const cached = JSON.parse(pm.collectionVariables.get(cacheKey) || 'null');
+        const cached = JSON.parse(pm.variables.get(cacheKey) || 'null');
         const bearer = (token) => pm.request.headers.upsert({ key: 'Authorization', value: `Bearer ${token}` });
         if (cached && cached.expires > Date.now() + 60000) {
           bearer(cached.token);
@@ -55,7 +55,7 @@ scripts:
                 throw new Error(`emulator sign-in of ${email} failed (${signInError || signIn.code})`);
               }
               const { idToken, expiresIn } = signIn.json();
-              pm.collectionVariables.set(cacheKey,
+              pm.variables.set(cacheKey,
                 JSON.stringify({ token: idToken, expires: Date.now() + Number(expiresIn) * 1000 }));
               bearer(idToken);
             });

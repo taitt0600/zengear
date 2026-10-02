@@ -12,7 +12,7 @@ scripts:
   - type: beforeRequest
     language: text/javascript
     code: |-
-      pm.collectionVariables.set('run', Date.now().toString(36));
+      pm.variables.set('run', Date.now().toString(36));
   - type: afterResponse
     language: text/javascript
     code: |-
