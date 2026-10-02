@@ -18,8 +18,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  gates:
-    name: PR gates
+  pr-gates:
+    name: pr-gates
     runs-on: ubuntu-latest
     steps:
       # The read-only token stays in .git/config for the fetch below; no step runs code of the pull request
@@ -47,7 +47,7 @@ jobs:
 
   # The PR title becomes the subject of the merge; it follows Conventional Commits (CLAUDE.md, Commits).
   pr-title:
-    name: Validate PR title
+    name: pr-title
     runs-on: ubuntu-latest
     permissions:
       pull-requests: read

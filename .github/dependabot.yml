@@ -1,7 +1,7 @@
 # Monthly updates of the GitHub Actions, pinned by commit SHA in .github/workflows.
 # NuGet packages get security updates only: "Dependabot security updates" is enabled in the repository
 # settings (Settings > Advanced Security), which opens a pull request when an advisory affects a package.
-# Title prefixes follow Conventional Commits so the check Validate PR title passes (CLAUDE.md, Commits).
+# Title prefixes follow Conventional Commits so the check pr-title passes (CLAUDE.md, Commits).
 version: 2
 updates:
   - package-ecosystem: github-actions
