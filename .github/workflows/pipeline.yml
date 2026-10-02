@@ -425,6 +425,16 @@ jobs:
       AZURE_WEBAPP_NAME: ${{ vars.AZURE_WEBAPP_NAME }}
       IMAGE: ghcr.io/${{ github.repository_owner }}/zengear-api:${{ github.sha }}
     steps:
+      # The two TODO steps come first, so that turning DEPLOY_ENABLED on fails before anything changes on staging.
+      - name: 'TODO: roles and seed'
+        run: |
+          echo "::error::TODO (Needs decision when deploy is enabled): run zengear_08_roles.sql and api/seed/ on staging, as api/acceptance/init/init.sh does"
+          exit 1
+      # The collection signs in with emulator custom tokens, which staging (real Firebase) refuses (PR #31).
+      - name: 'TODO: smoke folder with a real sign-in'
+        run: |
+          echo "::error::TODO (Needs decision when deploy is enabled): a Postman smoke folder that signs in for real on staging"
+          exit 1
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: efbundle-${{ github.sha }}
@@ -444,10 +454,6 @@ jobs:
         run: |
           chmod 0755 "$RUNNER_TEMP/bundle/efbundle"
           "$RUNNER_TEMP/bundle/efbundle" --connection "$MIGRATIONS_CONNECTION"
-      - name: 'TODO: roles and seed'
-        run: |
-          echo "::error::TODO (Needs decision when deploy is enabled): run zengear_08_roles.sql and api/seed/ on staging, as api/acceptance/init/init.sh does"
-          exit 1
       - name: Deploy the image to the staging slot
         run: |
           az webapp config container set --resource-group "$AZURE_RESOURCE_GROUP" --name "$AZURE_WEBAPP_NAME" \
@@ -461,11 +467,6 @@ jobs:
             sleep 5
           done
           echo "::error::the staging slot did not answer Healthy on https://$host/health"
-          exit 1
-      # The collection signs in with emulator custom tokens, which staging (real Firebase) refuses (PR #31).
-      - name: 'TODO: smoke folder with a real sign-in'
-        run: |
-          echo "::error::TODO (Needs decision when deploy is enabled): a Postman smoke folder that signs in for real on staging"
           exit 1
 
   # Swaps the staging slot into production after the approval of the environment production. Rollback: run the same
