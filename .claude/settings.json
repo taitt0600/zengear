@@ -38,9 +38,61 @@
       "Bash(gh issue list *)",
       "Bash(gh issue view *)",
       "Bash(gh run list *)",
-      "Bash(gh run view *)"
+      "Bash(gh run view *)",
+      "mcp__postgres__list_schemas",
+      "mcp__postgres__list_objects",
+      "mcp__postgres__get_object_details",
+      "mcp__postgres__analyze_db_health",
+      "mcp__postgres__analyze_workload_indexes",
+      "mcp__postgres__analyze_query_indexes",
+      "mcp__postgres__get_top_queries",
+      "mcp__zengear__getAllSpecs",
+      "mcp__zengear__getAuthenticatedUser",
+      "mcp__zengear__getCollection",
+      "mcp__zengear__getCollections",
+      "mcp__zengear__getDuplicateCollectionTaskStatus",
+      "mcp__zengear__getEnabledTools",
+      "mcp__zengear__getEnvironment",
+      "mcp__zengear__getEnvironments",
+      "mcp__zengear__getGeneratedCollectionSpecs",
+      "mcp__zengear__getMock",
+      "mcp__zengear__getMocks",
+      "mcp__zengear__getSpec",
+      "mcp__zengear__getSpecCollections",
+      "mcp__zengear__getSpecDefinition",
+      "mcp__zengear__getSpecFile",
+      "mcp__zengear__getSpecFiles",
+      "mcp__zengear__getTaggedEntities",
+      "mcp__zengear__getWorkspace",
+      "mcp__zengear__getWorkspaces",
+      "mcp__zengear__searchPostmanElements"
     ],
-    "ask": [],
+    "ask": [
+      "mcp__postgres__execute_sql",
+      "mcp__postgres__explain_query",
+      "mcp__zengear__createCollection",
+      "mcp__zengear__createCollectionRequest",
+      "mcp__zengear__createCollectionResponse",
+      "mcp__zengear__createEnvironment",
+      "mcp__zengear__createMock",
+      "mcp__zengear__createSpec",
+      "mcp__zengear__createSpecFile",
+      "mcp__zengear__createWorkspace",
+      "mcp__zengear__duplicateCollection",
+      "mcp__zengear__generateCollection",
+      "mcp__zengear__generateSpecFromCollection",
+      "mcp__zengear__publishMock",
+      "mcp__zengear__putCollection",
+      "mcp__zengear__putEnvironment",
+      "mcp__zengear__runCollection",
+      "mcp__zengear__syncCollectionWithSpec",
+      "mcp__zengear__syncSpecWithCollection",
+      "mcp__zengear__updateCollectionRequest",
+      "mcp__zengear__updateMock",
+      "mcp__zengear__updateSpecFile",
+      "mcp__zengear__updateSpecProperties",
+      "mcp__zengear__updateWorkspace"
+    ],
     "deny": [
       "Bash(git commit *--no-verify*)",
       "Bash(git commit -n*)",
@@ -73,7 +125,15 @@
       "Bash(gh auth *)",
       "Bash(curl *api.github.com*)",
       "Read(./**/.env*)",
-      "Read(./**/*service-account*.json)"
+      "Read(./**/*service-account*.json)",
+      "mcp__zengear__mcp-find",
+      "mcp__zengear__mcp-add",
+      "mcp__zengear__mcp-remove",
+      "mcp__zengear__mcp-exec",
+      "mcp__zengear__mcp-config-set",
+      "mcp__zengear__mcp-create-profile",
+      "mcp__zengear__mcp-activate-profile",
+      "mcp__zengear__code-mode"
     ]
   },
   "hooks": {
@@ -126,5 +186,13 @@
         ]
       }
     ]
+  },
+  "enabledPlugins": {
+    "csharp-lsp@claude-plugins-official": true,
+    "pr-review-toolkit@claude-plugins-official": true,
+    "code-review@claude-plugins-official": true,
+    "feature-dev@claude-plugins-official": true,
+    "commit-commands@claude-plugins-official": true,
+    "security-guidance@claude-plugins-official": true
   }
 }
