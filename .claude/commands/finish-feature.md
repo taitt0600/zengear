@@ -62,8 +62,10 @@ becomes a Needs decision item. `python3` is `python` on Windows.
     means still running (or auto-merge has not merged yet), so run it again, at most six times. Exit code 0: the
     pull request is merged, or open with every check passed for the owner to merge. Exit code 4: GitHub was not
     reachable; run it again. Exit code 1:
-    - A failed check: read its annotations, reproduce it with the commands of its job in `.github/workflows/`
-      (job logs are not reachable from a cloud session), fix it, run steps 2–3, commit the fix as its own commit
+    - A failed check: read its log — in a cloud session with the GitHub tools (`actions_list` with
+      `list_workflow_runs` filtered on the branch, `list_workflow_jobs`, then `get_job_logs` with the run ID,
+      `failed_only` and `tail_lines` 300), locally `gh run view <run id> --log-failed` — and its annotations;
+      reproduce it with the commands of its job in `.github/workflows/`, fix it, run steps 2–3, commit the fix as its own commit
       typed by what it changes (`fix` only for a bug already on `main`; never amend), `git push origin HEAD`, and
       wait again.
     - A conflict with `main`, or the branch behind it: `git fetch origin main`, `git rebase origin/main`, resolve,
