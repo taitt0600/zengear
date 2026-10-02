@@ -1,14 +1,18 @@
 # Automation around the owner
 
-The owner picks and starts features and tests them as an end user (CLAUDE.md, Workflow). Everything else runs by
-itself, except two things kept for the owner on purpose: answering a **Needs decision** item (money, tax, legal
-duties, personal data, role permissions, data that is hard to migrate, packages, build code) and merging a pull
-request that changes the specification or the tooling (`owner_paths` in `tools/pr_gates.py`).
+The owner picks and starts features in a local session, approves its three checkpoints and tests the result as an
+end user (CLAUDE.md, Workflow; DEC-099). Everything else runs by itself, except two things kept for the owner on
+purpose: answering a **Needs decision** item (money, tax, legal duties, personal data, role permissions, data that
+is hard to migrate, packages, build code) and merging a pull request that changes the specification or the tooling
+(`owner_paths` in `tools/pr_gates.py`).
 
 ## The owner's part
 
-1. Pick a feature of `docs/blueprint/features.md` whose *Depends On* features are done; in a cloud session, run
-   `/implement-feature <Feature ID>`.
+1. Pick a feature of `docs/blueprint/features.md` whose *Depends On* features are done, and start it in a local
+   session: open VS Code on the repository, `git switch main`, `git pull`, then `/implement-feature <Feature ID>`
+   in Claude Code. Approve its three checkpoints: the plan, with the Needs decision items asked there; the failing
+   tests; the diff before the commit, where it also asks how many minutes you spent. When the owner is away, a cloud
+   session can still run the same command, unattended as before; its Needs decision items then wait in the report.
 2. Wait for a notification on the phone from the routine **ZenGear PR merged** or **ZenGear PR needs decision**:
    - *"AUT-04 đã merge — sẵn sàng test …"*: test it with the scenarios of the report on the pull request, on the
      acceptance environment (`docs/ACCEPTANCE.md`);
@@ -23,7 +27,7 @@ request that changes the specification or the tooling (`owner_paths` in `tools/p
 | Step | Mechanism | Where it lives |
 |---|---|---|
 | Docker and gitleaks in every cloud session | SessionStart hook `.claude/hooks/session-start.ps1` (cloud only; gitleaks 8.24.3 checked against its SHA-256) | Repository |
-| Plan, tests, code, verification, commits, pull request, CI, report | `/implement-feature` → `/finish-feature`, with the `plan-reviewer`, `code-reviewer` and `report-reviewer` agents | Repository |
+| Plan, tests, code, verification, commits, pull request, CI, report | `/implement-feature` → `/finish-feature`, with the `plan-reviewer`, `code-reviewer` and `report-reviewer` agents; locally they stop at the three checkpoints | Repository |
 | Merge | Auto-merge once the required checks of `main` pass (`tools/github_pr.py`) | GitHub |
 | Notify the owner, log the numbers | Routines **ZenGear PR merged** (pull request merged) and **ZenGear PR needs decision** (pull request opened as a draft), on GitHub events | The owner's claude.ai account |
 | Turn a defect issue into a fix | Routine **ZenGear fix defects**, every two hours from 07:52 to 21:52 (Asia/Ho_Chi_Minh) | The owner's claude.ai account |
@@ -53,8 +57,16 @@ notification a routine sends to the phone. A defect issue may be written in Engl
 ## Metrics
 
 Issue #24 (*Workflow metrics*) gets one comment per feature or fix pull request merged or opened as a draft, and one
-per defect taken: time from opened to merged, commits, review rounds, Needs decision items, scenarios, defects per
-feature. Compare features with it before changing the workflow.
+per defect taken: time from opened to merged, commits, review rounds, Needs decision items, scenarios, where it ran
+(local or cloud), owner-minutes, defects per feature. Compare features with it before changing the workflow.
+
+## Local pilot (DEC-099)
+
+Three features run locally, starting with STF-03, and are compared with STF-01 and AUT-04 (run in cloud sessions)
+on lead time, follow-up rounds, acceptance defects and owner-minutes, using the lines of issue #24. The local
+workflow stays when lead time is not more than 20% worse, acceptance defects do not increase and owner-minutes stay
+at or under 20 per feature. Otherwise features go back to cloud sessions, and the specification and the tooling stay
+local.
 
 ## Routine prompts
 
@@ -81,7 +93,9 @@ nothing, and write every comment on GitHub in English.
 3. Add one comment to issue #24 with this line, taking the review rounds, the Needs decision items and the
    scenarios from the report ("Đã kiểm tra", "Cần bạn quyết định", "Kịch bản kiểm thử") and writing "?" for a
    number the report does not give:
-   PR #<n> | <Feature ID> | <feat or fix> | opened → merged: <hours>h<minutes> or draft | commits: <c> | reviews: plan <a> / code <b> / report <r> rounds | needs decision: <k> | scenarios: <s>
+   PR #<n> | <Feature ID> | <feat or fix> | opened → merged: <hours>h<minutes> or draft | commits: <c> | reviews: plan <a> / code <b> / report <r> rounds | needs decision: <k> | scenarios: <s> | where: <local or cloud> | owner-minutes: <m>
+   Take "where" from the line "Nơi chạy:" and "owner-minutes" from the line "Thời gian bạn tham gia:" of the
+   report, writing "cloud" and "?" when a line is missing.
 4. End the run with a Vietnamese message of at most four lines whose first line says what the owner must do:
    - merged: "<Feature ID> đã merge — sẵn sàng test: <s> kịch bản. PR #<n>", then the step of "Cách chạy để kiểm
      thử" that starts the acceptance environment;
