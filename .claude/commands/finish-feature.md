@@ -72,7 +72,7 @@ becomes a Needs decision item. `python3` is `python` on Windows.
       run steps 2–3, `git push --force-with-lease origin HEAD`, and wait again.
     - At most three rounds of fixes; then `python3 tools/github_pr.py auto-merge <number> --off` and make the
       failure a Needs decision item.
-12. **Report** for acceptance, in Vietnamese: write it to `out/report.md`, post it with
+12. **Report** for acceptance, in Vietnamese: write it to `out/report.md`, have it reviewed (below), post it with
     `python3 tools/github_pr.py comment <number> --body-file out/report.md` when there is a pull request, and end
     your last reply with the same text. Sections:
     - **Kết quả**: merged into `main`, open with auto-merge, draft waiting for a decision, or stopped at the ready
@@ -85,3 +85,10 @@ becomes a Needs decision item. `python3` is `python` on Windows.
       refusal per rule.
     - **Rule đã có test**, **Quyết định Claude đã tự chọn**, **Cần bạn quyết định** (each Needs decision item with
       the options and their consequences), **Đã kiểm tra** (steps 2–8 and CI, with the numbers kept above).
+    Before posting, give the `report-reviewer` agent `out/report.md`, `out/feature-$ARGUMENTS.md` and the facts it
+    reads: the pull request number and state, the check runs of its head with their results, the plan-reviewer and
+    code-reviewer verdicts, whether the security review ran, and the scenarios run in step 8 with their results. Fix
+    every Blocking and Should fix item: correct the report, or, when an item shows a check that was not made (a
+    scenario not run, a rule without a refusal scenario), make it on the acceptance environment as in step 8 and fix
+    what fails, running steps 2–3 again after a code change; at most two rounds. Add its final verdict to
+    **Đã kiểm tra**.
