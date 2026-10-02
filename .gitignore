@@ -381,3 +381,6 @@ Thumbs.db
 .firebase/
 firebase-debug.log
 *-debug.log
+# Postman app (docs/ACCEPTANCE.md): the link to a workspace, and the globals the collection never uses
+.postman/
+postman/globals/

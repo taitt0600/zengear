@@ -27,9 +27,11 @@ file.
      only against the emulator (environments `dev` and `ci`): say so in the folder description;
    - `afterResponse` tests: `pm.response.to.have.status(…)`; for a refusal, `pm.response.json().type` equals
      `/problems/<type>` and `ruleId` equals the rule; for a success, every field the criterion names;
-   - values unique to the run: the first request sets `pm.collectionVariables.set('run', Date.now().toString(36))`
-     and every email, code or name that must be unique carries `{{run}}`, so the folder passes twice in a row without
-     a reset. Keep ids the later requests need in collection variables (`staffId`).
+   - values unique to the run: the first request sets `pm.variables.set('run', Date.now().toString(36))` and every
+     email, code or name that must be unique carries `{{run}}`, so the folder passes twice in a row without a reset.
+     Keep ids the later requests need with `pm.variables.set` too (`staffId`): run state lives in `pm.variables`
+     only, never in collection variables, environments or globals, which the Postman app writes back into the files
+     (reference.md, *Scripts*).
 4. **Environments** `postman/environments/dev.environment.yaml` and `ci.environment.yaml`: add a variable only when
    both need it, with the same name; ids of seeded rows come from the seed (role ids are fixed in
    `api/seed/01_roles.sql` and must never change). Never a secret, token or password: there is none to add.

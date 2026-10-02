@@ -94,6 +94,16 @@ values:
 Every `value` is a string. Shared values only: Postman's Native Git guide keeps secrets out of the repository, and
 ZenGear needs none (sign-in uses emulator custom tokens).
 
+## Scripts: run state in `pm.variables` only
+
+Scripts keep run state (the run id, ids created by an earlier request, the token cache of the collection script) in
+`pm.variables`, never in collection variables, environments or globals. `pm.variables` holds local variables that
+last for the collection run (Postman docs, *Variables*, scopes:
+https://learning.postman.com/docs/sending-requests/variables/variables/); the other scopes are saved by the Postman
+app, which then writes their keys back into `definition.yaml` or the environment files of the repository. The files
+hold only shared values that never change during a run. `.postman/` (the link to a workspace) and `postman/globals/`
+(unused) are ignored by git.
+
 ## YAML rules that keep a file parsing
 
 1. Single-quote every value that holds `{{variable}}`: `url: '{{baseUrl}}/api/v1/me'`.

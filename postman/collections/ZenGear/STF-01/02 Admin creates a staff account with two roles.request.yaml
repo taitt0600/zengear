@@ -41,5 +41,5 @@ scripts:
       });
       pm.test('two roles', () => pm.expect(staff.roles.map((r) => r.id).sort()).to.eql(
         [pm.variables.get('roleCashier'), pm.variables.get('roleSalesConsultant')].sort()));
-      pm.collectionVariables.set('staffId', staff.id);
-      pm.collectionVariables.set('staffEmail', staff.email);
+      pm.variables.set('staffId', staff.id);
+      pm.variables.set('staffEmail', staff.email);
