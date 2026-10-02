@@ -33,9 +33,10 @@ DEC-099 marked **Checkpoint** below (two here, one in `/finish-feature`); withou
    `plan-reviewer` agent and fix every Blocking and Should fix item; repeat until it answers READY, at most three
    rounds. A Blocking item left after three rounds becomes a Needs decision item. Keep the final verdict for the
    report.
-   - **Needs decision items**, once plan-reviewer answers READY: ask every item known so far in one
-     AskUserQuestion. Each question gives the options with their consequences, your recommendation first and
-     marked "(Recommended)". An answer becomes a decision made by the owner, listed as such in the report. An
+   - **Needs decision items**, once plan-reviewer answers READY: ask every item known so far at once,
+     with AskUserQuestion. One call takes at most 4 questions, so more items go in consecutive calls at the same
+     moment, before any other work. Each question gives the options with their consequences, your recommendation
+     first and marked "(Recommended)". An answer becomes a decision made by the owner, listed as such in the report. An
      answer that changes a specification stops the run: draft the Decision with `/decision-draft` and write the
      report of `/finish-feature` (step 14) without a pull request.
    - **Checkpoint 1** (`--checkpoints` only): show the owner the plan (endpoints, service and entity methods,

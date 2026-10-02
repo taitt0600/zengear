@@ -98,9 +98,13 @@ folder, then the whole collection, leaving the API running), then show the guide
        out/test-guide-<ID>.md` and show it to the owner.
     4. Ask with AskUserQuestion: the result — **Đạt** / **Có lỗi** / **Để sau** — and the minutes spent on this
        feature so far — ≤ 10, 10–20, 20–40, more than 40.
-       - **Đạt**: `python3 tools/github_pr.py auto-merge <number>` (not while the pull request is a draft). Exit code 5
+       - **Đạt**: first write, review and post the report of step 14, with **Kết quả** "Đạt — auto-merge bật" and
+         the lines `Nơi chạy` and `Thời gian bạn tham gia`: the routine "ZenGear PR merged" starts on the merge
+         event and reads the report at once, so it must be on the pull request before anything can merge. Then
+         `python3 tools/github_pr.py auto-merge <number>` (not while the pull request is a draft). Exit code 5
          means the owner merges it (it changes a file only the owner merges, or `main` does not enforce every
-         required check): say so.
+         required check): say so, and add a one-line comment on the pull request that auto-merge stays off and the
+         owner merges it.
        - **Có lỗi**: for each defect the owner describes, write first a test that reproduces it (a unit or
          integration test named after the rule, and a request in the folder through skill `api-collection`) and see
          it fail; fix it on the same branch; steps 2–3; commit, typed by what it changes (`fix` is only for a bug
@@ -108,10 +112,11 @@ folder, then the whole collection, leaving the API running), then show the guide
        - **Để sau**: stop here. The pull request stays open without auto-merge; a later `/finish-feature <ID>` on
          the same branch resumes at this step (see **Resume** above).
        Stop the API of 13.1 once the owner has answered, except after **Để sau**, where it may keep running.
-14. **Report** in Vietnamese, once, after the owner's answer at step 13 (or when the run stops earlier): write it to
+14. **Report** in Vietnamese, once, after the owner's answer at step 13 (before auto-merge on **Đạt**), or when the
+    run stops earlier: write it to
     `out/report.md`, have it reviewed (below), post it with `python3 tools/github_pr.py comment <number> --body-file
     out/report.md` when there is a pull request, and end your last reply with the same text. Sections:
-    - **Kết quả**: merged into `main`, open with auto-merge, waiting for the owner's test (**Để sau**), draft waiting
+    - **Kết quả**: "Đạt — auto-merge bật" (**Đạt**), waiting for the owner's test (**Để sau**), draft waiting
       for a decision, or stopped at the ready check — with the pull request link; then the two lines
       `Nơi chạy: local` and `Thời gian bạn tham gia: <the owner's answer at step 13> phút` (`?` when the run
       stopped before step 13), which the routine "ZenGear PR merged" copies to issue #24.

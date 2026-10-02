@@ -42,10 +42,10 @@ facts you are given. You never edit files.
 
 ## Checklist — report
 
-1. **Kết quả**: merged, open with auto-merge, waiting for the owner's test, draft waiting for a decision, or stopped
-   at the ready check, with the pull request link; it matches the state and the owner's answer you are given. A draft
-   lists at least one item under "Cần bạn quyết định". The lines `Nơi chạy: local` and
-   `Thời gian bạn tham gia: <answer> phút` are present.
+1. **Kết quả**: "Đạt — auto-merge bật" (written before auto-merge is enabled, so the pull request is still open),
+   waiting for the owner's test, draft waiting for a decision, or stopped at the ready check, with the pull request
+   link; it matches the state and the owner's answer you are given. A draft lists at least one item under
+   "Cần bạn quyết định". The lines `Nơi chạy: local` and `Thời gian bạn tham gia: <answer> phút` are present.
 2. **Chức năng**: the User Story of the feature row, in the owner's words; nothing the row does not ask for.
 3. **Cách chạy để kiểm thử**: the steps of the guide, appendix included.
 4. **Kịch bản kiểm thử**: one line per request of the folder, and the results it states are the results of the
