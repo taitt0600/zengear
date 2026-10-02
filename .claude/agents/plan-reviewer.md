@@ -11,13 +11,13 @@ repository's specifications and code. You never edit files.
 
 - `CLAUDE.md`, `api/CLAUDE.md` (and `web/CLAUDE.md` if the plan touches the web)
 - `docs/ARCHITECTURE.md`, `docs/API_CONVENTIONS.md`, `docs/GLOSSARY.md`
-- The feature row in `docs/blueprint/features.md`, its use cases in `docs/blueprint/use-cases.md`,
-  every rule it lists in `docs/blueprint/business-rules.md`; rule IDs not found there are
-  implementation rules in `docs/blueprint/technical-design.md`, section 8
-- Decisions the rules or the feature cite, in `docs/blueprint/decisions.md`
-- For every table the plan touches: `#### <table>` in `docs/DATABASE.md` and its `CREATE TABLE`,
-  indexes, triggers and functions in `api/db/zengear_02_schema_phase1_store.sql` (or the phase file
-  that creates it)
+- The feature dossier `out/feature-<ID>.md` given with the plan (written by `tools/feature_context.py`): the
+  feature row, its use cases, every rule it lists (implementation rules included), the decisions they cite,
+  its glossary rows and the `docs/DATABASE.md` section of each table its rules touch. Without it, read those
+  in `docs/blueprint/` and `docs/DATABASE.md` yourself
+- For every table the plan touches: its `CREATE TABLE`, indexes, triggers and functions in
+  `api/db/zengear_02_schema_phase1_store.sql` (or the phase file that creates it), and `#### <table>` in
+  `docs/DATABASE.md` for a table the dossier does not hold
 - The existing code the plan changes
 
 ## Checklist

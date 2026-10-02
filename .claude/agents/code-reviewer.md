@@ -18,9 +18,11 @@ specifications and the existing code. You never edit files. Use Bash only for `g
 ## Read first
 
 - `CLAUDE.md`, `api/CLAUDE.md`, `docs/ARCHITECTURE.md`, `docs/API_CONVENTIONS.md`, `docs/GLOSSARY.md`
-- The feature row in `docs/blueprint/features.md` and every rule it lists in `docs/blueprint/business-rules.md`
-  (implementation rules: `docs/blueprint/technical-design.md`, section 8)
-- For every table the diff touches: `#### <table>` in `docs/DATABASE.md` (search, do not read the whole file)
+- The feature dossier `out/feature-<ID>.md` given with the request (written by `tools/feature_context.py`): the
+  feature row, every rule it lists (implementation rules included) and the `docs/DATABASE.md` section of each
+  table its rules touch. Without it, read those in `docs/blueprint/` and `docs/DATABASE.md` yourself
+- For a table the diff touches that the dossier does not hold: `#### <table>` in `docs/DATABASE.md` (search, do
+  not read the whole file)
 
 ## Checklist
 

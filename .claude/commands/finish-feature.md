@@ -21,10 +21,11 @@ becomes a Needs decision item. `python3` is `python` on Windows.
 5. **Specification**: `python3 tools/pr_gates.py coverage $ARGUMENTS` exits 0. If `api/db/`, `docs/DATABASE.md` or
    `docs/blueprint/` changed, a commit must name the accepted Decision that allows it; otherwise it is a Needs
    decision item and the change is reverted.
-6. **Code review**: give the `code-reviewer` agent the feature ID and the branch. Fix every Blocking and every
-   Should fix item, then run steps 2–3 and the review again, at most three rounds; an item you do not fix gets its
-   reason in the report, and a Blocking item left after three rounds is a Needs decision item. Keep the final
-   verdict and the number of Blocking items found and fixed.
+6. **Code review**: give the `code-reviewer` agent the feature ID, the branch and `out/feature-$ARGUMENTS.md` (write
+   it first with `python3 tools/feature_context.py $ARGUMENTS --out out/feature-$ARGUMENTS.md` when it is missing).
+   Fix every Blocking and every Should fix item, then run steps 2–3 and the review again, at most three rounds; an
+   item you do not fix gets its reason in the report, and a Blocking item left after three rounds is a Needs
+   decision item. Keep the final verdict and the number of Blocking items found and fixed.
 7. **Security review**: run `/security-review` when the branch touches authentication or authorization
    (`ZenGear.Api/Authorization`, `Attributes`, `Middlewares`, `Extensions/AuthenticationSetup.cs`, the `Identity`
    area), payments, invoicing, a column listed under Personal data in `docs/DATABASE.md`, raw SQL, file uploads or
