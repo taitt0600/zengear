@@ -368,6 +368,8 @@ Thumbs.db
 .idea/
 .vscode/*
 !.vscode/extensions.json
+# Personal Claude Code settings (docs/AUTOMATION.md)
+.claude/settings.local.json
 
 # Secrets
 .env

@@ -38,6 +38,50 @@ without one runs in an empty session). They run as cloud sessions on this reposi
 the agents above apply to them. Their prompts below are the reference: change a prompt here and in the routine
 together.
 
+## Tools of local sessions (DEC-100)
+
+Claude Code on the owner's machine has these tools besides the repository's own commands, agents and skills. Plugins
+and MCP servers run third-party code on the machine: adding one changes `.claude/settings.json` or `.mcp.json`, which
+only the owner merges.
+
+| Tool | What it gives | Declared in |
+|---|---|---|
+| Plugins of the official marketplace `claude-plugins-official`: `csharp-lsp`, `pr-review-toolkit`, `code-review`, `feature-dev`, `commit-commands`, `security-guidance` | C# go-to-definition, references and compiler diagnostics (csharp-ls; it reports no Sonar rule); review agents and `/review-pr`; `/code-review`; agents `code-explorer` and `code-architect`, `/feature-dev` for a spike; `/commit` and `/clean_gone` for chores; security warnings while editing (on trial) | `enabledPlugins` of `.claude/settings.json` |
+| MCP server `postgres` (crystaldba postgres-mcp, image pinned by digest, unrestricted mode) | The schema and rows of the development database `zengear`; skill `db-inspect`. Read-only tools run without a prompt; `execute_sql` and `explain_query` always ask | `.mcp.json`, with `DATABASE_URI` from the user environment variable `ZENGEAR_MCP_DATABASE_URI` |
+| MCP server `zengear` (Docker MCP Toolkit gateway, profile `zengear`): Postman, minimal tool set | Reading the workspace ZenGear (collections, environments, specs); every tool that writes asks, since the collections of the repository are the source | `.mcp.json`; the profile and the API key are per machine |
+
+`typescript-lsp` and `playwright` are enabled when the web starts. The marketplace cannot be pinned to a commit (a
+marketplace source takes only a branch or tag, and the repository has no tags): each machine turns off its
+auto-update (`/plugin` → **Marketplaces** → `claude-plugins-official` → **Disable auto-update**) and updates it by
+hand after reading what changed. Firebase has no MCP server: the auth tools of `firebase-tools mcp` call the real
+Identity Toolkit and ignore the Auth Emulator; use the Emulator UI (http://localhost:4000) or `tools/emulator_token.py`.
+The gateway's own management tools (`mcp-add`, `mcp-exec`, `code-mode` and the others) are denied in
+`.claude/settings.json`.
+
+Set-up, once per machine:
+
+1. `dotnet tool install --global csharp-ls` (or `update`); Docker Desktop with the MCP Toolkit (`docker mcp --help`
+   lists `profile` and `gateway`); `%UserProfile%\.wslconfig` with `memory=6GB` under `[wsl2]` (half the RAM on a
+   machine under 12 GB), then `wsl --shutdown`.
+2. The development database set up (`api/CLAUDE.md`, *Local database*): without the database `zengear` the
+   PostgreSQL server waits 30 s for it and Claude Code reports a timeout.
+3. `pwsh -NoProfile -File tools/mcp/setup.ps1` (`-WhatIf` first to see what it does). It creates the profile
+   `zengear` with the Postman server, asks for your Postman API key in a hidden prompt and keeps it in
+   `docker mcp secret` (`postman.postman-api-key`), pulls the postgres-mcp image and sets `ZENGEAR_MCP_DATABASE_URI`
+   from `api/docker-compose.yml` (refusing any host but `localhost`, `127.0.0.1` or `host.docker.internal`). Exit
+   code 1 names a missing prerequisite, 2 a refused input. Then restart VS Code completely: a running VS Code does
+   not see a new user environment variable.
+4. In Claude Code, approve the project MCP servers `zengear` and `postgres`, and check `/mcp`.
+
+Each person keeps a personal `.claude/settings.local.json` (ignored by git) for what is theirs only, for example:
+
+```json
+{ "permissions": { "defaultMode": "auto" } }
+```
+
+`auto` lets a classifier approve routine actions instead of asking each time (Claude Code docs, *Permission modes*);
+the `ask` and `deny` rules of `.claude/settings.json` still apply. Never set `bypassPermissions`.
+
 ## Languages
 
 Routine names, the issue form, the issues and every comment the routines write on GitHub are in English,

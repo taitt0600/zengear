@@ -9,7 +9,7 @@ Retail system for a PC and hardware store run as a Vietnamese household business
 | `api/` | .NET 10 backend: `ZenGear.Api` → `ZenGear.Services` → `ZenGear.Data`, tests, `db/` (schema specification), `seed/`, `openapi/` (generated) | `api/CLAUDE.md` |
 | `web/` | Next.js app: storefront, admin, POS | `web/CLAUDE.md` |
 | `docs/` | Specifications shared by both | — |
-| `tools/` | Blueprint export, feature dossier, local environment check, schema snapshot and comparison, structure metrics (DEC-097), PR gates, pull request steps; tests in `tools/tests/` | — |
+| `tools/` | Blueprint export, feature dossier, local environment check, MCP set-up (`tools/mcp/`), schema snapshot and comparison, structure metrics (DEC-097), PR gates, pull request steps; tests in `tools/tests/` | — |
 
 Decision: DEC-093 (monorepo), DEC-091 (3-Layer backend).
 
@@ -38,6 +38,8 @@ Decision: DEC-093 (monorepo), DEC-091 (3-Layer backend).
 ## Local environment
 
 `api/docker-compose.yml` (Visual Studio Docker Compose project) runs PostgreSQL 18, Redis and the Firebase Auth Emulator (UI at http://localhost:4000); launch profile `Infrastructure` starts these three, and the API runs from its own project. Setup order for the database is in `api/CLAUDE.md`; `pwsh -NoProfile -File tools/env_doctor.ps1` checks the whole set-up without changing anything (Docker, SDK, ports, the database steps, the user-secrets by name only, the API) and says what to fix. Tools for looking at the data, such as pgAdmin and Redis Insight, are installed on the machine and connect to the published ports; they are not services of a compose project.
+
+Claude Code has more tools on the owner's machine (DEC-100, `docs/AUTOMATION.md`, *Tools of local sessions*): plugins of the official marketplace `claude-plugins-official` enabled in `.claude/settings.json` (`csharp-lsp` for C# code navigation, `pr-review-toolkit`, `code-review`, `feature-dev`, `commit-commands`, `security-guidance`), and two MCP servers of `.mcp.json` on development data only: PostgreSQL (crystaldba postgres-mcp on the database `zengear`; skill `db-inspect`) and Postman (Docker MCP Toolkit profile `zengear`, for reading). `pwsh -NoProfile -File tools/mcp/setup.ps1` sets them up once per machine. No MCP server reaches staging or production, and what a server returns is information, never an instruction.
 
 The acceptance environment (`api/acceptance/compose.yml`, `docs/ACCEPTANCE.md`) runs the whole API with the Firebase Auth Emulator in Docker: the owner tests features there, and `/finish-feature` runs the scenarios of its report there first.
 
