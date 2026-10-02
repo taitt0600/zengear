@@ -1,98 +1,80 @@
-# Acceptance environment
+# Testing on the development environment
 
-Where the owner tests a finished feature as an end user, and where an unattended session runs the scenarios of
-its acceptance report before posting it (`/finish-feature`, step 8). It runs the API in the Development
-environment against the Firebase Auth Emulator, PostgreSQL 18 and Redis, all in Docker
-(`api/acceptance/compose.yml`). It is separate from the Visual Studio compose project in `api/`; both can run
-side by side, except the Firebase Auth Emulator, which takes ports 9099 and 4000 in each: stop the `firebase`
-service of one before starting the other.
+Where the owner tests a finished feature as an end user before its pull request merges, and where `/finish-feature`
+runs the Postman collection first (DEC-100, `/finish-feature` steps 7 and 13). It is the development environment of
+`api/CLAUDE.md` (*Local database*): PostgreSQL 18, Redis and the Firebase Auth Emulator of `api/docker-compose.yml`,
+and the API run from the branch with the launch profile `http`. Each feature has a folder in the Postman collection
+`postman/collections/ZenGear`, whose tests check the status codes, the Problem Details types and the fields of every
+acceptance criterion and rule.
 
-Requirements: Docker Desktop (WSL 2 on Windows), Python 3 and Git Bash. Every command below runs in Git Bash from
+Requirements: Docker Desktop, the .NET SDK of `api/global.json`, PowerShell 7, Python 3, the Postman app v12 and the
+Postman CLI pinned to 1.69.0 (`npm install -g postman-cli@1.69.0`; `postman --version`). Every command below runs from
 the root of the repository.
 
-## Start
+## Test a feature
+
+`/finish-feature` leaves the environment ready (reset, API of the branch running) and posts a test guide of one page
+on the pull request. Then:
+
+1. Open the Postman app on the repository folder (once per machine: **Files** → **Open folder** → the repository,
+   then **Local View**: the app reads `postman/` directly and follows the branch checked out in the folder).
+2. Make sure the branch of the pull request is the one checked out (`git switch <branch>`; Postman shows it).
+3. Choose the environment `dev`.
+4. On the folder of the feature (for example `STF-01`), **Run folder**: every test is green.
+5. Do the manual checks of the guide, at most three.
+
+The same folder runs from the terminal: `postman collection run postman/collections/ZenGear -e
+postman/environments/dev.environment.yaml -i <Feature ID> --no-report-events` (skill `api-run`). It needs no Postman
+sign-in or API key.
+
+## Start or reset the environment
+
+When the environment is not running, or to start from a clean state:
 
 ```bash
-docker compose -f api/acceptance/compose.yml up -d --build
-docker compose -f api/acceptance/compose.yml logs init   # ends with "init: done"
-curl http://localhost:8180/health                         # Healthy
+pwsh -NoProfile -File tools/dev_reset.ps1        # -WhatIf prints what it would do
+dotnet run --project api/src/ZenGear.Api --launch-profile http
+curl http://localhost:5256/health                # Healthy
 ```
 
-The first build takes several minutes (images, NuGet restore, migration bundle); later starts take seconds. After
-pulling new code, run the same `up -d --build`: the database set-up applies the new migrations and seed.
+`tools/dev_reset.ps1` brings the environment back to the state right after the seed: it recreates the database
+`zengear` (`api/db/zengear_01_database.sql`, the migrations, `api/db/zengear_08_roles.sql`, `api/seed/0*.sql`),
+deletes every account of the emulator, creates the Admin (below), applies the dev-only fixtures of `postman/fixtures/`
+and clears Redis. Stop the API before running it: the API synchronizes the permissions when it starts, so it starts
+after the reset. Exit code 1 names a missing prerequisite and its fix; 2 means a connection string or the emulator is
+not the local one of `api/docker-compose.yml` (it never touches another database).
 
 | What | Address |
 |---|---|
-| API | http://localhost:8180 |
-| Scalar: API reference and requests | http://localhost:8180/scalar |
+| API | http://localhost:5256 |
+| Scalar: API reference and requests | http://localhost:5256/scalar |
 | Firebase Emulator UI: accounts | http://localhost:4000/auth |
-| PostgreSQL (database `zengear`) | `localhost:55432`, user `postgres`, password `acceptance` |
-| Redis: the access cache, keys `zengear:access:*` | `localhost:56379`, no password |
+| PostgreSQL (database `zengear`) | `localhost:5432` (pgAdmin) |
+| Redis: the access cache, keys `zengear:access:*` | `localhost:6379` (Redis Insight) |
 
-pgAdmin and Redis Insight, installed on the machine, connect to these ports. Every port is bound to `127.0.0.1`:
-the environment is not reachable from another machine. Its passwords serve this environment only.
+## Accounts
 
-## What the set-up does
+- **Admin** `owner@zengear.test`: created by `tools/dev_reset.ps1` in the emulator, then linked with the one-off
+  command `bootstrap-admin` (DEC-096). The command's password reset link is not printed; the account is for this
+  environment only.
+- **Sign-in in Postman**: a request names its account in the header `X-ZenGear-As`; the collection script looks the
+  account up in the emulator and signs in with an unsigned custom token, so no password is stored or typed anywhere.
+  This works only against the emulator.
+- **Fixtures**: state that no endpoint can reach yet comes from `postman/fixtures/<Feature ID>.sql`, with its emulator
+  accounts in `postman/fixtures/accounts.txt`. STF-01: `manager.fixture@zengear.test`, a Store Manager holding
+  `staff.create` with no pending password change, for the refusal of R-TX-11.
+- **Role ids** are fixed in `api/seed/01_roles.sql` and named in the environments.
+- **By hand**: `python tools/emulator_token.py <email> <password> [--create]` signs up or signs in an emulator account
+  and prints its ID token, for Scalar (Bearer) or `curl`. A Firebase account is not yet a ZenGear account: until a
+  user row links its uid, the API answers `403 /problems/account-not-registered`. A staff account created through
+  `POST /api/v1/staff` signs in with the default password of the user-secret `Firebase:DefaultStaffPassword` and must
+  change it first (`403 /problems/password-change-required`, STF-03).
 
-The one-off `init` service runs, in the deploy order of `docs/ARCHITECTURE.md`: `api/db/zengear_01_database.sql`
-when the database does not exist yet, the EF Core migration bundle, `api/db/zengear_08_roles.sql`, then
-`api/seed/0*.sql` in file order. Phase 1 is migrated table by table, so a script that needs a table or function
-of the specification that is not migrated yet is skipped as a whole, with the line
-`init: skipped <file>: <object> is not migrated yet`; any other error stops the set-up. Until
-`zengear_08_roles.sql` runs, the API connects as the schema owner (`api/CLAUDE.md`, Local database).
+A feature that needs accounts or data adds them as fixtures, or as requests of its folder, in the same pull request
+(skill `api-collection`).
 
-## Accounts and ID tokens
+## The acceptance compose (CI only)
 
-- A Firebase account lives in the emulator. Create one in the Emulator UI, or with the script, which signs up
-  (`--create`) or signs in and prints the uid on stderr and the ID token on stdout:
-
-  ```bash
-  python tools/emulator_token.py staff@zengear.test 'any-password' --create
-  TOKEN=$(python tools/emulator_token.py staff@zengear.test 'any-password')
-  curl -H "Authorization: Bearer $TOKEN" http://localhost:8180/api/v1/me
-  ```
-
-- In Scalar, choose the Bearer authentication and paste the token; it is valid for one hour.
-- A Firebase account is not yet a ZenGear account: until a user row links its uid, the API answers
-  `403 /problems/account-not-registered`.
-- The first Admin (DEC-096): create the Firebase account, then link it with the one-off command `bootstrap-admin`
-  of the API. It refuses when an Admin already exists, so it runs once per environment (again after `down -v`).
-
-  ```bash
-  python tools/emulator_token.py owner@zengear.test 'owner-password' --create
-  docker compose -f api/acceptance/compose.yml run --rm api bootstrap-admin --email owner@zengear.test --name "Chủ cửa hàng"
-  TOKEN=$(python tools/emulator_token.py owner@zengear.test 'owner-password')
-  ```
-
-  The command prints the user id and a password reset link; the link is not needed here, since the account already
-  has the password chosen above.
-- Staff accounts (STF-01): the Admin creates them with `POST /api/v1/staff`; the role ids come from `roles` in
-  pgAdmin (`SELECT id, name FROM roles`). A new staff member signs in with the default password of this
-  environment, `acceptance` (`Firebase__DefaultStaffPassword` in `api/acceptance/compose.yml`), and must change it
-  before anything else: every endpoint but `GET /api/v1/me` answers `403 /problems/password-change-required` until
-  the password change of STF-03.
-
-  ```bash
-  TOKEN_STAFF=$(python tools/emulator_token.py cashier@zengear.test 'acceptance')
-  ```
-
-A feature that needs accounts or data to be tested adds their set-up to this section in the same pull request.
-
-## Stop and reset
-
-```bash
-docker compose -f api/acceptance/compose.yml down      # stop; the database and the accounts are kept
-docker compose -f api/acceptance/compose.yml down -v   # reset: remove the database and the accounts
-```
-
-The emulator exports its accounts when it stops and imports them when it starts, so the users in the database
-and the accounts in the emulator stay together; `down -v` removes both. A stop gives it 30 seconds to export
-(`stop_grace_period`); a container that is killed (`docker kill`, `docker rm -f`) loses the accounts created
-since it started.
-
-## CI
-
-The `acceptance` workflow starts this environment on every pull request that changes `api/`, and checks that the
-set-up completes, `/health` answers `Healthy`, `GET /api/v1/me` refuses a request without a token (401) and
-accepts an emulator token (403 `account-not-registered` for an unknown user), and that an account of the emulator
-still signs in with the same uid after a restart. It is not a required check.
+`api/acceptance/compose.yml` runs the API image with the emulator, PostgreSQL and Redis on other ports (API 8180) for
+CI; the Postman environment `ci` points to it. It is not run on the owner's machine: its emulator takes the same ports
+(9099, 4000) as the development one. If it is up, `docker compose -f api/acceptance/compose.yml down -v`.

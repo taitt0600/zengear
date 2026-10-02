@@ -15,7 +15,7 @@ api/
 ├─ db/        schema specification (zengear_00–08) — the migrations must produce exactly this
 ├─ seed/      reference data, run after migrations
 ├─ openapi/   ZenGear.Api.json, generated at build — commit it, never edit it
-├─ acceptance/          acceptance environment (../docs/ACCEPTANCE.md): compose.yml, Firebase Auth Emulator, database set-up
+├─ acceptance/          acceptance compose of CI only (../docs/ACCEPTANCE.md): compose.yml, Firebase Auth Emulator, database set-up
 └─ docker-compose.yml   local PostgreSQL 18 and Redis (+ ZenGear.Api container)
 ```
 
@@ -60,7 +60,7 @@ SonarAnalyzer rules that turned builds red in earlier features. After each edit 
 
 ## Local database
 
-1. Start PostgreSQL, Redis and the Firebase Auth Emulator: Visual Studio, startup project `docker-compose`, launch profile `Infrastructure`, Ctrl+F5 — or `docker compose up -d postgres redis firebase` in `api/`. The emulator uses the ports of the acceptance environment (9099, 4000): run one of the two at a time.
+1. Start PostgreSQL, Redis and the Firebase Auth Emulator: Visual Studio, startup project `docker-compose`, launch profile `Infrastructure`, Ctrl+F5 — or `docker compose up -d postgres redis firebase` in `api/`. Steps 2–4, plus the Admin account and the dev-only fixtures of `../postman/fixtures`, are what `pwsh -NoProfile -File ../tools/dev_reset.ps1` does, against this local environment only (`../docs/ACCEPTANCE.md`).
 2. `db/zengear_01_database.sql` on database `postgres` (creates `zengear` with the Vietnamese ICU collation).
 3. `dotnet ef database update -p src/ZenGear.Data -s src/ZenGear.Api`.
 4. `db/zengear_08_roles.sql`, then `seed/0*.sql` in file order (see `seed/README.md`).

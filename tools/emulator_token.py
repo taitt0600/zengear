@@ -1,4 +1,4 @@
-"""An ID token of the Firebase Auth Emulator, for calling the API of the acceptance environment (docs/ACCEPTANCE.md).
+"""An ID token of the Firebase Auth Emulator, for calling the API by hand on the development environment (docs/ACCEPTANCE.md).
 
   python tools/emulator_token.py <email> <password> [--create]
 
@@ -37,7 +37,7 @@ def call(host, method, body):
         raise SystemExit(f'{method}: {message}') from None
     except urllib.error.URLError as error:
         raise SystemExit(f'the emulator at {host} does not answer ({error.reason}): '
-                         'is the acceptance environment up?') from None
+                         'are the services of api/docker-compose.yml up?') from None
 
 
 def main():
