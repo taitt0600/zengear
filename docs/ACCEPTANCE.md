@@ -54,8 +54,27 @@ of the specification that is not migrated yet is skipped as a whole, with the li
 
 - In Scalar, choose the Bearer authentication and paste the token; it is valid for one hour.
 - A Firebase account is not yet a ZenGear account: until a user row links its uid, the API answers
-  `403 /problems/account-not-registered`. The first Admin is created with `bootstrap-admin` (DEC-096), which
-  comes with STF-01; its steps are added here then.
+  `403 /problems/account-not-registered`.
+- The first Admin (DEC-096): create the Firebase account, then link it with the one-off command `bootstrap-admin`
+  of the API. It refuses when an Admin already exists, so it runs once per environment (again after `down -v`).
+
+  ```bash
+  python tools/emulator_token.py owner@zengear.test 'owner-password' --create
+  docker compose -f api/acceptance/compose.yml run --rm api bootstrap-admin --email owner@zengear.test --name "Chủ cửa hàng"
+  TOKEN=$(python tools/emulator_token.py owner@zengear.test 'owner-password')
+  ```
+
+  The command prints the user id and a password reset link; the link is not needed here, since the account already
+  has the password chosen above.
+- Staff accounts (STF-01): the Admin creates them with `POST /api/v1/staff`; the role ids come from `roles` in
+  pgAdmin (`SELECT id, name FROM roles`). A new staff member signs in with the default password of this
+  environment, `acceptance` (`Firebase__DefaultStaffPassword` in `api/acceptance/compose.yml`), and must change it
+  before anything else: every endpoint but `GET /api/v1/me` answers `403 /problems/password-change-required` until
+  the password change of STF-03.
+
+  ```bash
+  TOKEN_STAFF=$(python tools/emulator_token.py cashier@zengear.test 'acceptance')
+  ```
 
 A feature that needs accounts or data to be tested adds their set-up to this section in the same pull request.
 

@@ -60,12 +60,13 @@ Folders, file names and type names follow `../docs/ARCHITECTURE.md`, section *Fo
 
 `pwsh -NoProfile -File ../tools/env_doctor.ps1` checks these steps, the ports and the user-secrets below (by key name, never their values) without changing anything; each failed row says what to run.
 
-Connection strings live in the user-secrets of `ZenGear.Api`, never in `appsettings.json`:
+Connection strings and the default staff password live in the user-secrets of `ZenGear.Api`, never in `appsettings.json`:
 
 | Key | Used by | Login |
 |---|---|---|
 | `ConnectionStrings:ZenGear` | the running API and jobs | a login granted `zengear_app` (jobs: `zengear_jobs`) |
 | `ConnectionStrings:ZenGearMigrations` | `dotnet ef` (selected when `EF.IsDesignTime`) | the schema owner |
 | `ConnectionStrings:Redis` | the access cache (R-SEC-07); `localhost:6379` locally, `redis:6379` inside docker-compose | — (without it every request reads PostgreSQL) |
+| `Firebase:DefaultStaffPassword` | the password of every staff account created through `POST /api/v1/staff` (STF-01); at least 6 characters; in production the environment variable `Firebase__DefaultStaffPassword` | — (without it creating a staff account fails with 500 and creates nothing) |
 
 Until the first migration and `db/zengear_08_roles.sql` have run, both keys use the local `postgres` user. The application never connects as the schema owner outside local work (DEC-089).
