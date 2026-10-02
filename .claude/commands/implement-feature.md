@@ -15,15 +15,18 @@ else into a **Needs decision** item for the report. A cloud session (`CLAUDE_COD
    - `dotnet --version` is the SDK of `api/global.json`, `dotnet tool restore` succeeds, `docker info` answers
      (the integration tests start PostgreSQL with Testcontainers) and `pwsh -v` answers (without PowerShell 7 the
      hooks of `.claude/settings.json` do not run, and nothing guards the specification).
-2. **Read** the row of $ARGUMENTS in `docs/blueprint/features.md`, its use cases in `docs/blueprint/use-cases.md`,
-   every rule listed in its Rules column in `docs/blueprint/business-rules.md`, and the related decisions. A rule ID
-   that is not in `business-rules.md` (R-DB-, R-TX-, R-NOT-, R-AUD-, R-SEC-07, R-ORD-12, R-REC-) is an
-   implementation rule: read it in `docs/blueprint/technical-design.md`, section 8. Look up each table it touches in
-   `docs/DATABASE.md` (`#### <table>`), its owning area in `docs/ARCHITECTURE.md`, and the names in `docs/GLOSSARY.md`.
+2. **Read** the feature dossier: `python3 tools/feature_context.py $ARGUMENTS --out out/feature-$ARGUMENTS.md`
+   (skill `feature-context`), then `out/feature-$ARGUMENTS.md`. It holds the row of $ARGUMENTS in
+   `docs/blueprint/features.md`, its use cases, every rule of its Rules column (implementation rules — R-DB-, R-TX-,
+   R-NOT-, R-AUD-, R-SEC-07, R-ORD-12, R-REC- — from `docs/blueprint/technical-design.md`, section 8), the decisions
+   they cite, its rows of `docs/GLOSSARY.md` and the `docs/DATABASE.md` section of each table its rules touch. Then
+   read the owning area of each table in `docs/ARCHITECTURE.md`. Open a source document only for what the dossier
+   does not hold; a rule the dossier reports as not found is a Needs decision item (step 4).
 3. **Plan**: endpoints (per `docs/API_CONVENTIONS.md`), service methods, entity methods, migrations if any, one or
-   more tests per rule, and the open questions sorted by the policy of step 4. Give the plan to the `plan-reviewer`
-   agent and fix every Blocking and Should fix item; repeat until it answers READY, at most three rounds. A Blocking
-   item left after three rounds becomes a Needs decision item. Keep the final verdict for the report.
+   more tests per rule, and the open questions sorted by the policy of step 4. Give the plan and the path
+   `out/feature-$ARGUMENTS.md` to the `plan-reviewer` agent and fix every Blocking and Should fix item; repeat until
+   it answers READY, at most three rounds. A Blocking item left after three rounds becomes a Needs decision item.
+   Keep the final verdict for the report.
 4. **Decision policy** for every question the specification does not answer:
    - Decide it yourself, and list the choice under "Decisions made" in the report, when it is reversible, stays
      inside the code and agrees with the documents: names of private members, how a service is split within the

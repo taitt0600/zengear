@@ -6,8 +6,8 @@ Fix this defect of ZenGear without waiting for anyone (CLAUDE.md, Workflow): $AR
 
 1. **Ready check** as in `/implement-feature` (step 1), on a branch `fix/<id in lowercase>-<short name>` locally.
    With `#<issue>`, read it with `gh issue view <number>` (locally) or the GitHub tools of the session.
-2. **Understand**: the row of the feature in `docs/blueprint/features.md`, the rules it lists and the code and tests
-   the defect goes through. Decide whether the code breaks the specification, or the specification itself is
+2. **Understand**: the feature dossier (`python3 tools/feature_context.py <Feature ID> --out
+   out/feature-<Feature ID>.md`, skill `feature-context`) and the code and tests the defect goes through. Decide whether the code breaks the specification, or the specification itself is
    wrong or silent. The second is a Needs decision item (policy of `/implement-feature`, step 4): stop and report.
 3. **Reproduce** with a test that fails for the reason described: named after the rule it breaks
    (`R_USR_01_...`), otherwise after the behavior, in the project `/implement-feature` (step 5) gives for that kind
