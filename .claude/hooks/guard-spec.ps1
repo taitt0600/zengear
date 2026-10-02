@@ -78,7 +78,8 @@ if ($path) {
 
 # Shell commands: ask when a simple command names a protected file and can write to it.
 # The command is split at ;, &&, ||, | and line breaks and each part is judged on its own, so that a
-# read-only command is not taken for a write because another part of it runs pwsh or python. A cd into a
+# read-only command is not taken for a write because another part of it runs pwsh or python, and tool names
+# match only whole (test_pr_gates.py is not pr_gates.py). A cd into a
 # folder carries over to the parts after it, which may name their files relative to that folder.
 # Running the workflow tools is not a write: those invocations are removed before the command is checked.
 $command = [string]$payload.tool_input.command
@@ -86,7 +87,7 @@ $command = $command -replace '(^|[;&|]\s*)python3?\s+(\.\.[\\/]+)?tools[\\/]+(pr
 if ($command) {
     $mentionsSpec = '(api[\\/]+db[\\/]|(^|[\s''"=])db[\\/]+zengear_|docs[\\/]+blueprint[\\/]|DATABASE\.md|product-domain-blueprint-MVP\.xlsx)'
     $canWrite = '(>(?!>?\s*(&|/dev/null\b|\$null\b))|\btee\b|\bsed\b[^|;&]*\s-i|\bperl\b[^|;&]*\s-i|(^|[;&|(]\s*|\b(do|then|else|xargs|sudo|exec|env)\s+)(cp|mv|rm|truncate|touch|dd|install|unzip|tar)\b|\bgit\s+(checkout|restore|apply|mv|rm|reset|stash)\b|Out-File|Set-Content|Add-Content|Remove-Item|Move-Item|Copy-Item|New-Item|Rename-Item|\bpython\d*\b|\bnode\b|\bpwsh\b|\bpowershell\b)'
-    $mentionsTooling = '(\.claude[\\/]|\.githooks[\\/]|\.github[\\/]+workflows|\.gitleaks\.toml|\.mcp\.json|pr_gates\.py|github_pr\.py|schema_snapshot\.sql|schema_compare\.py|ZenGear\.ArchitectureTests[\\/]|ARCHITECTURE\.md)'
+    $mentionsTooling = '(\.claude[\\/]|\.githooks[\\/]|\.github[\\/]+workflows|\.gitleaks\.toml|\.mcp\.json|(?<![\w.-])(pr_gates\.py|github_pr\.py|schema_snapshot\.sql|schema_compare\.py)|ZenGear\.ArchitectureTests[\\/]|ARCHITECTURE\.md)'
     $mentionsBuild = '\.(csproj|props|targets)\b'
     # The first target of each kind; asked in the order spec, tooling, build once every part is judged.
     $found = @{}

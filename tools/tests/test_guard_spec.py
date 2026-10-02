@@ -24,6 +24,8 @@ CASES = [
     ({'command': 'cat docs/DATABASE.md 2>/dev/null | head'}, 'allow', 'allow'),
     ({'command': 'git diff main...HEAD -- docs/blueprint/features.md 2>&1'}, 'allow', 'allow'),
     ({'command': 'python3 tools/pr_gates.py check origin/main HEAD "chore: x" claude'}, 'allow', 'allow'),
+    ({'command': 'cp /tmp/a.py tools/tests/test_pr_gates.py'}, 'allow', 'allow'),
+    ({'command': 'PR_GATES_SCRIPT=/tmp/gates.py python3 -m unittest tools/tests/test_pr_gates.py'}, 'allow', 'allow'),
     # Writes to the specification or the tooling.
     ({'command': 'echo x > docs/blueprint/features.md'}, 'deny', 'ask'),
     ({'command': "sed -i 's/a/b/' docs/DATABASE.md"}, 'deny', 'ask'),
@@ -37,6 +39,7 @@ CASES = [
     ({'command': '(cd api && rm db/zengear_02_schema_phase1_store.sql)'}, 'deny', 'ask'),
     ({'command': 'git checkout -- .github/workflows/api.yml'}, 'deny', 'ask'),
     ({'command': 'rm docs/ARCHITECTURE.md'}, 'deny', 'ask'),
+    ({'command': 'cp /tmp/a.py tools/pr_gates.py'}, 'deny', 'ask'),
     ({'command': 'Set-Content -Path docs/blueprint/x.md -Value 1'}, 'deny', 'ask'),
     # A build write in one part must not hide a spec write in a later part.
     ({'command': 'echo x > api/src/A.csproj; echo y > docs/blueprint/f.md'}, 'deny', 'ask'),
