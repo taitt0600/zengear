@@ -215,6 +215,8 @@ if ($PSCmdlet.ShouldProcess($AdminEmail, 'create the emulator account and run bo
 
 # Dev-only fixtures: postman/fixtures/accounts.txt lists "<psql variable> <email>" accounts created in the
 # emulator, then every postman/fixtures/*.sql runs with those variables set to the uids.
+# Keep in step with the step "Admin account and fixtures" of the job acceptance in .github/workflows/pipeline.yml,
+# which does the same for CI (this script refuses the CI ports).
 $fixtures = Join-Path $root 'postman/fixtures'
 $accounts = if (Test-Path (Join-Path $fixtures 'accounts.txt')) {
     Get-Content (Join-Path $fixtures 'accounts.txt') | Where-Object { $_ -match '^\s*[a-z_]+\s+\S+@\S+\s*$' } |

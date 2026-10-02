@@ -1,0 +1,503 @@
+name: pipeline
+
+# One CI/CD pipeline (DEC-100 (8)): every check of a pull request and of main, then the deploy. The required check
+# of main is ci-ok, which aggregates the jobs below; gates.yml holds the checks that run as pull_request_target
+# (PR gates, Validate PR title). The weekly schedule runs only the full-history secret scan.
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  schedule:
+    - cron: '17 2 * * 1'   # Monday 02:17 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# A pull request keeps only its newest run; every run on main has its own group, so none cancels or replaces another.
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && format('pipeline-pr-{0}', github.event.pull_request.number) || format('pipeline-{0}', github.sha) }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  # What the pull request or push changed, so that a job runs only when its inputs changed. A change to this file
+  # counts as a change of everything; workflow_dispatch runs everything.
+  changes:
+    name: changes
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    outputs:
+      api: ${{ steps.diff.outputs.api }}
+      postman: ${{ steps.diff.outputs.postman }}
+      tools: ${{ steps.diff.outputs.tools }}
+      docs: ${{ steps.diff.outputs.docs }}
+      workflow: ${{ steps.diff.outputs.workflow }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - id: diff
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          all=false
+          files=""
+          if [ "$EVENT" = workflow_dispatch ] || [ -z "$BASE" ] || ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then
+            all=true   # also a new branch (before = 000…) or a base outside the history
+          elif [ "$EVENT" = pull_request ]; then
+            files=$(git diff --name-only "$BASE...$HEAD")
+          else
+            files=$(git diff --name-only "$BASE" "$HEAD")
+          fi
+          printf '%s\n' "$files"
+          if printf '%s\n' "$files" | grep -qx '.github/workflows/pipeline.yml'; then all=true; fi
+          set_output() {   # set_output <name> <regex of the paths>
+            if [ "$all" = true ] || printf '%s\n' "$files" | grep -qE "$2"; then value=true; else value=false; fi
+            echo "$1=$value" | tee -a "$GITHUB_OUTPUT"
+          }
+          set_output workflow '^\.github/workflows/pipeline\.yml$'
+          # The schema job also runs the two schema tools of tools/.
+          set_output api '^(api/|tools/schema_compare\.py$|tools/schema_snapshot\.sql$)'
+          set_output postman '^postman/'
+          set_output tools '^(tools/|\.claude/hooks/|\.githooks/|api/global\.json$)'
+          set_output docs '^docs/'
+
+  # Secret scan with gitleaks (.gitleaks.toml): the commits of every pull request and push to main, and the whole
+  # history every week and on demand. Free for repositories of a personal account.
+  secrets:
+    name: Scan for secrets
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read   # the action lists the commits of the pull request
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_VERSION: 8.24.3        # same version as the one .gitleaks.toml was tested with
+          GITLEAKS_ENABLE_COMMENTS: false # findings go to the job summary and artifact, not PR comments
+
+  tools-test:
+    name: tools-test
+    needs: changes
+    if: needs.changes.outputs.tools == 'true' || needs.changes.outputs.docs == 'true' || needs.changes.outputs.workflow == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: api/global.json
+      # pwsh and python3 come with ubuntu-latest. The dossier test reads the real specification, the guard test
+      # runs .claude/hooks/guard-spec.ps1, the env_doctor test reads user-secrets through dotnet, and the export
+      # test (the workbook against docs/blueprint/) needs openpyxl, pinned, in a venv because the Python of the
+      # runner is externally managed (PEP 668).
+      - run: |
+          python3 -m venv .venv
+          .venv/bin/pip install --quiet --no-deps openpyxl==3.1.5 et-xmlfile==2.0.0
+      - run: .venv/bin/python -m unittest discover -s tools/tests -v
+
+  api-test:
+    name: build-test
+    needs: changes
+    if: needs.changes.outputs.api == 'true' || needs.changes.outputs.docs == 'true' || needs.changes.outputs.workflow == 'true' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: api
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # No NuGet cache: the cache of setup-dotnet needs packages.lock.json, which the repository does not have.
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: api/global.json
+      - run: dotnet tool restore
+      # api/ also holds docker-compose.dcproj (Visual Studio only): name the solution explicitly.
+      - run: dotnet build ZenGear.slnx -c Release
+      - name: OpenAPI contract is committed
+        run: git diff --exit-code -- openapi
+      # Integration tests start postgres:18 with Testcontainers on the runner's Docker.
+      - run: dotnet test ZenGear.slnx -c Release --no-build --logger trx --results-directory TestResults
+      - name: Upload test results
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: test-results
+          path: api/TestResults
+      - name: Model matches migrations
+        run: dotnet ef migrations has-pending-model-changes -p src/ZenGear.Data -s src/ZenGear.Api --configuration Release --no-build
+
+  # In parallel with build-test: it builds on its own instead of waiting for it.
+  schema:
+    name: schema
+    needs: changes
+    if: needs.changes.outputs.api == 'true' || needs.changes.outputs.docs == 'true' || needs.changes.outputs.workflow == 'true' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: localhost
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      LAST_PHASE_FILE: '2'   # 2 = Phase 1; đổi thành 3, 4, 5 khi bắt đầu phase sau
+      ConnectionStrings__ZenGearMigrations: Host=localhost;Database=zengear;Username=postgres;Password=postgres
+    defaults:
+      run:
+        working-directory: api
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: api/global.json
+      - run: dotnet tool restore
+      - run: dotnet build ZenGear.slnx -c Release
+      - name: Snapshot of the specification
+        run: |
+          psql -v ON_ERROR_STOP=1 -d postgres -f db/zengear_01_database.sql
+          for f in db/zengear_0[2-${LAST_PHASE_FILE}]_*.sql; do psql -v ON_ERROR_STOP=1 -d zengear -f "$f"; done
+          psql -v ON_ERROR_STOP=1 -At -d zengear -f ../tools/schema_snapshot.sql -o spec.txt
+      - name: Snapshot of the migrations
+        run: |
+          psql -v ON_ERROR_STOP=1 -d postgres -f db/zengear_01_database.sql
+          if ls src/ZenGear.Data/Migrations/*.cs >/dev/null 2>&1; then
+            dotnet ef database update -p src/ZenGear.Data -s src/ZenGear.Api --configuration Release --no-build
+          fi
+          psql -v ON_ERROR_STOP=1 -At -d zengear -f ../tools/schema_snapshot.sql -o migrated.txt
+      # The tables, views and functions the migrations have built so far match the specification exactly.
+      - name: Migrations produce the specified schema
+        run: python3 ../tools/schema_compare.py spec.txt migrated.txt
+
+  # Package and acceptance in one job, so that the image tested is the image pushed and never moves between jobs:
+  # the API image and the migration bundle are built once, the acceptance compose (api/acceptance/compose.yml,
+  # docs/ACCEPTANCE.md) runs them, the whole Postman collection runs against it, and on main that same image goes
+  # to GHCR and the bundle to an artifact for the deploy jobs.
+  acceptance:
+    name: acceptance
+    needs: changes
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write   # push of the image on main
+    defaults:
+      run:
+        shell: bash   # with -o pipefail
+    env:
+      COMPOSE: docker compose -f api/acceptance/compose.yml
+      API: http://127.0.0.1:8180
+      EFBUNDLE: ${{ github.workspace }}/out/efbundle
+      IMAGE: ghcr.io/${{ github.repository_owner }}/zengear-api
+      DOCKER_BUILD_RECORD_UPLOAD: false
+    steps:
+      # No token left in .git/config: api/.dockerignore lets .git/config into the build context, and the code of the
+      # pull request runs in this job, whose token can write packages.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # The gha cache needs the runtime token that only an action receives, and a builder other than the default
+      # docker driver (Docker docs, "GitHub Actions cache").
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - name: Build the API image
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: api
+          file: api/src/ZenGear.Api/Dockerfile
+          load: true
+          push: false
+          tags: |
+            zengear-api:ci
+            ${{ env.IMAGE }}:${{ github.sha }}
+          labels: org.opencontainers.image.source=https://github.com/${{ github.repository }}
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,scope=api,mode=max
+      - name: Build the emulator image
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: api/acceptance/firebase
+          load: true
+          push: false
+          tags: zengear-acceptance-firebase:ci
+          cache-from: type=gha,scope=firebase
+          cache-to: type=gha,scope=firebase,mode=max
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: api/global.json
+      # dotnet ef reads the project metadata before it builds, so the projects are restored first. The service init
+      # of the compose runs the bundle as the user postgres.
+      - name: Build the migration bundle
+        working-directory: api
+        run: |
+          dotnet tool restore
+          dotnet restore src/ZenGear.Api/ZenGear.Api.csproj -r linux-x64
+          mkdir -p "$(dirname "$EFBUNDLE")"
+          dotnet ef migrations bundle -p src/ZenGear.Data -s src/ZenGear.Api --configuration Release \
+            --self-contained -r linux-x64 -o "$EFBUNDLE"
+          chmod 0755 "$EFBUNDLE"
+
+      # The data is ready before the API starts, in the order of tools/dev_reset.ps1: the API synchronizes the
+      # permissions when it starts, and its Redis access cache (R-SEC-07) must not see data changed after that.
+      # The output goes to files too: on failure their end becomes an annotation (last step).
+      - name: Start PostgreSQL, Redis and the emulator, and set up the database
+        run: |
+          $COMPOSE up -d --wait postgres redis firebase 2>&1 | tee "$RUNNER_TEMP/up.log"
+          $COMPOSE up -d init 2>&1 | tee -a "$RUNNER_TEMP/up.log"
+          code=$(docker wait "$($COMPOSE ps -aq init)")
+          $COMPOSE logs --no-color init > "$RUNNER_TEMP/init.log" 2>&1
+          [ "$code" = 0 ] || { echo "::error::the database set-up (service init) exited with $code"; exit 1; }
+      - name: The database set-up completed
+        run: |
+          grep -q "init: done" "$RUNNER_TEMP/init.log"
+      # Keep in step with tools/dev_reset.ps1 (Admin, then the fixtures of postman/fixtures/), which refuses the CI
+      # ports. Unlike it, a fixture is never skipped: requests 08–09 of STF-01 need it.
+      - name: Admin account and fixtures
+        env:
+          FIREBASE_AUTH_EMULATOR_HOST: 127.0.0.1:9099
+          TEST_PASSWORD: ci-only   # emulator accounts only; the Postman collection signs in without it
+        run: |
+          set -eu
+          # Creates an emulator account the way tools/emulator_token.py --create does and prints its uid; the ID
+          # token it prints on stdout is discarded.
+          new_account() {
+            local err
+            err=$(python3 tools/emulator_token.py "$1" "$TEST_PASSWORD" --create 2>&1 >/dev/null) \
+              || { echo "::error::the emulator account $1 could not be created: $err" >&2; return 1; }
+            printf '%s\n' "$err" | sed -n 's/^uid: //p' | head -n 1
+          }
+
+          new_account owner@zengear.test >/dev/null
+          # The password reset link that bootstrap-admin prints is a credential: it stays in this variable, and only
+          # the line "Admin created" is shown (on a failure, the last lines without a link).
+          code=0
+          output=$($COMPOSE run --rm --no-deps -T api bootstrap-admin --email owner@zengear.test --name 'Chủ cửa hàng' 2>&1) || code=$?
+          safe=$(printf '%s\n' "$output" | grep -v -e '://' -e 'oobCode' || true)
+          output=""
+          if [ "$code" -ne 0 ]; then
+            printf '%s\n' "$safe" | tail -n 20
+            echo "::error::bootstrap-admin failed with exit code $code"
+            exit 1
+          fi
+          printf '%s\n' "$safe" | grep -m 1 '^Admin created'
+
+          # postman/fixtures/accounts.txt: "<psql variable> <email>" accounts, then every postman/fixtures/*.sql with
+          # those variables set to the uids.
+          variables=()
+          while read -r name email; do
+            uid=$(new_account "$email")
+            [ -n "$uid" ] || { echo "::error::no uid for the emulator account $email"; exit 1; }
+            variables+=(-v "$name=$uid")
+          done < <(grep -E '^\s*[a-z_]+\s+\S+@\S+\s*$' postman/fixtures/accounts.txt)
+          for file in postman/fixtures/*.sql; do
+            $COMPOSE exec -T -e PGOPTIONS='-c client_min_messages=warning' postgres \
+              psql -X -q -1 -v ON_ERROR_STOP=1 -U postgres -d zengear "${variables[@]}" -f - < "$file"
+            echo "applied $(basename "$file")"
+          done
+      - name: Start the API
+        run: $COMPOSE up -d --no-deps api 2>&1 | tee -a "$RUNNER_TEMP/up.log"
+      - name: The API is healthy
+        run: |
+          for _ in $(seq 1 120); do
+            if [ "$(curl -s "$API/health")" = "Healthy" ]; then exit 0; fi
+            sleep 2
+          done
+          echo "::error::the API did not answer Healthy on $API/health"
+          exit 1
+
+      # The Postman CLI of part B (skill api-run), from the files of the repository: no sign-in, no API key, and no
+      # --output (it needs a sign-in).
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          package-manager-cache: false
+      - name: Install the Postman CLI
+        run: npm install --global --no-audit --no-fund postman-cli@1.69.0
+      - name: Postman collection
+        run: |
+          postman collection run postman/collections/ZenGear -e postman/environments/ci.environment.yaml \
+            --no-report-events 2>&1 | tee "$RUNNER_TEMP/postman.log"
+      # What the collection does not check: GET /api/v1/me without a token, and with a valid token of an account
+      # the API does not know.
+      - name: A token is required, an emulator token of an unknown account is refused
+        env:
+          FIREBASE_AUTH_EMULATOR_HOST: 127.0.0.1:9099
+        run: |
+          status=$(curl -s -o /dev/null -w '%{http_code}' "$API/api/v1/me")
+          [ "$status" = "401" ] || { echo "::error::GET /api/v1/me without a token: $status, expected 401"; exit 1; }
+          token=$(python3 tools/emulator_token.py smoke@zengear.test smoke-password --create 2>/dev/null)
+          body=$(curl -s -H "Authorization: Bearer $token" "$API/api/v1/me")
+          echo "$body" | grep -q 'account-not-registered' \
+            || { echo "::error::GET /api/v1/me with an emulator token of an unknown user: $body"; exit 1; }
+
+      # Main only, after every test above passed: the image tested goes to GHCR, the bundle to the deploy jobs.
+      - name: Push the image to GHCR
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ACTOR: ${{ github.actor }}
+        run: |
+          printf '%s' "$GH_TOKEN" | docker login ghcr.io -u "$ACTOR" --password-stdin
+          docker push "$IMAGE:$GITHUB_SHA"
+          docker logout ghcr.io
+      - name: Upload the migration bundle
+        if: github.event_name == 'push'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: efbundle-${{ github.sha }}
+          path: ${{ env.EFBUNDLE }}
+          if-no-files-found: error
+          retention-days: 30
+
+      # Job logs cannot be read from a cloud session: the end of each log becomes an annotation. The output of
+      # bootstrap-admin is never in a file or a service log (its container is removed), so never in an annotation.
+      - name: Logs as annotations
+        if: failure()
+        run: |
+          annotate() {
+            text=$(printf '%s' "$2" | sed -e 's/%/%25/g' -e 's/\r//g' | sed -e ':a;N;$!ba;s/\n/%0A/g')
+            if [ -n "$text" ]; then echo "::error title=$1::$text"; fi
+          }
+          for log in up init postman; do
+            if [ -f "$RUNNER_TEMP/$log.log" ]; then
+              annotate "$log log" "$(tail -n 60 "$RUNNER_TEMP/$log.log")"
+            fi
+          done
+          for service in init api firebase postgres; do
+            annotate "$service log" "$($COMPOSE logs --no-color --tail 30 "$service" 2>&1)"
+          done
+
+  # The required check of main. A job skipped by changes is fine; a failed or cancelled one fails it. A web job is
+  # one more entry in needs.
+  ci-ok:
+    name: ci-ok
+    if: always()
+    needs: [changes, secrets, tools-test, api-test, schema, acceptance]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Every job passed or was skipped
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: |
+          printf '%s' "$NEEDS" | jq -r 'to_entries[] | "\(.key): \(.value.result)"'
+          if printf '%s' "$NEEDS" | jq -e 'any(.[]; .result == "failure" or .result == "cancelled")' >/dev/null; then
+            echo "::error::a job of the pipeline failed or was cancelled"
+            exit 1
+          fi
+
+  # Deploy (DEC-100 (8)): written, off until the repository variable DEPLOY_ENABLED is 'true'. Every Azure name comes
+  # from the variables of the environment (AZURE_CLIENT_ID, AZURE_TENANT_ID, AZURE_SUBSCRIPTION_ID,
+  # AZURE_RESOURCE_GROUP, AZURE_WEBAPP_NAME) and the connection of the migrations from its secret
+  # MIGRATIONS_CONNECTION. These jobs are completed and tested once the Azure resources exist, which is a Needs
+  # decision item: App Service plan Standard or higher (deployment slots), the staging and production projects
+  # (PostgreSQL, Redis, Firebase), backups, and how App Service pulls the GHCR image. Until then each TODO step fails,
+  # so that turning DEPLOY_ENABLED on cannot deploy half of it.
+  # !cancelled() instead of the default success(): a job skipped by changes must not skip the deploy.
+  deploy-staging:
+    name: deploy-staging
+    needs: ci-ok
+    if: ${{ !cancelled() && needs.ci-ok.result == 'success' && github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.DEPLOY_ENABLED == 'true' }}
+    runs-on: ubuntu-latest
+    environment: staging
+    concurrency:
+      group: deploy-staging
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      id-token: write   # OIDC sign-in to Azure
+    env:
+      AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+      AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+      AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+      AZURE_WEBAPP_NAME: ${{ vars.AZURE_WEBAPP_NAME }}
+      IMAGE: ghcr.io/${{ github.repository_owner }}/zengear-api:${{ github.sha }}
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: efbundle-${{ github.sha }}
+          path: ${{ runner.temp }}/bundle
+      # OIDC without a third-party action: the ID token of the job, exchanged by az login (no secret).
+      - name: Sign in to Azure
+        run: |
+          token=$(curl -sSf -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=api://AzureADTokenExchange" | jq -r .value)
+          echo "::add-mask::$token"
+          az login --service-principal --username "$AZURE_CLIENT_ID" --tenant "$AZURE_TENANT_ID" \
+            --federated-token "$token" --output none
+          az account set --subscription "$AZURE_SUBSCRIPTION_ID"
+      - name: Migrations
+        env:
+          MIGRATIONS_CONNECTION: ${{ secrets.MIGRATIONS_CONNECTION }}
+        run: |
+          chmod 0755 "$RUNNER_TEMP/bundle/efbundle"
+          "$RUNNER_TEMP/bundle/efbundle" --connection "$MIGRATIONS_CONNECTION"
+      - name: 'TODO: roles and seed'
+        run: |
+          echo "::error::TODO (Needs decision when deploy is enabled): run zengear_08_roles.sql and api/seed/ on staging, as api/acceptance/init/init.sh does"
+          exit 1
+      - name: Deploy the image to the staging slot
+        run: |
+          az webapp config container set --resource-group "$AZURE_RESOURCE_GROUP" --name "$AZURE_WEBAPP_NAME" \
+            --slot staging --container-image-name "$IMAGE" --output none
+      - name: The staging slot is healthy
+        run: |
+          host=$(az webapp show --resource-group "$AZURE_RESOURCE_GROUP" --name "$AZURE_WEBAPP_NAME" --slot staging \
+            --query defaultHostName --output tsv)
+          for _ in $(seq 1 60); do
+            if [ "$(curl -s "https://$host/health")" = "Healthy" ]; then exit 0; fi
+            sleep 5
+          done
+          echo "::error::the staging slot did not answer Healthy on https://$host/health"
+          exit 1
+      # The collection signs in with emulator custom tokens, which staging (real Firebase) refuses (PR #31).
+      - name: 'TODO: smoke folder with a real sign-in'
+        run: |
+          echo "::error::TODO (Needs decision when deploy is enabled): a Postman smoke folder that signs in for real on staging"
+          exit 1
+
+  # Swaps the staging slot into production after the approval of the environment production. Rollback: run the same
+  # swap again (App Service docs, "Roll back a swap").
+  deploy-production:
+    name: deploy-production
+    needs: deploy-staging
+    if: ${{ !cancelled() && needs.deploy-staging.result == 'success' }}
+    runs-on: ubuntu-latest
+    environment: production
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      id-token: write   # OIDC sign-in to Azure
+    env:
+      AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+      AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+      AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+      AZURE_WEBAPP_NAME: ${{ vars.AZURE_WEBAPP_NAME }}
+    steps:
+      - name: Sign in to Azure
+        run: |
+          token=$(curl -sSf -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=api://AzureADTokenExchange" | jq -r .value)
+          echo "::add-mask::$token"
+          az login --service-principal --username "$AZURE_CLIENT_ID" --tenant "$AZURE_TENANT_ID" \
+            --federated-token "$token" --output none
+          az account set --subscription "$AZURE_SUBSCRIPTION_ID"
+      - name: Swap the staging slot into production
+        run: |
+          az webapp deployment slot swap --resource-group "$AZURE_RESOURCE_GROUP" --name "$AZURE_WEBAPP_NAME" \
+            --slot staging --target-slot production

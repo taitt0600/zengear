@@ -6,7 +6,7 @@ Both files are outputs of tools/schema_snapshot.sql. The migrations implement th
 table, so only the objects of the tables, views and functions they create are compared: for each of them the
 relation, column, constraint, index and trigger lines (or the view and function line) are identical in both
 files. An object the migrations create that the specification does not have is a difference too. Exit code 0
-when they agree, 1 otherwise; used by the schema job of .github/workflows/api.yml and by /finish-feature."""
+when they agree, 1 otherwise; used by the schema job of .github/workflows/pipeline.yml and by /finish-feature."""
 import re, sys
 
 OWNERS = (('relation', r'^relation (\S+) '), ('relation', r'^(?:column|constraint) ([^.\s]+)\.'),
