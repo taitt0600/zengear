@@ -79,4 +79,4 @@ A feature that needs accounts or data adds them as fixtures, or as requests of i
 CI; the Postman environment `ci` points to it. The job `acceptance` of `.github/workflows/pipeline.yml` builds the
 images and the migration bundle, prepares the data as `tools/dev_reset.ps1` does (Admin, fixtures) before the API
 starts, and runs the whole collection. It is not run on the owner's machine: its emulator takes the same ports
-(9099, 4000) as the development one. If it is up, `docker compose -f api/acceptance/compose.yml down -v`.
+(9099, 4000) as the development one. If it is up, `docker compose -p zengear-acceptance down -v`.
