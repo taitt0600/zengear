@@ -9,7 +9,8 @@ request that changes the specification or the tooling (`owner_paths` in `tools/p
 
 1. Pick a feature of `docs/blueprint/features.md` whose *Depends On* features are done; in a cloud session, run
    `/implement-feature <Feature ID>`.
-2. Wait for a notification on the phone from the routine **ZenGear kết quả PR**:
+2. Wait for a notification on the phone from the routine **ZenGear kết quả PR** (merged) or **ZenGear PR cần quyết
+   định** (draft):
    - *"AUT-04 đã merge — sẵn sàng test …"*: test it with the scenarios of the report on the pull request, on the
      acceptance environment (`docs/ACCEPTANCE.md`);
    - *"AUT-04 cần anh/chị quyết định …"*: answer each item; `/decision-draft <what was decided>` drafts the
@@ -25,7 +26,7 @@ request that changes the specification or the tooling (`owner_paths` in `tools/p
 | Docker and gitleaks in every cloud session | SessionStart hook `.claude/hooks/session-start.ps1` (cloud only; gitleaks 8.24.3 checked against its SHA-256) | Repository |
 | Plan, tests, code, verification, commits, pull request, CI, report | `/implement-feature` → `/finish-feature`, with the `plan-reviewer`, `code-reviewer` and `report-reviewer` agents | Repository |
 | Merge | Auto-merge once the required checks of `main` pass (`tools/github_pr.py`) | GitHub |
-| Notify the owner, log the numbers | Routine **ZenGear kết quả PR**, on GitHub events | The owner's claude.ai account |
+| Notify the owner, log the numbers | Routines **ZenGear kết quả PR** (pull request merged) and **ZenGear PR cần quyết định** (pull request opened as a draft), on GitHub events | The owner's claude.ai account |
 | Turn a defect issue into a fix | Routine **ZenGear sửa lỗi nghiệm thu**, every two hours from 07:52 to 21:52 (Asia/Ho_Chi_Minh) | The owner's claude.ai account |
 
 The routines are managed at [claude.ai/code/routines](https://claude.ai/code/routines): pause one with its switch,
@@ -51,11 +52,14 @@ feature. Compare features with it before changing the workflow.
 
 ## Routine prompts
 
-### ZenGear kết quả PR
+### ZenGear kết quả PR and ZenGear PR cần quyết định
 
-Triggers, both with the filter *title* matches regex `.*\([A-Z]{3}-[0-9]{2}\)` (a feature or fix pull request):
-GitHub event *pull request closed* with *is merged* = true, and GitHub event *pull request opened* with
-*is draft* = true. Repository: taitt0600/zengear. Notifications: push.
+Two routines with this same prompt, since a routine takes one trigger of each type. Both filter the pull request
+with *title* matches regex `.*\([A-Z]{3}-[0-9]{2}\)` (a feature or fix pull request), have taitt0600/zengear as
+their repository and notify by push:
+
+- **ZenGear kết quả PR**: GitHub event *pull request closed*, filter *is merged* = true;
+- **ZenGear PR cần quyết định**: GitHub event *pull request opened*, filter *is draft* = true.
 
 ```
 A pull request of taitt0600/zengear was just merged, or opened as a draft: the pull request of the GitHub event
