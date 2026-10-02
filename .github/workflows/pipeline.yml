@@ -402,7 +402,11 @@ jobs:
   # AZURE_RESOURCE_GROUP, AZURE_WEBAPP_NAME) and the connection of the migrations from its secret
   # MIGRATIONS_CONNECTION. These jobs are completed and tested once the Azure resources exist, which is a Needs
   # decision item: App Service plan Standard or higher (deployment slots), the staging and production projects
-  # (PostgreSQL, Redis, Firebase), backups, and how App Service pulls the GHCR image. Until then each TODO step fails,
+  # (PostgreSQL, Redis, Firebase), backups, and how App Service pulls the GHCR image; and the environments staging and
+  # production exist in Settings → Environments. This repository is private, where (GitHub docs, "Managing
+  # environments for deployment" and "Deployments and environments") environment secrets and deployment branches need
+  # GitHub Pro or higher, while required reviewers (the approval of production) need GitHub Enterprise: on Pro the
+  # approval may have to be a manual workflow_dispatch of deploy-production instead. Until then each TODO step fails,
   # so that turning DEPLOY_ENABLED on cannot deploy half of it.
   # !cancelled() instead of the default success(): a job skipped by changes must not skip the deploy.
   deploy-staging:
