@@ -9,8 +9,9 @@
 create opens the pull request of the current branch against main, or updates the one already open (title,
 body, and draft or ready as asked). auto-merge refuses when the pull request changes a file that only the owner
 merges (owner_paths in tools/pr_gates.py), or when main does not require every check in REQUIRED_CHECKS or lets
-someone bypass them, so that nothing merges unchecked. checks prints the latest run of every check of the head
-commit, the annotations of the failed ones and the merge state.
+someone bypass them, so that nothing merges unchecked. REQUIRED_CHECKS are the job names: ci-ok aggregates every job
+of .github/workflows/pipeline.yml, and Validate PR title and PR gates run in .github/workflows/gates.yml. checks
+prints the latest run of every check of the head commit, the annotations of the failed ones and the merge state.
 
 Exit codes: 0 done, 1 a check failed or the pull request cannot merge as it is, 3 still running when the wait
 ended, 4 GitHub could not be reached, 5 the owner merges (auto-merge refused).
@@ -27,7 +28,7 @@ from pr_gates import owner_paths  # noqa: E402
 API = 'https://api.github.com'
 PROXY_TOKEN = 'proxy-injected'
 BASE = 'main'
-REQUIRED_CHECKS = ('Scan for secrets', 'Validate PR title', 'build-test', 'schema', 'tools-test', 'PR gates')
+REQUIRED_CHECKS = ('ci-ok', 'Validate PR title', 'PR gates')
 PASSED = ('success', 'neutral', 'skipped')
 POLL_SECONDS = 30
 ATTEMPTS = 3
