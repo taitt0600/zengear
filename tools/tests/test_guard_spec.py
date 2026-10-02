@@ -37,7 +37,7 @@ CASES = [
     ({'command': 'echo {} > .mcp.json'}, 'deny', 'ask'),
     ({'command': 'for f in a b; do cp $f api/db/; done'}, 'deny', 'ask'),
     ({'command': '(cd api && rm db/zengear_02_schema_phase1_store.sql)'}, 'deny', 'ask'),
-    ({'command': 'git checkout -- .github/workflows/api.yml'}, 'deny', 'ask'),
+    ({'command': 'git checkout -- .github/workflows/pipeline.yml'}, 'deny', 'ask'),
     ({'command': 'rm docs/ARCHITECTURE.md'}, 'deny', 'ask'),
     ({'command': 'cp /tmp/a.py tools/pr_gates.py'}, 'deny', 'ask'),
     ({'command': 'Set-Content -Path docs/blueprint/x.md -Value 1'}, 'deny', 'ask'),

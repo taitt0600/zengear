@@ -1,5 +1,5 @@
 # gitleaks configuration: the default rules, plus the allowlists below. Every allowlist says why.
-# CI: .github/workflows/secrets.yml. Local: .githooks/pre-commit. Tested with gitleaks 8.24.3.
+# CI: the job secrets of .github/workflows/pipeline.yml. Local: .githooks/pre-commit. Tested with gitleaks 8.24.3.
 
 [extend]
 useDefault = true

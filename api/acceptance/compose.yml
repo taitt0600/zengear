@@ -1,6 +1,8 @@
-# Acceptance environment (docs/ACCEPTANCE.md): the API in Development with the Firebase Auth Emulator, PostgreSQL 18
-# and Redis; a one-off service sets up the database. Separate from the Visual Studio compose project in api/.
+# Acceptance environment of CI (docs/ACCEPTANCE.md): the API in Development with the Firebase Auth Emulator, PostgreSQL
+# 18 and Redis; a one-off service sets up the database. Separate from the Visual Studio compose project in api/.
 # Every port is bound to 127.0.0.1 only: the passwords below are for this environment alone.
+# The job acceptance of .github/workflows/pipeline.yml builds the images zengear-api:ci (the image it pushes to GHCR
+# on main) and zengear-acceptance-firebase:ci, and the migration bundle that EFBUNDLE names; nothing is built here.
 name: zengear-acceptance
 
 services:
@@ -26,7 +28,8 @@ services:
       - "127.0.0.1:56379:6379"   # for Redis Insight on the machine
 
   firebase:
-    build: ./firebase
+    image: zengear-acceptance-firebase:ci   # built from ./firebase by pipeline.yml
+    pull_policy: never
     init: true
     stop_grace_period: 30s   # the accounts are exported when the emulator stops
     ports:
@@ -40,10 +43,16 @@ services:
       timeout: 3s
       retries: 60
 
+  # The migration bundle, the specification scripts, the seed and init.sh, run with psql of the PostgreSQL image.
   init:
-    build:
-      context: ..
-      dockerfile: acceptance/init/Dockerfile
+    image: postgres:18
+    user: postgres
+    entrypoint: ["sh", "/init/init.sh"]
+    volumes:
+      - ${EFBUNDLE:?EFBUNDLE is the path of the migration bundle (pipeline.yml)}:/init/efbundle:ro
+      - ../db:/init/db:ro
+      - ../seed:/init/seed:ro
+      - ./init/init.sh:/init/init.sh:ro
     environment:
       PGHOST: postgres
       PGUSER: postgres
@@ -53,9 +62,8 @@ services:
         condition: service_healthy
 
   api:
-    build:
-      context: ..
-      dockerfile: src/ZenGear.Api/Dockerfile
+    image: zengear-api:ci   # built from src/ZenGear.Api/Dockerfile by pipeline.yml
+    pull_policy: never
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_HTTP_PORTS: "8080"
