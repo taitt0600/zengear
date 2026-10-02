@@ -9,7 +9,7 @@ Retail system for a PC and hardware store run as a Vietnamese household business
 | `api/` | .NET 10 backend: `ZenGear.Api` → `ZenGear.Services` → `ZenGear.Data`, tests, `db/` (schema specification), `seed/`, `openapi/` (generated) | `api/CLAUDE.md` |
 | `web/` | Next.js app: storefront, admin, POS | `web/CLAUDE.md` |
 | `docs/` | Specifications shared by both | — |
-| `tools/` | Blueprint export, schema snapshot and comparison, structure metrics (DEC-097), PR gates, pull request steps | — |
+| `tools/` | Blueprint export, feature dossier, schema snapshot and comparison, structure metrics (DEC-097), PR gates, pull request steps; tests in `tools/tests/` | — |
 
 Decision: DEC-093 (monorepo), DEC-091 (3-Layer backend).
 
@@ -23,6 +23,7 @@ Decision: DEC-093 (monorepo), DEC-091 (3-Layer backend).
 | Backend structure, table ownership per area | `docs/ARCHITECTURE.md` |
 | HTTP API shape | `docs/API_CONVENTIONS.md` |
 | Web app structure | `docs/FRONTEND.md` |
+| Everything one feature needs, in one file | `python3 tools/feature_context.py <Feature ID> --out out/feature-<Feature ID>.md` — the feature dossier: its row, rules (implementation rules included), use cases, the decisions they cite, its glossary rows and the `docs/DATABASE.md` sections of its tables, cut from the files above (`python` on Windows) |
 
 ## Rules for every change
 
@@ -76,3 +77,4 @@ Every commit follows Conventional Commits 1.0.0, in English:
 
 - Implement a feature end to end: `/implement-feature <Feature ID>`
 - Fix a defect found in acceptance testing: `/fix-defect <Feature ID> <what is wrong, or #issue>`
+- Test the scripts of `tools/`: `python3 -m unittest discover -s tools/tests -v`
