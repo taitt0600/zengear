@@ -2,7 +2,7 @@ name: pipeline
 
 # One CI/CD pipeline (DEC-100 (8)): every check of a pull request and of main, then the deploy. The required check
 # of main is ci-ok, which aggregates the jobs below; gates.yml holds the checks that run as pull_request_target
-# (PR gates, Validate PR title). The weekly schedule runs only the full-history secret scan.
+# (pr-gates, pr-title). Every job is named after its id, in lower case. The weekly schedule runs only the full-history secret scan.
 on:
   pull_request:
     branches: [main]
@@ -73,7 +73,7 @@ jobs:
   # Secret scan with gitleaks (.gitleaks.toml): the commits of every pull request and push to main, and the whole
   # history every week and on demand. Free for repositories of a personal account.
   secrets:
-    name: Scan for secrets
+    name: secrets
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -108,7 +108,7 @@ jobs:
       - run: .venv/bin/python -m unittest discover -s tools/tests -v
 
   api-test:
-    name: build-test
+    name: api-test
     needs: changes
     if: needs.changes.outputs.api == 'true' || needs.changes.outputs.docs == 'true' || needs.changes.outputs.workflow == 'true' || github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
@@ -137,7 +137,7 @@ jobs:
       - name: Model matches migrations
         run: dotnet ef migrations has-pending-model-changes -p src/ZenGear.Data -s src/ZenGear.Api --configuration Release --no-build
 
-  # In parallel with build-test: it builds on its own instead of waiting for it.
+  # In parallel with api-test: it builds on its own instead of waiting for it.
   schema:
     name: schema
     needs: changes

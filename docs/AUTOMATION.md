@@ -109,16 +109,16 @@ per defect taken: time from opened to merged, commits, review rounds, Needs deci
 ## CI/CD pipeline (DEC-100 (8))
 
 Two workflows. `.github/workflows/pipeline.yml` runs on every pull request to `main`, every push to `main` and on
-demand: `changes` reads the changed paths; `Scan for secrets`, `tools-test`, `build-test` and `schema` run in
-parallel, each only when its paths changed (`build-test` and `schema` always on `main`); `acceptance` builds the API
+demand: `changes` reads the changed paths; `secrets`, `tools-test`, `api-test` and `schema` run in parallel, each
+only when its paths changed (`api-test` and `schema` always on `main`); `acceptance` builds the API
 image (layers cached in GitHub Actions) and the migration bundle, prepares the data, runs the whole Postman
 collection and, on `main`, pushes that image to GHCR; `ci-ok` aggregates them and is the required check. The weekly
 schedule runs only the full-history secret scan. `deploy-staging` (OIDC to Azure, bundle, slot `staging`, smoke) and
 `deploy-production` (swap after the environment's approval; rollback is swapping again) are written but run only
 when the repository variable `DEPLOY_ENABLED` is `true`, once the Azure resources exist.
-`.github/workflows/gates.yml` (`pull_request_target`, code of `main` only) runs `PR gates` and `Validate PR title`.
-The required checks of `main` are `ci-ok`, `Validate PR title` and `PR gates` (`REQUIRED_CHECKS` of
-`tools/github_pr.py`).
+`.github/workflows/gates.yml` (`pull_request_target`, code of `main` only) runs `pr-gates` and `pr-title`.
+Every job is named after its id, in lower case, and the required checks of `main` are `ci-ok`, `pr-gates` and
+`pr-title` (`REQUIRED_CHECKS` of `tools/github_pr.py`).
 
 ## Phase 0 (DEC-100)
 
