@@ -7,13 +7,23 @@ namespace ZenGear.Services.Identity.Permissions;
 /// </summary>
 public sealed class PermissionCatalog : IPermissionCatalog
 {
-    private static readonly PermissionDefinition[] Definitions = [];
+    /// <summary>
+    /// The Admin role, found by name like the R-SEC-02 trigger does (<c>roles.name = 'Admin'</c>). Besides the sync,
+    /// only R-TX-11 uses it, and only to refuse: holding it never grants access (R-SEC-03).
+    /// </summary>
+    public const string AdminRoleName = "Admin";
+
+    private static readonly PermissionDefinition[] Definitions =
+    [
+        new(PermissionKeys.StaffCreate, "Create staff accounts and give them roles"),
+        new(PermissionKeys.StaffRead, "View staff accounts"),
+    ];
 
     public IReadOnlyList<PermissionDefinition> Permissions => Definitions;
 
     public IReadOnlyList<RoleGrants> Roles { get; } =
     [
-        new("Admin", IsSystemRole: true, [.. Definitions.Select(p => p.Key)]),
+        new(AdminRoleName, IsSystemRole: true, [.. Definitions.Select(p => p.Key)]),
         new("Customer", IsSystemRole: true, []),
         new("Store Manager", IsSystemRole: false, []),
         new("Sales Consultant", IsSystemRole: false, []),

@@ -53,6 +53,11 @@ builder.Services.AddZenGearOpenApi();
 
 var app = builder.Build();
 
+if (BootstrapAdminCommand.IsRequested(args))
+{
+    return await BootstrapAdminCommand.RunAsync(app.Services, args, Console.Out, CancellationToken.None);
+}
+
 app.UseExceptionHandler();
 app.UseStatusCodePages();
 app.UseSerilogRequestLogging();
@@ -78,3 +83,4 @@ if (app.Environment.IsDevelopment())
 }
 
 await app.RunAsync();
+return 0;

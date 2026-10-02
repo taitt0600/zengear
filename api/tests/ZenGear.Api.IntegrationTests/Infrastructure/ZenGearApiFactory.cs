@@ -7,6 +7,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Time.Testing;
 using ZenGear.Api.Extensions;
 using ZenGear.Api.Logging;
+using ZenGear.Data.Externals.Auth;
+using ZenGear.Services.Identity;
 
 namespace ZenGear.Api.IntegrationTests.Infrastructure;
 
@@ -24,6 +26,12 @@ public class ZenGearApiFactory(string environment = AuthenticationSetup.TestingE
     /// <summary>Entries written through <see cref="SecurityLog"/>.</summary>
     public InMemoryLoggerProvider SecurityLogs { get; } = new();
 
+    /// <summary>Firebase Authentication of this API instance.</summary>
+    public FakeAuthProvider Auth { get; } = new();
+
+    /// <summary>Log entries of the staff services (Serilog replaces the logger factory, so they are captured by type).</summary>
+    public InMemoryLoggerProvider StaffLogs { get; } = new();
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment(environment);
@@ -38,6 +46,11 @@ public class ZenGearApiFactory(string environment = AuthenticationSetup.TestingE
             services.AddSingleton<TimeProvider>(Time);
             services.RemoveAll<SecurityLog>();
             services.AddSingleton(new SecurityLog(LoggerFactory.Create(logging => logging.AddProvider(SecurityLogs))));
+            services.RemoveAll<IAuthProvider>();
+            services.AddSingleton<IAuthProvider>(Auth);
+            var staffLogs = LoggerFactory.Create(logging => logging.AddProvider(StaffLogs));
+            services.AddSingleton<ILogger<StaffService>>(new Logger<StaffService>(staffLogs));
+            services.AddSingleton<ILogger<StaffBootstrapService>>(new Logger<StaffBootstrapService>(staffLogs));
             services.AddControllers().AddApplicationPart(typeof(ZenGearApiFactory).Assembly);
         });
     }

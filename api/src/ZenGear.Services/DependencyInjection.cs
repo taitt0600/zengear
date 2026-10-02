@@ -1,8 +1,10 @@
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using ZenGear.Data;
+using ZenGear.Data.Externals.Auth;
 using ZenGear.Data.Externals.Redis;
 using ZenGear.Services.Common;
 using ZenGear.Services.Identity;
@@ -35,9 +37,15 @@ public static class DependencyInjection
         services.AddSingleton<IAccessCache>(sp => sp.GetRequiredService<RedisAccessCache>());
         services.AddScoped<IInterceptor, AccessCacheInvalidationInterceptor>();
 
+        services.AddOptions<AuthProviderOptions>().BindConfiguration(AuthProviderOptions.SectionName);
+        services.AddSingleton<IAuthProvider, FirebaseAuthProvider>();
+        services.AddValidatorsFromAssemblyContaining<StaffService>();
+
         services.AddScoped<IUserAccessReader, UserAccessReader>();
         services.AddScoped<SignInService>();
         services.AddScoped<CurrentUserService>();
+        services.AddScoped<StaffService>();
+        services.AddScoped<StaffBootstrapService>();
         services.AddSingleton<IPermissionCatalog, PermissionCatalog>();
         services.AddScoped<PermissionSyncService>();
 

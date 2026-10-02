@@ -10,6 +10,14 @@ public class UserRole
     {
     }
 
+    /// <summary>The user is set by EF Core through <see cref="User.UserRoles"/>.</summary>
+    internal UserRole(Guid roleId, Guid? createdBy, DateTimeOffset now)
+    {
+        RoleId = roleId;
+        CreatedBy = createdBy;
+        CreatedAt = now;
+    }
+
     public Guid UserId { get; private set; }
 
     public Guid RoleId { get; private set; }
