@@ -40,9 +40,11 @@
 | Testing | zengear_07_schema_check.sql | — | Kiểm tra đủ đối tượng không có trên ERD sau mỗi migration | Phase 1 |
 | Dev Tooling | Visual Studio / VS Code | — | IDE | Phase 1 |
 | Dev Tooling | pgAdmin | — | PostgreSQL GUI | Phase 1 |
-| Dev Tooling | Postman | — | API testing | Phase 1 |
+| Dev Tooling | Postman | v12 | Collection v3 lưu bằng Git gốc trong postman/, mỗi tính năng một folder; chủ dự án test trước khi merge; Postman CLI chạy collection trong CI và trên API dev (DEC-100) | Phase 1 |
 | Dev Tooling | Firebase Local Emulator Suite | — | Chạy Firebase local | Phase 1 |
 | Dev Tooling | Docker | image postgres:18 | Container local, khớp version Azure Database for PostgreSQL | Phase 1 |
+| Dev Tooling | Claude Code | — | Plugin từ marketplace claude-plugins-official (csharp-lsp, pr-review-toolkit, code-review, feature-dev, commit-commands, security-guidance) và MCP qua Docker MCP Toolkit (PostgreSQL, Postman) chỉ với dữ liệu dev (DEC-100) | Phase 1 |
 | Source & Docs | Git + GitHub | — | Quản lý mã nguồn; một repository cho api, web và docs (DEC-093) | Phase 1 |
-| Source & Docs | GitHub Actions | — | CI theo path filter: api.yml build, test, kiểm tra migration; web.yml build web và so kiểu dữ liệu sinh từ OpenAPI (DEC-093) | Phase 1 |
+| Source & Docs | GitHub Actions | — | Một pipeline (pipeline.yml): job changes chọn job theo path; secrets, tools-test, api-test, schema, package (image và migration bundle build một lần), acceptance (collection Postman trên image đó), web-test và web-preview khi có web, ci-ok; gates.yml cho PR gates và tiêu đề PR; push main deploy staging, production sau khi duyệt (DEC-093, DEC-100) | Phase 1 |
+| Source & Docs | GitHub Container Registry | — | Lưu image API build một lần trong pipeline để deploy staging và production (DEC-100) | Phase 1 |
 | Source & Docs | dbdocs.io | — | Tài liệu ERD sinh từ khối DBML trong DATABASE.md | Phase 1 |
