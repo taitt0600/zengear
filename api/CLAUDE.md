@@ -58,6 +58,8 @@ Folders, file names and type names follow `../docs/ARCHITECTURE.md`, section *Fo
 3. `dotnet ef database update -p src/ZenGear.Data -s src/ZenGear.Api`.
 4. `db/zengear_08_roles.sql`, then `seed/0*.sql` in file order (see `seed/README.md`).
 
+`pwsh -NoProfile -File ../tools/env_doctor.ps1` checks these steps, the ports and the user-secrets below (by key name, never their values) without changing anything; each failed row says what to run.
+
 Connection strings live in the user-secrets of `ZenGear.Api`, never in `appsettings.json`:
 
 | Key | Used by | Login |
