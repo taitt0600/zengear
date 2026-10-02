@@ -34,6 +34,7 @@
       "Bash(python tools/feature_context.py *)",
       "Bash(python3 -m unittest discover -s tools/tests*)",
       "Bash(python -m unittest discover -s tools/tests*)",
+      "Bash(pwsh -NoProfile -File tools/env_doctor.ps1*)",
       "Bash(gh issue list *)",
       "Bash(gh issue view *)",
       "Bash(gh run list *)",

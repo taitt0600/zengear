@@ -1,0 +1,19 @@
+{
+  "version": "0.0.1",
+  // Environment work: do not start a server after every edit; Visual Studio may already hold the ports.
+  "autoVerify": false,
+  "configurations": [
+    // The API started from Visual Studio or dotnet run (profile http): attach to it. Scalar at /scalar.
+    { "name": "api-running", "port": 5256, "url": "http://localhost:5256" },
+    // Start the API from the session when nothing runs it.
+    {
+      "name": "api-start",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": ["run", "--project", "src/ZenGear.Api", "--launch-profile", "http"],
+      "cwd": "api",
+      "port": 5256
+    },
+    // Firebase Auth Emulator UI of api/docker-compose.yml (or of the acceptance environment).
+    { "name": "auth-emulator-ui", "port": 4000, "url": "http://localhost:4000" }
+  ]
+}
