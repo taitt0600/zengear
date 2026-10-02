@@ -63,9 +63,9 @@ foreach ($port in 5432, 6379, 9099, 4000) {
 
 $emulator = if ($dockerUp) { Get-PortContainer 9099 } else { $null }
 if ($emulator) {
-    # The dev compose and the acceptance environment share 9099 and 4000: run one of the two at a time.
+    # The acceptance compose runs in CI only (DEC-100); left up on this machine, its emulator takes 9099 and 4000.
     Check "Auth emulator is not the acceptance one ($($emulator.Project))" { $emulator.Project -ne 'zengear-acceptance' } `
-        'The acceptance environment holds 9099/4000: `docker compose -f api/acceptance/compose.yml down` before local work.' 'WARN'
+        'The acceptance compose is for CI only and holds 9099/4000: `docker compose -f api/acceptance/compose.yml down -v`, then start the dev services.' 'WARN'
 }
 
 # 3. Database set-up, in the order of api/CLAUDE.md ("Local database").
