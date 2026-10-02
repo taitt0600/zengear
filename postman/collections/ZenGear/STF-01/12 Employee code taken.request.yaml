@@ -1,0 +1,28 @@
+$kind: http-request
+description: |-
+  A new email with the employee code of request 02.
+method: POST
+url: '{{baseUrl}}/api/v1/staff'
+order: 12000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+  - key: Content-Type
+    value: 'application/json'
+body:
+  type: json
+  content: |-
+    {
+      "email": "stf01-{{run}}-same-code@zengear.test",
+      "name": "Nhân viên kiểm thử",
+      "employeeCode": "{{run}}-01",
+      "joinedDate": "2026-10-01",
+      "workPhone": "0901234567",
+      "roleIds": ["{{roleCashier}}"]
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 409', () => pm.response.to.have.status(409));
+      pm.test('problem type /problems/employee-code-taken', () => pm.expect(pm.response.json().type).to.eql('/problems/employee-code-taken'));

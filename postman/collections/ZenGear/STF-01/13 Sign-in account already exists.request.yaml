@@ -1,0 +1,48 @@
+$kind: http-request
+description: |-
+  An email that already has an emulator account but no ZenGear account is refused, and that account is not
+  taken over. The pre-request script signs the account up in the emulator first (test password, emulator
+  only).
+method: POST
+url: '{{baseUrl}}/api/v1/staff'
+order: 13000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+  - key: Content-Type
+    value: 'application/json'
+body:
+  type: json
+  content: |-
+    {
+      "email": "stf01-{{run}}-taken@zengear.test",
+      "name": "Nhân viên kiểm thử",
+      "employeeCode": "{{run}}-13",
+      "joinedDate": "2026-10-01",
+      "workPhone": "0901234567",
+      "roleIds": ["{{roleCashier}}"]
+    }
+scripts:
+  - type: beforeRequest
+    language: text/javascript
+    code: |-
+      const emulator = pm.variables.get('emulatorUrl');
+      if (!/^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(emulator || '')) {
+        throw new Error(`emulatorUrl ${emulator} is not a local Firebase Auth Emulator`);
+      }
+      pm.sendRequest({
+        url: `${emulator}/identitytoolkit.googleapis.com/v1/accounts:signUp?key=emulator`,
+        method: 'POST',
+        header: [{ key: 'Content-Type', value: 'application/json' }],
+        body: {
+          mode: 'raw',
+          raw: JSON.stringify({ email: `stf01-${pm.variables.get('run')}-taken@zengear.test`, password: 'emulator-only' }),
+        },
+      }, (error, response) => {
+        if (error || response.code !== 200) throw new Error(`emulator sign-up failed (${error || response.code})`);
+      });
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 409', () => pm.response.to.have.status(409));
+      pm.test('problem type /problems/auth-account-exists', () => pm.expect(pm.response.json().type).to.eql('/problems/auth-account-exists'));

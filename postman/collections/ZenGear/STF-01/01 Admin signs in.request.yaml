@@ -1,0 +1,25 @@
+$kind: http-request
+description: |-
+  The Admin created by tools/dev_reset.ps1 (bootstrap-admin, DEC-096) signs in. Also sets `run`, the suffix
+  that makes every email and employee code of this run unique.
+method: GET
+url: '{{baseUrl}}/api/v1/me'
+order: 1000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+scripts:
+  - type: beforeRequest
+    language: text/javascript
+    code: |-
+      pm.collectionVariables.set('run', Date.now().toString(36));
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 200', () => pm.response.to.have.status(200));
+      const me = pm.response.json();
+      pm.test('the Admin, staff, no pending password change', () => {
+        pm.expect(me.email).to.eql(pm.variables.get('adminEmail'));
+        pm.expect(me.isStaff).to.eql(true);
+        pm.expect(me.mustChangePassword).to.eql(false);
+      });

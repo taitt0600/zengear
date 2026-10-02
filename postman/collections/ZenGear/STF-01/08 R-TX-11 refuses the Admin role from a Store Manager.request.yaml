@@ -1,0 +1,31 @@
+$kind: http-request
+description: |-
+  R-TX-11: only an Admin gives the Admin role. The caller is the fixture Store Manager
+  (postman/fixtures/STF-01.sql), who holds staff.create; reaching that state needs the fixture until STF-03
+  and AUT-05 exist.
+method: POST
+url: '{{baseUrl}}/api/v1/staff'
+order: 8000
+headers:
+  - key: X-ZenGear-As
+    value: '{{managerEmail}}'
+  - key: Content-Type
+    value: 'application/json'
+body:
+  type: json
+  content: |-
+    {
+      "email": "stf01-{{run}}-by-manager-admin@zengear.test",
+      "name": "Nhân viên kiểm thử",
+      "employeeCode": "{{run}}-08",
+      "joinedDate": "2026-10-01",
+      "workPhone": "0901234567",
+      "roleIds": ["{{roleCashier}}", "{{roleAdmin}}"]
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 409', () => pm.response.to.have.status(409));
+      pm.test('problem type /problems/admin-role-not-assignable', () => pm.expect(pm.response.json().type).to.eql('/problems/admin-role-not-assignable'));
+      pm.test('ruleId R-TX-11', () => pm.expect(pm.response.json().ruleId).to.eql('R-TX-11'));

@@ -1,0 +1,29 @@
+$kind: http-request
+description: |-
+  R-SEC-01: a staff account holds at least one role.
+method: POST
+url: '{{baseUrl}}/api/v1/staff'
+order: 6000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+  - key: Content-Type
+    value: 'application/json'
+body:
+  type: json
+  content: |-
+    {
+      "email": "stf01-{{run}}-norole@zengear.test",
+      "name": "Nhân viên kiểm thử",
+      "employeeCode": "{{run}}-06",
+      "joinedDate": "2026-10-01",
+      "workPhone": "0901234567",
+      "roleIds": []
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 409', () => pm.response.to.have.status(409));
+      pm.test('problem type /problems/role-required', () => pm.expect(pm.response.json().type).to.eql('/problems/role-required'));
+      pm.test('ruleId R-SEC-01', () => pm.expect(pm.response.json().ruleId).to.eql('R-SEC-01'));

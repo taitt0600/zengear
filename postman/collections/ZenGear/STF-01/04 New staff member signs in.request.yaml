@@ -1,0 +1,16 @@
+$kind: http-request
+description: |-
+  The staff member of request 02 signs in (emulator custom token, emulator only) and is told to change the
+  password.
+method: GET
+url: '{{baseUrl}}/api/v1/me'
+order: 4000
+headers:
+  - key: X-ZenGear-As
+    value: '{{staffEmail}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 200', () => pm.response.to.have.status(200));
+      pm.test('must change the password', () => pm.expect(pm.response.json().mustChangePassword).to.eql(true));
