@@ -1,0 +1,42 @@
+name: Lỗi nghiệm thu
+description: Một lỗi tìm thấy khi kiểm thử nghiệm thu. Routine "ZenGear sửa lỗi nghiệm thu" nhận issue này và chạy /fix-defect.
+title: "<Feature ID>: "
+labels: [defect]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Mỗi issue một lỗi. Tiêu đề bắt đầu bằng Feature ID, ví dụ `AUT-04: Staff bị khóa vẫn đăng nhập được`.
+        Không dán token, mật khẩu, OTP hay dữ liệu cá nhân thật.
+  - type: input
+    id: feature
+    attributes:
+      label: Feature ID
+      placeholder: AUT-04
+    validations:
+      required: true
+  - type: input
+    id: pull-request
+    attributes:
+      label: Pull request đã kiểm thử
+      placeholder: "#25"
+  - type: textarea
+    id: steps
+    attributes:
+      label: Các bước
+      description: Tài khoản hoặc role đã dùng, rồi lệnh gọi API (method, path, body) hoặc màn hình, theo thứ tự.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Kết quả mong đợi
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Kết quả thực tế
+      description: Status code, phần thân trả về hoặc điều hiển thị trên màn hình.
+    validations:
+      required: true
