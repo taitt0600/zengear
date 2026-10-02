@@ -26,7 +26,7 @@ import xml.etree.ElementTree as ET
 SPEC_PATHS = ('api/db/', 'docs/blueprint/', 'docs/DATABASE.md', 'docs/product-domain-blueprint-MVP.xlsx')
 BUILD_SUFFIXES = ('.csproj', '.props', '.targets')
 # What decides how the code is built, checked or merged: changed only in pull requests the owner merges.
-OWNER_PATHS = SPEC_PATHS + ('.claude/', '.githooks/', '.github/', '.gitleaks.toml', '.config/', 'tools/',
+OWNER_PATHS = SPEC_PATHS + ('.claude/', '.githooks/', '.github/', '.gitleaks.toml', '.mcp.json', '.config/', 'tools/',
                             'docs/ARCHITECTURE.md', 'api/tests/ZenGear.ArchitectureTests/', 'api/global.json',
                             'api/.config/', 'api/.editorconfig', 'nuget.config', 'NuGet.Config')
 OWNER_SUFFIXES = BUILD_SUFFIXES + ('.rsp', '.dcproj', '.sln', '.slnx')
