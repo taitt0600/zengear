@@ -1,0 +1,23 @@
+$kind: http-request
+description: |-
+  The account created by request 02, read back at the URL of its Location header.
+method: GET
+url: '{{baseUrl}}/api/v1/staff/{{staffId}}'
+order: 3000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 200', () => pm.response.to.have.status(200));
+      const staff = pm.response.json();
+      pm.test('same account and fields', () => {
+        pm.expect(staff.id).to.eql(pm.variables.get('staffId'));
+        pm.expect(staff.email).to.eql(pm.variables.get('staffEmail'));
+        pm.expect(staff.employeeCode).to.eql(`${pm.variables.get('run')}-01`);
+        pm.expect(staff.joinedDate).to.eql('2026-10-01');
+        pm.expect(staff.workPhone).to.eql('0901234567');
+        pm.expect(staff.roles).to.have.lengthOf(2);
+      });

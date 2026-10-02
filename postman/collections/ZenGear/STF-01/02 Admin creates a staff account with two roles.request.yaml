@@ -1,0 +1,45 @@
+$kind: http-request
+description: |-
+  Happy path of STF-01: Cashier and Sales Consultant at once. The email is sent with upper case and spaces
+  and is stored trimmed and lower case (R-USR-02). The new account must change its password (R-USR-03).
+method: POST
+url: '{{baseUrl}}/api/v1/staff'
+order: 2000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+  - key: Content-Type
+    value: 'application/json'
+body:
+  type: json
+  content: |-
+    {
+      "email": "  STF01-{{run}}-Cashier@ZenGear.test ",
+      "name": "Nhân viên kiểm thử",
+      "employeeCode": "{{run}}-01",
+      "joinedDate": "2026-10-01",
+      "workPhone": "0901234567",
+      "roleIds": ["{{roleCashier}}", "{{roleSalesConsultant}}"]
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 201', () => pm.response.to.have.status(201));
+      const staff = pm.response.json();
+      const run = pm.variables.get('run');
+      pm.test('Location names the new account', () =>
+        pm.expect(pm.response.headers.get('Location')).to.match(new RegExp(`/api/v1/staff/${staff.id}$`)));
+      pm.test('R-USR-02 email trimmed and lower case', () =>
+        pm.expect(staff.email).to.eql(`stf01-${run}-cashier@zengear.test`));
+      pm.test('profile fields', () => {
+        pm.expect(staff.employeeCode).to.eql(`${run}-01`);
+        pm.expect(staff.joinedDate).to.eql('2026-10-01');
+        pm.expect(staff.workPhone).to.eql('0901234567');
+        pm.expect(staff.status).to.eql('ACTIVE');
+        pm.expect(staff.mustChangePassword).to.eql(true);
+      });
+      pm.test('two roles', () => pm.expect(staff.roles.map((r) => r.id).sort()).to.eql(
+        [pm.variables.get('roleCashier'), pm.variables.get('roleSalesConsultant')].sort()));
+      pm.collectionVariables.set('staffId', staff.id);
+      pm.collectionVariables.set('staffEmail', staff.email);

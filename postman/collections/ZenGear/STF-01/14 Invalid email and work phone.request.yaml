@@ -1,0 +1,29 @@
+$kind: http-request
+description: |-
+  Input validation: 400 with an error for each field.
+method: POST
+url: '{{baseUrl}}/api/v1/staff'
+order: 14000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+  - key: Content-Type
+    value: 'application/json'
+body:
+  type: json
+  content: |-
+    {
+      "email": "bad-email",
+      "name": "Nhân viên kiểm thử",
+      "employeeCode": "{{run}}-14",
+      "joinedDate": "2026-10-01",
+      "workPhone": "090-12",
+      "roleIds": ["{{roleCashier}}"]
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 400', () => pm.response.to.have.status(400));
+      const fields = Object.keys(pm.response.json().errors || {}).map((k) => k.toLowerCase());
+      pm.test('errors on email and workPhone', () => pm.expect(fields).to.include.members(['email', 'workphone']));

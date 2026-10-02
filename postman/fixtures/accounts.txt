@@ -1,0 +1,4 @@
+# Emulator accounts that tools/dev_reset.ps1 creates before the fixtures run: "<psql variable> <email>".
+# Each fixture reads the uid as :'<psql variable>'. Development only; the Postman collection signs in with an
+# emulator custom token, so no password is needed.
+uid_manager manager.fixture@zengear.test

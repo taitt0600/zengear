@@ -1,0 +1,10 @@
+$kind: collection
+name: STF-01
+description: |-
+  STF-01 — Admin creates a staff account with one or more roles (UC-005; R-USR-01, R-USR-02, R-SEC-01, R-TX-11).
+
+  Needs tools/dev_reset.ps1 first: the Admin owner@zengear.test (bootstrap-admin, DEC-096) and the dev-only fixture
+  postman/fixtures/STF-01.sql (a Store Manager manager.fixture@zengear.test holding staff.create, no pending
+  password change). Every email and employee code carries the run id `run`, so the folder runs again without a reset.
+  Emulator only: the requests sign in with emulator custom tokens (see the collection description).
+order: 1000

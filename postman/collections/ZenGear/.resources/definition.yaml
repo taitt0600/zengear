@@ -1,0 +1,64 @@
+$kind: collection
+name: ZenGear
+description: |-
+  API scenarios of ZenGear, one folder per feature (DEC-100). Each request checks its status code, the Problem
+  Details `type` of a refusal and the fields its acceptance criterion names.
+
+  Environments: `dev` (the API run from the branch with profile http, tools/dev_reset.ps1 first) and `ci` (the
+  acceptance compose of CI). Neither holds a secret.
+
+  Sign-in, emulator only: a request names its account with the header `X-ZenGear-As: <email>`. The collection script
+  looks the account up in the Firebase Auth Emulator and signs in with an unsigned custom token, so no password is
+  needed; a request without the header is sent without a token. Every request that names an account therefore runs
+  only against the emulator (dev, ci), never against staging or production.
+scripts:
+  - type: http:beforeRequest
+    language: text/javascript
+    code: |-
+      // Sign-in through the Firebase Auth Emulator (see the collection description). Emulator only.
+      const header = pm.request.headers.get('X-ZenGear-As');
+      pm.request.headers.remove('X-ZenGear-As');
+      if (header) {
+        const email = pm.variables.replaceIn(header).trim().toLowerCase();
+        const emulator = pm.variables.get('emulatorUrl');
+        const projectId = pm.variables.get('projectId');
+        if (!/^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(emulator || '')) {
+          throw new Error(`emulatorUrl ${emulator} is not a local Firebase Auth Emulator: sign-in refused`);
+        }
+        const cacheKey = `token:${email}`;
+        const cached = JSON.parse(pm.collectionVariables.get(cacheKey) || 'null');
+        const bearer = (token) => pm.request.headers.upsert({ key: 'Authorization', value: `Bearer ${token}` });
+        if (cached && cached.expires > Date.now() + 60000) {
+          bearer(cached.token);
+        } else {
+          const CryptoJS = require('crypto-js');
+          const base64url = (text) => CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(text))
+            .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+          const post = (url, body, headers) => ({
+            url, method: 'POST',
+            header: [{ key: 'Content-Type', value: 'application/json' }, ...(headers || [])],
+            body: { mode: 'raw', raw: JSON.stringify(body) },
+          });
+          pm.sendRequest(post(`${emulator}/identitytoolkit.googleapis.com/v1/projects/${projectId}/accounts:lookup`,
+            { email: [email] }, [{ key: 'Authorization', value: 'Bearer owner' }]), (lookupError, lookup) => {
+            const user = !lookupError && lookup.code === 200 && (lookup.json().users || [])[0];
+            if (!user) {
+              throw new Error(`no emulator account ${email}: run tools/dev_reset.ps1 (${lookupError || lookup.code})`);
+            }
+            const customToken = `${base64url(JSON.stringify({ alg: 'none', typ: 'JWT' }))}.${base64url(JSON.stringify({
+              uid: user.localId,
+              aud: 'https://identitytoolkit.googleapis.com/google.identity.identitytoolkit.v1.IdentityToolkit',
+            }))}.`;
+            pm.sendRequest(post(`${emulator}/identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=emulator`,
+              { token: customToken, returnSecureToken: true }), (signInError, signIn) => {
+              if (signInError || signIn.code !== 200) {
+                throw new Error(`emulator sign-in of ${email} failed (${signInError || signIn.code})`);
+              }
+              const { idToken, expiresIn } = signIn.json();
+              pm.collectionVariables.set(cacheKey,
+                JSON.stringify({ token: idToken, expires: Date.now() + Number(expiresIn) * 1000 }));
+              bearer(idToken);
+            });
+          });
+        }
+      }

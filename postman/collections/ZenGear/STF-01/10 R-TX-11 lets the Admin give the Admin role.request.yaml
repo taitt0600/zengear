@@ -1,0 +1,29 @@
+$kind: http-request
+description: |-
+  R-TX-11: an Admin may create another Admin.
+method: POST
+url: '{{baseUrl}}/api/v1/staff'
+order: 10000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+  - key: Content-Type
+    value: 'application/json'
+body:
+  type: json
+  content: |-
+    {
+      "email": "stf01-{{run}}-admin@zengear.test",
+      "name": "Nhân viên kiểm thử",
+      "employeeCode": "{{run}}-10",
+      "joinedDate": "2026-10-01",
+      "workPhone": "0901234567",
+      "roleIds": ["{{roleAdmin}}"]
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 201', () => pm.response.to.have.status(201));
+      pm.test('Admin role', () =>
+        pm.expect(pm.response.json().roles.map((r) => r.id)).to.eql([pm.variables.get('roleAdmin')]));

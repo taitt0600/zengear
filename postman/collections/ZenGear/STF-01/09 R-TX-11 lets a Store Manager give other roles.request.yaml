@@ -1,0 +1,29 @@
+$kind: http-request
+description: |-
+  R-TX-11 only blocks the Admin role: the fixture Store Manager creates a Cashier.
+method: POST
+url: '{{baseUrl}}/api/v1/staff'
+order: 9000
+headers:
+  - key: X-ZenGear-As
+    value: '{{managerEmail}}'
+  - key: Content-Type
+    value: 'application/json'
+body:
+  type: json
+  content: |-
+    {
+      "email": "stf01-{{run}}-by-manager@zengear.test",
+      "name": "Nhân viên kiểm thử",
+      "employeeCode": "{{run}}-09",
+      "joinedDate": "2026-10-01",
+      "workPhone": "0901234567",
+      "roleIds": ["{{roleCashier}}"]
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 201', () => pm.response.to.have.status(201));
+      pm.test('Cashier only', () =>
+        pm.expect(pm.response.json().roles.map((r) => r.id)).to.eql([pm.variables.get('roleCashier')]));

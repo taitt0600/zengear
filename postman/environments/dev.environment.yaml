@@ -1,0 +1,42 @@
+name: dev
+values:
+  - key: baseUrl
+    value: 'http://localhost:5256'
+    enabled: true
+    type: default
+  - key: emulatorUrl
+    value: 'http://localhost:9099'
+    enabled: true
+    type: default
+  - key: projectId
+    value: 'demo-zengear'
+    enabled: true
+    type: default
+  - key: adminEmail
+    value: 'owner@zengear.test'
+    enabled: true
+    type: default
+  - key: managerEmail
+    value: 'manager.fixture@zengear.test'
+    enabled: true
+    type: default
+  - key: roleAdmin
+    value: '0199a000-0000-7000-8000-000000000001'
+    enabled: true
+    type: default
+  - key: roleStoreManager
+    value: '0199a000-0000-7000-8000-000000000002'
+    enabled: true
+    type: default
+  - key: roleSalesConsultant
+    value: '0199a000-0000-7000-8000-000000000003'
+    enabled: true
+    type: default
+  - key: roleCashier
+    value: '0199a000-0000-7000-8000-000000000005'
+    enabled: true
+    type: default
+  - key: roleCustomer
+    value: '0199a000-0000-7000-8000-000000000009'
+    enabled: true
+    type: default

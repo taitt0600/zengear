@@ -1,0 +1,25 @@
+$kind: http-request
+description: |-
+  A request without a token is refused before anything else.
+method: POST
+url: '{{baseUrl}}/api/v1/staff'
+order: 15000
+headers:
+  - key: Content-Type
+    value: 'application/json'
+body:
+  type: json
+  content: |-
+    {
+      "email": "stf01-{{run}}-anonymous@zengear.test",
+      "name": "Nhân viên kiểm thử",
+      "employeeCode": "{{run}}-15",
+      "joinedDate": "2026-10-01",
+      "workPhone": "0901234567",
+      "roleIds": ["{{roleCashier}}"]
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 401', () => pm.response.to.have.status(401));

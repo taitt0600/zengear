@@ -1,0 +1,29 @@
+$kind: http-request
+description: |-
+  R-USR-01: a staff account cannot hold the Customer role (scoping SELF).
+method: POST
+url: '{{baseUrl}}/api/v1/staff'
+order: 7000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+  - key: Content-Type
+    value: 'application/json'
+body:
+  type: json
+  content: |-
+    {
+      "email": "stf01-{{run}}-customer@zengear.test",
+      "name": "Nhân viên kiểm thử",
+      "employeeCode": "{{run}}-07",
+      "joinedDate": "2026-10-01",
+      "workPhone": "0901234567",
+      "roleIds": ["{{roleCashier}}", "{{roleCustomer}}"]
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 409', () => pm.response.to.have.status(409));
+      pm.test('problem type /problems/role-not-for-staff', () => pm.expect(pm.response.json().type).to.eql('/problems/role-not-for-staff'));
+      pm.test('ruleId R-USR-01', () => pm.expect(pm.response.json().ruleId).to.eql('R-USR-01'));
