@@ -7,6 +7,18 @@ public class StaffProfile
     {
     }
 
+    internal StaffProfile(string? employeeCode, DateOnly? joinedDate, string? workPhone, bool mustChangePassword,
+        Guid? updatedBy, DateTimeOffset now)
+    {
+        EmployeeCode = employeeCode;
+        JoinedDate = joinedDate;
+        WorkPhone = workPhone;
+        MustChangePassword = mustChangePassword;
+        CreatedAt = now;
+        UpdatedBy = updatedBy;
+        UpdatedAt = now;
+    }
+
     public Guid UserId { get; private set; }
 
     public string? EmployeeCode { get; private set; }

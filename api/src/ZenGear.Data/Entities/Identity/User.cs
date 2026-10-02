@@ -46,4 +46,51 @@ public class User : IAggregateRoot
     public ICollection<UserRole> UserRoles { get; private set; } = [];
 
     public uint Version { get; private set; }
+
+    /// <summary>Email as stored and compared: trimmed and lowercase (R-USR-02, <c>ck_users_email</c>).</summary>
+    public static string NormalizeEmail(string email) => email.Trim().ToLowerInvariant();
+
+    /// <summary>
+    /// A new ACTIVE staff account with its one staff profile and its roles: the only way to create a staff user
+    /// (R-USR-01). The services check the rules first for a clear error; these checks are the backstop.
+    /// </summary>
+    /// <param name="roles">At least one (R-SEC-01: the database trigger only guards removals); a role given twice
+    /// counts once.</param>
+    /// <exception cref="ArgumentException">No role, or a role that is not for staff.</exception>
+    public static User CreateStaff(StaffAccountData account, IReadOnlyCollection<Role> roles, Guid? createdBy, DateTimeOffset now)
+    {
+        ArgumentNullException.ThrowIfNull(account);
+        ArgumentNullException.ThrowIfNull(roles);
+        if (roles.Count == 0)
+        {
+            throw new ArgumentException("R-SEC-01: a user has at least one role.", nameof(roles));
+        }
+
+        // R-USR-01: a staff account holds internal roles only; the SELF-scoped role is the Customer's (DEC-002). A
+        // STORE scope for staff roles (LOC-03) will need this test revisited: until then it refuses, never grants.
+        if (roles.Any(r => r.ScopingType != ScopingType.None))
+        {
+            throw new ArgumentException("R-USR-01: a staff account cannot hold a customer role.", nameof(roles));
+        }
+
+        var user = new User
+        {
+            FirebaseUid = account.FirebaseUid,
+            Name = account.Name.Trim(),
+            Email = NormalizeEmail(account.Email),
+            Status = UserStatus.Active,
+            CreatedBy = createdBy,
+            CreatedAt = now,
+            UpdatedBy = createdBy,
+            UpdatedAt = now,
+        };
+        user.StaffProfile = new StaffProfile(account.EmployeeCode, account.JoinedDate, account.WorkPhone,
+            account.MustChangePassword, createdBy, now);
+        foreach (var role in roles.DistinctBy(r => r.Id))
+        {
+            user.UserRoles.Add(new UserRole(role.Id, createdBy, now));
+        }
+
+        return user;
+    }
 }
