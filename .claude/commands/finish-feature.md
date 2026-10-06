@@ -58,9 +58,11 @@ folder, then the whole collection, leaving the API running), then show the guide
       owner the link `https://github.com/taitt0600/zengear/pull/new/<branch>` to open it.
     - `git push -u origin HEAD`.
     - Write the body to `out/pr-body.md` (ignored by git), in English: summary, rules covered, decisions made (yours,
-      and the owner's answers), a section "Needs decision" with each item still open, how it was verified (steps 2–8,
-      the plan and code-reviewer verdicts with the Blocking items found and fixed, the security review findings or why
-      it was skipped, the Postman runs).
+      and the owner's answers), a section "Needs decision" with each item still open, its options and the recommended
+      one first, how it was verified (steps 2–8, the plan and code-reviewer verdicts with the Blocking items found and
+      fixed, the security review findings or why it was skipped, the Postman runs). The body ends with the section "Tóm tắt cho chủ dự án" in Vietnamese
+      (`CLAUDE.md`, Workflow); its part "Bạn cần quyết định" points to the section "Needs decision" instead of
+      repeating it, since the routine "ZenGear PR needs decision" reads that section.
     - `python3 tools/github_pr.py create --title "<title>" --body-file out/pr-body.md`: ready, or with `--draft` only
       while a Needs decision item is open; once the owner answers it, apply the answer, push, and run the command
       again without `--draft` to make it ready. Title: the format of a commit subject with the feature ID at the end,
@@ -115,7 +117,8 @@ folder, then the whole collection, leaving the API running), then show the guide
 14. **Report** in Vietnamese, once, after the owner's answer at step 13 (before auto-merge on **Đạt**), or when the
     run stops earlier: write it to
     `out/report.md`, have it reviewed (below), post it with `python3 tools/github_pr.py comment <number> --body-file
-    out/report.md` when there is a pull request, and end your last reply with the same text. Sections:
+    out/report.md` when there is a pull request, and end your last reply with the same text followed by the section
+    "Tóm tắt cho chủ dự án" (`CLAUDE.md`, Workflow), which is not posted in the report comment. Sections:
     - **Kết quả**: "Đạt — auto-merge bật" (**Đạt**), waiting for the owner's test (**Để sau**), draft waiting
       for a decision, or stopped at the ready check — with the pull request link; then the two lines
       `Nơi chạy: local` and `Thời gian bạn tham gia: <the owner's answer at step 13> phút` (`?` when the run
