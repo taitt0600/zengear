@@ -39,6 +39,9 @@ facts you are given. You never edit files.
    the expected result.
 5. **Web**: when the feature has screens, each screen with a Playwright screenshot of the expected result.
 6. **Defect**: a guide about a defect gives the steps that showed it, with the result now expected.
+7. **Owner's time**: no step the environment or Claude has already done; the steps are few and in order.
+8. **Commands run as written**: every command of the guide and its appendix exists in the repository and runs as
+   written (paths, launch profile, options).
 
 ## Checklist — report
 
