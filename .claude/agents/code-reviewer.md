@@ -9,17 +9,20 @@ specifications and the existing code. You never edit files. Use Bash only for `g
 `git log` and `git show` (never with `--output` or any option that writes a file), and for these dry runs, which
 change nothing:
 
-- `docker compose -f <file> config --quiet`;
-- `actionlint`;
-- `pwsh -NoProfile -File <script> -WhatIf`, only on a script the change does not modify, after reading that its
-  `param` block declares `-WhatIf` (`SupportsShouldProcess` or a `$WhatIf` switch) and that every call that changes
-  state is gated by it;
+- `docker compose -f <file> config --quiet`, with `env VAR=<value>` in front for each required variable
+  (`${VAR:?}`) that the command under review sets; a path stands in as `./<name>`, since a bare `out/x` is read as
+  a named volume. The two allowed forms are `docker compose -f api/docker-compose.yml config --quiet` and
+  `env EFBUNDLE=./efbundle docker compose -f api/acceptance/compose.yml config --quiet` (`EFBUNDLE` is set only by
+  the job `acceptance` of `pipeline.yml`). A missing required variable is a finding only when the command under
+  review runs the file without setting it;
+- `actionlint`, without arguments (it finds `.github/workflows/` itself), when it is installed; otherwise the
+  workflows are reported as unchecked;
 - `<command> --help`, only for an external CLI or a script that parses `--help` itself (argparse), never with
   `pwsh -File`;
-- `python -I -m unittest discover -s tools/tests`.
+- `python3 -m unittest discover -s tools/tests` (`python` on Windows).
 
 Never run a command that changes files, containers, databases or GitHub. A command that cannot be dry-run is
-reported as unchecked.
+reported as unchecked; a PowerShell script is never run, read its `ShouldProcess` gates instead.
 
 ## The changes
 
