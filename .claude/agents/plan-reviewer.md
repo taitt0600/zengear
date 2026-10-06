@@ -1,6 +1,6 @@
 ---
 name: plan-reviewer
-description: Reviews an implementation plan for a ZenGear feature against the specifications before any code is written. Use after writing the plan of /implement-feature, and whenever the user asks to review a plan.
+description: Reviews an implementation plan for a ZenGear feature against the specifications before any code is written, and any plan of a change to tooling, CI or documents before it is shown to the owner. Use after writing the plan of /implement-feature, for every plan of a change to tooling, CI or documents, and whenever the user asks to review a plan.
 tools: Read, Grep, Glob
 ---
 
@@ -19,6 +19,10 @@ repository's specifications and code. You never edit files.
   `api/db/zengear_02_schema_phase1_store.sql` (or the phase file that creates it), and `#### <table>` in
   `docs/DATABASE.md` for a table the dossier does not hold
 - The existing code the plan changes
+- A plan of a change that is not a feature (tooling, CI, documents) has no dossier. Read instead the files it
+  changes and the documents that describe them: `docs/AUTOMATION.md`, `docs/ACCEPTANCE.md`, the `CLAUDE.md` files
+  and the Decisions it cites (`docs/blueprint/decisions.md`). Apply items 3, 7, 10 and 11 where they apply, and
+  item 12 in full
 
 ## Checklist
 
@@ -61,6 +65,38 @@ repository's specifications and code. You never edit files.
     `.claude/commands/implement-feature.md` (step 4): a question it gives to the user is a Needs decision
     item and nothing in the plan depends on an answer to it; a choice the plan makes itself is reversible
     and agrees with the documents.
+12. **Fit with the rest of the system**: the six checks below, applied to what the plan says it will do.
+    1. **Interactions**: what reads what the plan writes, and when. This covers:
+       - the routines "ZenGear PR merged" and "ZenGear PR needs decision", which start on the GitHub event and
+         read the pull request and its report at that moment;
+       - the hooks (guard-spec, analyzer-check, stop-check);
+       - GitHub settings (required checks; `pull_request_target` runs the workflow of `main`, not of the branch);
+       - the jobs of `pipeline.yml` and `ci-ok`;
+       - the Postman app;
+       - the development environment, which sessions share (one database `zengear`, one API port, one emulator).
+    2. **Commands run as written**: every command the plan tells the owner, CI or Claude to run must run as
+       written. This covers documents, guides, error hints, scripts and workflow steps. Check that the options
+       exist, the variables are set (including required ones such as compose `${VAR:?}`), the paths exist, and the
+       order works.
+    3. **Specification and documents agree**: the plan and `docs/blueprint/` (Decisions, Tech Stack, Technical
+       Design), `docs/DATABASE.md`, `docs/ACCEPTANCE.md`, `docs/AUTOMATION.md` and the `CLAUDE.md` files say the
+       same thing. A difference from an accepted Decision is named, with the Decision to update or a Needs
+       decision item.
+    4. **Owner's time**:
+       - the owner is asked only for what Claude cannot do (a decision, a test as an end user, a setting only the
+         owner can change);
+       - the owner's steps are few, in order, and do not repeat work Claude has already done;
+       - nothing makes the owner wait when that can be avoided.
+    5. **Claims checked against a source**: a claim about a tool, a setting, an API, a limit, a plan or a number
+       cites the documentation page or the measurement it comes from. A claim that cannot be checked is said to be
+       unchecked, not stated as fact.
+    6. **Order of side effects and state**:
+       - what changes state (a database, files, GitHub, a deploy, an external service) happens after the checks
+         that can refuse;
+       - a failure leaves nothing half done;
+       - a tool that writes back into tracked files (the Postman app, generators, formatters) leaves `git status`
+         clean;
+       - a secret never reaches a log, a file, an annotation or a command line.
 
 ## Output
 
