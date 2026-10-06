@@ -24,6 +24,8 @@ request that changes the specification or the tooling (`owner_paths` in `tools/p
 4. A defect found after the merge: an issue with the form **Acceptance defect** (label `defect`), one defect per
    issue, the title starting with the Feature ID, then `/fix-defect <Feature ID> #<issue>` in a local session; the
    fix pull request closes the issue when it merges, after the same test before merge.
+5. Plans and pull requests are reviewed locally (`plan-reviewer`, `code-reviewer`) and end with the section
+   "Tóm tắt cho chủ dự án" (CLAUDE.md, Workflow): read that summary instead of sending them to a cloud session.
 
 ## What runs by itself
 
@@ -90,7 +92,9 @@ the `ask` and `deny` rules of `.claude/settings.json` still apply. Never set `by
 Routine names, the issue form, the issues and every comment the routines write on GitHub are in English,
 like the code, the commits and the documentation. Two things stay in Vietnamese because the owner reads them as the
 end user: the acceptance report of `/finish-feature` (with its section names, which the routines look for) and the
-notification a routine sends to the phone. A defect issue may be written in English or in Vietnamese.
+notification a routine sends to the phone. The section "Tóm tắt cho chủ dự án" that ends plans, questions, last
+messages and pull request bodies is in Vietnamese for the same reason. A defect issue may be written in English or
+in Vietnamese.
 
 ## Labels and recovery
 
