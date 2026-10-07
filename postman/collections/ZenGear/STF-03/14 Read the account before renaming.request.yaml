@@ -1,0 +1,17 @@
+$kind: http-request
+description: |-
+  UC-007 step 1 for the name: the account and its ETag, kept as `etag` for the rename.
+method: GET
+url: '{{baseUrl}}/api/v1/me'
+order: 14000
+headers:
+  - key: X-ZenGear-As
+    value: '{{staffEmail}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 200', () => pm.response.to.have.status(200));
+      const etag = pm.response.headers.get('ETag');
+      pm.test('ETag present', () => pm.expect(etag).to.match(/^"\d+"$/));
+      pm.variables.set('etag', etag);

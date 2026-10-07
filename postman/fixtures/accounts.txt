@@ -2,3 +2,4 @@
 # Each fixture reads the uid as :'<psql variable>'. Development only; the Postman collection signs in with an
 # emulator custom token, so no password is needed.
 uid_manager manager.fixture@zengear.test
+uid_customer customer.fixture@zengear.test

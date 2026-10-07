@@ -1,0 +1,22 @@
+$kind: http-request
+description: |-
+  API conventions: the ETag of 14 is stale after the rename of 15 (412), and the name stays as 15 set it.
+method: PATCH
+url: '{{baseUrl}}/api/v1/me'
+order: 19000
+headers:
+  - key: X-ZenGear-As
+    value: '{{staffEmail}}'
+  - key: If-Match
+    value: '{{etag}}'
+  - key: Content-Type
+    value: 'application/json'
+body:
+  type: json
+  content: |-
+    { "name": "Tên cũ" }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 412', () => pm.response.to.have.status(412));
