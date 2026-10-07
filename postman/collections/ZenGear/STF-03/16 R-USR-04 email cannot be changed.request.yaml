@@ -1,0 +1,24 @@
+$kind: http-request
+description: |-
+  STF-03 acceptance criterion 3 (R-USR-04, UC-007 2a): an email in the body is ignored; only the Admin changes a
+  staff email (STF-01).
+method: PATCH
+url: '{{baseUrl}}/api/v1/me'
+order: 16000
+headers:
+  - key: X-ZenGear-As
+    value: '{{staffEmail}}'
+  - key: If-Match
+    value: '{{etag2}}'
+  - key: Content-Type
+    value: 'application/json'
+body:
+  type: json
+  content: |-
+    { "name": "Nguyễn Thị Tư Vấn {{run}}", "email": "other-{{run}}@zengear.test" }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 200', () => pm.response.to.have.status(200));
+      pm.test('email unchanged', () => pm.expect(pm.response.json().email).to.eql(pm.variables.get('staffEmail')));

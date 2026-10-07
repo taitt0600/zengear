@@ -20,6 +20,10 @@ values:
     value: 'manager.fixture@zengear.test'
     enabled: true
     type: default
+  - key: customerEmail
+    value: 'customer.fixture@zengear.test'
+    enabled: true
+    type: default
   - key: roleAdmin
     value: '0199a000-0000-7000-8000-000000000001'
     enabled: true

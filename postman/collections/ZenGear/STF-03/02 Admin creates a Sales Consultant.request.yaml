@@ -1,0 +1,29 @@
+$kind: http-request
+description: |-
+  Set-up: a new Sales Consultant (STF-01), who must change the default password before anything else (R-USR-03).
+method: POST
+url: '{{baseUrl}}/api/v1/staff'
+order: 2000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+  - key: Content-Type
+    value: 'application/json'
+body:
+  type: json
+  content: |-
+    {
+      "email": "stf03-{{run}}@zengear.test",
+      "name": "Tư vấn kiểm thử",
+      "employeeCode": "{{run}}-S3",
+      "joinedDate": "2026-10-01",
+      "roleIds": ["{{roleSalesConsultant}}"]
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 201', () => pm.response.to.have.status(201));
+      const staff = pm.response.json();
+      pm.test('must change the password', () => pm.expect(staff.mustChangePassword).to.eql(true));
+      pm.variables.set('staffEmail', staff.email);

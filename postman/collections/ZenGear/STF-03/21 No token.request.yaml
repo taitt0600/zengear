@@ -1,0 +1,18 @@
+$kind: http-request
+description: |-
+  Without a token the password change is refused with 401.
+method: POST
+url: '{{baseUrl}}/api/v1/me/change-password'
+order: 21000
+headers:
+  - key: Content-Type
+    value: 'application/json'
+body:
+  type: json
+  content: |-
+    { "newPassword": "{{p1}}" }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 401', () => pm.response.to.have.status(401));

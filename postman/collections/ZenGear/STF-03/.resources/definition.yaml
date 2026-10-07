@@ -1,0 +1,18 @@
+$kind: collection
+name: STF-03
+description: |-
+  STF-03 — a staff member manages their own account: the display name and the password (UC-007; R-USR-04,
+  R-USR-11; DEC-094, DEC-102).
+
+  Needs tools/dev_reset.ps1 first: the Admin owner@zengear.test (bootstrap-admin, DEC-096) and the dev-only fixture
+  postman/fixtures/STF-03.sql (a customer customer.fixture@zengear.test, for the refusal of the staff password change).
+  The folder creates its own staff member through POST /api/v1/staff, with an email carrying the run id `run`, so it
+  starts with a pending password change and runs again without a reset. The new passwords are made from `run` too;
+  they are test values of this run, not secrets.
+
+  Not checked here, covered by the integration tests of api/tests (CurrentUserTests): the refusal of the default staff
+  password (the collection holds no secret) and the 5-minute recent sign-in (the emulator's auth_time is the time of
+  the sign-in, and a run cannot wait 5 minutes). Requests 03 to 11 must run within 5 minutes of the sign-in of 03.
+  Emulator only: the requests sign in with emulator custom tokens (see the collection description), and 12 and 13 call
+  the emulator's password sign-in.
+order: 2000

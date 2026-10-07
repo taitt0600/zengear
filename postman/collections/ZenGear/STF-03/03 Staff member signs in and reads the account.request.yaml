@@ -1,0 +1,23 @@
+$kind: http-request
+description: |-
+  UC-007 step 1: the staff member signs in (emulator custom token) and reads the account, with its ETag; the
+  password change is pending.
+method: GET
+url: '{{baseUrl}}/api/v1/me'
+order: 3000
+headers:
+  - key: X-ZenGear-As
+    value: '{{staffEmail}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 200', () => pm.response.to.have.status(200));
+      const me = pm.response.json();
+      pm.test('the new staff member, password change pending', () => {
+        pm.expect(me.email).to.eql(pm.variables.get('staffEmail'));
+        pm.expect(me.isStaff).to.eql(true);
+        pm.expect(me.mustChangePassword).to.eql(true);
+      });
+      pm.test('ETag is a strong tag', () => pm.expect(pm.response.headers.get('ETag')).to.match(/^"\d+"$/));
+      pm.test('no version in the body', () => pm.expect(me).to.not.have.property('version'));

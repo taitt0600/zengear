@@ -1,0 +1,31 @@
+$kind: http-request
+description: |-
+  STF-03 acceptance criterion 1 (R-USR-04): the staff member changes the display name, sent with spaces and stored
+  trimmed; the ETag changes. Keeps the new tag as `etag2`.
+method: PATCH
+url: '{{baseUrl}}/api/v1/me'
+order: 15000
+headers:
+  - key: X-ZenGear-As
+    value: '{{staffEmail}}'
+  - key: If-Match
+    value: '{{etag}}'
+  - key: Content-Type
+    value: 'application/json'
+body:
+  type: json
+  content: |-
+    { "name": "  Nguyễn Thị Tư Vấn {{run}} " }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 200', () => pm.response.to.have.status(200));
+      const me = pm.response.json();
+      pm.test('name trimmed', () => pm.expect(me.name).to.eql(`Nguyễn Thị Tư Vấn ${pm.variables.get('run')}`));
+      const etag = pm.response.headers.get('ETag');
+      pm.test('new ETag', () => {
+        pm.expect(etag).to.match(/^"\d+"$/);
+        pm.expect(etag).to.not.eql(pm.variables.get('etag'));
+      });
+      pm.variables.set('etag2', etag);
