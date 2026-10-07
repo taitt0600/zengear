@@ -62,7 +62,8 @@ not the local one of `api/docker-compose.yml` (it never touches another database
   This works only against the emulator.
 - **Fixtures**: state that no endpoint can reach yet comes from `postman/fixtures/<Feature ID>.sql`, with its emulator
   accounts in `postman/fixtures/accounts.txt`. STF-01: `manager.fixture@zengear.test`, a Store Manager holding
-  `staff.create` with no pending password change, for the refusal of R-TX-11.
+  `staff.create` with no pending password change, for the refusal of R-TX-11. STF-03: `customer.fixture@zengear.test`,
+  a customer with the Customer role, for the refusal of the staff password change.
 - **Role ids** are fixed in `api/seed/01_roles.sql` and named in the environments.
 - **By hand**: `python tools/emulator_token.py <email> <password> [--create]` signs up or signs in an emulator account
   and prints its ID token, for Scalar (Bearer) or `curl`. A Firebase account is not yet a ZenGear account: until a

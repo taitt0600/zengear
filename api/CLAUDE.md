@@ -48,6 +48,7 @@ SonarAnalyzer rules that turned builds red in earlier features. After each edit 
 
 - `S6667` — a log call inside a `catch` must pass the exception, so the stack trace is not lost. Pass it (`logger.LogWarning(ex, …)`); when the exception may hold personal data (R-SEC-11), keep what you need inside the `catch` and log after it.
 - `S3358` — no nested ternary operator: it hides branches. Use `if`/`else` or a `switch` expression.
+- `S2325` — a method that uses no instance member must be static. It also fails a stub (`=> throw new NotImplementedException()`) on an entity or service written before its tests: write the real method body, or let the test fail on a missing endpoint or an empty validator instead of a stub.
 
 ## Commands
 
