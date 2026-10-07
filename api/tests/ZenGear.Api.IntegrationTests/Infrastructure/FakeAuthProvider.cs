@@ -15,16 +15,31 @@ public sealed class FakeAuthProvider : IAuthProvider
 
     public bool FailPasswordResetLink { get; set; }
 
+    public bool FailChangePassword { get; set; }
+
+    public bool FailRevoke { get; set; }
+
     public IReadOnlyCollection<FakeAuthAccount> Accounts => [.. _accounts.Values];
 
     public List<string> Deleted { get; } = [];
+
+    /// <summary>Uids whose sessions were revoked, in call order.</summary>
+    public List<string> Revoked { get; } = [];
+
+    public int ChangePasswordCalls => _changePasswordCalls;
+
+    private int _changePasswordCalls;
 
     public void Reset()
     {
         _accounts.Clear();
         Deleted.Clear();
+        Revoked.Clear();
+        _changePasswordCalls = 0;
         AfterCreate = null;
         FailPasswordResetLink = false;
+        FailChangePassword = false;
+        FailRevoke = false;
         _deleted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
     }
 
@@ -35,6 +50,14 @@ public sealed class FakeAuthProvider : IAuthProvider
     public FakeAuthAccount Add(string email, string password = "own-password")
     {
         var account = new FakeAuthAccount(NewUid(), email, password);
+        _accounts[email] = account;
+        return account;
+    }
+
+    /// <summary>An account with a chosen uid, for a user row inserted by <see cref="TestUsers"/>.</summary>
+    public FakeAuthAccount AddWithUid(string uid, string email, string password)
+    {
+        var account = new FakeAuthAccount(uid, email, password);
         _accounts[email] = account;
         return account;
     }
@@ -71,6 +94,36 @@ public sealed class FakeAuthProvider : IAuthProvider
         FailPasswordResetLink
             ? throw new InvalidOperationException($"reset link failed for {email}")
             : Task.FromResult($"http://localhost:9099/emulator/action?mode=resetPassword&oobCode=code-{_accounts[email].Uid}");
+
+    public Task ChangePasswordAsync(string uid, string newPassword, CancellationToken cancellationToken)
+    {
+        Interlocked.Increment(ref _changePasswordCalls);
+        if (FailChangePassword)
+        {
+            throw new InvalidOperationException($"password change failed for {uid}");
+        }
+
+        var entry = _accounts.Single(e => e.Value.Uid == uid);
+        _accounts[entry.Key] = entry.Value with { Password = newPassword };
+        return Task.CompletedTask;
+    }
+
+    public Task RevokeSessionsAsync(string uid, CancellationToken cancellationToken)
+    {
+        if (FailRevoke)
+        {
+            throw new InvalidOperationException($"revoke failed for {uid}");
+        }
+
+        lock (Revoked)
+        {
+            Revoked.Add(uid);
+        }
+
+        return Task.CompletedTask;
+    }
+
+    public bool IsDefaultStaffPassword(string password) => string.Equals(password, DefaultPassword, StringComparison.Ordinal);
 
     /// <summary>What the fake stores for "the default staff password".</summary>
     public const string DefaultPassword = "<default staff password>";

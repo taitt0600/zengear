@@ -17,6 +17,7 @@ public static class ProblemDetailsSetup
         services.AddExceptionHandler<BusinessRuleExceptionHandler>();
         services.AddExceptionHandler<ValidationExceptionHandler>();
         services.AddExceptionHandler<ConcurrencyExceptionHandler>();
+        services.AddExceptionHandler<RecentSignInRequiredExceptionHandler>();
 
         return services;
     }

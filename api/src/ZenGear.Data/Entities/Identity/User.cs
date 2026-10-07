@@ -93,4 +93,25 @@ public class User : IAggregateRoot
 
         return user;
     }
+
+    /// <summary>Changes the display name, trimmed (R-USR-04); stamps the change only when the name differs.</summary>
+    /// <exception cref="ArgumentException">A blank name; the validator refuses it first.</exception>
+    public void Rename(string name, Guid updatedBy, DateTimeOffset now)
+    {
+        ArgumentNullException.ThrowIfNull(name);
+        var trimmed = name.Trim();
+        if (trimmed.Length == 0)
+        {
+            throw new ArgumentException("R-USR-04: the display name cannot be blank.", nameof(name));
+        }
+
+        if (trimmed == Name)
+        {
+            return;
+        }
+
+        Name = trimmed;
+        UpdatedBy = updatedBy;
+        UpdatedAt = now;
+    }
 }

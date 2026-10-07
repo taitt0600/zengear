@@ -64,6 +64,17 @@ public sealed class FirebaseAuthProvider : IAuthProvider
     public Task<string> GeneratePasswordResetLinkAsync(string email, CancellationToken cancellationToken) =>
         _auth.Value.GeneratePasswordResetLinkAsync(email, null, cancellationToken);
 
+    // Only Uid and Password are set: the other attributes of UserRecordArgs are left unchanged on update.
+    public Task ChangePasswordAsync(string uid, string newPassword, CancellationToken cancellationToken) =>
+        _auth.Value.UpdateUserAsync(new UserRecordArgs { Uid = uid, Password = newPassword }, cancellationToken);
+
+    public Task RevokeSessionsAsync(string uid, CancellationToken cancellationToken) =>
+        _auth.Value.RevokeRefreshTokensAsync(uid, cancellationToken);
+
+    public bool IsDefaultStaffPassword(string password) =>
+        _options.DefaultStaffPassword is { Length: > 0 } defaultPassword
+        && string.Equals(password, defaultPassword, StringComparison.Ordinal);
+
     /// <summary>The configured default staff password, checked before any call so nothing is created without it.</summary>
     /// <exception cref="InvalidOperationException">Missing or shorter than Firebase accepts; the message names the key only.</exception>
     public static string DefaultStaffPassword(AuthProviderOptions options) =>

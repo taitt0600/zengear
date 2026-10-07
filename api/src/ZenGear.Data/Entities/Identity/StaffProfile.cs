@@ -38,4 +38,15 @@ public class StaffProfile
     public Guid? UpdatedBy { get; private set; }
 
     public DateTimeOffset UpdatedAt { get; private set; }
+
+    /// <summary>
+    /// The password was changed through the API (DEC-094): the only way to clear <see cref="MustChangePassword"/>.
+    /// Called after Firebase accepted the new password, never before.
+    /// </summary>
+    public void PasswordChanged(Guid updatedBy, DateTimeOffset now)
+    {
+        MustChangePassword = false;
+        UpdatedBy = updatedBy;
+        UpdatedAt = now;
+    }
 }

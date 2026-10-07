@@ -36,6 +36,33 @@ public class ProblemDetailsTests : IntegrationTestBase
     }
 
     [Test]
+    public async Task Validation_failure_has_no_ruleId_without_a_rule_error_code()
+    {
+        var problem = await ReadProblemAsync(await Client.GetAsync(new Uri("/test/validation", UriKind.Relative)));
+
+        problem.TryGetProperty("ruleId", out _).ShouldBeFalse();
+    }
+
+    [Test]
+    public async Task Validation_failure_names_the_rule_its_failures_share()
+    {
+        var response = await Client.GetAsync(new Uri("/test/validation-rule", UriKind.Relative));
+
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        var problem = await ReadProblemAsync(response);
+        problem.GetProperty("ruleId").GetString().ShouldBe("R-USR-11");
+        problem.GetProperty("errors").GetProperty("newPassword").GetArrayLength().ShouldBe(2);
+    }
+
+    [Test]
+    public async Task Validation_failure_has_no_ruleId_when_the_failures_do_not_share_one()
+    {
+        var problem = await ReadProblemAsync(await Client.GetAsync(new Uri("/test/validation-mixed-rules", UriKind.Relative)));
+
+        problem.TryGetProperty("ruleId", out _).ShouldBeFalse();
+    }
+
+    [Test]
     public async Task Concurrency_conflict_with_If_Match_is_412()
     {
         using var request = new HttpRequestMessage(HttpMethod.Put, new Uri("/test/concurrency", UriKind.Relative));

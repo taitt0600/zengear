@@ -25,4 +25,19 @@ public interface IAuthProvider
 
     /// <summary>A link that lets the owner of <paramref name="email"/> set a password. It is a credential: never log it.</summary>
     Task<string> GeneratePasswordResetLinkAsync(string email, CancellationToken cancellationToken);
+
+    /// <summary>Sets the password of the account <paramref name="uid"/> (DEC-094). Never log <paramref name="newPassword"/>.</summary>
+    Task ChangePasswordAsync(string uid, string newPassword, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Revokes every refresh token of the account <paramref name="uid"/>: each device must sign in again once its ID
+    /// token expires (DEC-094). ID tokens already issued stay valid until then.
+    /// </summary>
+    Task RevokeSessionsAsync(string uid, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// <paramref name="password"/> is exactly the default staff password, character for character (R-USR-11); false
+    /// when none is configured. The comparison stays here so the default password never leaves the implementation.
+    /// </summary>
+    bool IsDefaultStaffPassword(string password);
 }
