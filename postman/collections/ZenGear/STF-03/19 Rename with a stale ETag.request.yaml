@@ -20,3 +20,13 @@ scripts:
     language: text/javascript
     code: |-
       pm.test('status 412', () => pm.response.to.have.status(412));
+      pm.test('problem type 412', () =>
+        pm.expect(pm.response.json().type).to.eql('https://tools.ietf.org/html/rfc9110#section-15.5.13'));
+      pm.sendRequest({
+        url: `${pm.variables.get('baseUrl')}/api/v1/me`,
+        method: 'GET',
+        header: [{ key: 'Authorization', value: pm.request.headers.get('Authorization') }],
+      }, (error, me) => {
+        pm.test('the name stays as 15 set it', () =>
+          pm.expect(me.json().name).to.eql(`Nguyễn Thị Tư Vấn ${pm.variables.get('run')}`));
+      });
