@@ -68,6 +68,55 @@ public class StaffAccountTests
         user.UserRoles.ShouldAllBe(ur => ur.CreatedBy == Actor && ur.CreatedAt == Now);
     }
 
+    [Test]
+    public void R_USR_04_rename_trims_and_stamps_the_editor()
+    {
+        var user = User.CreateStaff(Account(), [NewRole(ScopingType.None)], Actor, Now);
+        var self = Guid.NewGuid();
+        var later = Now.AddDays(1);
+
+        user.Rename("  Nguyễn Văn Bình ", self, later);
+
+        user.Name.ShouldBe("Nguyễn Văn Bình");
+        user.UpdatedBy.ShouldBe(self);
+        user.UpdatedAt.ShouldBe(later);
+    }
+
+    [Test]
+    public void R_USR_04_rename_to_the_same_name_changes_nothing()
+    {
+        var user = User.CreateStaff(Account(), [NewRole(ScopingType.None)], Actor, Now);
+
+        user.Rename(" Nguyễn Văn An", Guid.NewGuid(), Now.AddDays(1));
+
+        user.UpdatedBy.ShouldBe(Actor);
+        user.UpdatedAt.ShouldBe(Now);
+    }
+
+    [TestCase("")]
+    [TestCase("   ")]
+    public void R_USR_04_rename_to_a_blank_name_throws(string name)
+    {
+        var user = User.CreateStaff(Account(), [NewRole(ScopingType.None)], Actor, Now);
+
+        Should.Throw<ArgumentException>(() => user.Rename(name, Actor, Now));
+        user.Name.ShouldBe("Nguyễn Văn An");
+    }
+
+    [Test]
+    public void R_USR_04_password_changed_clears_must_change_password_and_stamps_the_editor()
+    {
+        var profile = User.CreateStaff(Account(), [NewRole(ScopingType.None)], Actor, Now).StaffProfile!;
+        var self = Guid.NewGuid();
+        var later = Now.AddHours(1);
+
+        profile.PasswordChanged(self, later);
+
+        profile.MustChangePassword.ShouldBeFalse();
+        profile.UpdatedBy.ShouldBe(self);
+        profile.UpdatedAt.ShouldBe(later);
+    }
+
     private static StaffAccountData Account() =>
         new("uid-1", " Nguyễn Văn An ", "an@zengear.test", "NV0012", new DateOnly(2026, 10, 1), "0901234567", MustChangePassword: true);
 

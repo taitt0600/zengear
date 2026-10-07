@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using ZenGear.Api.Attributes;
@@ -59,7 +58,7 @@ public sealed class ActiveUserMiddleware(RequestDelegate next)
         identity.AddClaim(new Claim(ZenGearClaims.UserId, access.Id.ToString()));
         identity.AddClaim(new Claim(ZenGearClaims.MustChangePassword, access.MustChangePassword ? "true" : "false"));
 
-        if (ReadAuthTime(principal) is { } authTime
+        if (principal.GetAuthTime() is { } authTime
             && access.IsNewSignIn(authTime)
             && await signIn.RecordSignInAsync(access.Id, authTime, context.RequestAborted))
         {
@@ -79,10 +78,4 @@ public sealed class ActiveUserMiddleware(RequestDelegate next)
 
         await next(context);
     }
-
-    /// <summary><c>auth_time</c>: seconds since the Unix epoch at which the user signed in.</summary>
-    private static DateTimeOffset? ReadAuthTime(ClaimsPrincipal principal) =>
-        long.TryParse(principal.FindFirstValue("auth_time"), NumberStyles.None, CultureInfo.InvariantCulture, out var seconds)
-            ? DateTimeOffset.FromUnixTimeSeconds(seconds)
-            : null;
 }

@@ -24,6 +24,22 @@ public sealed class TestEndpointsController : ControllerBase
     public IActionResult Validation() =>
         throw new ValidationException([new ValidationFailure("Items[0].UnitPrice", "Unit price must be greater than 0.")]);
 
+    [HttpGet("validation-rule")]
+    [AllowAnonymous]
+    public IActionResult ValidationRule() =>
+        throw new ValidationException([
+            new ValidationFailure("NewPassword", "Too short.") { ErrorCode = "R-USR-11" },
+            new ValidationFailure("NewPassword", "Too common.") { ErrorCode = "R-USR-11" },
+        ]);
+
+    [HttpGet("validation-mixed-rules")]
+    [AllowAnonymous]
+    public IActionResult ValidationMixedRules() =>
+        throw new ValidationException([
+            new ValidationFailure("NewPassword", "Too short.") { ErrorCode = "R-USR-11" },
+            new ValidationFailure("Name", "Name is required.") { ErrorCode = "NotEmptyValidator" },
+        ]);
+
     [HttpPut("concurrency")]
     [AllowAnonymous]
     public IActionResult Concurrency() =>
