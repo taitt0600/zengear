@@ -19,6 +19,7 @@ scripts:
     code: |-
       pm.test('status 400', () => pm.response.to.have.status(400));
       const problem = pm.response.json();
+      pm.test('problem type validation', () => pm.expect(problem.type).to.eql('https://tools.ietf.org/html/rfc9110#section-15.5.1'));
       pm.test('ruleId R-USR-11', () => pm.expect(problem.ruleId).to.eql('R-USR-11'));
       pm.test('error on newPassword', () => pm.expect(problem.errors.newPassword).to.be.an('array').that.is.not.empty);
       pm.test('the password is not echoed', () => pm.expect(pm.response.text()).to.not.include('tra-sua-mot'));
