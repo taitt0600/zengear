@@ -5,7 +5,7 @@
 --   1. Sample geography rows: Vietnam, TP. Hồ Chí Minh with two wards and Hà Nội with one ward (for the refusal of a
 --      ward outside the province, UC-070 3a). Sample rows only: the codes are not checked against the official list,
 --      and loading that list later keeps them (ON CONFLICT DO NOTHING).
---   2. The one business location, with a fixed id named businessLocationId in the dev and ci environments; skipped
+--   2. The one business location (request 01 of the folder reads its id from the public list); skipped
 --      when a location exists already (a filled-in seed 08), so there is never a second one (R-LOC-01).
 
 INSERT INTO countries (id, country_code, country_code3, common_name) VALUES (238, 'VN', 'VNM', 'Vietnam')
