@@ -1,0 +1,20 @@
+$kind: http-request
+description: |-
+  R-LOC-01 (UC-070 2a): Phase 1 has exactly one location; there is no endpoint to add one, even for the Admin (405).
+method: POST
+url: '{{baseUrl}}/api/v1/business-locations'
+order: 5000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+  - key: Content-Type
+    value: 'application/json'
+body:
+  type: json
+  content: |-
+    { "name": "Chi nhánh 2 {{run}}", "phone": "02838123457", "addressDetail": "1 Nguyễn Huệ", "provinceId": 79, "wardId": 26734 }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 405', () => pm.response.to.have.status(405));

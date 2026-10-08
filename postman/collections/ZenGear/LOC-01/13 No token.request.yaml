@@ -1,0 +1,13 @@
+$kind: http-request
+description: |-
+  Without a token the edit form is refused with 401 (the public list of 01 needs none).
+method: GET
+url: '{{baseUrl}}/api/v1/business-locations/{{businessLocationId}}'
+order: 13000
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 401', () => pm.response.to.have.status(401));
+      pm.test('problem type 401', () =>
+        pm.expect(pm.response.json().type).to.eql('https://tools.ietf.org/html/rfc9110#section-15.5.2'));

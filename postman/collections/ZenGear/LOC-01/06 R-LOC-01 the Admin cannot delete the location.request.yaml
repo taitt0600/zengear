@@ -1,0 +1,14 @@
+$kind: http-request
+description: |-
+  R-LOC-01 (UC-070 2a): there is no endpoint to delete the location, even for the Admin (405); 09 shows it is still there.
+method: DELETE
+url: '{{baseUrl}}/api/v1/business-locations/{{businessLocationId}}'
+order: 6000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 405', () => pm.response.to.have.status(405));

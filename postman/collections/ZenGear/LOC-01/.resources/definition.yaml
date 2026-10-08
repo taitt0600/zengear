@@ -1,0 +1,14 @@
+$kind: collection
+name: LOC-01
+description: |-
+  LOC-01 — the Admin manages the business location: address, hotline, weekly hours and the holiday schedule, which
+  the website, receipts and emails read (UC-070; R-LOC-01; DEC-017).
+
+  Needs tools/dev_reset.ps1 first: the Admin owner@zengear.test (bootstrap-admin, DEC-096), the dev-only fixture
+  postman/fixtures/LOC-01.sql (sample provinces and wards, and the one business location `businessLocationId`: no
+  endpoint adds one, R-LOC-01) and postman/fixtures/STF-03.sql (the customer customer.fixture@zengear.test, who holds no
+  permission, for the refusal of R-SEC-03). The update of 03 puts the run id `run` in the name and a holiday closed
+  tomorrow (Asia/Ho_Chi_Minh), so the folder runs again without a reset.
+
+  Emulator only: the requests sign in with emulator custom tokens (see the collection description).
+order: 4000

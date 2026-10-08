@@ -1,0 +1,36 @@
+$kind: http-request
+description: |-
+  R-LOC-01: a holiday entry replaces the weekly hours of its date, either closed or with its own hours, never both: a
+  closed date that also has hours is refused with 400 and ruleId R-LOC-01; 09 shows nothing changed.
+method: PUT
+url: '{{baseUrl}}/api/v1/business-locations/{{businessLocationId}}'
+order: 8000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+  - key: If-Match
+    value: '*'
+  - key: Content-Type
+    value: 'application/json'
+body:
+  type: json
+  content: |-
+    {
+      "name": "Lịch sai {{run}}",
+      "phone": "1900636123",
+      "addressDetail": "45 Lê Thánh Tôn",
+      "provinceId": 79,
+      "wardId": 26743,
+      "regularHours": [ { "day": 1, "open": "08:00", "close": "21:00" } ],
+      "specialHours": [
+        { "date": "{{holiday}}", "closed": true },
+        { "date": "{{holiday}}", "closed": false, "open": "10:00", "close": "16:00" }
+      ]
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 400', () => pm.response.to.have.status(400));
+      pm.test('ruleId R-LOC-01', () => pm.expect(pm.response.json().ruleId).to.eql('R-LOC-01'));
+      pm.test('error on specialHours', () => pm.expect(pm.response.json().errors).to.have.property('specialHours'));
