@@ -13,7 +13,7 @@ using ZenGear.Services.Identity.Permissions;
 
 namespace ZenGear.Services.Identity;
 
-/// <summary>Staff accounts, for the staff screens (STF-01).</summary>
+/// <summary>Staff accounts, for the staff screens (STF-01); the one projection of <see cref="StaffDto"/>.</summary>
 public sealed class StaffService(
     ZenGearDbContext db,
     IAuthProvider auth,
@@ -117,6 +117,7 @@ public sealed class StaffService(
                 u.Email,
                 u.StaffProfile!.EmployeeCode,
                 u.StaffProfile.JoinedDate,
+                u.StaffProfile.LeftDate,
                 u.StaffProfile.WorkPhone,
                 u.Status,
                 u.StaffProfile.MustChangePassword,
@@ -127,7 +128,11 @@ public sealed class StaffService(
                     .ToList()))
             .SingleOrDefaultAsync(cancellationToken);
 
-    private Task<bool> HoldsAdminRoleAsync(Guid userId, CancellationToken cancellationToken) =>
+    /// <summary>
+    /// <paramref name="userId"/> holds the Admin role, found by name like the R-SEC-02 trigger: the one test of R-TX-11
+    /// (STF-01, STF-02). It only refuses; holding the role never grants access (R-SEC-03).
+    /// </summary>
+    public Task<bool> HoldsAdminRoleAsync(Guid userId, CancellationToken cancellationToken) =>
         db.UserRoles.AnyAsync(
             ur => ur.UserId == userId && db.Roles.Any(r => r.Id == ur.RoleId && r.Name == PermissionCatalog.AdminRoleName),
             cancellationToken);

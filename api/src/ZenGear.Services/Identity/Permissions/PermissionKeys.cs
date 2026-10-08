@@ -11,4 +11,7 @@ public static class PermissionKeys
 
     /// <summary>Read a staff account (STF-01).</summary>
     public const string StaffRead = "staff.read";
+
+    /// <summary>Disable and restore a staff account (STF-02).</summary>
+    public const string StaffDisable = "staff.disable";
 }
