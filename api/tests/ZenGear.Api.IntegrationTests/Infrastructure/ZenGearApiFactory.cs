@@ -52,6 +52,7 @@ public class ZenGearApiFactory(string environment = AuthenticationSetup.TestingE
             services.AddSingleton<ILogger<StaffService>>(new Logger<StaffService>(staffLogs));
             services.AddSingleton<ILogger<StaffBootstrapService>>(new Logger<StaffBootstrapService>(staffLogs));
             services.AddSingleton<ILogger<CurrentUserService>>(new Logger<CurrentUserService>(staffLogs));
+            services.AddSingleton<ILogger<StaffStatusService>>(new Logger<StaffStatusService>(staffLogs));
             services.AddControllers().AddApplicationPart(typeof(ZenGearApiFactory).Assembly);
         });
     }

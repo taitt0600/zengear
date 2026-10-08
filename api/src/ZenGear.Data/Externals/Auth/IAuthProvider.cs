@@ -31,7 +31,8 @@ public interface IAuthProvider
 
     /// <summary>
     /// Revokes every refresh token of the account <paramref name="uid"/>: each device must sign in again once its ID
-    /// token expires (DEC-094). ID tokens already issued stay valid until then.
+    /// token expires (DEC-094). ID tokens already issued stay valid until then. Nothing happens when the account no
+    /// longer exists.
     /// </summary>
     Task RevokeSessionsAsync(string uid, CancellationToken cancellationToken);
 

@@ -17,6 +17,7 @@ public sealed class PermissionCatalog : IPermissionCatalog
     [
         new(PermissionKeys.StaffCreate, "Create staff accounts and give them roles"),
         new(PermissionKeys.StaffRead, "View staff accounts"),
+        new(PermissionKeys.StaffDisable, "Disable and restore staff accounts"),
     ];
 
     public IReadOnlyList<PermissionDefinition> Permissions => Definitions;
@@ -25,7 +26,9 @@ public sealed class PermissionCatalog : IPermissionCatalog
     [
         new(AdminRoleName, IsSystemRole: true, [.. Definitions.Select(p => p.Key)]),
         new("Customer", IsSystemRole: true, []),
-        new("Store Manager", IsSystemRole: false, []),
+        // STF-02, the owner's decision: a Store Manager disables and restores staff, and reads the accounts it changes.
+        // R-TX-11 still refuses the Store Manager disabling an Admin account.
+        new("Store Manager", IsSystemRole: false, [PermissionKeys.StaffRead, PermissionKeys.StaffDisable]),
         new("Sales Consultant", IsSystemRole: false, []),
         new("Technical Support", IsSystemRole: false, []),
         new("Cashier", IsSystemRole: false, []),

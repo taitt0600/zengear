@@ -68,8 +68,17 @@ public sealed class FirebaseAuthProvider : IAuthProvider
     public Task ChangePasswordAsync(string uid, string newPassword, CancellationToken cancellationToken) =>
         _auth.Value.UpdateUserAsync(new UserRecordArgs { Uid = uid, Password = newPassword }, cancellationToken);
 
-    public Task RevokeSessionsAsync(string uid, CancellationToken cancellationToken) =>
-        _auth.Value.RevokeRefreshTokensAsync(uid, cancellationToken);
+    public async Task RevokeSessionsAsync(string uid, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await _auth.Value.RevokeRefreshTokensAsync(uid, cancellationToken);
+        }
+        catch (FirebaseAuthException ex) when (ex.AuthErrorCode == AuthErrorCode.UserNotFound)
+        {
+            // Deleted in the console: no account, so no session left to revoke.
+        }
+    }
 
     public bool IsDefaultStaffPassword(string password) =>
         _options.DefaultStaffPassword is { Length: > 0 } defaultPassword

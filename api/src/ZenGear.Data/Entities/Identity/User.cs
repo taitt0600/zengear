@@ -94,6 +94,62 @@ public class User : IAggregateRoot
         return user;
     }
 
+    /// <summary>
+    /// Disables the staff account and, when given, records the last working day in the same change (R-USR-07). A
+    /// DISABLED account stays DISABLED: a later call records a new left date on the staff profile and otherwise changes
+    /// nothing. The
+    /// service checks the rules first for a clear error; these checks are the backstop.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">ANONYMIZED is final (R-USR-03), or the user is not staff.</exception>
+    /// <exception cref="ArgumentException"><paramref name="leftDate"/> is before the joined date (R-USR-07).</exception>
+    public void Disable(DateOnly? leftDate, Guid updatedBy, DateTimeOffset now)
+    {
+        var profile = StaffProfileForStatusChange();
+        if (leftDate is { } date && date != profile.LeftDate)
+        {
+            profile.RecordLeftDate(date, updatedBy, now);
+        }
+
+        // A repeat that changes nothing writes nothing: a retry after a failed revoke keeps the stamps and the version.
+        if (Status == UserStatus.Disabled)
+        {
+            return;
+        }
+
+        Status = UserStatus.Disabled;
+        UpdatedBy = updatedBy;
+        UpdatedAt = now;
+    }
+
+    /// <summary>
+    /// Restores a DISABLED staff account to ACTIVE and clears its left date: the staff member is employed again
+    /// (R-USR-03). An ACTIVE account is left unchanged.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">ANONYMIZED is final (R-USR-03), or the user is not staff.</exception>
+    public void Restore(Guid updatedBy, DateTimeOffset now)
+    {
+        var profile = StaffProfileForStatusChange();
+        if (Status == UserStatus.Active)
+        {
+            return;
+        }
+
+        profile.ClearLeftDate(updatedBy, now);
+        Status = UserStatus.Active;
+        UpdatedBy = updatedBy;
+        UpdatedAt = now;
+    }
+
+    private StaffProfile StaffProfileForStatusChange()
+    {
+        if (Status == UserStatus.Anonymized)
+        {
+            throw new InvalidOperationException("R-USR-03: an anonymized account cannot change status.");
+        }
+
+        return StaffProfile ?? throw new InvalidOperationException("Only a staff account is disabled or restored here.");
+    }
+
     /// <summary>Changes the display name, trimmed (R-USR-04); stamps the change only when the name differs.</summary>
     /// <exception cref="ArgumentException">A blank name; the validator refuses it first.</exception>
     public void Rename(string name, Guid updatedBy, DateTimeOffset now)

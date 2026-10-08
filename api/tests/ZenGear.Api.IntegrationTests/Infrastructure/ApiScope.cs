@@ -16,7 +16,7 @@ public static class ApiScope
         await action(scope.ServiceProvider.GetRequiredService<ZenGearDbContext>());
     }
 
-    /// <summary>Sets <c>users.status</c> through the change tracker, as the future STF-02 service will.</summary>
+    /// <summary>Sets <c>users.status</c> through the change tracker, as the STF-02 service does.</summary>
     public static Task SetUserStatusAsync(this ZenGearApiFactory factory, Guid userId, UserStatus status) =>
         factory.WithDbAsync(async db =>
         {

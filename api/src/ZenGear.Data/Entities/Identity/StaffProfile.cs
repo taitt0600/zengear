@@ -39,6 +39,33 @@ public class StaffProfile
 
     public DateTimeOffset UpdatedAt { get; private set; }
 
+    /// <summary>Records the last working day (R-USR-07); called by <see cref="User.Disable"/> only.</summary>
+    /// <exception cref="ArgumentException"><paramref name="leftDate"/> is before <see cref="JoinedDate"/>.</exception>
+    internal void RecordLeftDate(DateOnly leftDate, Guid updatedBy, DateTimeOffset now)
+    {
+        if (leftDate < JoinedDate)
+        {
+            throw new ArgumentException("R-USR-07: the left date cannot be before the joined date.", nameof(leftDate));
+        }
+
+        LeftDate = leftDate;
+        UpdatedBy = updatedBy;
+        UpdatedAt = now;
+    }
+
+    /// <summary>The staff member is employed again (<c>left_date</c> NULL); called by <see cref="User.Restore"/> only.</summary>
+    internal void ClearLeftDate(Guid updatedBy, DateTimeOffset now)
+    {
+        if (LeftDate is null)
+        {
+            return;
+        }
+
+        LeftDate = null;
+        UpdatedBy = updatedBy;
+        UpdatedAt = now;
+    }
+
     /// <summary>
     /// The password was changed through the API (DEC-094): the only way to clear <see cref="MustChangePassword"/>.
     /// Called after Firebase accepted the new password, never before.

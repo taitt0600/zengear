@@ -3,6 +3,7 @@ using ZenGear.Data.Entities.Identity.Enums;
 namespace ZenGear.Services.Identity.Models;
 
 /// <summary>A staff account, for the staff screens.</summary>
+/// <param name="LeftDate">Last working day; null while employed (R-USR-07).</param>
 /// <param name="MustChangePassword">The staff member must change the default password before anything else (R-USR-03).</param>
 public sealed record StaffDto(
     Guid Id,
@@ -10,6 +11,7 @@ public sealed record StaffDto(
     string? Email,
     string? EmployeeCode,
     DateOnly? JoinedDate,
+    DateOnly? LeftDate,
     string? WorkPhone,
     UserStatus Status,
     bool MustChangePassword,

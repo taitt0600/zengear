@@ -45,6 +45,7 @@ public static class DependencyInjection
         services.AddScoped<SignInService>();
         services.AddScoped<CurrentUserService>();
         services.AddScoped<StaffService>();
+        services.AddScoped<StaffStatusService>();
         services.AddScoped<StaffBootstrapService>();
         services.AddSingleton<IPermissionCatalog, PermissionCatalog>();
         services.AddScoped<PermissionSyncService>();
