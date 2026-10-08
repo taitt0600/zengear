@@ -125,3 +125,5 @@ Stored as the English values below; the Vietnamese label is what the UI shows.
 | Tài khoản placeholder | placeholder account | Tài khoản khách do nhân viên tạo hộ, chưa gắn Firebase (`firebase_uid` NULL) |
 | PC bộ, PC dựng sẵn | pre-built PC | SKU PC có cấu hình niêm yết; lắp sẵn (STOCK) hoặc lắp theo đơn (BUILD) |
 | 1 đổi 1 | DOA exchange | Đổi máy mới khi lỗi nhà sản xuất trong `doa_exchange_days` của danh mục |
+| Giờ mở cửa hằng tuần | regular hours (`regular_hours`, `RegularHoursPeriod`) | Các khung giờ mở cửa theo thứ trong tuần (1 = thứ Hai … 7 = Chủ nhật) của địa điểm kinh doanh; ngày không có khung giờ là ngày nghỉ |
+| Lịch riêng ngày lễ | special hours (`special_hours`, `SpecialHoursPeriod`) | Lịch theo ngày cụ thể (đóng cửa cả ngày hoặc giờ khác) thay giờ mở cửa hằng tuần của ngày đó (R-LOC-01) |

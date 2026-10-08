@@ -52,6 +52,7 @@ SonarAnalyzer rules that turned builds red in earlier features. After each edit 
 - `S2139` — a `catch` that logs an exception and rethrows it logs it twice (the host logs the unhandled exception). Either handle it, or rethrow it wrapped with context (`throw new InvalidOperationException("…", ex)`) without logging; keep the message to ids (R-SEC-11).
 - `S6960` — a controller whose actions use disjoint dependencies has several responsibilities. Give a new family of use cases its own controller on the same route prefix (`StaffStatusController` beside `StaffController`), matching its `<Entity><UseCase>Service`.
 - `S8969` — a null-forgiving operator (`!`) where the compiler already knows the value is not null (an earlier `x!.y` in the same flow counts). Leave it out; state the assumption in a comment if it matters.
+- `S3236` — passing an argument to a parameter marked `[CallerArgumentExpression]` (`ArgumentNullException.ThrowIfNull(value, paramName)`) hides the caller information the compiler fills in. Call `ThrowIfNull(value)` alone, or check the value yourself (`value?.Trim() ?? ""`) and throw with the name you need.
 - `S1144` — an unused private member. It also fires between two edits when a private method is replaced by a shared one: remove the private copy in the same edit as its last caller.
 
 ## Commands
