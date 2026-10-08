@@ -4,7 +4,7 @@ description: |-
   and only tools/dev_reset.ps1 brings it back.
 method: POST
 url: '{{baseUrl}}/api/v1/staff/{{adminId}}/disable'
-order: 16000
+order: 17000
 headers:
   - key: X-ZenGear-As
     value: '{{adminEmail}}'

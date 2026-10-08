@@ -3,7 +3,7 @@ description: |-
   Clean-up: the second Admin of this run ends DISABLED, so repeated runs do not leave ACTIVE Admin accounts behind.
 method: POST
 url: '{{baseUrl}}/api/v1/staff/{{secondAdminId}}/disable'
-order: 21000
+order: 24000
 headers:
   - key: X-ZenGear-As
     value: '{{adminEmail}}'
@@ -18,4 +18,7 @@ scripts:
     language: text/javascript
     code: |-
       pm.test('status 200', () => pm.response.to.have.status(200));
-      pm.test('DISABLED', () => pm.expect(pm.response.json().status).to.eql('DISABLED'));
+      pm.test('DISABLED with today as the left date', () => {
+        pm.expect(pm.response.json().status).to.eql('DISABLED');
+        pm.expect(pm.response.json().leftDate).to.eql(pm.variables.get('today'));
+      });

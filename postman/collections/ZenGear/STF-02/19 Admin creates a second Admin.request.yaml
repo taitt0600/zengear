@@ -1,9 +1,9 @@
 $kind: http-request
 description: |-
-  Set-up for 18 to 21: a second Admin account (STF-01: only an Admin gives the Admin role, R-TX-11).
+  Set-up for 20 to 24: a second Admin account (STF-01: only an Admin gives the Admin role, R-TX-11).
 method: POST
 url: '{{baseUrl}}/api/v1/staff'
-order: 17000
+order: 19000
 headers:
   - key: X-ZenGear-As
     value: '{{adminEmail}}'

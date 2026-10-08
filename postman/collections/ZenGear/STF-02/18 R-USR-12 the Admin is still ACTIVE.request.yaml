@@ -1,0 +1,15 @@
+$kind: http-request
+description: |-
+  R-USR-12 (DEC-103): the refusal of 17 changed nothing: the Admin account stays ACTIVE.
+method: GET
+url: '{{baseUrl}}/api/v1/staff/{{adminId}}'
+order: 18000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 200', () => pm.response.to.have.status(200));
+      pm.test('ACTIVE', () => pm.expect(pm.response.json().status).to.eql('ACTIVE'));
