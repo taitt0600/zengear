@@ -44,3 +44,7 @@ values:
     value: '0199a000-0000-7000-8000-000000000009'
     enabled: true
     type: default
+  - key: anonymizedStaffId
+    value: '0199a0f2-0000-7000-8000-000000000001'
+    enabled: true
+    type: default

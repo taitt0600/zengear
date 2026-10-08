@@ -1,0 +1,20 @@
+$kind: http-request
+description: |-
+  R-USR-03 (UC-006, 1a): DISABLED back to ACTIVE when the staff member returns; the left date is cleared (still
+  employed).
+method: POST
+url: '{{baseUrl}}/api/v1/staff/{{staffId}}/restore'
+order: 7000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 200', () => pm.response.to.have.status(200));
+      const staff = pm.response.json();
+      pm.test('ACTIVE, no left date', () => {
+        pm.expect(staff.status).to.eql('ACTIVE');
+        pm.expect(staff.leftDate).to.eql(null);
+      });

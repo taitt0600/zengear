@@ -1,0 +1,22 @@
+$kind: http-request
+description: |-
+  R-USR-07: the left date is not before the joined date (UC-006, 3a). Nothing changes.
+method: POST
+url: '{{baseUrl}}/api/v1/staff/{{staffId}}/disable'
+order: 4000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+  - key: Content-Type
+    value: 'application/json'
+body:
+  type: json
+  content: |-
+    { "leftDate": "2026-09-30" }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 409', () => pm.response.to.have.status(409));
+      pm.test('problem type /problems/left-date-before-joined-date', () => pm.expect(pm.response.json().type).to.eql('/problems/left-date-before-joined-date'));
+      pm.test('ruleId R-USR-07', () => pm.expect(pm.response.json().ruleId).to.eql('R-USR-07'));

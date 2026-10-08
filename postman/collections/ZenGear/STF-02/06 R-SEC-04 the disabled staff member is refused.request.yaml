@@ -1,0 +1,17 @@
+$kind: http-request
+description: |-
+  R-SEC-04: only an ACTIVE user uses the system. The staff member's ID token from 03 is still valid for up to an
+  hour, yet every request is refused from now on.
+method: GET
+url: '{{baseUrl}}/api/v1/me'
+order: 6000
+headers:
+  - key: X-ZenGear-As
+    value: '{{staffEmail}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 403', () => pm.response.to.have.status(403));
+      pm.test('problem type /problems/account-disabled', () => pm.expect(pm.response.json().type).to.eql('/problems/account-disabled'));
+      pm.test('ruleId R-SEC-04', () => pm.expect(pm.response.json().ruleId).to.eql('R-SEC-04'));

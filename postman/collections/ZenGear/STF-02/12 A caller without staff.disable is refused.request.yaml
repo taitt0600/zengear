@@ -1,0 +1,16 @@
+$kind: http-request
+description: |-
+  R-SEC-03: the permission staff.disable is checked through the caller's roles; the fixture customer has none.
+method: POST
+url: '{{baseUrl}}/api/v1/staff/{{staffId}}/restore'
+order: 12000
+headers:
+  - key: X-ZenGear-As
+    value: '{{customerEmail}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 403', () => pm.response.to.have.status(403));
+      pm.test('problem type /problems/permission-denied', () => pm.expect(pm.response.json().type).to.eql('/problems/permission-denied'));
+      pm.test('ruleId R-SEC-03', () => pm.expect(pm.response.json().ruleId).to.eql('R-SEC-03'));

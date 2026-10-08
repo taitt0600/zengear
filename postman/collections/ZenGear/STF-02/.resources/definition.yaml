@@ -1,0 +1,18 @@
+$kind: collection
+name: STF-02
+description: |-
+  STF-02 — the Admin disables a staff account when the staff member leaves, recording the last working day, and
+  restores it when they come back (UC-006; R-USR-03, R-USR-07, R-TX-11, R-SEC-04).
+
+  Needs tools/dev_reset.ps1 first: the Admin owner@zengear.test (bootstrap-admin, DEC-096) and the dev-only fixtures
+  postman/fixtures/STF-01.sql (the Store Manager manager.fixture@zengear.test), STF-02.sql (Store Manager holds
+  staff.disable; the ANONYMIZED staff account anonymizedStaffId) and STF-03.sql (the customer
+  customer.fixture@zengear.test). The folder creates its own staff member through POST /api/v1/staff, with an email
+  and employee code carrying the run id `run`, so it runs again without a reset.
+
+  09 asks the Store Manager to disable the Admin and expects 409: should R-TX-11 ever regress, the Admin is disabled
+  and only tools/dev_reset.ps1 brings it back. Not checked here, covered by the integration tests of api/tests
+  (StaffStatusTests): the revoke of the Firebase sessions (the emulator keeps no trace the collection can read), the
+  repeat after a failed revoke, the CHECK of the database and a concurrent change.
+  Emulator only: the requests sign in with emulator custom tokens (see the collection description).
+order: 3000

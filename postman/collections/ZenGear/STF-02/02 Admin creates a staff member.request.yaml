@@ -1,0 +1,33 @@
+$kind: http-request
+description: |-
+  Set-up: a Cashier who joined on 2026-10-01 (STF-01), ACTIVE, no left date.
+method: POST
+url: '{{baseUrl}}/api/v1/staff'
+order: 2000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+  - key: Content-Type
+    value: 'application/json'
+body:
+  type: json
+  content: |-
+    {
+      "email": "stf02-{{run}}@zengear.test",
+      "name": "Thu ngân kiểm thử",
+      "employeeCode": "{{run}}-S2",
+      "joinedDate": "2026-10-01",
+      "roleIds": ["{{roleCashier}}"]
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 201', () => pm.response.to.have.status(201));
+      const staff = pm.response.json();
+      pm.test('ACTIVE, no left date', () => {
+        pm.expect(staff.status).to.eql('ACTIVE');
+        pm.expect(staff.leftDate).to.eql(null);
+      });
+      pm.variables.set('staffId', staff.id);
+      pm.variables.set('staffEmail', staff.email);
