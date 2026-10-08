@@ -1,7 +1,7 @@
 $kind: http-request
 description: |-
-  R-LOC-01: on the website, tomorrow (the holiday of 03) has no hours instead of its weekly hours, and the other days
-  keep theirs; the website shows what the Admin saved.
+  R-LOC-01: on the website, tomorrow (the closed holiday of 03) has no hours and the day after shows its own hours
+  (10:00–16:00) instead of its weekly hours; the other days keep theirs; the website shows what the Admin saved.
 method: GET
 url: '{{baseUrl}}/api/v1/business-locations'
 order: 4000
@@ -20,8 +20,12 @@ scripts:
         pm.expect(location.weekHours[1].date).to.eql(pm.variables.get('holiday'));
         pm.expect(location.weekHours[1].periods).to.eql([]);
       });
+      pm.test('the day after shows its own hours instead of the weekly ones', () => {
+        pm.expect(location.weekHours[2].date).to.eql(pm.variables.get('shortDay'));
+        pm.expect(location.weekHours[2].periods).to.eql([{ open: '10:00', close: '16:00' }]);
+      });
       pm.test('the other days keep their weekly hours', () => {
-        [0, 2, 3, 4, 5, 6].forEach(i => pm.expect(location.weekHours[i].periods).to.not.be.empty);
+        [0, 3, 4, 5, 6].forEach(i => pm.expect(location.weekHours[i].periods).to.not.be.empty);
       });
       pm.test('the holiday schedule from today on', () =>
         pm.expect(location.specialHours.map(s => s.date)).to.include(pm.variables.get('holiday')));
