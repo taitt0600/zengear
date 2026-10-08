@@ -1,7 +1,7 @@
 $kind: http-request
 description: |-
-  Acceptance criterion 3, R-USR-07: recording the left date disables the account in the same operation. Also
-  revokes the Firebase sessions (criterion 1, R-SEC-04; checked by the integration tests).
+  Acceptance criterion 3, R-USR-07: recording the left date (today, the latest one accepted) disables the account in
+  the same operation. Also revokes the Firebase sessions (criterion 1, R-SEC-04; checked by the integration tests).
 method: POST
 url: '{{baseUrl}}/api/v1/staff/{{staffId}}/disable'
 order: 5000
@@ -13,7 +13,7 @@ headers:
 body:
   type: json
   content: |-
-    { "leftDate": "2026-10-31" }
+    { "leftDate": "{{today}}" }
 scripts:
   - type: afterResponse
     language: text/javascript
@@ -23,5 +23,5 @@ scripts:
       pm.test('DISABLED with the left date', () => {
         pm.expect(staff.id).to.eql(pm.variables.get('staffId'));
         pm.expect(staff.status).to.eql('DISABLED');
-        pm.expect(staff.leftDate).to.eql('2026-10-31');
+        pm.expect(staff.leftDate).to.eql(pm.variables.get('today'));
       });

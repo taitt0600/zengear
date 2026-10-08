@@ -1,7 +1,8 @@
 $kind: http-request
 description: |-
   The Admin created by tools/dev_reset.ps1 signs in. Sets `run`, the suffix that makes the email and employee code
-  of this run unique, and keeps the Admin's id for 09.
+  of this run unique, `today` and `tomorrow` in Asia/Ho_Chi_Minh (UTC+7, no daylight saving) for the left dates
+  (R-USR-07: not after today), and keeps the Admin's id for 09 and 16.
 method: GET
 url: '{{baseUrl}}/api/v1/me'
 order: 1000
@@ -13,6 +14,9 @@ scripts:
     language: text/javascript
     code: |-
       pm.variables.set('run', Date.now().toString(36));
+      const day = offset => new Date(Date.now() + 7 * 3600 * 1000 + offset * 86400 * 1000).toISOString().slice(0, 10);
+      pm.variables.set('today', day(0));
+      pm.variables.set('tomorrow', day(1));
   - type: afterResponse
     language: text/javascript
     code: |-

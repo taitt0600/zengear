@@ -22,8 +22,10 @@ public sealed class StaffStatusController(StaffStatusService staffStatus) : Cont
     /// <response code="403"><c>/problems/permission-denied</c>: <c>staff.disable</c> missing.</response>
     /// <response code="404">No staff account with this id.</response>
     /// <response code="409">
-    /// <c>/problems/account-anonymized</c> (R-USR-03), <c>/problems/admin-account-not-lockable</c> (R-TX-11),
-    /// <c>/problems/left-date-before-joined-date</c> (R-USR-07), <c>/problems/concurrency-conflict</c>.
+    /// <c>/problems/account-anonymized</c> (R-USR-03), <c>/problems/own-account-not-lockable</c> (R-USR-12),
+    /// <c>/problems/admin-account-not-lockable</c> (R-TX-11), <c>/problems/last-active-admin</c> (R-USR-12),
+    /// <c>/problems/left-date-before-joined-date</c> (R-USR-07), <c>/problems/left-date-in-future</c> (R-USR-07),
+    /// <c>/problems/concurrency-conflict</c>.
     /// </response>
     /// <response code="500">The account is disabled but its sessions were not revoked: repeat the request.</response>
     [HttpPost("{id:guid}/disable")]
@@ -44,7 +46,10 @@ public sealed class StaffStatusController(StaffStatusService staffStatus) : Cont
     /// <summary>Restores a DISABLED staff account to ACTIVE and clears its left date (R-USR-03).</summary>
     /// <response code="403"><c>/problems/permission-denied</c>: <c>staff.disable</c> missing.</response>
     /// <response code="404">No staff account with this id.</response>
-    /// <response code="409"><c>/problems/account-anonymized</c> (R-USR-03), <c>/problems/concurrency-conflict</c>.</response>
+    /// <response code="409">
+    /// <c>/problems/account-anonymized</c> (R-USR-03), <c>/problems/admin-account-not-restorable</c> (R-USR-12),
+    /// <c>/problems/concurrency-conflict</c>.
+    /// </response>
     [HttpPost("{id:guid}/restore")]
     [RequirePermission(PermissionKeys.StaffDisable)]
     [ProducesResponseType<StaffDto>(StatusCodes.Status200OK, "application/json")]

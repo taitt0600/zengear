@@ -7,6 +7,7 @@ using ZenGear.Data.Entities.Identity.Enums;
 using ZenGear.Data.Externals.Auth;
 using ZenGear.Services.Common;
 using ZenGear.Services.Identity.Models;
+using ZenGear.Services.Identity.Permissions;
 
 namespace ZenGear.Services.Identity;
 
@@ -20,9 +21,10 @@ public sealed class StaffStatusService(
 {
     /// <summary>
     /// Disables the staff account <paramref name="id"/> and records the left date in the same change (R-USR-07), then
-    /// revokes its Firebase sessions (R-SEC-04). The access cache is bumped on commit, so the account is refused from
-    /// its next request. Repeating the request is safe: a DISABLED account records a given left date and its sessions
-    /// are revoked again, which is how a failed revoke (500) is retried.
+    /// revokes its Firebase sessions (R-SEC-04). Refused for the caller's own account and for the last ACTIVE account
+    /// holding the Admin role (R-USR-12), and for a left date after today (R-USR-07). The access cache is bumped on
+    /// commit, so the account is refused from its next request. Repeating the request is safe: a DISABLED account
+    /// records a given left date and its sessions are revoked again, which is how a failed revoke (500) is retried.
     /// </summary>
     /// <param name="actorId">The signed-in staff member disabling the account.</param>
     /// <returns>Null when there is no staff account with this id.</returns>
@@ -38,7 +40,14 @@ public sealed class StaffStatusService(
 
         ThrowIfAnonymized(user);
 
-        if (await staff.HoldsAdminRoleAsync(id, cancellationToken) && !await staff.HoldsAdminRoleAsync(actorId, cancellationToken))
+        if (id == actorId)
+        {
+            throw new BusinessRuleException("R-USR-12", "own-account-not-lockable", "Own account not lockable",
+                "No one can disable their own account.");
+        }
+
+        var holdsAdmin = await staff.HoldsAdminRoleAsync(id, cancellationToken);
+        if (holdsAdmin && !await staff.HoldsAdminRoleAsync(actorId, cancellationToken))
         {
             throw new BusinessRuleException("R-TX-11", "admin-account-not-lockable", "Admin account not lockable",
                 "Only an Admin can disable an account that holds the Admin role.");
@@ -47,6 +56,21 @@ public sealed class StaffStatusService(
         if (request.LeftDate < user.StaffProfile!.JoinedDate)
         {
             throw LeftDateBeforeJoinedDate();
+        }
+
+        if (request.LeftDate > clock.Today)
+        {
+            throw new BusinessRuleException("R-USR-07", "left-date-in-future", "Left date in the future",
+                "The left date cannot be after today.");
+        }
+
+        // Only disabling an ACTIVE Admin needs the lock of the last-Admin check held until the commit.
+        await using var transaction = holdsAdmin && user.Status == UserStatus.Active
+            ? await db.Database.BeginTransactionAsync(cancellationToken)
+            : null;
+        if (transaction is not null)
+        {
+            await ThrowIfLastActiveAdminAsync(id, cancellationToken);
         }
 
         // From the save on the request token is no longer used: a client that disconnects during the commit could
@@ -63,6 +87,10 @@ public sealed class StaffStatusService(
         try
         {
             await db.SaveChangesAsync(CancellationToken.None);
+            if (transaction is not null)
+            {
+                await transaction.CommitAsync(CancellationToken.None);
+            }
         }
         catch (DbUpdateException ex) when (ex.InnerException is PostgresException
         {
@@ -88,7 +116,8 @@ public sealed class StaffStatusService(
 
     /// <summary>
     /// Restores the DISABLED staff account <paramref name="id"/> to ACTIVE and clears its left date (R-USR-03); an
-    /// ACTIVE account is returned unchanged. Its sessions were revoked on disable: the staff member signs in again.
+    /// ACTIVE account is returned unchanged. Only a caller holding the Admin role restores, or gets back unchanged, an
+    /// account holding it (R-USR-12). Its sessions were revoked on disable: the staff member signs in again.
     /// </summary>
     /// <param name="actorId">The signed-in staff member restoring the account.</param>
     /// <returns>Null when there is no staff account with this id.</returns>
@@ -101,6 +130,13 @@ public sealed class StaffStatusService(
         }
 
         ThrowIfAnonymized(user);
+
+        if (await staff.HoldsAdminRoleAsync(id, cancellationToken) && !await staff.HoldsAdminRoleAsync(actorId, cancellationToken))
+        {
+            throw new BusinessRuleException("R-USR-12", "admin-account-not-restorable", "Admin account not restorable",
+                "Only an Admin can restore an account that holds the Admin role.");
+        }
+
         user.Restore(actorId, clock.UtcNow);
         await db.SaveChangesAsync(cancellationToken);
 
@@ -111,6 +147,29 @@ public sealed class StaffStatusService(
     private Task<User?> FindStaffAsync(Guid id, CancellationToken cancellationToken) =>
         db.Users.Include(u => u.StaffProfile)
             .SingleOrDefaultAsync(u => u.Id == id && u.StaffProfile != null, cancellationToken);
+
+    /// <summary>
+    /// Locks the ACTIVE accounts holding the Admin role until the transaction ends and refuses when none is left besides
+    /// <paramref name="id"/> (R-USR-12). Two Admins disabling each other at once: the second waits on the lock, then no
+    /// longer counts the first one, now DISABLED, and is refused.
+    /// </summary>
+    private async Task ThrowIfLastActiveAdminAsync(Guid id, CancellationToken cancellationToken)
+    {
+        var activeAdmins = await db.Database.SqlQuery<Guid>($"""
+            SELECT u.id AS "Value" FROM users u
+            WHERE u.status = 'ACTIVE'
+              AND EXISTS (SELECT 1 FROM user_roles ur JOIN roles r ON r.id = ur.role_id
+                          WHERE ur.user_id = u.id AND r.name = {PermissionCatalog.AdminRoleName})
+            ORDER BY u.id
+            FOR UPDATE OF u
+            """).ToListAsync(cancellationToken);
+
+        if (activeAdmins.TrueForAll(adminId => adminId == id))
+        {
+            throw new BusinessRuleException("R-USR-12", "last-active-admin", "Last active Admin",
+                "The last ACTIVE account holding the Admin role cannot be disabled.");
+        }
+    }
 
     private async Task RevokeSessionsAsync(Guid id, string uid)
     {

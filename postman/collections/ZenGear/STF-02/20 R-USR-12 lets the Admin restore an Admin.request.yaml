@@ -1,0 +1,15 @@
+$kind: http-request
+description: |-
+  R-USR-12: an Admin restores the Admin account the Store Manager could not restore in 19.
+method: POST
+url: '{{baseUrl}}/api/v1/staff/{{secondAdminId}}/restore'
+order: 20000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 200', () => pm.response.to.have.status(200));
+      pm.test('ACTIVE', () => pm.expect(pm.response.json().status).to.eql('ACTIVE'));

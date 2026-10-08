@@ -13,7 +13,7 @@ headers:
 body:
   type: json
   content: |-
-    { "leftDate": "2026-10-31" }
+    { "leftDate": "{{today}}" }
 scripts:
   - type: afterResponse
     language: text/javascript
