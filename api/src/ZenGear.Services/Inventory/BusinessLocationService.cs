@@ -38,8 +38,8 @@ public sealed class BusinessLocationService(
         var location = found.Location;
         return new BusinessLocationDto(location.Id, location.Name, location.Phone, location.Email, location.AddressDetail,
             location.ProvinceId, found.ProvinceName, location.WardId, found.WardName,
-            [.. location.RegularHours.Select(RegularHoursPeriodDto.From)],
-            [.. (location.SpecialHours ?? []).Select(SpecialHoursPeriodDto.From)],
+            [.. location.RegularHours.OrderBy(r => r.Day).ThenBy(r => r.Open).Select(RegularHoursPeriodDto.From)],
+            [.. (location.SpecialHours ?? []).OrderBy(s => s.Date).ThenBy(s => s.Open).Select(SpecialHoursPeriodDto.From)],
             location.UpdatedAt, location.Version);
     }
 

@@ -49,8 +49,8 @@ public sealed class BusinessLocationPublicService(ZenGearDbContext db, IValidato
 
         return new BusinessLocationPublicDto(location.Id, location.Name, location.Phone, location.Email,
             location.AddressDetail, wardName, provinceName,
-            [.. location.RegularHours.Select(RegularHoursPeriodDto.From)],
-            [.. (location.SpecialHours ?? []).Where(s => s.Date >= today).Select(SpecialHoursPeriodDto.From)],
+            [.. location.RegularHours.OrderBy(r => r.Day).ThenBy(r => r.Open).Select(RegularHoursPeriodDto.From)],
+            [.. (location.SpecialHours ?? []).Where(s => s.Date >= today).OrderBy(s => s.Date).ThenBy(s => s.Open).Select(SpecialHoursPeriodDto.From)],
             weekHours);
     }
 }

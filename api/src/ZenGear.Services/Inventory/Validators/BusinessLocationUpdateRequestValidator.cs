@@ -53,12 +53,13 @@ public sealed partial class BusinessLocationUpdateRequestValidator : AbstractVal
             .ChildRules(entry =>
             {
                 entry.RuleFor(s => s.Date).NotNull();
+                entry.RuleFor(s => s.Closed).NotNull();
                 entry.RuleFor(s => s.Open).Must(IsTime).WithMessage("Opening time must be HH:mm.")
-                    .When(s => !s.Closed || s.Open is not null);
+                    .When(s => s.Closed != true || s.Open is not null);
                 entry.RuleFor(s => s.Close).Must(IsTime).WithMessage("Closing time must be HH:mm.")
-                    .When(s => !s.Closed || s.Close is not null);
+                    .When(s => s.Closed != true || s.Close is not null);
             })
-            .Must(s => s is null || s.Closed || OpensBeforeCloses(s.Open, s.Close)).WithMessage("A period opens before it closes.");
+            .Must(s => s is null || s.Closed == true || OpensBeforeCloses(s.Open, s.Close)).WithMessage("A period opens before it closes.");
 
         RuleFor(r => r).Custom((request, context) =>
         {
@@ -88,8 +89,8 @@ public sealed partial class BusinessLocationUpdateRequestValidator : AbstractVal
 
     /// <summary>A closed entry may still carry times here: <see cref="BusinessLocation.SpecialHoursProblem"/> refuses them (R-LOC-01).</summary>
     private static bool IsWellFormed(SpecialHoursPeriodRequest? s) =>
-        s?.Date is not null && (s.Open is null || IsTime(s.Open)) && (s.Close is null || IsTime(s.Close))
-        && (s.Closed || (IsTime(s.Open) && IsTime(s.Close) && OpensBeforeCloses(s.Open, s.Close)));
+        s?.Date is not null && s.Closed is not null && (s.Open is null || IsTime(s.Open)) && (s.Close is null || IsTime(s.Close))
+        && (s.Closed == true || (IsTime(s.Open) && IsTime(s.Close) && OpensBeforeCloses(s.Open, s.Close)));
 
     private static bool OpensBeforeCloses(string? open, string? close) =>
         !IsTime(open) || !IsTime(close) || RegularHoursPeriodRequest.ParseTime(open!) < RegularHoursPeriodRequest.ParseTime(close!);
