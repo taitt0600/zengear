@@ -1,0 +1,18 @@
+$kind: http-request
+description: |-
+  R-USR-12 (DEC-103): the refusal of 21 changed nothing: the second Admin stays DISABLED.
+method: GET
+url: '{{baseUrl}}/api/v1/staff/{{secondAdminId}}'
+order: 22000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 200', () => pm.response.to.have.status(200));
+      pm.test('DISABLED, no left date', () => {
+        pm.expect(pm.response.json().status).to.eql('DISABLED');
+        pm.expect(pm.response.json().leftDate).to.eql(null);
+      });

@@ -11,9 +11,9 @@ description: |-
   customer.fixture@zengear.test). The folder creates its own staff member through POST /api/v1/staff, with an email
   and employee code carrying the run id `run`, so it runs again without a reset.
 
-  09 asks the Store Manager to disable the Admin and 16 asks the Admin to disable their own account, both expecting
+  09 asks the Store Manager to disable the Admin and 17 asks the Admin to disable their own account, both expecting
   409: should R-TX-11 or R-USR-12 ever regress, the Admin is disabled and only tools/dev_reset.ps1 brings it back.
-  17 creates a second Admin for the run, which 21 leaves DISABLED. Not checked here, covered by the integration tests
+  19 creates a second Admin for the run, which 24 leaves DISABLED. Not checked here, covered by the integration tests
   of api/tests (StaffStatusTests): the revoke of the Firebase sessions (the emulator keeps no trace the collection can
   read), the repeat after a failed revoke, the CHECK of the database, a concurrent change and the last ACTIVE Admin
   (R-USR-12: reachable only when two Admins disable each other at once, since the caller is an ACTIVE Admin).

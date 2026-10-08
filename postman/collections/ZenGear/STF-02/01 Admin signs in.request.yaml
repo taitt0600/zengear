@@ -2,7 +2,7 @@ $kind: http-request
 description: |-
   The Admin created by tools/dev_reset.ps1 signs in. Sets `run`, the suffix that makes the email and employee code
   of this run unique, `today` and `tomorrow` in Asia/Ho_Chi_Minh (UTC+7, no daylight saving) for the left dates
-  (R-USR-07: not after today), and keeps the Admin's id for 09 and 16.
+  (R-USR-07: not after today), and keeps the Admin's id for 09, 17 and 18.
 method: GET
 url: '{{baseUrl}}/api/v1/me'
 order: 1000

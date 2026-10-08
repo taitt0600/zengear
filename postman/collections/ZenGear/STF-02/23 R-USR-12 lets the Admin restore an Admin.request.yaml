@@ -1,9 +1,9 @@
 $kind: http-request
 description: |-
-  R-USR-12: an Admin restores the Admin account the Store Manager could not restore in 19.
+  R-USR-12: an Admin restores the Admin account the Store Manager could not restore in 21.
 method: POST
 url: '{{baseUrl}}/api/v1/staff/{{secondAdminId}}/restore'
-order: 20000
+order: 23000
 headers:
   - key: X-ZenGear-As
     value: '{{adminEmail}}'

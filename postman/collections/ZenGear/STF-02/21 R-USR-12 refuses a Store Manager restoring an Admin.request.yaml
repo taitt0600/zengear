@@ -4,7 +4,7 @@ description: |-
   is the fixture Store Manager, who holds staff.disable (postman/fixtures/STF-02.sql). Nothing changes.
 method: POST
 url: '{{baseUrl}}/api/v1/staff/{{secondAdminId}}/restore'
-order: 19000
+order: 21000
 headers:
   - key: X-ZenGear-As
     value: '{{managerEmail}}'
