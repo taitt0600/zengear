@@ -14,4 +14,7 @@ public static class PermissionKeys
 
     /// <summary>Disable and restore a staff account (STF-02).</summary>
     public const string StaffDisable = "staff.disable";
+
+    /// <summary>Read the edit form of the business location and change it (LOC-01).</summary>
+    public const string BusinessLocationUpdate = "business_location.update";
 }

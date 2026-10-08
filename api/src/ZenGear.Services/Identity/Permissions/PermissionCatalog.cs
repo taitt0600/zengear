@@ -18,12 +18,14 @@ public sealed class PermissionCatalog : IPermissionCatalog
         new(PermissionKeys.StaffCreate, "Create staff accounts and give them roles"),
         new(PermissionKeys.StaffRead, "View staff accounts"),
         new(PermissionKeys.StaffDisable, "Disable and restore staff accounts"),
+        new(PermissionKeys.BusinessLocationUpdate, "Edit the business location: address, hotline, opening hours"),
     ];
 
     public IReadOnlyList<PermissionDefinition> Permissions => Definitions;
 
     public IReadOnlyList<RoleGrants> Roles { get; } =
     [
+        // LOC-01, the owner's decision: business_location.update stays with the Admin only.
         new(AdminRoleName, IsSystemRole: true, [.. Definitions.Select(p => p.Key)]),
         new("Customer", IsSystemRole: true, []),
         // STF-02, the owner's decision: a Store Manager disables and restores staff, and reads the accounts it changes.
