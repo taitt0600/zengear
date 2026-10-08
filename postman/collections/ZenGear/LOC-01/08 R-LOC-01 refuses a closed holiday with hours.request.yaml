@@ -32,5 +32,7 @@ scripts:
     language: text/javascript
     code: |-
       pm.test('status 400', () => pm.response.to.have.status(400));
+      pm.test('problem type 400', () =>
+        pm.expect(pm.response.json().type).to.eql('https://tools.ietf.org/html/rfc9110#section-15.5.1'));
       pm.test('ruleId R-LOC-01', () => pm.expect(pm.response.json().ruleId).to.eql('R-LOC-01'));
       pm.test('error on specialHours', () => pm.expect(pm.response.json().errors).to.have.property('specialHours'));
