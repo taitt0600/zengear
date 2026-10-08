@@ -2,6 +2,9 @@
 -- Run after the schema migrations, as the schema owner. Re-runnable: existing rows are kept.
 
 -- Fill in the real store data, then remove the comment markers. Nothing is inserted until then.
+-- regular_hours: one {"day", "open", "close"} per open period, day 1 = Monday … 7 = Sunday, times "HH:mm" from 00:00
+-- to 23:59 with open before close (the API refuses anything else; a value that is not a time stops the location
+-- from loading). The hotline is 8 to 11 digits. The Admin edits the rest through the API (UC-070).
 -- INSERT INTO business_locations (name, phone, email, address_detail, province_id, ward_id, regular_hours)
 -- SELECT '<tên cửa hàng>', '<hotline>', '<email>', '<số nhà, đường>', w.province_id, w.id,
 --        '[{"day": 1, "open": "08:00", "close": "21:00"}]'::jsonb
