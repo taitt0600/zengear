@@ -52,6 +52,14 @@ public sealed class StaffStatusService(
         // From the save on the request token is no longer used: a client that disconnects during the commit could
         // otherwise leave the account DISABLED with its sessions alive and no 500 telling it to repeat.
         user.Disable(request.LeftDate, actorId, clock.UtcNow);
+
+        // staff_profiles has no version: when the profile changes, the users row is written too, so its version makes a
+        // concurrent restore conflict instead of leaving an ACTIVE account with a left date.
+        if (db.Entry(user.StaffProfile).State == EntityState.Modified)
+        {
+            db.Entry(user).Property(u => u.UpdatedAt).IsModified = true;
+        }
+
         try
         {
             await db.SaveChangesAsync(CancellationToken.None);
@@ -110,8 +118,9 @@ public sealed class StaffStatusService(
         {
             await auth.RevokeSessionsAsync(uid, CancellationToken.None);
         }
-        catch (Exception ex) when (ex is not OperationCanceledException)
+        catch (Exception ex)
         {
+            // CancellationToken.None is passed, so even a cancellation here is a failure (an HTTP timeout to Firebase).
             // Logged by the host as an unhandled exception (500): ids only, the caller repeats the disable.
             throw new InvalidOperationException(
                 $"Staff account {id} is disabled but its sessions were not revoked: repeat the disable.", ex);

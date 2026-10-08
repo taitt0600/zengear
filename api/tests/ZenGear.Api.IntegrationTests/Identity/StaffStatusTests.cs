@@ -265,6 +265,34 @@ public class StaffStatusTests : IntegrationTestBase
     }
 
     [Test]
+    public async Task R_USR_07_a_left_date_only_disable_conflicts_with_a_concurrent_restore()
+    {
+        (await DisableAsync(AdminUid, _staffId, new { })).StatusCode.ShouldBe(HttpStatusCode.OK);
+
+        // A restore commits while the disable that only records a left date waits: without the version of users, the
+        // account would end ACTIVE with a left date.
+        await using var other = await TestRoles.OpenAsync();
+        await using var transaction = await other.BeginTransactionAsync();
+        await using (var restore = new NpgsqlCommand(
+            """
+            UPDATE users SET status = 'ACTIVE' WHERE id = @id;
+            UPDATE staff_profiles SET left_date = NULL WHERE user_id = @id;
+            """, other, transaction))
+        {
+            restore.Parameters.AddWithValue("id", _staffId);
+            await restore.ExecuteNonQueryAsync();
+        }
+
+        var request = DisableAsync(AdminUid, _staffId, new { leftDate = "2026-11-15" });
+        await WaitForLockWaitAsync();
+        await transaction.CommitAsync();
+        var response = await request;
+
+        await response.ShouldBeProblemAsync(HttpStatusCode.Conflict, "/problems/concurrency-conflict", null);
+        (await RowAsync(_staffId)).ShouldBe(new StatusRow("ACTIVE", null, _adminId));
+    }
+
+    [Test]
     public async Task Caller_without_staff_disable_is_403()
     {
         var cashierId = await TestUsers.InsertAsync("uid-cashier");

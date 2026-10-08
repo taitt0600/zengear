@@ -77,6 +77,21 @@ public class StaffStatusTests
     }
 
     [Test]
+    public void R_USR_07_a_new_left_date_on_a_disabled_account_stamps_the_account_too()
+    {
+        var user = NewStaff();
+        user.Disable(null, Actor, Now);
+        var admin = Guid.NewGuid();
+        var later = Now.AddDays(1);
+
+        user.Disable(new DateOnly(2026, 11, 15), admin, later);
+
+        user.StaffProfile!.LeftDate.ShouldBe(new DateOnly(2026, 11, 15));
+        user.UpdatedBy.ShouldBe(admin);
+        user.UpdatedAt.ShouldBe(later);
+    }
+
+    [Test]
     public void R_USR_03_disabled_account_restores_to_active_and_clears_left_date()
     {
         var user = NewStaff();
