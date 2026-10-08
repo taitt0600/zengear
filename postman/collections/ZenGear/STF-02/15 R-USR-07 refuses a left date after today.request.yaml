@@ -1,0 +1,23 @@
+$kind: http-request
+description: |-
+  R-USR-07 (DEC-103): the left date is not after today in Asia/Ho_Chi_Minh (UC-006, 3b): the account is disabled in
+  the same operation, so a later date would lock the staff member out before their last working day. Nothing changes.
+method: POST
+url: '{{baseUrl}}/api/v1/staff/{{staffId}}/disable'
+order: 15000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+  - key: Content-Type
+    value: 'application/json'
+body:
+  type: json
+  content: |-
+    { "leftDate": "{{tomorrow}}" }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 409', () => pm.response.to.have.status(409));
+      pm.test('problem type /problems/left-date-in-future', () => pm.expect(pm.response.json().type).to.eql('/problems/left-date-in-future'));
+      pm.test('ruleId R-USR-07', () => pm.expect(pm.response.json().ruleId).to.eql('R-USR-07'));

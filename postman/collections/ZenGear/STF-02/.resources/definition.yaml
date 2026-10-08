@@ -2,7 +2,8 @@ $kind: collection
 name: STF-02
 description: |-
   STF-02 — the Admin disables a staff account when the staff member leaves, recording the last working day, and
-  restores it when they come back (UC-006; R-USR-03, R-USR-07, R-TX-11, R-SEC-04).
+  restores it when they come back (UC-006; R-USR-03, R-USR-07, R-TX-11, R-SEC-04, R-USR-12; DEC-103). Left
+  dates are today and tomorrow in Asia/Ho_Chi_Minh, set by 01: a left date after today is refused.
 
   Needs tools/dev_reset.ps1 first: the Admin owner@zengear.test (bootstrap-admin, DEC-096) and the dev-only fixtures
   postman/fixtures/STF-01.sql (the Store Manager manager.fixture@zengear.test), STF-02.sql (Store Manager holds
@@ -10,9 +11,11 @@ description: |-
   customer.fixture@zengear.test). The folder creates its own staff member through POST /api/v1/staff, with an email
   and employee code carrying the run id `run`, so it runs again without a reset.
 
-  09 asks the Store Manager to disable the Admin and expects 409: should R-TX-11 ever regress, the Admin is disabled
-  and only tools/dev_reset.ps1 brings it back. Not checked here, covered by the integration tests of api/tests
-  (StaffStatusTests): the revoke of the Firebase sessions (the emulator keeps no trace the collection can read), the
-  repeat after a failed revoke, the CHECK of the database and a concurrent change.
+  09 asks the Store Manager to disable the Admin and 16 asks the Admin to disable their own account, both expecting
+  409: should R-TX-11 or R-USR-12 ever regress, the Admin is disabled and only tools/dev_reset.ps1 brings it back.
+  17 creates a second Admin for the run, which 21 leaves DISABLED. Not checked here, covered by the integration tests
+  of api/tests (StaffStatusTests): the revoke of the Firebase sessions (the emulator keeps no trace the collection can
+  read), the repeat after a failed revoke, the CHECK of the database, a concurrent change and the last ACTIVE Admin
+  (R-USR-12: reachable only when two Admins disable each other at once, since the caller is an ACTIVE Admin).
   Emulator only: the requests sign in with emulator custom tokens (see the collection description).
 order: 3000

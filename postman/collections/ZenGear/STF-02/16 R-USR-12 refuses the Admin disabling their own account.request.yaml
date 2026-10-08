@@ -1,0 +1,23 @@
+$kind: http-request
+description: |-
+  R-USR-12 (DEC-103): no one disables their own account (UC-006, 1d). Should it ever regress, the Admin is disabled
+  and only tools/dev_reset.ps1 brings it back.
+method: POST
+url: '{{baseUrl}}/api/v1/staff/{{adminId}}/disable'
+order: 16000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+  - key: Content-Type
+    value: 'application/json'
+body:
+  type: json
+  content: |-
+    { "leftDate": "{{today}}" }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 409', () => pm.response.to.have.status(409));
+      pm.test('problem type /problems/own-account-not-lockable', () => pm.expect(pm.response.json().type).to.eql('/problems/own-account-not-lockable'));
+      pm.test('ruleId R-USR-12', () => pm.expect(pm.response.json().ruleId).to.eql('R-USR-12'));

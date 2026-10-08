@@ -17,6 +17,9 @@ public class StaffStatusTests : IntegrationTestBase
     private const string StaffUid = "uid-staff";
     private static readonly DateOnly JoinedDate = new(2026, 10, 1);
 
+    /// <summary>10:00 on 2026-11-30 in Asia/Ho_Chi_Minh: the left dates of these tests are in the past (R-USR-07).</summary>
+    private static readonly DateTimeOffset Now = new(2026, 11, 30, 3, 0, 0, TimeSpan.Zero);
+
     private Guid _adminRole;
     private Guid _managerRole;
     private Guid _cashierRole;
@@ -31,6 +34,7 @@ public class StaffStatusTests : IntegrationTestBase
     {
         Auth.Reset();
         Factory.StaffLogs.Clear();
+        Factory.Time.AdjustTime(Now);
 
         _adminRole = await TestRoles.InsertAsync("Admin", isSystemRole: true);
         _managerRole = await TestRoles.InsertAsync("Store Manager");
@@ -239,6 +243,128 @@ public class StaffStatusTests : IntegrationTestBase
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
         Auth.Revoked.ShouldBe(["uid-admin-2"]);
+    }
+
+    [Test]
+    public async Task R_USR_07_left_date_after_today_is_409_and_changes_nothing()
+    {
+        var response = await DisableAsync(AdminUid, _staffId, new { leftDate = "2026-12-01" });
+
+        await response.ShouldBeProblemAsync(HttpStatusCode.Conflict, "/problems/left-date-in-future", "R-USR-07");
+        (await RowAsync(_staffId)).ShouldBe(new StatusRow("ACTIVE", null, null));
+        Auth.Revoked.ShouldBeEmpty();
+    }
+
+    [Test]
+    public async Task R_USR_07_left_date_of_today_in_ho_chi_minh_is_accepted()
+    {
+        // 01:00 on 2026-12-01 in Asia/Ho_Chi_Minh, still 2026-11-30 in UTC.
+        Factory.Time.AdjustTime(new DateTimeOffset(2026, 11, 30, 18, 0, 0, TimeSpan.Zero));
+
+        var response = await DisableAsync(AdminUid, _staffId, new { leftDate = "2026-12-01" });
+
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        (await RowAsync(_staffId)).ShouldBe(new StatusRow("DISABLED", new DateOnly(2026, 12, 1), _adminId));
+    }
+
+    [Test]
+    public async Task R_USR_12_caller_cannot_disable_own_account_409()
+    {
+        var secondAdmin = await TestUsers.InsertAsync("uid-admin-2");
+        await TestRoles.AssignAsync(secondAdmin, _adminRole);
+
+        var admin = await DisableAsync(AdminUid, _adminId, new { leftDate = "2026-11-30" });
+        var manager = await DisableAsync(ManagerUid, _managerId, new { });
+
+        await admin.ShouldBeProblemAsync(HttpStatusCode.Conflict, "/problems/own-account-not-lockable", "R-USR-12");
+        await manager.ShouldBeProblemAsync(HttpStatusCode.Conflict, "/problems/own-account-not-lockable", "R-USR-12");
+        (await RowAsync(_adminId)).ShouldBe(new StatusRow("ACTIVE", null, null));
+        (await RowAsync(_managerId)).ShouldBe(new StatusRow("ACTIVE", null, null));
+        Auth.Revoked.ShouldBeEmpty();
+    }
+
+    [Test]
+    public async Task R_USR_12_last_active_admin_cannot_be_disabled_when_another_admin_disables_the_caller_meanwhile()
+    {
+        var secondAdmin = await TestUsers.InsertAsync("uid-admin-2");
+        await TestRoles.AssignAsync(secondAdmin, _adminRole);
+        // Records the sign-in of the caller first, so its request below writes nothing to its own row.
+        (await MeAsync(AdminUid)).StatusCode.ShouldBe(HttpStatusCode.OK);
+
+        // The second Admin disables the caller and holds the row lock: the caller's request waits on the check of the last
+        // ACTIVE Admin, then finds itself DISABLED, which leaves the second Admin as the last one.
+        await using var other = await TestRoles.OpenAsync();
+        await using var transaction = await other.BeginTransactionAsync();
+        await using (var disable = new NpgsqlCommand("UPDATE users SET status = 'DISABLED' WHERE id = @id", other, transaction))
+        {
+            disable.Parameters.AddWithValue("id", _adminId);
+            await disable.ExecuteNonQueryAsync();
+        }
+
+        var request = DisableAsync(AdminUid, secondAdmin, new { });
+        await WaitForLockWaitAsync();
+        await transaction.CommitAsync();
+        var response = await request;
+
+        await response.ShouldBeProblemAsync(HttpStatusCode.Conflict, "/problems/last-active-admin", "R-USR-12");
+        (await RowAsync(secondAdmin)).Status.ShouldBe("ACTIVE");
+        Auth.Revoked.ShouldBeEmpty();
+    }
+
+    [Test]
+    public async Task R_USR_12_two_admins_disabling_each_other_at_once_keep_one_active_admin()
+    {
+        var secondAdmin = await TestUsers.InsertAsync("uid-admin-2");
+        await TestRoles.AssignAsync(secondAdmin, _adminRole);
+        (await MeAsync(AdminUid)).StatusCode.ShouldBe(HttpStatusCode.OK);
+        (await MeAsync("uid-admin-2")).StatusCode.ShouldBe(HttpStatusCode.OK);
+
+        var responses = await Task.WhenAll(
+            DisableAsync(AdminUid, secondAdmin, new { }),
+            DisableAsync("uid-admin-2", _adminId, new { }));
+
+        // One wins; the other is refused as the last ACTIVE Admin, or as DISABLED when its request starts after the commit.
+        responses.Count(r => r.StatusCode == HttpStatusCode.OK).ShouldBe(1);
+        responses.Count(r => r.StatusCode is HttpStatusCode.Conflict or HttpStatusCode.Forbidden).ShouldBe(1);
+        var statuses = new[] { (await RowAsync(_adminId)).Status, (await RowAsync(secondAdmin)).Status };
+        statuses.ShouldBe(["ACTIVE", "DISABLED"], ignoreOrder: true);
+    }
+
+    [Test]
+    public async Task R_USR_12_caller_without_admin_cannot_restore_an_admin_account_409()
+    {
+        var secondAdmin = await TestUsers.InsertAsync("uid-admin-2");
+        await TestRoles.AssignAsync(secondAdmin, _adminRole);
+        (await DisableAsync(AdminUid, secondAdmin, new { leftDate = "2026-11-30" })).StatusCode.ShouldBe(HttpStatusCode.OK);
+
+        var response = await RestoreAsync(ManagerUid, secondAdmin);
+
+        await response.ShouldBeProblemAsync(HttpStatusCode.Conflict, "/problems/admin-account-not-restorable", "R-USR-12");
+        (await RowAsync(secondAdmin)).ShouldBe(new StatusRow("DISABLED", new DateOnly(2026, 11, 30), _adminId));
+    }
+
+    [Test]
+    public async Task R_USR_12_admin_restores_an_admin_account()
+    {
+        var secondAdmin = await TestUsers.InsertAsync("uid-admin-2");
+        await TestRoles.AssignAsync(secondAdmin, _adminRole);
+        (await DisableAsync(AdminUid, secondAdmin, new { })).StatusCode.ShouldBe(HttpStatusCode.OK);
+
+        var response = await RestoreAsync(AdminUid, secondAdmin);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        (await RowAsync(secondAdmin)).ShouldBe(new StatusRow("ACTIVE", null, _adminId));
+    }
+
+    [Test]
+    public async Task R_USR_12_caller_without_admin_restores_other_staff()
+    {
+        (await DisableAsync(AdminUid, _staffId, new { })).StatusCode.ShouldBe(HttpStatusCode.OK);
+
+        var response = await RestoreAsync(ManagerUid, _staffId);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        (await RowAsync(_staffId)).ShouldBe(new StatusRow("ACTIVE", null, _managerId));
     }
 
     [Test]

@@ -1,0 +1,27 @@
+$kind: http-request
+description: |-
+  Set-up for 18 to 21: a second Admin account (STF-01: only an Admin gives the Admin role, R-TX-11).
+method: POST
+url: '{{baseUrl}}/api/v1/staff'
+order: 17000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+  - key: Content-Type
+    value: 'application/json'
+body:
+  type: json
+  content: |-
+    {
+      "email": "stf02-admin-{{run}}@zengear.test",
+      "name": "Admin kiểm thử",
+      "employeeCode": "{{run}}-A2",
+      "joinedDate": "2026-10-01",
+      "roleIds": ["{{roleAdmin}}"]
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 201', () => pm.response.to.have.status(201));
+      pm.variables.set('secondAdminId', pm.response.json().id);
