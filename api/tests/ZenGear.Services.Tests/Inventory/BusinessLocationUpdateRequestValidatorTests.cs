@@ -114,6 +114,8 @@ public class BusinessLocationUpdateRequestValidatorTests
             .ShouldHaveValidationErrorFor("SpecialHours[0].Open");
         _validator.TestValidate(Valid() with { SpecialHours = [new(null, true, null, null)] })
             .ShouldHaveValidationErrorFor("SpecialHours[0].Date");
+        _validator.TestValidate(Valid() with { SpecialHours = [new(Holiday, null, null, null)] })
+            .ShouldHaveValidationErrorFor("SpecialHours[0].Closed");
     }
 
     [Test]

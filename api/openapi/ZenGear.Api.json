@@ -1282,7 +1282,10 @@
             "format": "date"
           },
           "closed": {
-            "type": "boolean"
+            "type": [
+              "null",
+              "boolean"
+            ]
           },
           "open": {
             "type": [
