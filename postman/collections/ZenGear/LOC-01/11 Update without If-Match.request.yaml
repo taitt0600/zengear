@@ -1,0 +1,29 @@
+$kind: http-request
+description: |-
+  API conventions: PUT on a resource with an ETag needs If-Match (428 /problems/if-match-required).
+method: PUT
+url: '{{baseUrl}}/api/v1/business-locations/{{businessLocationId}}'
+order: 11000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+  - key: Content-Type
+    value: 'application/json'
+body:
+  type: json
+  content: |-
+    {
+      "name": "Không có If-Match {{run}}",
+      "phone": "02838123456",
+      "addressDetail": "123 Lê Lợi",
+      "provinceId": 79,
+      "wardId": 26734,
+      "regularHours": [ { "day": 1, "open": "08:30", "close": "21:30" } ]
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 428', () => pm.response.to.have.status(428));
+      pm.test('problem type /problems/if-match-required', () =>
+        pm.expect(pm.response.json().type).to.eql('/problems/if-match-required'));

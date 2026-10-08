@@ -1,0 +1,60 @@
+$kind: http-request
+description: |-
+  UC-070 steps 2–4: the Admin changes the address (a ward of the chosen province), the hotline, the weekly hours (two
+  periods on weekdays) and adds a holiday closed tomorrow. The new ETag is kept as `etag2`.
+method: PUT
+url: '{{baseUrl}}/api/v1/business-locations/{{businessLocationId}}'
+order: 3000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+  - key: If-Match
+    value: '{{etag}}'
+  - key: Content-Type
+    value: 'application/json'
+body:
+  type: json
+  content: |-
+    {
+      "name": "ZenGear Bến Thành {{run}}",
+      "phone": "1900636123",
+      "email": "HoTro@ZenGear.test",
+      "addressDetail": "45 Lê Thánh Tôn",
+      "provinceId": 79,
+      "wardId": 26743,
+      "regularHours": [
+        { "day": 1, "open": "08:00", "close": "12:00" }, { "day": 1, "open": "13:00", "close": "21:00" },
+        { "day": 2, "open": "08:00", "close": "12:00" }, { "day": 2, "open": "13:00", "close": "21:00" },
+        { "day": 3, "open": "08:00", "close": "12:00" }, { "day": 3, "open": "13:00", "close": "21:00" },
+        { "day": 4, "open": "08:00", "close": "12:00" }, { "day": 4, "open": "13:00", "close": "21:00" },
+        { "day": 5, "open": "08:00", "close": "12:00" }, { "day": 5, "open": "13:00", "close": "21:00" },
+        { "day": 6, "open": "08:00", "close": "21:00" },
+        { "day": 7, "open": "09:00", "close": "18:00" }
+      ],
+      "specialHours": [ { "date": "{{holiday}}", "closed": true } ]
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 200', () => pm.response.to.have.status(200));
+      pm.variables.set('etag2', pm.response.headers.get('ETag'));
+      pm.test('a new ETag', () => pm.expect(pm.response.headers.get('ETag')).to.not.eql(pm.variables.get('etag')));
+      const body = pm.response.json();
+      pm.test('address and hotline changed', () => {
+        pm.expect(body.name).to.eql(`ZenGear Bến Thành ${pm.variables.get('run')}`);
+        pm.expect(body.phone).to.eql('1900636123');
+        pm.expect(body.email).to.eql('hotro@zengear.test');
+        pm.expect(body.addressDetail).to.eql('45 Lê Thánh Tôn');
+        pm.expect(body.wardId).to.eql(26743);
+        pm.expect(body.wardName).to.eql('Phường Bến Thành');
+      });
+      pm.test('weekly hours by day, two periods on Monday', () => {
+        pm.expect(body.regularHours).to.have.lengthOf(12);
+        pm.expect(body.regularHours[0]).to.eql({ day: 1, open: '08:00', close: '12:00' });
+        pm.expect(body.regularHours[1]).to.eql({ day: 1, open: '13:00', close: '21:00' });
+      });
+      pm.test('the holiday is closed', () => {
+        const holiday = body.specialHours.find(s => s.date === pm.variables.get('holiday'));
+        pm.expect(holiday.closed).to.eql(true);
+      });

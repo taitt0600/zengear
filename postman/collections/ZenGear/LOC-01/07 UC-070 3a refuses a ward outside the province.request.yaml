@@ -1,0 +1,33 @@
+$kind: http-request
+description: |-
+  UC-070 3a (acceptance criterion "Phường/xã phải thuộc tỉnh/thành đã chọn"): Phường Hoàn Kiếm (Hà Nội) with TP. Hồ Chí
+  Minh is refused with 400 on wardId; 09 shows nothing changed.
+method: PUT
+url: '{{baseUrl}}/api/v1/business-locations/{{businessLocationId}}'
+order: 7000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+  - key: If-Match
+    value: '*'
+  - key: Content-Type
+    value: 'application/json'
+body:
+  type: json
+  content: |-
+    {
+      "name": "Sai phường {{run}}",
+      "phone": "1900636123",
+      "addressDetail": "45 Lê Thánh Tôn",
+      "provinceId": 79,
+      "wardId": 70,
+      "regularHours": [ { "day": 1, "open": "08:00", "close": "21:00" } ]
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 400', () => pm.response.to.have.status(400));
+      pm.test('problem type 400', () =>
+        pm.expect(pm.response.json().type).to.eql('https://tools.ietf.org/html/rfc9110#section-15.5.1'));
+      pm.test('error on wardId', () => pm.expect(pm.response.json().errors).to.have.property('wardId'));

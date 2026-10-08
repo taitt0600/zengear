@@ -1,0 +1,31 @@
+$kind: http-request
+description: |-
+  R-LOC-01: the website reads the address, hotline and opening hours from the one business location, without signing
+  in. Also sets `run` and `holiday` (tomorrow in Asia/Ho_Chi_Minh), used by 03 and 04.
+method: GET
+url: '{{baseUrl}}/api/v1/business-locations?page=1&pageSize=20'
+order: 1000
+scripts:
+  - type: beforeRequest
+    language: text/javascript
+    code: |-
+      pm.variables.set('run', Date.now().toString(36));
+      // Asia/Ho_Chi_Minh is UTC+7 all year.
+      pm.variables.set('holiday', new Date(Date.now() + 7 * 3600e3 + 86400e3).toISOString().slice(0, 10));
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 200', () => pm.response.to.have.status(200));
+      const body = pm.response.json();
+      pm.test('exactly one location (R-LOC-01)', () => {
+        pm.expect(body.totalCount).to.eql(1);
+        pm.expect(body.items[0].id).to.eql(pm.variables.get('businessLocationId'));
+      });
+      pm.test('address, hotline and 7 days of hours', () => {
+        const location = body.items[0];
+        pm.expect(location.phone).to.match(/^[0-9]{8,11}$/);
+        pm.expect(location.wardName).to.be.a('string');
+        pm.expect(location.provinceName).to.be.a('string');
+        pm.expect(location.regularHours).to.be.an('array').that.is.not.empty;
+        pm.expect(location.weekHours).to.have.lengthOf(7);
+      });

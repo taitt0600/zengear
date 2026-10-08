@@ -1,0 +1,24 @@
+$kind: http-request
+description: |-
+  UC-070 step 1: the Admin opens the business location; the ETag is kept as `etag` for the update of 03 and the stale
+  update of 10.
+method: GET
+url: '{{baseUrl}}/api/v1/business-locations/{{businessLocationId}}'
+order: 2000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 200', () => pm.response.to.have.status(200));
+      pm.test('an ETag', () => pm.expect(pm.response.headers.get('ETag')).to.match(/^"\d+"$/));
+      pm.variables.set('etag', pm.response.headers.get('ETag'));
+      const body = pm.response.json();
+      pm.test('the edit form: ids of the province and ward', () => {
+        pm.expect(body.id).to.eql(pm.variables.get('businessLocationId'));
+        pm.expect(body.provinceId).to.be.a('number');
+        pm.expect(body.wardId).to.be.a('number');
+        pm.expect(body.specialHours).to.be.an('array');
+      });

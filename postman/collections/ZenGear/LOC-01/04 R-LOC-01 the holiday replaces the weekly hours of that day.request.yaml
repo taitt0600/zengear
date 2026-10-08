@@ -1,0 +1,27 @@
+$kind: http-request
+description: |-
+  R-LOC-01: on the website, tomorrow (the holiday of 03) has no hours instead of its weekly hours, and the other days
+  keep theirs; the website shows what the Admin saved.
+method: GET
+url: '{{baseUrl}}/api/v1/business-locations'
+order: 4000
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 200', () => pm.response.to.have.status(200));
+      const location = pm.response.json().items[0];
+      pm.test('the website shows the saved address', () => {
+        pm.expect(location.name).to.eql(`ZenGear Bến Thành ${pm.variables.get('run')}`);
+        pm.expect(location.wardName).to.eql('Phường Bến Thành');
+        pm.expect(location.phone).to.eql('1900636123');
+      });
+      pm.test('tomorrow is closed for the holiday', () => {
+        pm.expect(location.weekHours[1].date).to.eql(pm.variables.get('holiday'));
+        pm.expect(location.weekHours[1].periods).to.eql([]);
+      });
+      pm.test('the other days keep their weekly hours', () => {
+        [0, 2, 3, 4, 5, 6].forEach(i => pm.expect(location.weekHours[i].periods).to.not.be.empty);
+      });
+      pm.test('the holiday schedule from today on', () =>
+        pm.expect(location.specialHours.map(s => s.date)).to.include(pm.variables.get('holiday')));

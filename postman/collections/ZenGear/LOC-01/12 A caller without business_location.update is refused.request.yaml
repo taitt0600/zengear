@@ -1,0 +1,18 @@
+$kind: http-request
+description: |-
+  R-SEC-03: business_location.update is the Admin's only (owner's decision for LOC-01); the customer of the STF-03
+  fixture, who holds no permission, cannot open the edit form (403 /problems/permission-denied).
+method: GET
+url: '{{baseUrl}}/api/v1/business-locations/{{businessLocationId}}'
+order: 12000
+headers:
+  - key: X-ZenGear-As
+    value: '{{customerEmail}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 403', () => pm.response.to.have.status(403));
+      pm.test('problem type /problems/permission-denied', () =>
+        pm.expect(pm.response.json().type).to.eql('/problems/permission-denied'));
+      pm.test('ruleId R-SEC-03', () => pm.expect(pm.response.json().ruleId).to.eql('R-SEC-03'));
