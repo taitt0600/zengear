@@ -1,9 +1,9 @@
 $kind: http-request
 description: |-
   R-LOC-01: the website reads the address, hotline and opening hours from the one business location, without signing
-  in. Also sets `run` and `holiday` (tomorrow in Asia/Ho_Chi_Minh), used by 03 and 04, and `businessLocationId`, the id
-  of that one location, used by every later request: it is read here rather than from the environment, so the folder
-  runs the same in the Postman app and the CLI, whatever id the location has.
+  in. Also sets `run`, `holiday` (tomorrow in Asia/Ho_Chi_Minh) and `shortDay` (the day after), used by 03 and 04,
+  and `businessLocationId`, the id of that one location, used by every later request: it is read here rather than
+  from the environment, so the folder runs the same in the Postman app and the CLI, whatever id the location has.
 method: GET
 url: '{{baseUrl}}/api/v1/business-locations?page=1&pageSize=20'
 order: 1000
@@ -14,6 +14,7 @@ scripts:
       pm.variables.set('run', Date.now().toString(36));
       // Asia/Ho_Chi_Minh is UTC+7 all year.
       pm.variables.set('holiday', new Date(Date.now() + 7 * 3600e3 + 86400e3).toISOString().slice(0, 10));
+      pm.variables.set('shortDay', new Date(Date.now() + 7 * 3600e3 + 2 * 86400e3).toISOString().slice(0, 10));
   - type: afterResponse
     language: text/javascript
     code: |-

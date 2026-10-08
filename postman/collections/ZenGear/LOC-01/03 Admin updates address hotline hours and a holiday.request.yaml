@@ -1,7 +1,8 @@
 $kind: http-request
 description: |-
   UC-070 steps 2–4: the Admin changes the address (a ward of the chosen province), the hotline, the weekly hours (two
-  periods on weekdays) and adds a holiday closed tomorrow. The new ETag is kept as `etag2`.
+  periods on weekdays) and adds a holiday closed tomorrow and one with its own hours (10:00–16:00) the day after.
+  The new ETag is kept as `etag2`.
 method: PUT
 url: '{{baseUrl}}/api/v1/business-locations/{{businessLocationId}}'
 order: 3000
@@ -31,7 +32,10 @@ body:
         { "day": 6, "open": "08:00", "close": "21:00" },
         { "day": 7, "open": "09:00", "close": "18:00" }
       ],
-      "specialHours": [ { "date": "{{holiday}}", "closed": true } ]
+      "specialHours": [
+        { "date": "{{holiday}}", "closed": true },
+        { "date": "{{shortDay}}", "closed": false, "open": "10:00", "close": "16:00" }
+      ]
     }
 scripts:
   - type: afterResponse
@@ -57,4 +61,8 @@ scripts:
       pm.test('the holiday is closed', () => {
         const holiday = body.specialHours.find(s => s.date === pm.variables.get('holiday'));
         pm.expect(holiday.closed).to.eql(true);
+      });
+      pm.test('the short day keeps its own hours', () => {
+        const shortDay = body.specialHours.find(s => s.date === pm.variables.get('shortDay'));
+        pm.expect(shortDay).to.eql({ date: pm.variables.get('shortDay'), closed: false, open: '10:00', close: '16:00' });
       });
