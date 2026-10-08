@@ -1,0 +1,20 @@
+$kind: http-request
+description: |-
+  No staff account with this id: 404.
+method: POST
+url: '{{baseUrl}}/api/v1/staff/0199a0f2-0000-7000-8000-0000000000ff/disable'
+order: 13000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+  - key: Content-Type
+    value: 'application/json'
+body:
+  type: json
+  content: |-
+    {}
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 404', () => pm.response.to.have.status(404));

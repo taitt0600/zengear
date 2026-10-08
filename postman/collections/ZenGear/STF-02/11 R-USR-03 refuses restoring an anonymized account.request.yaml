@@ -1,0 +1,17 @@
+$kind: http-request
+description: |-
+  R-USR-03: ANONYMIZED is final (UC-006, 1c). The account is the fixture anonymizedStaffId
+  (postman/fixtures/STF-02.sql): no endpoint anonymizes an account yet (ACC-08).
+method: POST
+url: '{{baseUrl}}/api/v1/staff/{{anonymizedStaffId}}/restore'
+order: 11000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 409', () => pm.response.to.have.status(409));
+      pm.test('problem type /problems/account-anonymized', () => pm.expect(pm.response.json().type).to.eql('/problems/account-anonymized'));
+      pm.test('ruleId R-USR-03', () => pm.expect(pm.response.json().ruleId).to.eql('R-USR-03'));

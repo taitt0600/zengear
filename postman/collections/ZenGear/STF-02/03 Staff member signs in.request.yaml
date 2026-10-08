@@ -1,0 +1,15 @@
+$kind: http-request
+description: |-
+  The new staff member signs in (emulator custom token) and is accepted: the account is ACTIVE.
+method: GET
+url: '{{baseUrl}}/api/v1/me'
+order: 3000
+headers:
+  - key: X-ZenGear-As
+    value: '{{staffEmail}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 200', () => pm.response.to.have.status(200));
+      pm.test('the staff member', () => pm.expect(pm.response.json().email).to.eql(pm.variables.get('staffEmail')));

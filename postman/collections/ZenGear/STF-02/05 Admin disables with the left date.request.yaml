@@ -1,0 +1,27 @@
+$kind: http-request
+description: |-
+  Acceptance criterion 3, R-USR-07: recording the left date disables the account in the same operation. Also
+  revokes the Firebase sessions (criterion 1, R-SEC-04; checked by the integration tests).
+method: POST
+url: '{{baseUrl}}/api/v1/staff/{{staffId}}/disable'
+order: 5000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+  - key: Content-Type
+    value: 'application/json'
+body:
+  type: json
+  content: |-
+    { "leftDate": "2026-10-31" }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 200', () => pm.response.to.have.status(200));
+      const staff = pm.response.json();
+      pm.test('DISABLED with the left date', () => {
+        pm.expect(staff.id).to.eql(pm.variables.get('staffId'));
+        pm.expect(staff.status).to.eql('DISABLED');
+        pm.expect(staff.leftDate).to.eql('2026-10-31');
+      });

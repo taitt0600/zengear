@@ -1,0 +1,23 @@
+$kind: http-request
+description: |-
+  Acceptance criterion 2, R-TX-11: a Store Manager cannot disable an account holding the Admin role (UC-006, 1b).
+  The caller is the fixture Store Manager (postman/fixtures/STF-01.sql), who holds staff.disable (STF-02.sql).
+method: POST
+url: '{{baseUrl}}/api/v1/staff/{{adminId}}/disable'
+order: 9000
+headers:
+  - key: X-ZenGear-As
+    value: '{{managerEmail}}'
+  - key: Content-Type
+    value: 'application/json'
+body:
+  type: json
+  content: |-
+    { "leftDate": "2026-10-31" }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 409', () => pm.response.to.have.status(409));
+      pm.test('problem type /problems/admin-account-not-lockable', () => pm.expect(pm.response.json().type).to.eql('/problems/admin-account-not-lockable'));
+      pm.test('ruleId R-TX-11', () => pm.expect(pm.response.json().ruleId).to.eql('R-TX-11'));
