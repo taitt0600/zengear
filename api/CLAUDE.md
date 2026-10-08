@@ -49,6 +49,9 @@ SonarAnalyzer rules that turned builds red in earlier features. After each edit 
 - `S6667` — a log call inside a `catch` must pass the exception, so the stack trace is not lost. Pass it (`logger.LogWarning(ex, …)`); when the exception may hold personal data (R-SEC-11), keep what you need inside the `catch` and log after it.
 - `S3358` — no nested ternary operator: it hides branches. Use `if`/`else` or a `switch` expression.
 - `S2325` — a method that uses no instance member must be static. It also fails a stub (`=> throw new NotImplementedException()`) on an entity or service written before its tests: write the real method body, or let the test fail on a missing endpoint or an empty validator instead of a stub.
+- `S2139` — a `catch` that logs an exception and rethrows it logs it twice (the host logs the unhandled exception). Either handle it, or rethrow it wrapped with context (`throw new InvalidOperationException("…", ex)`) without logging; keep the message to ids (R-SEC-11).
+- `S6960` — a controller whose actions use disjoint dependencies has several responsibilities. Give a new family of use cases its own controller on the same route prefix (`StaffStatusController` beside `StaffController`), matching its `<Entity><UseCase>Service`.
+- `S1144` — an unused private member. It also fires between two edits when a private method is replaced by a shared one: remove the private copy in the same edit as its last caller.
 
 ## Commands
 
