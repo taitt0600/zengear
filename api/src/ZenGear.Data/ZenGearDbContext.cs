@@ -1,7 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ZenGear.Data.Common;
+using ZenGear.Data.Entities.Geography;
 using ZenGear.Data.Entities.Identity;
+using ZenGear.Data.Entities.Inventory;
 
 namespace ZenGear.Data;
 
@@ -27,6 +29,14 @@ public class ZenGearDbContext : DbContext
     public DbSet<UserRole> UserRoles => Set<UserRole>();
 
     public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
+
+    public DbSet<Country> Countries => Set<Country>();
+
+    public DbSet<Province> Provinces => Set<Province>();
+
+    public DbSet<Ward> Wards => Set<Ward>();
+
+    public DbSet<BusinessLocation> BusinessLocations => Set<BusinessLocation>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

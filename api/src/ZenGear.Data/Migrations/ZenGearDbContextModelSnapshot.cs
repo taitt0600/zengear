@@ -22,6 +22,233 @@ namespace ZenGear.Data.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("ZenGear.Data.Entities.Geography.Country", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Capital")
+                        .HasColumnType("varchar")
+                        .HasColumnName("capital");
+
+                    b.Property<string>("CommonName")
+                        .HasColumnType("varchar")
+                        .HasColumnName("common_name");
+
+                    b.Property<string>("CountryCode")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)")
+                        .HasColumnName("country_code");
+
+                    b.Property<string>("CountryCode3")
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)")
+                        .HasColumnName("country_code3");
+
+                    b.Property<string>("CountryNumber")
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)")
+                        .HasColumnName("country_number");
+
+                    b.Property<string>("CountrySubType")
+                        .HasColumnType("varchar")
+                        .HasColumnName("country_sub_type");
+
+                    b.Property<string>("CountryType")
+                        .HasColumnType("varchar")
+                        .HasColumnName("country_type");
+
+                    b.Property<string>("CurrencyCode")
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)")
+                        .HasColumnName("currency_code");
+
+                    b.Property<string>("CurrencyName")
+                        .HasColumnType("varchar")
+                        .HasColumnName("currency_name");
+
+                    b.Property<string>("FlagUrl")
+                        .HasColumnType("text")
+                        .HasColumnName("flag_url");
+
+                    b.Property<string>("FormalName")
+                        .HasColumnType("varchar")
+                        .HasColumnName("formal_name");
+
+                    b.Property<string>("InternetCountryCode")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("internet_country_code");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_deleted");
+
+                    b.Property<bool>("IsPublished")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_published");
+
+                    b.Property<int?>("SortOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("sort_order");
+
+                    b.Property<string>("Sovereignty")
+                        .HasColumnType("varchar")
+                        .HasColumnName("sovereignty");
+
+                    b.Property<string>("TelephoneCode")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("telephone_code");
+
+                    b.HasKey("Id")
+                        .HasName("pk_countries");
+
+                    b.HasIndex("CountryCode")
+                        .IsUnique()
+                        .HasDatabaseName("ix_countries_country_code");
+
+                    b.HasIndex("CountryCode3")
+                        .IsUnique()
+                        .HasDatabaseName("ix_countries_country_code3");
+
+                    b.ToTable("countries", (string)null);
+                });
+
+            modelBuilder.Entity("ZenGear.Data.Entities.Geography.Province", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Code")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("code");
+
+                    b.Property<int>("CountryId")
+                        .HasColumnType("integer")
+                        .HasColumnName("country_id");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("varchar")
+                        .HasColumnName("name");
+
+                    b.Property<string>("PhoneCode")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("phone_code");
+
+                    b.Property<int>("SortOrder")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("sort_order");
+
+                    b.Property<string>("Type")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("type");
+
+                    b.Property<string>("ZipCode")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("zip_code");
+
+                    b.HasKey("Id")
+                        .HasName("pk_provinces");
+
+                    b.HasIndex("Code")
+                        .IsUnique()
+                        .HasDatabaseName("ix_provinces_code");
+
+                    b.HasIndex("CountryId")
+                        .HasDatabaseName("ix_provinces_country_id");
+
+                    b.HasIndex("Id", "CountryId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_provinces_id_country_id");
+
+                    b.ToTable("provinces", (string)null);
+                });
+
+            modelBuilder.Entity("ZenGear.Data.Entities.Geography.Ward", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Code")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("code");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("varchar")
+                        .HasColumnName("name");
+
+                    b.Property<string>("PhoneCode")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("phone_code");
+
+                    b.Property<int?>("ProvinceId")
+                        .HasColumnType("integer")
+                        .HasColumnName("province_id");
+
+                    b.Property<int>("SortOrder")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("sort_order");
+
+                    b.Property<string>("Type")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("type");
+
+                    b.Property<string>("ZipCode")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("zip_code");
+
+                    b.HasKey("Id")
+                        .HasName("pk_wards");
+
+                    b.HasIndex("Code")
+                        .IsUnique()
+                        .HasDatabaseName("ix_wards_code");
+
+                    b.HasIndex("ProvinceId")
+                        .HasDatabaseName("ix_wards_province_id");
+
+                    b.HasIndex("Id", "ProvinceId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_wards_id_province_id");
+
+                    b.ToTable("wards", (string)null);
+                });
+
             modelBuilder.Entity("ZenGear.Data.Entities.Identity.Permission", b =>
                 {
                     b.Property<Guid>("Id")
@@ -352,6 +579,117 @@ namespace ZenGear.Data.Migrations
                     b.ToTable("user_roles", (string)null);
                 });
 
+            modelBuilder.Entity("ZenGear.Data.Entities.Inventory.BusinessLocation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("uuidv7()");
+
+                    b.Property<string>("AddressDetail")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("address_detail");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("varchar")
+                        .HasColumnName("email");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("varchar")
+                        .HasColumnName("name");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("phone");
+
+                    b.Property<int>("ProvinceId")
+                        .HasColumnType("integer")
+                        .HasColumnName("province_id");
+
+                    b.Property<string>("RegularHours")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("regular_hours");
+
+                    b.Property<string>("SpecialHours")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("special_hours");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("updated_by");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.Property<int>("WardId")
+                        .HasColumnType("integer")
+                        .HasColumnName("ward_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_business_locations");
+
+                    b.HasIndex("Name")
+                        .IsUnique()
+                        .HasDatabaseName("ix_business_locations_name");
+
+                    b.HasIndex("ProvinceId")
+                        .HasDatabaseName("ix_business_locations_province_id");
+
+                    b.HasIndex("WardId")
+                        .HasDatabaseName("ix_business_locations_ward_id");
+
+                    b.ToTable("business_locations", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_business_locations_regular_hours", "jsonb_typeof(regular_hours) = 'array'");
+
+                            t.HasCheckConstraint("ck_business_locations_special_hours", "special_hours is null or jsonb_typeof(special_hours) = 'array'");
+                        });
+                });
+
+            modelBuilder.Entity("ZenGear.Data.Entities.Geography.Province", b =>
+                {
+                    b.HasOne("ZenGear.Data.Entities.Geography.Country", null)
+                        .WithMany()
+                        .HasForeignKey("CountryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_provinces_countries_country_id");
+                });
+
+            modelBuilder.Entity("ZenGear.Data.Entities.Geography.Ward", b =>
+                {
+                    b.HasOne("ZenGear.Data.Entities.Geography.Province", null)
+                        .WithMany()
+                        .HasForeignKey("ProvinceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_wards_provinces_province_id");
+                });
+
             modelBuilder.Entity("ZenGear.Data.Entities.Identity.RolePermission", b =>
                 {
                     b.HasOne("ZenGear.Data.Entities.Identity.Permission", null)
@@ -394,6 +732,16 @@ namespace ZenGear.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_user_roles_users_user_id");
+                });
+
+            modelBuilder.Entity("ZenGear.Data.Entities.Inventory.BusinessLocation", b =>
+                {
+                    b.HasOne("ZenGear.Data.Entities.Geography.Province", null)
+                        .WithMany()
+                        .HasForeignKey("ProvinceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_business_locations_provinces_province_id");
                 });
 
             modelBuilder.Entity("ZenGear.Data.Entities.Identity.Role", b =>
