@@ -96,24 +96,26 @@ public class User : IAggregateRoot
 
     /// <summary>
     /// Disables the staff account and, when given, records the last working day in the same change (R-USR-07). A
-    /// DISABLED account stays DISABLED: a later call records a new left date on the staff profile and otherwise changes
-    /// nothing. The
-    /// service checks the rules first for a clear error; these checks are the backstop.
+    /// DISABLED account stays DISABLED: a later call with a new left date records it and stamps the account; one that
+    /// changes nothing writes nothing. The service checks the rules first for a clear error; these checks are the
+    /// backstop.
     /// </summary>
     /// <exception cref="InvalidOperationException">ANONYMIZED is final (R-USR-03), or the user is not staff.</exception>
     /// <exception cref="ArgumentException"><paramref name="leftDate"/> is before the joined date (R-USR-07).</exception>
     public void Disable(DateOnly? leftDate, Guid updatedBy, DateTimeOffset now)
     {
         var profile = StaffProfileForStatusChange();
-        if (leftDate is { } date && date != profile.LeftDate)
-        {
-            profile.RecordLeftDate(date, updatedBy, now);
-        }
+        var newLeftDate = leftDate is { } date && date != profile.LeftDate;
 
         // A repeat that changes nothing writes nothing: a retry after a failed revoke keeps the stamps and the version.
-        if (Status == UserStatus.Disabled)
+        if (Status == UserStatus.Disabled && !newLeftDate)
         {
             return;
+        }
+
+        if (newLeftDate)
+        {
+            profile.RecordLeftDate(leftDate!.Value, updatedBy, now);
         }
 
         Status = UserStatus.Disabled;
