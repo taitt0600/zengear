@@ -5,6 +5,238 @@
     "version": "v1"
   },
   "paths": {
+    "/api/v1/business-locations/{id}": {
+      "get": {
+        "tags": [
+          "BusinessLocations"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessLocationDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "BusinessLocations"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessLocationUpdateRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessLocationUpdateRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessLocationUpdateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessLocationDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "412": {
+            "description": "Precondition Failed",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "428": {
+            "description": "Precondition Required",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/business-locations": {
+      "get": {
+        "tags": [
+          "BusinessLocationsPublic"
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessLocationPublicPageDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/me": {
       "get": {
         "tags": [
@@ -554,6 +786,258 @@
   },
   "components": {
     "schemas": {
+      "BusinessLocationDto": {
+        "required": [
+          "id",
+          "name",
+          "phone",
+          "email",
+          "addressDetail",
+          "provinceId",
+          "provinceName",
+          "wardId",
+          "wardName",
+          "regularHours",
+          "specialHours",
+          "updatedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "email": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "addressDetail": {
+            "type": "string"
+          },
+          "provinceId": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "provinceName": {
+            "type": "string"
+          },
+          "wardId": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "wardName": {
+            "type": "string"
+          },
+          "regularHours": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RegularHoursPeriodDto"
+            }
+          },
+          "specialHours": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SpecialHoursPeriodDto"
+            }
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "BusinessLocationPublicDto": {
+        "required": [
+          "id",
+          "name",
+          "phone",
+          "email",
+          "addressDetail",
+          "wardName",
+          "provinceName",
+          "regularHours",
+          "specialHours",
+          "weekHours"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "email": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "addressDetail": {
+            "type": "string"
+          },
+          "wardName": {
+            "type": "string"
+          },
+          "provinceName": {
+            "type": "string"
+          },
+          "regularHours": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RegularHoursPeriodDto"
+            }
+          },
+          "specialHours": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SpecialHoursPeriodDto"
+            }
+          },
+          "weekHours": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DayHoursDto"
+            }
+          }
+        }
+      },
+      "BusinessLocationPublicPageDto": {
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "totalCount"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BusinessLocationPublicDto"
+            }
+          },
+          "page": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "pageSize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "totalCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "BusinessLocationUpdateRequest": {
+        "required": [
+          "name",
+          "phone",
+          "email",
+          "addressDetail",
+          "provinceId",
+          "wardId",
+          "regularHours",
+          "specialHours"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "phone": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "email": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "addressDetail": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "provinceId": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "wardId": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "regularHours": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/RegularHoursPeriodRequest"
+            }
+          },
+          "specialHours": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/SpecialHoursPeriodRequest"
+            }
+          }
+        }
+      },
       "CurrentUserDto": {
         "required": [
           "id",
@@ -613,6 +1097,40 @@
           }
         }
       },
+      "DayHoursDto": {
+        "required": [
+          "date",
+          "periods"
+        ],
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "periods": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpeningPeriodDto"
+            }
+          }
+        }
+      },
+      "OpeningPeriodDto": {
+        "required": [
+          "open",
+          "close"
+        ],
+        "type": "object",
+        "properties": {
+          "open": {
+            "type": "string"
+          },
+          "close": {
+            "type": "string"
+          }
+        }
+      },
       "ProblemDetails": {
         "type": "object",
         "properties": {
@@ -659,6 +1177,124 @@
           "traceId": {
             "type": "string",
             "description": "W3C trace id of the request, for support."
+          }
+        }
+      },
+      "RegularHoursPeriodDto": {
+        "required": [
+          "day",
+          "open",
+          "close"
+        ],
+        "type": "object",
+        "properties": {
+          "day": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "open": {
+            "type": "string"
+          },
+          "close": {
+            "type": "string"
+          }
+        }
+      },
+      "RegularHoursPeriodRequest": {
+        "required": [
+          "day",
+          "open",
+          "close"
+        ],
+        "type": "object",
+        "properties": {
+          "day": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "open": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "close": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "SpecialHoursPeriodDto": {
+        "required": [
+          "date",
+          "closed",
+          "open",
+          "close"
+        ],
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "closed": {
+            "type": "boolean"
+          },
+          "open": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "close": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "SpecialHoursPeriodRequest": {
+        "required": [
+          "date",
+          "closed",
+          "open",
+          "close"
+        ],
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "closed": {
+            "type": "boolean"
+          },
+          "open": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "close": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -881,6 +1517,12 @@
     }
   ],
   "tags": [
+    {
+      "name": "BusinessLocations"
+    },
+    {
+      "name": "BusinessLocationsPublic"
+    },
     {
       "name": "Me"
     },

@@ -10,6 +10,7 @@ using ZenGear.Services.Common;
 using ZenGear.Services.Identity;
 using ZenGear.Services.Identity.AccessCache;
 using ZenGear.Services.Identity.Permissions;
+using ZenGear.Services.Inventory;
 
 namespace ZenGear.Services;
 
@@ -49,6 +50,8 @@ public static class DependencyInjection
         services.AddScoped<StaffBootstrapService>();
         services.AddSingleton<IPermissionCatalog, PermissionCatalog>();
         services.AddScoped<PermissionSyncService>();
+        services.AddScoped<BusinessLocationService>();
+        services.AddScoped<BusinessLocationPublicService>();
 
         services.AddHealthChecks().AddDbContextCheck<ZenGearDbContext>();
 
