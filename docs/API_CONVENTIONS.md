@@ -26,13 +26,14 @@ The OpenAPI document `api/openapi/ZenGear.Api.json` is generated from the contro
 | Code | When |
 |---|---|
 | 200 / 201 / 204 | Success; 201 with `Location` for a created resource |
-| 400 | Validation failed |
+| 400 | Validation failed: the request itself is wrong, whatever the data holds. This includes a value a business rule forbids on its own (a password the policy refuses, R-USR-11; a closed holiday with hours, R-LOC-01): the response then carries that rule's `ruleId` |
 | 401 / 403 | Missing or invalid Firebase ID token / permission missing |
 | 404 | Resource does not exist or is outside the caller's scope (a customer asking for another customer's order) |
-| 409 | Business rule or state conflict (order already confirmed, stock not available); a concurrent change to the row when the request sent no `If-Match` |
+| 405 | The resource has no such operation: no endpoint exists for that method on that path (no `POST` or `DELETE` on the business location, R-LOC-01) |
+| 409 | Business rule or state conflict: the request is well formed, but the current data refuses it (order already confirmed, stock not available, the last ACTIVE Admin); a concurrent change to the row when the request sent no `If-Match` |
 | 412 | `If-Match` does not match the current version |
 | 428 | `PUT` / `PATCH` on a resource that has an `ETag` sent without `If-Match` |
-| 422 | Not used — business rule violations are 409, input errors are 400 |
+| 422 | Not used — a rule broken by the request alone is 400, a rule broken by the current data is 409 |
 
 ## Errors
 
@@ -49,7 +50,7 @@ Problem Details (RFC 9457) with `application/problem+json`, built with ASP.NET C
 }
 ```
 
-Validation errors use `ValidationProblemDetails` with an `errors` object keyed by camelCase field name. `ruleId` names the business rule that was violated when there is one.
+Validation errors use `ValidationProblemDetails` with an `errors` object keyed by camelCase field name. `ruleId` names the business rule that was violated when there is one, on a 400, a 403 or a 409 alike.
 
 ## Paging, sorting, filtering
 
