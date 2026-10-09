@@ -20,8 +20,11 @@ scripts:
         method: 'GET',
         header: [{ key: 'Authorization', value: pm.request.headers.get('Authorization') }],
       }, (error, response) => {
+        pm.test('the list without the parameters read', () => pm.expect(!error && response && response.code, `${error}`).to.eql(200));
+        if (error || !response || response.code !== 200) {
+          return;
+        }
         pm.test('the same list as without the parameters', () => {
-          pm.expect(error).to.eql(null);
           const plain = response.json();
           pm.expect(body.totalCount).to.eql(plain.totalCount);
           pm.expect(body.items.map(r => r.id)).to.eql(plain.items.map(r => r.id));
