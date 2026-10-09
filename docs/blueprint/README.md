@@ -5,9 +5,9 @@ Generated from `product-domain-blueprint-MVP.xlsx` — do not edit by hand; edit
 - [Actors](actors.md) — 16 rows
 - [Tech Stack](tech-stack.md) — 55 rows
 - [Roadmap](roadmap.md) — 4 rows
-- [Features](features.md) — 130 rows
+- [Features](features.md) — 131 rows
 - [Use Cases](use-cases.md) — 139 rows
 - [Domain Model](domain-model.md) — 77 rows
-- [Business Rules](business-rules.md) — 135 rows
-- [Decisions](decisions.md) — 104 rows
+- [Business Rules](business-rules.md) — 136 rows
+- [Decisions](decisions.md) — 105 rows
 - [Technical Design](technical-design.md) — 16 rows
