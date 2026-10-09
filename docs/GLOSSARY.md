@@ -86,10 +86,11 @@ Class names are singular PascalCase in `ZenGear.Data/Entities/<Area>`; table nam
 
 ## Value sets
 
-Stored as the English values below; the Vietnamese label is what the UI shows.
+Stored as the English values below; the Vietnamese label is what the UI shows, through a key of `web/messages/vi.json` (next-intl, DEC-104), never a string written in a component. When the storefront gets English, this file gains an English label column and the web an `en.json`.
 
 | Thuật ngữ | Column | Values |
 |---|---|---|
+| Trạng thái tài khoản | `users.status` | ACTIVE (đang hoạt động), DISABLED (đã khóa), ANONYMIZED (đã ẩn danh) |
 | Loại đơn | `orders.type` | SELF_SERVICE (khách tự đặt online), ASSISTED (nhân viên tạo hộ / bán tại quầy) |
 | Cách nhận hàng | `orders.fulfillment_method` | PICKUP (nhận tại cửa hàng), SHIP (giao hàng) |
 | Trạng thái đơn | `orders.status` | Pending (chờ xác nhận), Confirmed (đã xác nhận, đã trừ kho), Processing (đang xử lý), Shipped (đã giao cho hãng vận chuyển), Ready_for_pickup (chờ khách đến lấy), Completed (hoàn tất), Cancelled (đã hủy), Returned_to_sender (giao thất bại, hoàn về) |
