@@ -1,6 +1,7 @@
 $kind: http-request
 description: |-
-  R-USR-13: a `roleId` that is not a uuid is refused by model binding, still naming the rule.
+  R-USR-13: a `roleId` that is not a uuid is refused by model binding, still naming the rule; the message does not
+  repeat the value sent.
 method: GET
 url: '{{baseUrl}}/api/v1/staff?roleId=abc'
 order: 14000
@@ -16,3 +17,7 @@ scripts:
       pm.test('validation problem', () => pm.expect(problem.type).to.eql('https://tools.ietf.org/html/rfc9110#section-15.5.1'));
       pm.test('ruleId R-USR-13', () => pm.expect(problem.ruleId).to.eql('R-USR-13'));
       pm.test('error on roleId', () => pm.expect(problem.errors).to.have.property('roleId'));
+      pm.test('the message names no value sent', () => {
+        pm.expect(problem.errors.roleId).to.eql(['The value is not valid.']);
+        pm.expect(JSON.stringify(problem)).to.not.include('abc');
+      });
