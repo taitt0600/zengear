@@ -15,7 +15,7 @@ public sealed class BusinessLocationPublicService(ZenGearDbContext db, IValidato
     public const int WeekDays = 7;
 
     /// <summary>The locations by name (Phase 1: the one location, R-LOC-01).</summary>
-    public async Task<BusinessLocationPublicPageDto> ListAsync(PageRequest page, CancellationToken cancellationToken)
+    public async Task<PagedDto<BusinessLocationPublicDto>> ListAsync(PageRequest page, CancellationToken cancellationToken)
     {
         await pageValidator.ValidateAndThrowAsync(page, cancellationToken);
 
@@ -36,7 +36,7 @@ public sealed class BusinessLocationPublicService(ZenGearDbContext db, IValidato
         var total = page.Page == 1 && rows.Count < page.PageSize ? rows.Count : await locations.CountAsync(cancellationToken);
         var today = clock.Today;
         var items = rows.Select(r => ToDto(r.Location, r.WardName, r.ProvinceName, today)).ToList();
-        return new BusinessLocationPublicPageDto(items, page.Page, page.PageSize, total);
+        return new PagedDto<BusinessLocationPublicDto>(items, page.Page, page.PageSize, total);
     }
 
     private static BusinessLocationPublicDto ToDto(BusinessLocation location, string wardName, string provinceName, DateOnly today)

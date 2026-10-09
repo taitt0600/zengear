@@ -137,7 +137,7 @@ Where a type goes follows from its name:
 | `*Claims` and other constant sets | `ZenGear.Api/Constants` |
 | security log, log masking (`SecurityLog`, `SensitivePropertyMasker`) | `ZenGear.Api/Logging` |
 | environment and pipeline set-up that is not a `*Setup` (`BuildTimeDocumentGeneration`), a one-off command of the host (`bootstrap-admin`, DEC-096) | `ZenGear.Api/Hosting` |
-| `*Request`, `*Dto`, and records that only carry data (a record used only inside one mechanism stays in it) | `ZenGear.Services/<Area>/Models`; shared by every list endpoint: `ZenGear.Services/Common/Models` |
+| `*Request`, `*Dto`, and records that only carry data (a record used only inside one mechanism stays in it) | `ZenGear.Services/<Area>/Models`; shared by every list endpoint: `ZenGear.Services/Common/Models` (list endpoints return `PagedDto<T>`, never a page DTO per entity; a generic DTO lives only there) |
 | enum of the Services layer | `ZenGear.Services/<Area>/Enums` |
 | `*Validator`: the FluentValidation validator of one request; other checks are named after what they check | `ZenGear.Services/<Area>/Validators` (`Common/Validators` for `Common/Models`) |
 | `*Service`, `*Query`, `*Job` and other classes that do the area's work; `I*Service` only when another area calls the service, a test replaces it or it has two implementations | `ZenGear.Services/<Area>` |

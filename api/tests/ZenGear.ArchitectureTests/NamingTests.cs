@@ -6,6 +6,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 using Shouldly;
 using ZenGear.ArchitectureTests.Infrastructure;
+using ZenGear.Services.Common.Models;
+using ZenGear.Services.Inventory.Models;
 
 namespace ZenGear.ArchitectureTests;
 
@@ -83,6 +85,23 @@ public sealed class NamingTests
             .Where(type => !IsInAreaFolder(type, "Models") && type.Namespace != "ZenGear.Services.Common.Models")
             .Select(type => type.FullName)
             .ShouldBeEmpty();
+    }
+
+    [Test]
+    public void Generic_dtos_are_only_in_services_common_models()
+    {
+        OwnTypes(RepositoryLayout.Services)
+            .Where(IsMisplacedGenericDto)
+            .Select(type => type.FullName)
+            .ShouldBeEmpty("A generic DTO is shared by every list endpoint (PagedDto<T>): it lives in ZenGear.Services/Common/Models.");
+    }
+
+    [Test]
+    public void A_generic_dto_outside_common_models_fails()
+    {
+        IsMisplacedGenericDto(typeof(SampleDto<>)).ShouldBeTrue();
+        IsMisplacedGenericDto(typeof(PagedDto<>)).ShouldBeFalse();
+        IsMisplacedGenericDto(typeof(BusinessLocationPublicDto)).ShouldBeFalse();
     }
 
     [Test]
@@ -209,4 +228,11 @@ public sealed class NamingTests
     // ZenGear.Services.<Area>.<folder>
     private static bool IsInAreaFolder(Type type, string folder) =>
         type.Namespace?.Split('.') is ["ZenGear", "Services", var area, var actual] && actual == folder && RepositoryLayout.Areas.Contains(area);
+
+    private static bool IsMisplacedGenericDto(Type type) =>
+        type.IsGenericTypeDefinition && NameOf(type).EndsWith("Dto", StringComparison.Ordinal)
+        && type.Namespace != "ZenGear.Services.Common.Models";
+
+    /// <summary>A generic DTO outside ZenGear.Services/Common/Models, for <see cref="A_generic_dto_outside_common_models_fails"/>.</summary>
+    private sealed record SampleDto<T>(IReadOnlyList<T> Items);
 }

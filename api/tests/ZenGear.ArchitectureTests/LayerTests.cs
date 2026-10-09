@@ -55,8 +55,8 @@ public sealed class LayerTests
                 | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.DeclaredOnly))
             .SelectMany(action =>
                 action.GetParameters().SelectMany(parameter => Unwrap(parameter.ParameterType))
-                    .Where(type => IsServicesType(type) && !type.Name.EndsWith("Request", StringComparison.Ordinal))
-                    .Concat(Unwrap(action.ReturnType).Where(type => IsServicesType(type) && !type.Name.EndsWith("Dto", StringComparison.Ordinal)))
+                    .Where(type => IsServicesType(type) && !NameOf(type).EndsWith("Request", StringComparison.Ordinal))
+                    .Concat(Unwrap(action.ReturnType).Where(type => IsServicesType(type) && !NameOf(type).EndsWith("Dto", StringComparison.Ordinal)))
                     .Select(type => $"{action.DeclaringType!.Name}.{action.Name}: {type.Name}"))
             .ToList();
 
@@ -86,6 +86,9 @@ public sealed class LayerTests
         new[] { type }.Concat(type.IsGenericType ? type.GetGenericArguments().SelectMany(Unwrap) : Enumerable.Empty<Type>());
 
     private static bool IsServicesType(Type type) => type.Assembly == RepositoryLayout.Services && !type.IsEnum;
+
+    // PagedDto`1 → PagedDto
+    private static string NameOf(Type type) => type.Name.Split('`')[0];
 
     private static bool IsEntity(Type type) =>
         type.Namespace?.StartsWith("ZenGear.Data.Entities", StringComparison.Ordinal) == true && !type.IsEnum;
