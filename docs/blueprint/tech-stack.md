@@ -5,11 +5,17 @@
 | Web App | Next.js | — | Framework cho storefront, trang quản trị và POS | Phase 1 |
 | Web App | TypeScript | — | Ngôn ngữ | Phase 1 |
 | Web App | Tailwind CSS | — | Styling | Phase 1 |
-| Web App | shadcn/ui | — | UI components | Phase 1 |
+| Web App | shadcn/ui | — | UI components; components/ui giữ nguyên bản, chỉ chỉnh theming bằng CSS variable, kiểm bằng hash (DEC-104) | Phase 1 |
 | Web App | Zustand | — | Client state | Phase 1 |
 | Web App | TanStack Query | — | Server state | Phase 1 |
 | Web App | React Hook Form + Zod | — | Form và validation | Phase 1 |
 | Web App | openapi-typescript + openapi-fetch | — | Sinh kiểu TypeScript từ api/openapi/ZenGear.Api.json và gọi API có kiểu; dùng với TanStack Query (DEC-093) | Phase 1 |
+| Web App | Firebase JS SDK | — | Đăng nhập Firebase Authentication phía trình duyệt; nối emulator khi chạy dev (DEC-104) | Phase 1 |
+| Web App | next-intl | — | i18n: mọi chuỗi giao diện qua file chuỗi, Phase 1 chỉ tiếng Việt, tiếng Anh sau này cho storefront (DEC-104) | Phase 1 |
+| Web App | lucide-react | — | Icon, bộ mặc định của shadcn/ui (DEC-104) | Phase 1 |
+| Web App | motion | — | Animation; tôn trọng prefers-reduced-motion (DEC-104) | Phase 1 |
+| Web App | TanStack Table | — | Bảng danh sách của trang quản trị (DEC-104) | Phase 1 |
+| Web App | ESLint + Prettier | — | Lint và định dạng code web; tsc --noEmit kiểm kiểu (DEC-104) | Phase 1 |
 | Hosting | Vercel | — | Chạy web app Next.js (storefront, trang quản trị, POS) | Phase 1 |
 | Hosting | Azure | — | Chạy backend API .NET và PostgreSQL | Phase 1 |
 | Backend API | .NET (ASP.NET Core) | 10 | Backend framework; 3 project ZenGear.Api, ZenGear.Services, ZenGear.Data (DEC-091) | Phase 1 |
@@ -38,12 +44,15 @@
 | Testing | Respawn | — | Reset dữ liệu database giữa các integration test | Phase 1 |
 | Testing | Microsoft.Extensions.TimeProvider.Testing | — | FakeTimeProvider: điều khiển thời gian trong test của clock service (R-TZ-01) | Phase 1 |
 | Testing | zengear_07_schema_check.sql | — | Kiểm tra đủ đối tượng không có trên ERD sau mỗi migration | Phase 1 |
+| Testing | Vitest + Testing Library | — | Unit test của web: schema Zod, ánh xạ Problem Details vào form, hook (DEC-104) | Phase 1 |
+| Testing | Playwright | — | Test luồng màn hình trên API, Firebase Auth Emulator và bản build của web; ảnh chụp cho hướng dẫn test trước merge (DEC-104) | Phase 1 |
 | Dev Tooling | Visual Studio / VS Code | — | IDE | Phase 1 |
 | Dev Tooling | pgAdmin | — | PostgreSQL GUI | Phase 1 |
 | Dev Tooling | Postman | v12 | Collection v3 lưu bằng Git gốc trong postman/, mỗi tính năng một folder; chủ dự án test trước khi merge; Postman CLI 1.69.0 chạy collection trong CI và trên API dev, không cần đăng nhập; collection đăng nhập bằng custom token của Firebase Auth Emulator (DEC-100, DEC-101) | Phase 1 |
 | Dev Tooling | Firebase Local Emulator Suite | — | Chạy Firebase local | Phase 1 |
 | Dev Tooling | Docker | image postgres:18 | Container local, khớp version Azure Database for PostgreSQL | Phase 1 |
 | Dev Tooling | Claude Code | — | Plugin từ marketplace claude-plugins-official (csharp-lsp, pr-review-toolkit, code-review, feature-dev, commit-commands, security-guidance) và MCP qua Docker MCP Toolkit (PostgreSQL, Postman) chỉ với dữ liệu dev (DEC-100) | Phase 1 |
+| Dev Tooling | Node.js + npm | LTS | Runtime và package manager của web; package-lock.json commit, CI chạy npm ci; Dependabot cooldown 7 ngày (DEC-104) | Phase 1 |
 | Source & Docs | Git + GitHub | — | Quản lý mã nguồn; một repository cho api, web và docs (DEC-093) | Phase 1 |
 | Source & Docs | GitHub Actions | — | Một pipeline (pipeline.yml), tên job trùng id: changes chọn job theo path; secrets, tools-test, api-test, schema, acceptance (build image và migration bundle một lần, chạy toàn bộ collection Postman trên image đó, trên main đẩy image lên GHCR), web-test và web-preview khi có web, ci-ok; gates.yml: pr-gates, pr-title; required checks ci-ok, pr-gates, pr-title; push main deploy staging rồi production (DEC-093, DEC-100, DEC-101) | Phase 1 |
 | Source & Docs | GitHub Container Registry | — | Lưu image API build một lần trong pipeline để deploy staging và production (DEC-100) | Phase 1 |
