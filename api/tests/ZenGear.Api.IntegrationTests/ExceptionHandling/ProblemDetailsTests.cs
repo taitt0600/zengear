@@ -63,6 +63,52 @@ public class ProblemDetailsTests : IntegrationTestBase
     }
 
     [Test]
+    public async Task Bad_request_rule_names_the_rule_of_a_binding_400()
+    {
+        var response = await Client.GetAsync(new Uri("/test/bad-request-rule/binding?number=x", UriKind.Relative));
+
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        var problem = await ReadProblemAsync(response);
+        problem.GetProperty("ruleId").GetString().ShouldBe(TestEndpointsController.BadRequestRuleId);
+        problem.GetProperty("errors").TryGetProperty("number", out _).ShouldBeTrue();
+        problem.GetProperty("traceId").GetString().ShouldNotBeNullOrEmpty();
+    }
+
+    [Test]
+    public async Task Bad_request_rule_leaves_a_thrown_validation_400_without_a_rule_as_it_is()
+    {
+        var problem = await ReadProblemAsync(await Client.GetAsync(new Uri("/test/bad-request-rule/validation", UriKind.Relative)));
+
+        problem.TryGetProperty("ruleId", out _).ShouldBeFalse();
+    }
+
+    [Test]
+    public async Task Bad_request_rule_never_replaces_the_rule_a_400_already_names()
+    {
+        var problem = await ReadProblemAsync(await Client.GetAsync(new Uri("/test/bad-request-rule/own-rule", UriKind.Relative)));
+
+        problem.GetProperty("ruleId").GetString().ShouldBe("R-USR-11");
+    }
+
+    [Test]
+    public async Task Bad_request_rule_leaves_a_400_the_action_returns_without_a_rule()
+    {
+        var response = await Client.GetAsync(new Uri("/test/bad-request-rule/returned", UriKind.Relative));
+
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        (await ReadProblemAsync(response)).TryGetProperty("ruleId", out _).ShouldBeFalse();
+    }
+
+    [Test]
+    public async Task A_binding_400_of_an_action_without_bad_request_rule_names_no_rule()
+    {
+        var response = await Client.GetAsync(new Uri("/api/v1/business-locations?page=x", UriKind.Relative));
+
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        (await ReadProblemAsync(response)).TryGetProperty("ruleId", out _).ShouldBeFalse();
+    }
+
+    [Test]
     public async Task Concurrency_conflict_with_If_Match_is_412()
     {
         using var request = new HttpRequestMessage(HttpMethod.Put, new Uri("/test/concurrency", UriKind.Relative));

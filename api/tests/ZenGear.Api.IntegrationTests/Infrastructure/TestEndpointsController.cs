@@ -40,6 +40,34 @@ public sealed class TestEndpointsController : ControllerBase
             new ValidationFailure("Name", "Name is required.") { ErrorCode = "NotEmptyValidator" },
         ]);
 
+    public const string BadRequestRuleId = "R-TST-01";
+
+    /// <summary>A 400 of model binding (<c>?number=x</c>) on an action that names its rule.</summary>
+    [HttpGet("bad-request-rule/binding")]
+    [AllowAnonymous]
+    [BadRequestRule(BadRequestRuleId)]
+    public IActionResult BadRequestRuleBinding([FromQuery] int number) => Ok(new { number });
+
+    /// <summary>A thrown validation 400 whose failures name no rule, on an action that names its rule.</summary>
+    [HttpGet("bad-request-rule/validation")]
+    [AllowAnonymous]
+    [BadRequestRule(BadRequestRuleId)]
+    public IActionResult BadRequestRuleValidation() =>
+        throw new ValidationException([new ValidationFailure("Name", "Name is required.")]);
+
+    /// <summary>A validation 400 that already names another rule, on an action that names its rule.</summary>
+    [HttpGet("bad-request-rule/own-rule")]
+    [AllowAnonymous]
+    [BadRequestRule(BadRequestRuleId)]
+    public IActionResult BadRequestRuleOwnRule() =>
+        throw new ValidationException([new ValidationFailure("NewPassword", "Too short.") { ErrorCode = "R-USR-11" }]);
+
+    /// <summary>A 400 the action returns itself, on an action that names its rule: not a model-binding 400.</summary>
+    [HttpGet("bad-request-rule/returned")]
+    [AllowAnonymous]
+    [BadRequestRule(BadRequestRuleId)]
+    public IActionResult BadRequestRuleReturned() => BadRequest();
+
     [HttpPut("concurrency")]
     [AllowAnonymous]
     public IActionResult Concurrency() =>
