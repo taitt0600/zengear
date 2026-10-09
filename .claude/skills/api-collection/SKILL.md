@@ -29,12 +29,15 @@ file.
      `/problems/<type>` and `ruleId` equals the rule; for a success, every field the criterion names;
    - values unique to the run: the first request sets `pm.variables.set('run', Date.now().toString(36))` and every
      email, code or name that must be unique carries `{{run}}`, so the folder passes twice in a row without a reset.
-     Keep ids the later requests need with `pm.variables.set` too (`staffId`): run state lives in `pm.variables`
-     only, never in collection variables, environments or globals, which the Postman app writes back into the files
-     (reference.md, *Scripts*).
+     An id a later request needs is read during the run, from a response of the same folder (as LOC-01 request 01
+     reads the location id from the public list), and kept with `pm.variables.set` (`staffId`); never add an
+     environment variable for it: the Postman app keeps an empty value for an environment variable it has not seen
+     while the Postman CLI reads the file, so the folder passes in CI and fails in the app (#40, first test). Run
+     state lives in `pm.variables` only, never in collection variables, environments or globals, which the Postman
+     app writes back into the files (reference.md, *Scripts*).
 4. **Environments** `postman/environments/dev.environment.yaml` and `ci.environment.yaml`: add a variable only when
-   both need it, with the same name; ids of seeded rows come from the seed (role ids are fixed in
-   `api/seed/01_roles.sql` and must never change). Never a secret, token or password: there is none to add.
+   both need it, with the same name, and never for an id a request can read during the run (step 3); ids of
+   seeded rows come from the seed (role ids are fixed in `api/seed/01_roles.sql` and must never change). Never a secret, token or password: there is none to add.
 5. **State the API cannot reach yet** (a permission no endpoint grants, a flag a later feature clears): a dev-only
    fixture `postman/fixtures/$ARGUMENTS.sql`, run by `tools/dev_reset.ps1` after the seed, with the emulator accounts
    it needs in `postman/fixtures/accounts.txt` (`<psql variable> <email>`, read as `:'<psql variable>'`). Say in the
