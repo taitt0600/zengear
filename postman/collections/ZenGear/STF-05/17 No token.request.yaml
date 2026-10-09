@@ -1,0 +1,11 @@
+$kind: http-request
+description: |-
+  A request without a token is refused before anything else.
+method: GET
+url: '{{baseUrl}}/api/v1/staff'
+order: 17000
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 401', () => pm.response.to.have.status(401));

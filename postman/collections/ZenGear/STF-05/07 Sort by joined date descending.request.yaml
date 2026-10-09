@@ -1,0 +1,52 @@
+$kind: http-request
+description: |-
+  Acceptance criterion 2, R-USR-13: `sort=-joinedDate` lists the latest joined first, accounts without a joined
+  date last. (The Vietnamese order of names and the order of codes are checked by the integration tests.)
+method: GET
+url: '{{baseUrl}}/api/v1/staff?sort=-joinedDate&pageSize=100'
+order: 7000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      // Every row of the list: this page and the next ones with the same query and token (pm.sendRequest skips the
+      // collection sign-in script, so the Authorization header is copied; it is never logged).
+      const allRows = (query, done) => {
+        const first = pm.response.json();
+        const rows = [...first.items];
+        const pages = Math.ceil(first.totalCount / first.pageSize);
+        const auth = pm.request.headers.get('Authorization');
+        const next = (page) => {
+          if (page > pages) {
+            return done(rows, first);
+          }
+          pm.sendRequest({
+            url: `${pm.variables.get('baseUrl')}/api/v1/staff?${query}&page=${page}`,
+            method: 'GET',
+            header: [{ key: 'Authorization', value: auth }],
+          }, (error, response) => {
+            const read = !error && response && response.code === 200;
+            pm.test(`page ${page} read`, () => pm.expect(read, `page ${page}: ${error || (response && response.code)}`).to.eql(true));
+            if (!read) {
+              pm.test('every page read, so the checks of this request ran', () => pm.expect.fail('a page was not read'));
+              return;
+            }
+            rows.push(...response.json().items);
+            next(page + 1);
+          });
+        };
+        next(2);
+      };
+
+      pm.test('status 200', () => pm.response.to.have.status(200));
+      allRows('sort=-joinedDate&pageSize=100', (rows) => {
+        const dates = rows.map(r => r.joinedDate);
+        const firstEmpty = dates.indexOf(null);
+        const known = firstEmpty < 0 ? dates : dates.slice(0, firstEmpty);
+        pm.test('joined dates descending', () => pm.expect(known).to.eql([...known].sort().reverse()));
+        pm.test('empty joined dates last', () =>
+          pm.expect(firstEmpty < 0 || dates.slice(firstEmpty).every(d => d === null)).to.eql(true));
+      });

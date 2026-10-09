@@ -1,0 +1,18 @@
+$kind: http-request
+description: |-
+  R-USR-13: `sort` takes name, employeeCode or joinedDate (descending with -) only.
+method: GET
+url: '{{baseUrl}}/api/v1/staff?sort=email'
+order: 12000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 400', () => pm.response.to.have.status(400));
+      const problem = pm.response.json();
+      pm.test('validation problem', () => pm.expect(problem.type).to.eql('https://tools.ietf.org/html/rfc9110#section-15.5.1'));
+      pm.test('ruleId R-USR-13', () => pm.expect(problem.ruleId).to.eql('R-USR-13'));
+      pm.test('error on sort', () => pm.expect(problem.errors).to.have.property('sort'));

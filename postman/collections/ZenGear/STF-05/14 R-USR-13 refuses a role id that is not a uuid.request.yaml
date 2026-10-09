@@ -1,0 +1,18 @@
+$kind: http-request
+description: |-
+  R-USR-13: a `roleId` that is not a uuid is refused by model binding, still naming the rule.
+method: GET
+url: '{{baseUrl}}/api/v1/staff?roleId=abc'
+order: 14000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 400', () => pm.response.to.have.status(400));
+      const problem = pm.response.json();
+      pm.test('validation problem', () => pm.expect(problem.type).to.eql('https://tools.ietf.org/html/rfc9110#section-15.5.1'));
+      pm.test('ruleId R-USR-13', () => pm.expect(problem.ruleId).to.eql('R-USR-13'));
+      pm.test('error on roleId', () => pm.expect(problem.errors).to.have.property('roleId'));

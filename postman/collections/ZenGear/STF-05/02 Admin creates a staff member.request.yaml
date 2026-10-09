@@ -1,0 +1,32 @@
+$kind: http-request
+description: |-
+  Set-up: a Cashier of this run (STF-01), named so that it sorts first.
+method: POST
+url: '{{baseUrl}}/api/v1/staff'
+order: 2000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+  - key: Content-Type
+    value: 'application/json'
+body:
+  type: json
+  content: |-
+    {
+      "email": "stf05-{{run}}@zengear.test",
+      "name": "A kiểm thử danh sách {{run}}",
+      "employeeCode": "{{run}}-S5",
+      "joinedDate": "2026-10-01",
+      "workPhone": "0901234567",
+      "roleIds": ["{{roleCashier}}"]
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 201', () => pm.response.to.have.status(201));
+      const staff = pm.response.json();
+      pm.variables.set('staffId', staff.id);
+      pm.variables.set('staffEmail', staff.email);
+      pm.variables.set('staffName', staff.name);
+      pm.variables.set('staffCode', staff.employeeCode);
