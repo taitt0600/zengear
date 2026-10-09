@@ -384,3 +384,6 @@ firebase-debug.log
 # Postman app (docs/ACCEPTANCE.md): the link to a workspace, and the globals the collection never uses
 .postman/
 postman/globals/
+# tools/blueprint_apply.py: the workbook saved and exported in a temporary folder next to it, left only if the run was
+# killed before its clean-up
+.blueprint_apply-*/
