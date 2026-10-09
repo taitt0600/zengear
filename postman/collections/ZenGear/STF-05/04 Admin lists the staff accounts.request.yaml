@@ -1,0 +1,73 @@
+$kind: http-request
+description: |-
+  Acceptance criterion 1, R-USR-13: staff accounts only, ACTIVE and DISABLED, never ANONYMIZED nor a customer;
+  each row has the name, email, employee code, status, roles and left date, and no work phone.
+method: GET
+url: '{{baseUrl}}/api/v1/staff?pageSize=100'
+order: 4000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      // Every row of the list: this page and the next ones with the same query and token (pm.sendRequest skips the
+      // collection sign-in script, so the Authorization header is copied; it is never logged).
+      const allRows = (query, done) => {
+        const first = pm.response.json();
+        const rows = [...first.items];
+        const pages = Math.ceil(first.totalCount / first.pageSize);
+        const auth = pm.request.headers.get('Authorization');
+        const next = (page) => {
+          if (page > pages) {
+            return done(rows, first);
+          }
+          pm.sendRequest({
+            url: `${pm.variables.get('baseUrl')}/api/v1/staff?${query}&page=${page}`,
+            method: 'GET',
+            header: [{ key: 'Authorization', value: auth }],
+          }, (error, response) => {
+            const read = !error && response && response.code === 200;
+            pm.test(`page ${page} read`, () => pm.expect(read, `page ${page}: ${error || (response && response.code)}`).to.eql(true));
+            if (!read) {
+              pm.test('every page read, so the checks of this request ran', () => pm.expect.fail('a page was not read'));
+              return;
+            }
+            rows.push(...response.json().items);
+            next(page + 1);
+          });
+        };
+        next(2);
+      };
+
+      pm.test('status 200', () => pm.response.to.have.status(200));
+      allRows('pageSize=100', (rows, first) => {
+        pm.test('a page of at most 100 rows, totalCount counts every row', () => {
+          pm.expect(first.page).to.eql(1);
+          pm.expect(first.pageSize).to.eql(100);
+          pm.expect(rows.length).to.eql(first.totalCount);
+        });
+        pm.test('ACTIVE and DISABLED only', () =>
+          rows.forEach(r => pm.expect(['ACTIVE', 'DISABLED']).to.include(r.status)));
+        pm.test('both statuses listed when no filter is given', () => {
+          pm.expect(rows.some(r => r.status === 'ACTIVE')).to.eql(true);
+          pm.expect(rows.some(r => r.status === 'DISABLED')).to.eql(true);
+        });
+        pm.test('no ANONYMIZED account', () =>
+          pm.expect(rows.map(r => r.id)).to.not.include(pm.variables.get('anonymizedStaffId')));
+        pm.test('no customer', () =>
+          pm.expect(rows.map(r => r.email)).to.not.include(pm.variables.get('customerEmail')));
+        const row = rows.find(r => r.id === pm.variables.get('staffId'));
+        pm.test('the staff member of this run, with every list field', () => {
+          pm.expect(row).to.not.eql(undefined);
+          pm.expect(row.name).to.eql(pm.variables.get('staffName'));
+          pm.expect(row.email).to.eql(pm.variables.get('staffEmail'));
+          pm.expect(row.employeeCode).to.eql(pm.variables.get('staffCode'));
+          pm.expect(row.joinedDate).to.eql('2026-10-01');
+          pm.expect(row.status).to.eql('DISABLED');
+          pm.expect(row.leftDate).to.eql(pm.variables.get('today'));
+          pm.expect(row.roles.map(r => r.id)).to.eql([pm.variables.get('roleCashier')]);
+        });
+        pm.test('no work phone in the list', () => rows.forEach(r => pm.expect(r).to.not.have.property('workPhone')));
+      });

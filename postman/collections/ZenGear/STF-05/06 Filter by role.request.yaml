@@ -1,0 +1,52 @@
+$kind: http-request
+description: |-
+  Acceptance criterion 2, R-USR-13: `roleId` lists the staff holding that role, each with all its roles.
+method: GET
+url: '{{baseUrl}}/api/v1/staff?roleId={{roleCashier}}&pageSize=100'
+order: 6000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      // Every row of the list: this page and the next ones with the same query and token (pm.sendRequest skips the
+      // collection sign-in script, so the Authorization header is copied; it is never logged).
+      const allRows = (query, done) => {
+        const first = pm.response.json();
+        const rows = [...first.items];
+        const pages = Math.ceil(first.totalCount / first.pageSize);
+        const auth = pm.request.headers.get('Authorization');
+        const next = (page) => {
+          if (page > pages) {
+            return done(rows, first);
+          }
+          pm.sendRequest({
+            url: `${pm.variables.get('baseUrl')}/api/v1/staff?${query}&page=${page}`,
+            method: 'GET',
+            header: [{ key: 'Authorization', value: auth }],
+          }, (error, response) => {
+            const read = !error && response && response.code === 200;
+            pm.test(`page ${page} read`, () => pm.expect(read, `page ${page}: ${error || (response && response.code)}`).to.eql(true));
+            if (!read) {
+              pm.test('every page read, so the checks of this request ran', () => pm.expect.fail('a page was not read'));
+              return;
+            }
+            rows.push(...response.json().items);
+            next(page + 1);
+          });
+        };
+        next(2);
+      };
+
+      pm.test('status 200', () => pm.response.to.have.status(200));
+      const cashier = pm.variables.get('roleCashier');
+      allRows(`roleId=${cashier}&pageSize=100`, (rows) => {
+        pm.test('every row holds the Cashier role', () =>
+          rows.forEach(r => pm.expect(r.roles.map(role => role.id)).to.include(cashier)));
+        pm.test('the staff member of this run listed', () =>
+          pm.expect(rows.map(r => r.id)).to.include(pm.variables.get('staffId')));
+        pm.test('the Admin not listed', () =>
+          pm.expect(rows.map(r => r.id)).to.not.include(pm.variables.get('adminId')));
+      });

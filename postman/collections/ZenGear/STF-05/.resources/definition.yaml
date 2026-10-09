@@ -1,0 +1,18 @@
+$kind: collection
+name: STF-05
+description: |-
+  STF-05 — the Store Manager or the Admin lists the staff accounts with their status and roles, filtered by status or
+  role, sorted and paged, to find an account to disable, restore or check without knowing its id (R-USR-13, R-SEC-03;
+  DEC-105). The API takes no name, email or phone parameter: personal data stays out of the query string.
+
+  Needs tools/dev_reset.ps1 first: the Admin owner@zengear.test (bootstrap-admin, DEC-096) and the dev-only fixtures
+  postman/fixtures/STF-01.sql (the Store Manager manager.fixture@zengear.test), STF-02.sql (the ANONYMIZED staff
+  account anonymizedStaffId) and STF-03.sql (the customer customer.fixture@zengear.test). The folder creates and
+  disables its own staff member, whose email and employee code carry the run id `run`, so it runs again without a
+  reset. The development database is not reset between runs and other folders add staff: every check of presence,
+  absence or "every row" reads all the pages of the list, whatever the number of rows.
+
+  Not checked here, covered by the integration tests of api/tests (StaffListTests): the Vietnamese order of names (the
+  collection cannot compare with the ICU vi-VN collation), the order of employee codes, and stable pages among equal
+  names. Emulator only: the requests sign in with emulator custom tokens (see the collection description).
+order: 5000

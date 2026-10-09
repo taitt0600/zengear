@@ -1,0 +1,51 @@
+$kind: http-request
+description: |-
+  Acceptance criterion 4, R-SEC-03: staff.read is checked through the caller's roles; the Store Manager, who
+  holds it, sees the accounts holding the Admin role, as in GET /staff/{id}.
+method: GET
+url: '{{baseUrl}}/api/v1/staff?roleId={{roleAdmin}}&pageSize=100'
+order: 10000
+headers:
+  - key: X-ZenGear-As
+    value: '{{managerEmail}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      // Every row of the list: this page and the next ones with the same query and token (pm.sendRequest skips the
+      // collection sign-in script, so the Authorization header is copied; it is never logged).
+      const allRows = (query, done) => {
+        const first = pm.response.json();
+        const rows = [...first.items];
+        const pages = Math.ceil(first.totalCount / first.pageSize);
+        const auth = pm.request.headers.get('Authorization');
+        const next = (page) => {
+          if (page > pages) {
+            return done(rows, first);
+          }
+          pm.sendRequest({
+            url: `${pm.variables.get('baseUrl')}/api/v1/staff?${query}&page=${page}`,
+            method: 'GET',
+            header: [{ key: 'Authorization', value: auth }],
+          }, (error, response) => {
+            const read = !error && response && response.code === 200;
+            pm.test(`page ${page} read`, () => pm.expect(read, `page ${page}: ${error || (response && response.code)}`).to.eql(true));
+            if (!read) {
+              pm.test('every page read, so the checks of this request ran', () => pm.expect.fail('a page was not read'));
+              return;
+            }
+            rows.push(...response.json().items);
+            next(page + 1);
+          });
+        };
+        next(2);
+      };
+
+      pm.test('status 200', () => pm.response.to.have.status(200));
+      allRows(`roleId=${pm.variables.get('roleAdmin')}&pageSize=100`, (rows) => {
+        pm.test('the Admin listed with the Admin role', () => {
+          const admin = rows.find(r => r.id === pm.variables.get('adminId'));
+          pm.expect(admin).to.not.eql(undefined);
+          pm.expect(admin.roles.map(r => r.id)).to.include(pm.variables.get('roleAdmin'));
+        });
+      });
