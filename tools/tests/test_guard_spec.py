@@ -41,6 +41,16 @@ CASES = [
     ({'command': 'rm docs/ARCHITECTURE.md'}, 'deny', 'ask'),
     ({'command': 'cp /tmp/a.py tools/pr_gates.py'}, 'deny', 'ask'),
     ({'command': 'Set-Content -Path docs/blueprint/x.md -Value 1'}, 'deny', 'ask'),
+    # blueprint_apply.py writes the workbook without naming it; reading it or running its tests is not a write.
+    ({'command': 'python tools/blueprint_apply.py out/dec-105.patch.json'}, 'deny', 'ask'),
+    ({'command': 'python3 tools/blueprint_apply.py p.json --workbook /tmp/w.xlsx'}, 'deny', 'ask'),
+    ({'command': 'cd tools && python blueprint_apply.py p.json'}, 'deny', 'ask'),
+    ({'command': 'python -m tools.blueprint_apply out/dec-105.patch.json'}, 'deny', 'ask'),
+    ({'command': 'py tools/blueprint_apply.py out/dec-105.patch.json'}, 'deny', 'ask'),
+    ({'command': 'py tools/export_blueprint.py docs/product-domain-blueprint-MVP.xlsx docs/blueprint'}, 'deny', 'ask'),
+    ({'command': 'ls tools/*.py docs/blueprint'}, 'allow', 'allow'),
+    ({'command': 'cat tools/blueprint_apply.py'}, 'allow', 'allow'),
+    ({'command': 'python3 -m unittest tools/tests/test_blueprint_apply.py'}, 'allow', 'allow'),
     # A build write in one part must not hide a spec write in a later part.
     ({'command': 'echo x > api/src/A.csproj; echo y > docs/blueprint/f.md'}, 'deny', 'ask'),
     # Build files: left to the CI gates when unattended, asked when attended.
