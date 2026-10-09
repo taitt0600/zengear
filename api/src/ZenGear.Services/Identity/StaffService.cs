@@ -8,16 +8,22 @@ using ZenGear.Data.Entities.Identity;
 using ZenGear.Data.Entities.Identity.Enums;
 using ZenGear.Data.Externals.Auth;
 using ZenGear.Services.Common;
+using ZenGear.Services.Common.Models;
 using ZenGear.Services.Identity.Models;
 using ZenGear.Services.Identity.Permissions;
+using ZenGear.Services.Identity.Validators;
 
 namespace ZenGear.Services.Identity;
 
-/// <summary>Staff accounts, for the staff screens (STF-01); the one projection of <see cref="StaffDto"/>.</summary>
+/// <summary>
+/// Staff accounts, for the staff screens (STF-01, STF-05); the one projection of <see cref="StaffDto"/> and of
+/// <see cref="StaffListItemDto"/>.
+/// </summary>
 public sealed class StaffService(
     ZenGearDbContext db,
     IAuthProvider auth,
     IValidator<StaffCreateRequest> validator,
+    IValidator<StaffListRequest> listValidator,
     IClock clock,
     ILogger<StaffService> logger)
 {
@@ -129,6 +135,51 @@ public sealed class StaffService(
             .SingleOrDefaultAsync(cancellationToken);
 
     /// <summary>
+    /// One page of the staff accounts (R-USR-13, DEC-105): users with a staff profile, ACTIVE or DISABLED, never
+    /// ANONYMIZED nor a customer; optionally of one status or holding one role. Sorted by name in Vietnamese order (the
+    /// database collation), employee code or joined date, empty values last, then by id so that pages do not overlap.
+    /// </summary>
+    public async Task<PagedDto<StaffListItemDto>> ListAsync(StaffListRequest request, CancellationToken cancellationToken)
+    {
+        await listValidator.ValidateAndThrowAsync(request, cancellationToken);
+
+        var staff = db.Users.AsNoTracking().Where(u => u.StaffProfile != null && u.Status != UserStatus.Anonymized);
+        if (request.Status is { } status)
+        {
+            var wanted = StaffListRequestValidator.Statuses[status];
+            staff = staff.Where(u => u.Status == wanted);
+        }
+
+        if (request.RoleId is { } roleId)
+        {
+            staff = staff.Where(u => u.UserRoles.Any(ur => ur.RoleId == roleId));
+        }
+
+        var page = new PageRequest(request.Page, request.PageSize);
+        var items = await Sorted(staff, request.Sort)
+            .Skip(page.Skip)
+            .Take(page.PageSize)
+            .Select(u => new StaffListItemDto(
+                u.Id,
+                u.Name,
+                u.Email,
+                u.StaffProfile!.EmployeeCode,
+                u.StaffProfile.JoinedDate,
+                u.StaffProfile.LeftDate,
+                u.Status,
+                db.Roles
+                    .Where(r => u.UserRoles.Any(ur => ur.RoleId == r.Id))
+                    .OrderBy(r => r.Name)
+                    .Select(r => new StaffRoleDto(r.Id, r.Name))
+                    .ToList()))
+            .ToListAsync(cancellationToken);
+
+        // A first page that is not full holds every row: no COUNT (a household business has fewer staff than a page).
+        var total = page.Page == 1 && items.Count < page.PageSize ? items.Count : await staff.CountAsync(cancellationToken);
+        return new PagedDto<StaffListItemDto>(items, page.Page, page.PageSize, total);
+    }
+
+    /// <summary>
     /// <paramref name="userId"/> holds the Admin role, found by name like the R-SEC-02 trigger: the one test of R-TX-11
     /// (STF-01, STF-02). It only refuses; holding the role never grants access (R-SEC-03).
     /// </summary>
@@ -136,6 +187,25 @@ public sealed class StaffService(
         db.UserRoles.AnyAsync(
             ur => ur.UserId == userId && db.Roles.Any(r => r.Id == ur.RoleId && r.Name == PermissionCatalog.AdminRoleName),
             cancellationToken);
+
+    /// <summary>
+    /// The order of <see cref="StaffListRequest.Sort"/>, one arm per value of <see cref="StaffListRequestValidator.Sorts"/>;
+    /// the id last keeps pages stable.
+    /// </summary>
+    private static IQueryable<User> Sorted(IQueryable<User> staff, string? sort) => sort switch
+    {
+        null or "name" => staff.OrderBy(u => u.Name).ThenBy(u => u.Id),
+        "-name" => staff.OrderByDescending(u => u.Name).ThenBy(u => u.Id),
+        "employeeCode" => staff.OrderBy(u => u.StaffProfile!.EmployeeCode == null)
+            .ThenBy(u => u.StaffProfile!.EmployeeCode).ThenBy(u => u.Id),
+        "-employeeCode" => staff.OrderBy(u => u.StaffProfile!.EmployeeCode == null)
+            .ThenByDescending(u => u.StaffProfile!.EmployeeCode).ThenBy(u => u.Id),
+        "joinedDate" => staff.OrderBy(u => u.StaffProfile!.JoinedDate == null)
+            .ThenBy(u => u.StaffProfile!.JoinedDate).ThenBy(u => u.Id),
+        "-joinedDate" => staff.OrderBy(u => u.StaffProfile!.JoinedDate == null)
+            .ThenByDescending(u => u.StaffProfile!.JoinedDate).ThenBy(u => u.Id),
+        _ => throw new ArgumentOutOfRangeException(nameof(sort), "A sort accepted by the validator has no order."),
+    };
 
     /// <summary>
     /// Compensation: deletes the Firebase account created by this request unless a user row holds it. Best effort; a
