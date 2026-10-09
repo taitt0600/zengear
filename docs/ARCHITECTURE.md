@@ -109,8 +109,9 @@ ZenGear.Services/
 │  └─ IClock and Clock, BusinessRuleException, AdvisoryLockKeys
 └─ DependencyInjection.cs
 ZenGear.Data/
-├─ Common/               building blocks shared by every area's entities and configurations: IAggregateRoot,
-│                        EF Core value converters (the conventions themselves are in ZenGearDbContext)
+├─ Common/               building blocks shared by every area's entities, configurations and migrations:
+│                        IAggregateRoot, EF Core value converters (the conventions themselves are in
+│                        ZenGearDbContext), MigrationBuilderExtensions
 ├─ Entities/<Area>/      entities; Enums/ below holds the enums of their columns
 ├─ Configurations/<Area>/ IEntityTypeConfiguration classes
 ├─ Externals/<System>/   clients of external systems and their interfaces (Redis, Email, EInvoice, Payments,
@@ -144,7 +145,7 @@ Where a type goes follows from its name:
 | entity | `ZenGear.Data/Entities/<Area>` |
 | enum of an entity column | `ZenGear.Data/Entities/<Area>/Enums` |
 | `*Configuration` | `ZenGear.Data/Configurations/<Area>` |
-| `*Converter`, `IAggregateRoot` | `ZenGear.Data/Common` |
+| `*Converter`, `IAggregateRoot`, `MigrationBuilderExtensions` and `CompositeForeignKeyOnDelete` (`ZenGear.Data` cannot reach `ZenGear.Api/Extensions`) | `ZenGear.Data/Common` |
 | client of an external system and its interface | `ZenGear.Data/Externals/<System>` |
 | `DependencyInjection`: the `Add…` method that registers the project's services (`AddZenGearServices`, `AddZenGearData`) | the root of `ZenGear.Services` and of `ZenGear.Data` |
 
@@ -192,6 +193,7 @@ Every rule has at least one test whose name starts with its ID (`R_INV_01_...`).
 - EF Core Migrations are the only way the schema changes (DEC-088). Each phase is a group of migrations (`Phase1_Store`, `Phase2_Online`, …).
 - `UseSnakeCaseNamingConvention()` (EFCore.NamingConventions); constraint and index names set explicitly to the names in `api/db/` (`pk_`, `fk_`, `ix_`, `ck_`, ≤ 63 characters).
 - PostgreSQL-only objects (exclusion constraint, triggers, view, functions) through `migrationBuilder.Sql`.
+- A composite foreign key whose target is a unique index rather than a key (R-DB-09: `(ward_id, province_id)` → `wards (id, province_id)`) is not in the EF model: EF Core needs a principal key for a relationship and would add an alternate key, a constraint the specification does not have. The migration creates it with `AddCompositeForeignKey` (`ZenGear.Data/Common/MigrationBuilderExtensions`, `ON DELETE` from `CompositeForeignKeyOnDelete`) and `Down` drops it with `DropCompositeForeignKey`, from the next migration with a composite foreign key on (the LOC-01 migration, applied in every database, keeps its hand-written SQL); the CI job `schema` checks it against `api/db/`. These two types came before their first migration, an exception to "no type is added without a caller in the same change".
 - CI: `dotnet ef migrations has-pending-model-changes`; build one database from the migrations and one from `api/db/zengear_01_database.sql` plus the phase files up to the phase in progress, run `tools/schema_snapshot.sql` on both and compare them with `tools/schema_compare.py`: every table, view and function the migrations build matches the specification line for line, and the migrations build nothing the specification does not have (the tables of the phase not built yet are left out); after the last phase `api/db/zengear_07_schema_check.sql` returns 0 rows; `api/db/zengear_06_reconciliation.sql` runs on test data.
 - The build writes `api/openapi/ZenGear.Api.json` (Microsoft.AspNetCore.OpenApi); it is committed and CI fails when it is out of date.
 - Deploy, in this order: migration bundle → `api/db/zengear_08_roles.sql` → `api/seed/` (re-runnable) → start the new API version (DEC-095). The startup permission sync needs the roles of `01_roles.sql`; its guard (nothing is written while a role is missing) is only a safety net for a deploy run out of this order.
