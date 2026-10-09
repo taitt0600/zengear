@@ -51,12 +51,16 @@ def problems(title, head, rows):
 def main(src, out):
     wb = openpyxl.load_workbook(src, read_only=True, data_only=True)
     sheets, errors = [], []
-    for ws in wb.worksheets:
-        rows = [(n, r) for n, r in enumerate(ws.iter_rows(values_only=True), start=1) if any(v not in (None, '') for v in r)]
-        if not rows: continue
-        head, body = rows[0][1], rows[1:]
-        errors += problems(ws.title, list(head), body)
-        sheets.append((ws.title, head, [r for _, r in body]))
+    try:
+        for ws in wb.worksheets:
+            rows = [(n, r) for n, r in enumerate(ws.iter_rows(values_only=True), start=1) if any(v not in (None, '') for v in r)]
+            if not rows: continue
+            head, body = rows[0][1], rows[1:]
+            errors += problems(ws.title, list(head), body)
+            sheets.append((ws.title, head, [r for _, r in body]))
+    finally:
+        # Read-only mode keeps the file open; on Windows it could then be neither replaced nor deleted.
+        wb.close()
     if errors:
         for e in errors: print(f'export_blueprint: {e}', file=sys.stderr)
         print(f'export_blueprint: {len(errors)} problem(s), nothing written', file=sys.stderr)
