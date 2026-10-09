@@ -19,9 +19,9 @@ public sealed class BusinessLocationsPublicController(BusinessLocationPublicServ
     /// <response code="400"><c>page</c> below 1, or <c>pageSize</c> outside 1–100.</response>
     [HttpGet]
     [AllowAnonymous]
-    [ProducesResponseType<BusinessLocationPublicPageDto>(StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType<PagedDto<BusinessLocationPublicDto>>(StatusCodes.Status200OK, "application/json")]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest, "application/problem+json")]
-    public Task<BusinessLocationPublicPageDto> List(CancellationToken cancellationToken, [FromQuery] int page = 1,
+    public Task<PagedDto<BusinessLocationPublicDto>> List(CancellationToken cancellationToken, [FromQuery] int page = 1,
         [FromQuery] int pageSize = PageRequest.DefaultPageSize) =>
         locations.ListAsync(new PageRequest(page, pageSize), cancellationToken);
 }
