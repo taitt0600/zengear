@@ -25,8 +25,9 @@ scripts:
         method: 'GET',
         header: [{ key: 'Authorization', value: pm.request.headers.get('Authorization') }],
       }, (error, response) => {
-        pm.test('the second row of a page of size 2', () => {
-          pm.expect(error).to.eql(null);
-          pm.expect(response.json().items[1].id).to.eql(body.items[0].id);
-        });
+        pm.test('the page of size 2 read', () => pm.expect(!error && response && response.code, `${error}`).to.eql(200));
+        if (error || !response || response.code !== 200) {
+          return;
+        }
+        pm.test('the second row of a page of size 2', () => pm.expect(response.json().items[1].id).to.eql(body.items[0].id));
       });
