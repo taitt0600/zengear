@@ -6,6 +6,10 @@ Finish the feature named in $ARGUMENTS of ZenGear (CLAUDE.md, Workflow; DEC-100)
 stops only to ask a Needs decision item, for the owner's test before merge (step 13), and, with `--checkpoints` in
 $ARGUMENTS, at **Checkpoint 3** (step 9). When a step fails, fix it and run the steps it depends on again; what
 cannot be fixed under the policy of `/implement-feature` (step 4) becomes a Needs decision item, asked at once.
+A command, skill or agent run inside a step (`/code-review`, `/code-review:code-review`, `/security-review`,
+`api-run`, `api-collection`, the reviewer agents) returns its report to this run: keep its numbers for the report of
+step 14 and go on with the run (the fixes of that step, or the next step) in the same turn. It never ends the run;
+only the stops above do.
 `python3` is `python` on Windows.
 
 **Resume**: when the branch already has an open pull request whose CI is green and nothing changed since the guide
@@ -30,12 +34,16 @@ folder, then the whole collection, leaving the API running), then show the guide
    steps 2–3 and both reviews again, at most three rounds; an item you do not fix gets its reason in the report, and
    a Blocking item left after three rounds is a Needs decision item. Keep the final verdict, the number of Blocking
    items found and fixed, and for each reviewer the number of findings that only it made ("Phát hiện riêng" in the
-   report): after three features, the reviewer with none is dropped (DEC-100).
+   report): after three features, the reviewer with none is dropped (DEC-100). When each review returns its report,
+   keep its numbers and go on at once (the other review, the fixes, the next round or step 6); it does not end the
+   run.
 6. **Security review**: run `/security-review` when the branch touches authentication or authorization
    (`ZenGear.Api/Authorization`, `Attributes`, `Middlewares`, `Extensions/AuthenticationSetup.cs`, the `Identity`
    area), payments, invoicing, a column listed under Personal data in `docs/DATABASE.md`, raw SQL, file uploads or
    an `[AllowAnonymous]` endpoint; otherwise skip it and say so. Fix every finding, or give the reason it is not a
-   vulnerability; after a fix, run steps 2–3 again. Keep the number of findings and of fixed findings.
+   vulnerability; after a fix, run steps 2–3 again. Keep the number of findings and of fixed findings. When
+   `/security-review` returns its report, keep its numbers and go on at once (the fixes or step 7); its report is not
+   the last reply of this run.
 7. **Postman run**: skill `api-run` with the Feature ID (the folder of the feature), then without one (the whole
    collection, for regressions). A failed test is a failed step: fix the code (or the request, when the request is
    wrong against the specification) and run steps 2–3 and this step again. Keep the requests run, the tests passed and
@@ -79,7 +87,9 @@ folder, then the whole collection, leaving the API running), then show the guide
     - At most three rounds of fixes; then the failure is a Needs decision item, asked at once.
 12. **Review of the pull request**: run the review of the `code-review` plugin on the pull request
     (`/code-review:code-review <number>`). Fix each finding you confirm (steps 2–3, commit, push, step 11 again) or
-    answer it on the pull request with the reason it stays; keep the number of findings, fixed and answered.
+    answer it on the pull request with the reason it stays; keep the number of findings, fixed and answered. When
+    the review returns its findings, keep its numbers and go on at once (the fixes or step 13); it does not end the
+    run.
 13. **Test before merge** — the owner tests the feature as an end user, from the guide alone:
     1. **Environment ready**: skill `api-run` with the Feature ID, leaving the API of the branch running in the
        background until the owner answers (the reset, then the API from the branch). The branch stays checked out:

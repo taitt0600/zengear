@@ -201,4 +201,7 @@ Begin your analysis now. Do this in 3 steps:
 2. Then for each vulnerability identified by the above sub-task, create a new sub-task to filter out false-positives. Launch these sub-tasks as parallel sub-tasks. In the prompt for these sub-tasks, include everything in the "FALSE POSITIVE FILTERING" instructions.
 3. Filter out any vulnerabilities where the sub-task reported a confidence less than 8.
 
-Your final reply must contain the markdown report and nothing else.
+When the owner runs this command alone, your final reply must contain the markdown report and nothing else. When
+another command runs it as one of its steps (`/finish-feature` step 6, which `/implement-feature` and `/fix-defect`
+reach through `/finish-feature`), give the markdown report, then go on with that command (the fixes of its step, or
+its next step) in the same turn: the report does not end the run.
