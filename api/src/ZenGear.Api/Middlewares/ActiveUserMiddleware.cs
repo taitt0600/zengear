@@ -25,7 +25,7 @@ namespace ZenGear.Api.Middlewares;
 /// </summary>
 public sealed class ActiveUserMiddleware(RequestDelegate next)
 {
-    public async Task InvokeAsync(HttpContext context, IUserAccessReader users, SignInService signIn,
+    public async Task InvokeAsync(HttpContext context, UserAccessReader users, SignInService signIn,
         SecurityLog securityLog, IProblemDetailsService problemDetails)
     {
         var principal = context.User;
