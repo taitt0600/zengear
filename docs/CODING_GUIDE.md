@@ -65,9 +65,9 @@ An interface exists only for one of these reasons; otherwise the class is used d
 | Another area calls it: the public contract of an area | Listed in the area's README; none yet |
 | It has two implementations | — |
 
-These four reasons are those of DEC-106; a new reason needs a Decision. An interface with none of them is removed. The audit of DEC-106 kept two interfaces by name: `IClock`, the one clock of
-every area (R-TZ-01; tests fake the `TimeProvider` under it), and `IAccessCache`, the access cache of R-SEC-07 over
-Redis.
+These four reasons are those of DEC-106; a new reason needs a Decision. An interface with none of them is removed.
+The audit of DEC-106 kept two interfaces by name: `IClock`, the one clock of every area (R-TZ-01; tests fake the
+`TimeProvider` under it), and `IAccessCache`, the access cache of R-SEC-07 over Redis.
 
 ## 3. Intentional duplication
 
