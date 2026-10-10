@@ -1,7 +1,7 @@
 using FluentValidation;
 using Microsoft.Extensions.Options;
 using ZenGear.Services.Common;
-using ZenGear.Services.Identity;
+using ZenGear.Services.Identity.StaffAccounts;
 
 namespace ZenGear.Api.Hosting;
 

@@ -6,7 +6,7 @@ using ZenGear.Api.Constants;
 using ZenGear.Api.ExceptionHandling;
 using ZenGear.Api.Extensions;
 using ZenGear.Api.Logging;
-using ZenGear.Services.Identity;
+using ZenGear.Services.Identity.Access;
 
 namespace ZenGear.Api.Middlewares;
 

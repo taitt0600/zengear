@@ -8,7 +8,8 @@ using Microsoft.Extensions.Time.Testing;
 using ZenGear.Api.Extensions;
 using ZenGear.Api.Logging;
 using ZenGear.Data.Externals.Auth;
-using ZenGear.Services.Identity;
+using ZenGear.Services.Identity.Account;
+using ZenGear.Services.Identity.StaffAccounts;
 
 namespace ZenGear.Api.IntegrationTests.Infrastructure;
 

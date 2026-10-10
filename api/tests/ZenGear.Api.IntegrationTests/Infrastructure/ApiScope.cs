@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using StackExchange.Redis;
 using ZenGear.Data;
 using ZenGear.Data.Entities.Identity.Enums;
-using ZenGear.Services.Identity.AccessCache;
+using ZenGear.Services.Identity.Access.AccessCache;
 
 namespace ZenGear.Api.IntegrationTests.Infrastructure;
 

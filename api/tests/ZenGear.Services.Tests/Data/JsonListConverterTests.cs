@@ -1,6 +1,6 @@
 using Shouldly;
 using ZenGear.Data.Common;
-using ZenGear.Data.Entities.Inventory;
+using ZenGear.Data.Entities.Locations;
 
 namespace ZenGear.Services.Tests.Data;
 

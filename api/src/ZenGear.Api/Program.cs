@@ -8,7 +8,7 @@ using ZenGear.Api.Extensions;
 using ZenGear.Api.Hosting;
 using ZenGear.Api.Logging;
 using ZenGear.Services;
-using ZenGear.Services.Identity.AccessCache;
+using ZenGear.Services.Identity.Access.AccessCache;
 using ZenGear.Services.Identity.Permissions;
 
 // Nothing here connects to PostgreSQL, Redis or Firebase: the build runs this file to write the
