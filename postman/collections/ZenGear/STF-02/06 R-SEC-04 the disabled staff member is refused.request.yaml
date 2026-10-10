@@ -3,7 +3,7 @@ description: |-
   R-SEC-04: only an ACTIVE user uses the system. The staff member's ID token from 03 is still valid for up to an
   hour, yet every request is refused from now on.
 method: GET
-url: '{{baseUrl}}/api/v1/me'
+url: '{{baseUrl}}/api/v1/admin/me'
 order: 6000
 headers:
   - key: X-ZenGear-As

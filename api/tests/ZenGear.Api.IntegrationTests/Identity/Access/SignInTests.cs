@@ -19,7 +19,7 @@ public class SignInTests : IntegrationTestBase
     {
         var id = await TestUsers.InsertAsync(Uid);
 
-        var response = await SendAsync("/api/v1/me", Token());
+        var response = await SendAsync("/api/v1/admin/me", Token());
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
         var body = await JsonAsync(response);
@@ -33,7 +33,7 @@ public class SignInTests : IntegrationTestBase
     {
         await TestUsers.InsertAsync(Uid, status: "DISABLED");
 
-        var response = await SendAsync("/api/v1/me", Token());
+        var response = await SendAsync("/api/v1/admin/me", Token());
 
         await ShouldBeProblemAsync(response, "/problems/account-disabled", "R-SEC-04");
     }
@@ -43,7 +43,7 @@ public class SignInTests : IntegrationTestBase
     {
         await TestUsers.InsertAsync(Uid, status: "ANONYMIZED", isStaff: false);
 
-        var response = await SendAsync("/api/v1/me", Token());
+        var response = await SendAsync("/api/v1/admin/me", Token());
 
         await ShouldBeProblemAsync(response, "/problems/account-disabled", "R-SEC-04");
     }
@@ -53,7 +53,7 @@ public class SignInTests : IntegrationTestBase
     {
         await TestUsers.InsertAsync(Uid, status: "DISABLED");
 
-        var response = await SendAsync("/test/anonymous", Token());
+        var response = await SendAsync("/api/v1/admin/test/anonymous", Token());
 
         await ShouldBeProblemAsync(response, "/problems/account-disabled", "R-SEC-04");
     }
@@ -63,7 +63,7 @@ public class SignInTests : IntegrationTestBase
     {
         var id = await TestUsers.InsertAsync(Uid, status: "DISABLED");
 
-        await SendAsync("/api/v1/me", Token());
+        await SendAsync("/api/v1/admin/me", Token());
 
         var entry = Factory.SecurityLogs.Entries.ShouldHaveSingleItem();
         entry.EventName.ShouldBe("LoginRejected");
@@ -77,7 +77,7 @@ public class SignInTests : IntegrationTestBase
     {
         var id = await TestUsers.InsertAsync(Uid);
 
-        using var request = TestTokens.Get("/api/v1/me", Token());
+        using var request = TestTokens.Get("/api/v1/admin/me", Token());
         request.Headers.UserAgent.ParseAdd("ZenGearTest/1.0");
         (await Client.SendAsync(request)).StatusCode.ShouldBe(HttpStatusCode.OK);
 
@@ -95,8 +95,8 @@ public class SignInTests : IntegrationTestBase
     {
         var id = await TestUsers.InsertAsync(Uid, lastLoginAt: SignedInAt);
 
-        (await SendAsync("/api/v1/me", Token())).StatusCode.ShouldBe(HttpStatusCode.OK);
-        (await SendAsync("/test/me", Token())).StatusCode.ShouldBe(HttpStatusCode.OK);
+        (await SendAsync("/api/v1/admin/me", Token())).StatusCode.ShouldBe(HttpStatusCode.OK);
+        (await SendAsync("/api/v1/admin/test/me", Token())).StatusCode.ShouldBe(HttpStatusCode.OK);
 
         Factory.SecurityLogs.Entries.ShouldBeEmpty();
         (await TestUsers.LastLoginAtAsync(id)).ShouldBe(SignedInAt);
@@ -108,7 +108,7 @@ public class SignInTests : IntegrationTestBase
         var id = await TestUsers.InsertAsync(Uid, lastLoginAt: SignedInAt);
         var nextSignIn = SignedInAt.AddMinutes(5);
 
-        await SendAsync("/api/v1/me", Token(nextSignIn));
+        await SendAsync("/api/v1/admin/me", Token(nextSignIn));
 
         (await TestUsers.LastLoginAtAsync(id)).ShouldBe(nextSignIn);
         Factory.SecurityLogs.Entries.ShouldHaveSingleItem().EventName.ShouldBe("LoginSucceeded");
@@ -120,7 +120,7 @@ public class SignInTests : IntegrationTestBase
         var id = await TestUsers.InsertAsync(Uid);
         var token = Token();
 
-        var responses = await Task.WhenAll(Enumerable.Range(0, 8).Select(_ => SendAsync("/test/me", token)));
+        var responses = await Task.WhenAll(Enumerable.Range(0, 8).Select(_ => SendAsync("/api/v1/admin/test/me", token)));
 
         responses.ShouldAllBe(r => r.StatusCode == HttpStatusCode.OK);
         Factory.SecurityLogs.Entries.Count(e => e.EventName == "LoginSucceeded").ShouldBe(1);
@@ -135,8 +135,8 @@ public class SignInTests : IntegrationTestBase
         var token = Token();
         var disabledToken = TestTokens.EmulatorToken("disabled-uid", authTime: SignedInAt);
 
-        await SendAsync("/api/v1/me", token);
-        await SendAsync("/api/v1/me", disabledToken);
+        await SendAsync("/api/v1/admin/me", token);
+        await SendAsync("/api/v1/admin/me", disabledToken);
 
         Factory.SecurityLogs.Entries.Count.ShouldBe(2);
         foreach (var entry in Factory.SecurityLogs.Entries)
@@ -152,7 +152,7 @@ public class SignInTests : IntegrationTestBase
     {
         await TestUsers.InsertAsync(Uid, mustChangePassword: true);
 
-        var response = await SendAsync("/test/me", Token());
+        var response = await SendAsync("/api/v1/admin/test/me", Token());
 
         await ShouldBeProblemAsync(response, "/problems/password-change-required", "R-USR-03");
     }
@@ -162,7 +162,7 @@ public class SignInTests : IntegrationTestBase
     {
         await TestUsers.InsertAsync(Uid, mustChangePassword: true);
 
-        var response = await SendAsync("/api/v1/me", Token());
+        var response = await SendAsync("/api/v1/admin/me", Token());
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
         (await JsonAsync(response)).GetProperty("mustChangePassword").GetBoolean().ShouldBeTrue();
@@ -173,7 +173,7 @@ public class SignInTests : IntegrationTestBase
     {
         await TestUsers.InsertAsync(Uid, mustChangePassword: true);
 
-        var response = await SendAsync("/test/anonymous", Token());
+        var response = await SendAsync("/api/v1/admin/test/anonymous", Token());
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
@@ -181,7 +181,7 @@ public class SignInTests : IntegrationTestBase
     [Test]
     public async Task Unregistered_firebase_uid_is_403_account_not_registered()
     {
-        var response = await SendAsync("/test/me", Token());
+        var response = await SendAsync("/api/v1/admin/test/me", Token());
 
         await ShouldBeProblemAsync(response, "/problems/account-not-registered", ruleId: null);
         Factory.SecurityLogs.Entries.ShouldBeEmpty();
@@ -190,7 +190,7 @@ public class SignInTests : IntegrationTestBase
     [Test]
     public async Task Unregistered_firebase_uid_is_403_on_authorize_endpoint()
     {
-        var response = await SendAsync("/test/authorize", Token());
+        var response = await SendAsync("/api/v1/admin/test/authorize", Token());
 
         await ShouldBeProblemAsync(response, "/problems/account-not-registered", ruleId: null);
     }
@@ -198,7 +198,7 @@ public class SignInTests : IntegrationTestBase
     [Test]
     public async Task Unregistered_firebase_uid_passes_anonymous_endpoint()
     {
-        var response = await SendAsync("/test/anonymous", Token());
+        var response = await SendAsync("/api/v1/admin/test/anonymous", Token());
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
@@ -208,14 +208,14 @@ public class SignInTests : IntegrationTestBase
     {
         await TestUsers.InsertAsync(Uid);
 
-        var response = await SendAsync("/test/authorize", Token());
+        var response = await SendAsync("/api/v1/admin/test/authorize", Token());
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
 
-    [TestCase("DISABLED", false, "/api/v1/me")]
-    [TestCase(null, false, "/test/me")]
-    [TestCase("ACTIVE", true, "/test/me")]
+    [TestCase("DISABLED", false, "/api/v1/admin/me")]
+    [TestCase(null, false, "/api/v1/admin/test/me")]
+    [TestCase("ACTIVE", true, "/api/v1/admin/test/me")]
     public async Task Middleware_403_is_problem_json_with_traceId(string? status, bool mustChangePassword, string path)
     {
         if (status is not null)

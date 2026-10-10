@@ -2,7 +2,7 @@ $kind: http-request
 description: |-
   The account created by request 02, read back at the URL of its Location header.
 method: GET
-url: '{{baseUrl}}/api/v1/staff/{{staffId}}'
+url: '{{baseUrl}}/api/v1/admin/staff/{{staffId}}'
 order: 3000
 headers:
   - key: X-ZenGear-As

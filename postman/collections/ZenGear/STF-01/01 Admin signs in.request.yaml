@@ -3,7 +3,7 @@ description: |-
   The Admin created by tools/dev_reset.ps1 (bootstrap-admin, DEC-096) signs in. Also sets `run`, the suffix
   that makes every email and employee code of this run unique.
 method: GET
-url: '{{baseUrl}}/api/v1/me'
+url: '{{baseUrl}}/api/v1/admin/me'
 order: 1000
 headers:
   - key: X-ZenGear-As

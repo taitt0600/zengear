@@ -5,7 +5,84 @@
     "version": "v1"
   },
   "paths": {
-    "/api/v1/business-locations/{id}": {
+    "/api/v1/admin/business-locations": {
+      "get": {
+        "tags": [
+          "BusinessLocations"
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedDtoOfBusinessLocationDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/business-locations/{id}": {
       "get": {
         "tags": [
           "BusinessLocations"
@@ -180,10 +257,10 @@
         }
       }
     },
-    "/api/v1/business-locations": {
+    "/api/v1/shop/business-locations": {
       "get": {
         "tags": [
-          "BusinessLocationsPublic"
+          "BusinessLocationShop"
         ],
         "parameters": [
           {
@@ -219,7 +296,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PagedDtoOfBusinessLocationPublicDto"
+                  "$ref": "#/components/schemas/PagedDtoOfBusinessLocationShopDto"
                 }
               }
             }
@@ -237,7 +314,7 @@
         }
       }
     },
-    "/api/v1/me": {
+    "/api/v1/admin/me": {
       "get": {
         "tags": [
           "Me"
@@ -372,7 +449,7 @@
         }
       }
     },
-    "/api/v1/me/change-password": {
+    "/api/v1/admin/me/change-password": {
       "post": {
         "tags": [
           "Me"
@@ -444,7 +521,7 @@
         }
       }
     },
-    "/api/v1/staff": {
+    "/api/v1/admin/staff": {
       "post": {
         "tags": [
           "Staff"
@@ -625,7 +702,7 @@
         }
       }
     },
-    "/api/v1/staff/{id}": {
+    "/api/v1/admin/staff/{id}": {
       "get": {
         "tags": [
           "Staff"
@@ -685,7 +762,7 @@
         }
       }
     },
-    "/api/v1/staff/{id}/disable": {
+    "/api/v1/admin/staff/{id}/disable": {
       "post": {
         "tags": [
           "StaffStatus"
@@ -815,7 +892,7 @@
         }
       }
     },
-    "/api/v1/staff/{id}/restore": {
+    "/api/v1/admin/staff/{id}/restore": {
       "post": {
         "tags": [
           "StaffStatus"
@@ -964,7 +1041,7 @@
           }
         }
       },
-      "BusinessLocationPublicDto": {
+      "BusinessLocationShopDto": {
         "required": [
           "id",
           "name",
@@ -1192,7 +1269,7 @@
           }
         }
       },
-      "PagedDtoOfBusinessLocationPublicDto": {
+      "PagedDtoOfBusinessLocationDto": {
         "required": [
           "items",
           "page",
@@ -1204,7 +1281,48 @@
           "items": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/BusinessLocationPublicDto"
+              "$ref": "#/components/schemas/BusinessLocationDto"
+            }
+          },
+          "page": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "pageSize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "totalCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "PagedDtoOfBusinessLocationShopDto": {
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "totalCount"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BusinessLocationShopDto"
             }
           },
           "page": {
@@ -1724,7 +1842,7 @@
       "name": "BusinessLocations"
     },
     {
-      "name": "BusinessLocationsPublic"
+      "name": "BusinessLocationShop"
     },
     {
       "name": "Me"

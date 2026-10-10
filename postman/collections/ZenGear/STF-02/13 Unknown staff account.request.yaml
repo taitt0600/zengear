@@ -2,7 +2,7 @@ $kind: http-request
 description: |-
   No staff account with this id: 404.
 method: POST
-url: '{{baseUrl}}/api/v1/staff/0199a0f2-0000-7000-8000-0000000000ff/disable'
+url: '{{baseUrl}}/api/v1/admin/staff/0199a0f2-0000-7000-8000-0000000000ff/disable'
 order: 13000
 headers:
   - key: X-ZenGear-As

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using ZenGear.Api.Attributes;
 using ZenGear.Api.Constants;
 using ZenGear.Api.Extensions;
+using ZenGear.Services.Common.Models;
 using ZenGear.Services.Identity.Permissions;
 using ZenGear.Services.Locations.BusinessLocations;
 
@@ -12,9 +13,22 @@ namespace ZenGear.Api.Controllers.Locations;
 /// <c>POST</c> or <c>DELETE</c>, and both answer 405 (R-LOC-01).
 /// </summary>
 [ApiController]
-[Route("api/v1/business-locations")]
+[Route("business-locations")]
 public sealed class BusinessLocationsController(BusinessLocationService locations) : ControllerBase
 {
+    /// <summary>The business locations by name, as the Admin edits them; the screen reads the id of the one location here.</summary>
+    /// <response code="400"><c>page</c> below 1, or <c>pageSize</c> outside 1–100.</response>
+    /// <response code="403"><c>/problems/permission-denied</c>: <c>business_location.update</c> missing.</response>
+    [HttpGet]
+    [RequirePermission(PermissionKeys.BusinessLocationUpdate)]
+    [ProducesResponseType<PagedDto<BusinessLocationDto>>(StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest, "application/problem+json")]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized, "application/problem+json")]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden, "application/problem+json")]
+    public Task<PagedDto<BusinessLocationDto>> List(CancellationToken cancellationToken, [FromQuery] int page = 1,
+        [FromQuery] int pageSize = PageRequest.DefaultPageSize) =>
+        locations.ListAsync(new PageRequest(page, pageSize), cancellationToken);
+
     /// <summary>
     /// The location as the Admin edits it, with the whole holiday schedule. The <c>ETag</c> header is its version, sent
     /// back in <c>If-Match</c> by <c>PUT</c>.
@@ -66,7 +80,7 @@ public sealed class BusinessLocationsController(BusinessLocationService location
         if (string.IsNullOrWhiteSpace(ifMatch))
         {
             return Problem(statusCode: StatusCodes.Status428PreconditionRequired, type: "/problems/if-match-required",
-                title: "If-Match required", detail: "Send the ETag of GET /api/v1/business-locations/{id} in the If-Match header.");
+                title: "If-Match required", detail: "Send the ETag of GET /api/v1/admin/business-locations/{id} in the If-Match header.");
         }
 
         if (!ETagExtensions.TryParseIfMatch(ifMatch, out var version))

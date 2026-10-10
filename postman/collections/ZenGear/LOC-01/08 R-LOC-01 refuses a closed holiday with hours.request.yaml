@@ -3,7 +3,7 @@ description: |-
   R-LOC-01: a holiday entry replaces the weekly hours of its date, either closed or with its own hours, never both: a
   closed date that also has hours is refused with 400 and ruleId R-LOC-01; 09 shows nothing changed.
 method: PUT
-url: '{{baseUrl}}/api/v1/business-locations/{{businessLocationId}}'
+url: '{{baseUrl}}/api/v1/admin/business-locations/{{businessLocationId}}'
 order: 8000
 headers:
   - key: X-ZenGear-As

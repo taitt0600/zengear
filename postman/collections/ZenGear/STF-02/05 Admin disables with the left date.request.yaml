@@ -3,7 +3,7 @@ description: |-
   Acceptance criterion 3, R-USR-07: recording the left date (today, the latest one accepted) disables the account in
   the same operation. Also revokes the Firebase sessions (criterion 1, R-SEC-04; checked by the integration tests).
 method: POST
-url: '{{baseUrl}}/api/v1/staff/{{staffId}}/disable'
+url: '{{baseUrl}}/api/v1/admin/staff/{{staffId}}/disable'
 order: 5000
 headers:
   - key: X-ZenGear-As

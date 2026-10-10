@@ -4,7 +4,7 @@ description: |-
   taken over. The pre-request script signs the account up in the emulator first (test password, emulator
   only).
 method: POST
-url: '{{baseUrl}}/api/v1/staff'
+url: '{{baseUrl}}/api/v1/admin/staff'
 order: 13000
 headers:
   - key: X-ZenGear-As

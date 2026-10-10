@@ -2,7 +2,7 @@ $kind: http-request
 description: |-
   Input validation: 400 with an error for each field.
 method: POST
-url: '{{baseUrl}}/api/v1/staff'
+url: '{{baseUrl}}/api/v1/admin/staff'
 order: 14000
 headers:
   - key: X-ZenGear-As

@@ -1,0 +1,23 @@
+$kind: http-request
+description: |-
+  R-LOC-01: the staff screen reads the id of the one location from the admin list, with the fields of the edit form;
+  it is the same location as the shop list of 01 (`businessLocationId`).
+method: GET
+url: '{{baseUrl}}/api/v1/admin/business-locations?page=1&pageSize=20'
+order: 14000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 200', () => pm.response.to.have.status(200));
+      const body = pm.response.json();
+      pm.test('exactly one location (R-LOC-01)', () => pm.expect(body.totalCount).to.eql(1));
+      pm.test('the edit form: ids of the province and ward', () => {
+        pm.expect(body.items[0].provinceId).to.be.a('number');
+        pm.expect(body.items[0].wardId).to.be.a('number');
+      });
+      pm.test('the location of the shop list', () =>
+        pm.expect(body.items[0].id).to.eql(pm.variables.get('businessLocationId')));

@@ -8,10 +8,13 @@ The OpenAPI document `api/openapi/ZenGear.Api.json` is generated from the contro
 
 ## URLs
 
-- Base path `/api/v1`. A breaking change gets a new version prefix.
-- Plural resource nouns in kebab-case: `/api/v1/products`, `/api/v1/purchase-orders/{id}/receipts`.
-- Actions that are not CRUD are sub-resources named after the business command: `POST /api/v1/orders/{id}/confirm`, `POST /api/v1/shifts/{id}/close`.
+- Every route is under one of two prefixes (DEC-106): `/api/v1/admin/` for the staff screens and the POS, `/api/v1/shop/` for the customer channel (anonymous visitors, and signed-in customers later). `/health` stays outside both.
+- A controller declares only its resource (`[Route("staff")]`); the convention `AudienceRoutePrefixConvention` adds `/api/v1/shop/` to a `*ShopController` and `/api/v1/admin/` to every other controller. A controller without `[Route]`, a controller route starting with `api/`, `/` or `~/`, or an action route starting with `/` or `~/` fails the build and the tests.
+- Plural resource nouns in kebab-case: `/api/v1/shop/products`, `/api/v1/admin/purchase-orders/{id}/receipts`.
+- Actions that are not CRUD are sub-resources named after the business command: `POST /api/v1/admin/orders/{id}/confirm`, `POST /api/v1/admin/shifts/{id}/close`.
 - No personal data in URLs or query strings (phone, email); send it in the body.
+- Infrastructure rules (CDN cache, rate limit, WAF) allow-list `/api/v1/shop/*`; they are never written as "everything except `/api/v1/admin/`", so a route that misses its prefix is never cached or opened by mistake.
+- A breaking change gets a new version prefix. Moving every route under the two prefixes stayed in `v1` (DEC-106): its only callers were the Postman collection and the tests, changed with it.
 
 ## Requests and responses
 
@@ -29,7 +32,7 @@ The OpenAPI document `api/openapi/ZenGear.Api.json` is generated from the contro
 | 400 | Validation failed: the request itself is wrong, whatever the data holds. This includes a value a business rule forbids on its own (a password the policy refuses, R-USR-11; a closed holiday with hours, R-LOC-01): the response then carries that rule's `ruleId` |
 | 401 / 403 | Missing or invalid Firebase ID token / permission missing |
 | 404 | Resource does not exist or is outside the caller's scope (a customer asking for another customer's order) |
-| 405 | The resource has no such operation: no endpoint exists for that method on that path (no `POST` or `DELETE` on the business location, R-LOC-01) |
+| 405 | The resource has no such operation: no endpoint exists for that method on that path (no `POST` or `DELETE` on `/api/v1/admin/business-locations`, R-LOC-01) |
 | 409 | Business rule or state conflict: the request is well formed, but the current data refuses it (order already confirmed, stock not available, the last ACTIVE Admin); a concurrent change to the row when the request sent no `If-Match` |
 | 412 | `If-Match` does not match the current version |
 | 428 | `PUT` / `PATCH` on a resource that has an `ETag` sent without `If-Match` |
@@ -62,18 +65,22 @@ Validation errors use `ValidationProblemDetails` with an `errors` object keyed b
 
 - Resources that can be edited return an `ETag` built from `xmin`; updates send `If-Match` and get 412 when the row changed (optimistic concurrency).
 - `PUT` / `PATCH` on a resource that has an `ETag` without `If-Match` gets 428.
-- A concurrent change detected on save (`xmin`) for a request without `If-Match` (a command such as `POST /orders/{id}/confirm`) gets 409 with `type` `/problems/concurrency-conflict` and no `ruleId`; the caller reloads and retries.
+- A concurrent change detected on save (`xmin`) for a request without `If-Match` (a command such as `POST /api/v1/admin/orders/{id}/confirm`) gets 409 with `type` `/problems/concurrency-conflict` and no `ruleId`; the caller reloads and retries.
 - `POST` requests that must not run twice (checkout, payments) send an `Idempotency-Key` header; a repeated key returns the first result (R-ORD-12). Payment callbacks are idempotent by the gateway transaction id (R-TX-07).
 
 ## Authentication
 
-`Authorization: Bearer <Firebase ID token>` on every request except public storefront endpoints and payment callbacks. Payment callbacks (VNPay IPN) are verified by the gateway signature instead.
+`Authorization: Bearer <Firebase ID token>` on every request except the shop endpoints (`/api/v1/shop/`) and payment callbacks. Payment callbacks (VNPay IPN) are verified by the gateway signature instead.
 
-Every controller action declares its access, checked by a test (AUT-04):
+The fallback and default authorization policies require a registered, ACTIVE user: an endpoint that declares nothing is closed, and an anonymous caller gets 401 on every route but the shop endpoints and the endpoints outside `/api/v1` below, whether the route exists or not. Every controller action declares its access, checked by a test (AUT-04):
 
 - `[RequirePermission("resource.action")]`: the permission must be granted through one of the caller's roles, never checked by role name (R-SEC-03).
 - `[AnyRegisteredUser]`: any registered, ACTIVE user.
-- `[AllowAnonymous]`: public.
+- `[ShopEndpoint]` on a `*ShopController`: every action of it is anonymous. No other controller carries it, and `[AllowAnonymous]` is not used on the controllers of `ZenGear.Api`; the access-surface tests of `ZenGear.Api.IntegrationTests` check both. `[ShopEndpoint]` holds only the anonymous access: the shop's rate limit and output cache come with their own Decision before the storefront is deployed (the owner's decision D1, which differs from DEC-106 (6)).
+
+`/health`, the OpenAPI document and Scalar are minimal-API endpoints outside `/api/v1`, mapped with `AllowAnonymous()`.
+
+`[ShopEndpoint]` is class-level, and a class-level `IAllowAnonymous` wins over any access declared on an action, so a shop controller cannot hold one action that needs a signed-in customer. The first such endpoint (the customer's own account of AUT-02) and the payment callbacks need a Decision that changes `[ShopEndpoint]` and its test before they are written; they do not follow today's rule.
 
 A token for no ZenGear account gets 403 `/problems/account-not-registered`. A registered user without the permission gets 403 `/problems/permission-denied` with `ruleId` `R-SEC-03`. The scope of the permission (NONE = all data, SELF = the caller's own data) is read with `HttpContext.GetUserAccess()`.
 

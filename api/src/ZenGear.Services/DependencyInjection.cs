@@ -53,7 +53,7 @@ public static class DependencyInjection
         services.AddSingleton<IPermissionCatalog, PermissionCatalog>();
         services.AddScoped<PermissionSyncService>();
         services.AddScoped<BusinessLocationService>();
-        services.AddScoped<BusinessLocationPublicService>();
+        services.AddScoped<BusinessLocationShopService>();
 
         services.AddHealthChecks().AddDbContextCheck<ZenGearDbContext>();
 

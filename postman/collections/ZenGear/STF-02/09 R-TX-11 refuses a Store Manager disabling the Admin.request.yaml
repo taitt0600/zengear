@@ -3,7 +3,7 @@ description: |-
   Acceptance criterion 2, R-TX-11: a Store Manager cannot disable an account holding the Admin role (UC-006, 1b).
   The caller is the fixture Store Manager (postman/fixtures/STF-01.sql), who holds staff.disable (STF-02.sql).
 method: POST
-url: '{{baseUrl}}/api/v1/staff/{{adminId}}/disable'
+url: '{{baseUrl}}/api/v1/admin/staff/{{adminId}}/disable'
 order: 9000
 headers:
   - key: X-ZenGear-As

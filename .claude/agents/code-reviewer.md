@@ -57,12 +57,12 @@ repeat those. Check what no test sees:
    each `R_…` test would fail if the rule were broken (no test that only checks the happy path or its own
    setup); a refusal throws `BusinessRuleException` with the rule ID.
 2. **Audience and data exposure**: staff and customers get different DTOs and services (rule 3, DEC-097);
-   a `*PublicDto` or `*PublicService` never selects `average_cost`, `unit_cost` or `internal_note`; cost
+   a `*ShopDto` or `*ShopService` never selects `average_cost`, `unit_cost` or `internal_note`; cost
    fields reach only callers with `cost.view` (R-SEC-09, R-SEC-10); personal data columns follow
    `docs/DATABASE.md` (Conventions → Personal data).
 3. **Authorization** (a test already checks that every action declares its access; judge the choice):
-   the permission of `[RequirePermission]` is the one the feature needs, `[AnyRegisteredUser]` and
-   `[AllowAnonymous]` only where the use case is open to them; under the `SELF` scope
+   the permission of `[RequirePermission]` is the one the feature needs, `[AnyRegisteredUser]` and a
+   `*ShopController` with `[ShopEndpoint]` (anonymous) only where the use case is open to them; under the `SELF` scope
    (`HttpContext.GetUserAccess()`) a caller reads and changes only its own rows, filtered by the current
    user and never by an id from the request; no check by role name (R-SEC-03).
 4. **Writes across areas the IL scan cannot see**: `ExecuteSql`, `FromSql` or `migrationBuilder.Sql` that

@@ -65,7 +65,7 @@ foreach ($key in 'ConnectionStrings:ZenGearMigrations', 'ConnectionStrings:ZenGe
     }
 }
 if (-not $secrets.ContainsKey('Firebase:DefaultStaffPassword')) {
-    Stop-With 1 'user-secret Firebase:DefaultStaffPassword is not set: without it POST /api/v1/staff fails (api/CLAUDE.md, Local database).'
+    Stop-With 1 'user-secret Firebase:DefaultStaffPassword is not set: without it POST /api/v1/admin/staff fails (api/CLAUDE.md, Local database).'
 }
 
 $launch = Get-Content (Join-Path $api 'Properties/launchSettings.json') -Raw | ConvertFrom-Json

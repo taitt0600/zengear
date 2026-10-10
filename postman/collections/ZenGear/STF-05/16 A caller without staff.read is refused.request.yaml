@@ -2,7 +2,7 @@ $kind: http-request
 description: |-
   R-SEC-03: the permission staff.read is checked through the caller's roles; the fixture customer has none.
 method: GET
-url: '{{baseUrl}}/api/v1/staff'
+url: '{{baseUrl}}/api/v1/admin/staff'
 order: 16000
 headers:
   - key: X-ZenGear-As

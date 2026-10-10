@@ -3,7 +3,7 @@ description: |-
   R-USR-12 (DEC-103): only a caller holding the Admin role restores an account holding it (UC-006, 1e). The caller
   is the fixture Store Manager, who holds staff.disable (postman/fixtures/STF-02.sql). Nothing changes.
 method: POST
-url: '{{baseUrl}}/api/v1/staff/{{secondAdminId}}/restore'
+url: '{{baseUrl}}/api/v1/admin/staff/{{secondAdminId}}/restore'
 order: 21000
 headers:
   - key: X-ZenGear-As

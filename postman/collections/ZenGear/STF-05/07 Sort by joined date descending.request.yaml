@@ -3,7 +3,7 @@ description: |-
   Acceptance criterion 2, R-USR-13: `sort=-joinedDate` lists the latest joined first, accounts without a joined
   date last. (The Vietnamese order of names and the order of codes are checked by the integration tests.)
 method: GET
-url: '{{baseUrl}}/api/v1/staff?sort=-joinedDate&pageSize=100'
+url: '{{baseUrl}}/api/v1/admin/staff?sort=-joinedDate&pageSize=100'
 order: 7000
 headers:
   - key: X-ZenGear-As
@@ -24,7 +24,7 @@ scripts:
             return done(rows, first);
           }
           pm.sendRequest({
-            url: `${pm.variables.get('baseUrl')}/api/v1/staff?${query}&page=${page}`,
+            url: `${pm.variables.get('baseUrl')}/api/v1/admin/staff?${query}&page=${page}`,
             method: 'GET',
             header: [{ key: 'Authorization', value: auth }],
           }, (error, response) => {

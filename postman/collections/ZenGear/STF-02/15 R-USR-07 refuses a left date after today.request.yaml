@@ -3,7 +3,7 @@ description: |-
   R-USR-07 (DEC-103): the left date is not after today in Asia/Ho_Chi_Minh (UC-006, 3b): the account is disabled in
   the same operation, so a later date would lock the staff member out before their last working day. Nothing changes.
 method: POST
-url: '{{baseUrl}}/api/v1/staff/{{staffId}}/disable'
+url: '{{baseUrl}}/api/v1/admin/staff/{{staffId}}/disable'
 order: 15000
 headers:
   - key: X-ZenGear-As

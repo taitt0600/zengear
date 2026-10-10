@@ -2,7 +2,7 @@ $kind: http-request
 description: |-
   R-LOC-01 and UC-070 3a: after 05 to 08 there is still one location, as 03 saved it, with the ETag of 03.
 method: GET
-url: '{{baseUrl}}/api/v1/business-locations/{{businessLocationId}}'
+url: '{{baseUrl}}/api/v1/admin/business-locations/{{businessLocationId}}'
 order: 9000
 headers:
   - key: X-ZenGear-As
@@ -19,6 +19,6 @@ scripts:
         pm.expect(body.wardId).to.eql(26743);
         pm.expect(body.regularHours).to.have.lengthOf(12);
       });
-      pm.sendRequest({ url: `${pm.variables.get('baseUrl')}/api/v1/business-locations`, method: 'GET' }, (error, list) => {
+      pm.sendRequest({ url: `${pm.variables.get('baseUrl')}/api/v1/shop/business-locations`, method: 'GET' }, (error, list) => {
         pm.test('still exactly one location', () => pm.expect(list.json().totalCount).to.eql(1));
       });

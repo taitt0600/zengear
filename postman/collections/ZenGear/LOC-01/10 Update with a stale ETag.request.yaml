@@ -2,7 +2,7 @@ $kind: http-request
 description: |-
   API conventions: the ETag of 02 is stale after the update of 03 (412).
 method: PUT
-url: '{{baseUrl}}/api/v1/business-locations/{{businessLocationId}}'
+url: '{{baseUrl}}/api/v1/admin/business-locations/{{businessLocationId}}'
 order: 10000
 headers:
   - key: X-ZenGear-As

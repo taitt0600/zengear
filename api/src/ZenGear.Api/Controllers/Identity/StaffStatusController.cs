@@ -9,7 +9,7 @@ namespace ZenGear.Api.Controllers.Identity;
 
 /// <summary>Disables and restores staff accounts (STF-02).</summary>
 [ApiController]
-[Route("api/v1/staff")]
+[Route("staff")]
 public sealed class StaffStatusController(StaffStatusService staffStatus) : ControllerBase
 {
     /// <summary>

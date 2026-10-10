@@ -2,7 +2,7 @@ $kind: http-request
 description: |-
   R-USR-11: the new password has 12 to 128 characters; 11 is refused with 400 and nothing changes (UC-007 3b).
 method: POST
-url: '{{baseUrl}}/api/v1/me/change-password'
+url: '{{baseUrl}}/api/v1/admin/me/change-password'
 order: 5000
 headers:
   - key: X-ZenGear-As

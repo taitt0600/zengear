@@ -2,7 +2,7 @@ $kind: http-request
 description: |-
   R-USR-07 (DEC-103): the refusal of 15 changed nothing: the Cashier stays DISABLED by 10, with no left date.
 method: GET
-url: '{{baseUrl}}/api/v1/staff/{{staffId}}'
+url: '{{baseUrl}}/api/v1/admin/staff/{{staffId}}'
 order: 16000
 headers:
   - key: X-ZenGear-As

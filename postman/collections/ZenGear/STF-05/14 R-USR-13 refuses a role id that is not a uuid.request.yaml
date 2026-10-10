@@ -3,7 +3,7 @@ description: |-
   R-USR-13: a `roleId` that is not a uuid is refused by model binding, still naming the rule; the message does not
   repeat the value sent.
 method: GET
-url: '{{baseUrl}}/api/v1/staff?roleId=abc'
+url: '{{baseUrl}}/api/v1/admin/staff?roleId=abc'
 order: 14000
 headers:
   - key: X-ZenGear-As

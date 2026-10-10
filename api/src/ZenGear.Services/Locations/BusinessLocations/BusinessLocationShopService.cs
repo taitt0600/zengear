@@ -8,13 +8,13 @@ using ZenGear.Services.Common.Models;
 namespace ZenGear.Services.Locations.BusinessLocations;
 
 /// <summary>The business location as the storefront shows it (R-LOC-01): read by anyone, no ids of the edit form.</summary>
-public sealed class BusinessLocationPublicService(ZenGearDbContext db, IValidator<PageRequest> pageValidator, IClock clock)
+public sealed class BusinessLocationShopService(ZenGearDbContext db, IValidator<PageRequest> pageValidator, IClock clock)
 {
-    /// <summary>Days of <see cref="BusinessLocationPublicDto.WeekHours"/>, from today.</summary>
+    /// <summary>Days of <see cref="BusinessLocationShopDto.WeekHours"/>, from today.</summary>
     public const int WeekDays = 7;
 
     /// <summary>The locations by name (Phase 1: the one location, R-LOC-01).</summary>
-    public async Task<PagedDto<BusinessLocationPublicDto>> ListAsync(PageRequest page, CancellationToken cancellationToken)
+    public async Task<PagedDto<BusinessLocationShopDto>> ListAsync(PageRequest page, CancellationToken cancellationToken)
     {
         await pageValidator.ValidateAndThrowAsync(page, cancellationToken);
 
@@ -35,10 +35,10 @@ public sealed class BusinessLocationPublicService(ZenGearDbContext db, IValidato
         var total = page.Page == 1 && rows.Count < page.PageSize ? rows.Count : await locations.CountAsync(cancellationToken);
         var today = clock.Today;
         var items = rows.Select(r => ToDto(r.Location, r.WardName, r.ProvinceName, today)).ToList();
-        return new PagedDto<BusinessLocationPublicDto>(items, page.Page, page.PageSize, total);
+        return new PagedDto<BusinessLocationShopDto>(items, page.Page, page.PageSize, total);
     }
 
-    private static BusinessLocationPublicDto ToDto(BusinessLocation location, string wardName, string provinceName, DateOnly today)
+    private static BusinessLocationShopDto ToDto(BusinessLocation location, string wardName, string provinceName, DateOnly today)
     {
         var weekHours = Enumerable.Range(0, WeekDays)
             .Select(offset => today.AddDays(offset))
@@ -46,7 +46,7 @@ public sealed class BusinessLocationPublicService(ZenGearDbContext db, IValidato
                 [.. BusinessLocation.HoursOn(location.RegularHours, location.SpecialHours, date).Select(OpeningPeriodDto.From)]))
             .ToList();
 
-        return new BusinessLocationPublicDto(location.Id, location.Name, location.Phone, location.Email,
+        return new BusinessLocationShopDto(location.Id, location.Name, location.Phone, location.Email,
             location.AddressDetail, wardName, provinceName,
             [.. location.RegularHours.OrderBy(r => r.Day).ThenBy(r => r.Open).Select(RegularHoursPeriodDto.From)],
             [.. (location.SpecialHours ?? []).Where(s => s.Date >= today).OrderBy(s => s.Date).ThenBy(s => s.Open).Select(SpecialHoursPeriodDto.From)],

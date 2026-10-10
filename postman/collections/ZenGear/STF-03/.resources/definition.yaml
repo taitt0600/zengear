@@ -6,7 +6,7 @@ description: |-
 
   Needs tools/dev_reset.ps1 first: the Admin owner@zengear.test (bootstrap-admin, DEC-096) and the dev-only fixture
   postman/fixtures/STF-03.sql (a customer customer.fixture@zengear.test, for the refusal of the staff password change).
-  The folder creates its own staff member through POST /api/v1/staff, with an email carrying the run id `run`, so it
+  The folder creates its own staff member through POST /api/v1/admin/staff, with an email carrying the run id `run`, so it
   starts with a pending password change and runs again without a reset. The new passwords are made from `run` too;
   they are test values of this run, not secrets.
 

@@ -2,7 +2,7 @@ $kind: http-request
 description: |-
   R-USR-12 (DEC-103): the refusal of 21 changed nothing: the second Admin stays DISABLED.
 method: GET
-url: '{{baseUrl}}/api/v1/staff/{{secondAdminId}}'
+url: '{{baseUrl}}/api/v1/admin/staff/{{secondAdminId}}'
 order: 22000
 headers:
   - key: X-ZenGear-As

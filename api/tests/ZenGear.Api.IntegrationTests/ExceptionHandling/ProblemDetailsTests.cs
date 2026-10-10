@@ -10,7 +10,7 @@ public class ProblemDetailsTests : IntegrationTestBase
     [Test]
     public async Task Business_rule_violation_is_409_with_ruleId_and_traceId()
     {
-        var response = await Client.GetAsync(new Uri("/test/business-rule", UriKind.Relative));
+        var response = await Client.GetAsync(new Uri("/api/v1/admin/test/business-rule", UriKind.Relative));
 
         response.StatusCode.ShouldBe(HttpStatusCode.Conflict);
         var problem = await ReadProblemAsync(response);
@@ -25,7 +25,7 @@ public class ProblemDetailsTests : IntegrationTestBase
     [Test]
     public async Task Validation_failure_is_400_with_errors_keyed_by_camelCase_path()
     {
-        var response = await Client.GetAsync(new Uri("/test/validation", UriKind.Relative));
+        var response = await Client.GetAsync(new Uri("/api/v1/admin/test/validation", UriKind.Relative));
 
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
         var problem = await ReadProblemAsync(response);
@@ -38,7 +38,7 @@ public class ProblemDetailsTests : IntegrationTestBase
     [Test]
     public async Task Validation_failure_has_no_ruleId_without_a_rule_error_code()
     {
-        var problem = await ReadProblemAsync(await Client.GetAsync(new Uri("/test/validation", UriKind.Relative)));
+        var problem = await ReadProblemAsync(await Client.GetAsync(new Uri("/api/v1/admin/test/validation", UriKind.Relative)));
 
         problem.TryGetProperty("ruleId", out _).ShouldBeFalse();
     }
@@ -46,7 +46,7 @@ public class ProblemDetailsTests : IntegrationTestBase
     [Test]
     public async Task Validation_failure_names_the_rule_its_failures_share()
     {
-        var response = await Client.GetAsync(new Uri("/test/validation-rule", UriKind.Relative));
+        var response = await Client.GetAsync(new Uri("/api/v1/admin/test/validation-rule", UriKind.Relative));
 
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
         var problem = await ReadProblemAsync(response);
@@ -57,7 +57,7 @@ public class ProblemDetailsTests : IntegrationTestBase
     [Test]
     public async Task Validation_failure_has_no_ruleId_when_the_failures_do_not_share_one()
     {
-        var problem = await ReadProblemAsync(await Client.GetAsync(new Uri("/test/validation-mixed-rules", UriKind.Relative)));
+        var problem = await ReadProblemAsync(await Client.GetAsync(new Uri("/api/v1/admin/test/validation-mixed-rules", UriKind.Relative)));
 
         problem.TryGetProperty("ruleId", out _).ShouldBeFalse();
     }
@@ -65,7 +65,7 @@ public class ProblemDetailsTests : IntegrationTestBase
     [Test]
     public async Task Bad_request_rule_names_the_rule_of_a_binding_400()
     {
-        var response = await Client.GetAsync(new Uri("/test/bad-request-rule/binding?number=x", UriKind.Relative));
+        var response = await Client.GetAsync(new Uri("/api/v1/admin/test/bad-request-rule/binding?number=x", UriKind.Relative));
 
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
         var problem = await ReadProblemAsync(response);
@@ -77,7 +77,7 @@ public class ProblemDetailsTests : IntegrationTestBase
     [Test]
     public async Task Bad_request_rule_leaves_a_thrown_validation_400_without_a_rule_as_it_is()
     {
-        var problem = await ReadProblemAsync(await Client.GetAsync(new Uri("/test/bad-request-rule/validation", UriKind.Relative)));
+        var problem = await ReadProblemAsync(await Client.GetAsync(new Uri("/api/v1/admin/test/bad-request-rule/validation", UriKind.Relative)));
 
         problem.TryGetProperty("ruleId", out _).ShouldBeFalse();
     }
@@ -85,7 +85,7 @@ public class ProblemDetailsTests : IntegrationTestBase
     [Test]
     public async Task Bad_request_rule_never_replaces_the_rule_a_400_already_names()
     {
-        var problem = await ReadProblemAsync(await Client.GetAsync(new Uri("/test/bad-request-rule/own-rule", UriKind.Relative)));
+        var problem = await ReadProblemAsync(await Client.GetAsync(new Uri("/api/v1/admin/test/bad-request-rule/own-rule", UriKind.Relative)));
 
         problem.GetProperty("ruleId").GetString().ShouldBe("R-USR-11");
     }
@@ -93,7 +93,7 @@ public class ProblemDetailsTests : IntegrationTestBase
     [Test]
     public async Task Bad_request_rule_leaves_a_400_the_action_returns_without_a_rule()
     {
-        var response = await Client.GetAsync(new Uri("/test/bad-request-rule/returned", UriKind.Relative));
+        var response = await Client.GetAsync(new Uri("/api/v1/admin/test/bad-request-rule/returned", UriKind.Relative));
 
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
         (await ReadProblemAsync(response)).TryGetProperty("ruleId", out _).ShouldBeFalse();
@@ -102,7 +102,7 @@ public class ProblemDetailsTests : IntegrationTestBase
     [Test]
     public async Task A_binding_400_of_an_action_without_bad_request_rule_names_no_rule()
     {
-        var response = await Client.GetAsync(new Uri("/api/v1/business-locations?page=x", UriKind.Relative));
+        var response = await Client.GetAsync(new Uri("/api/v1/shop/business-locations?page=x", UriKind.Relative));
 
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
         (await ReadProblemAsync(response)).TryGetProperty("ruleId", out _).ShouldBeFalse();
@@ -111,7 +111,7 @@ public class ProblemDetailsTests : IntegrationTestBase
     [Test]
     public async Task Concurrency_conflict_with_If_Match_is_412()
     {
-        using var request = new HttpRequestMessage(HttpMethod.Put, new Uri("/test/concurrency", UriKind.Relative));
+        using var request = new HttpRequestMessage(HttpMethod.Put, new Uri("/api/v1/admin/test/concurrency", UriKind.Relative));
         request.Headers.TryAddWithoutValidation("If-Match", "\"42\"");
 
         var response = await Client.SendAsync(request);
@@ -124,7 +124,7 @@ public class ProblemDetailsTests : IntegrationTestBase
     [Test]
     public async Task Concurrency_conflict_without_If_Match_is_409_concurrency_conflict_without_ruleId()
     {
-        var response = await Client.PutAsync(new Uri("/test/concurrency", UriKind.Relative), content: null);
+        var response = await Client.PutAsync(new Uri("/api/v1/admin/test/concurrency", UriKind.Relative), content: null);
 
         response.StatusCode.ShouldBe(HttpStatusCode.Conflict);
         var problem = await ReadProblemAsync(response);
@@ -135,7 +135,7 @@ public class ProblemDetailsTests : IntegrationTestBase
     [Test]
     public async Task Unexpected_exception_is_500_without_internal_detail()
     {
-        var response = await Client.GetAsync(new Uri("/test/unexpected", UriKind.Relative));
+        var response = await Client.GetAsync(new Uri("/api/v1/admin/test/unexpected", UriKind.Relative));
 
         response.StatusCode.ShouldBe(HttpStatusCode.InternalServerError);
         var body = await response.Content.ReadAsStringAsync();

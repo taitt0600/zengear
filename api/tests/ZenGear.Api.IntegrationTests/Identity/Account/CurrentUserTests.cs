@@ -9,13 +9,13 @@ using ZenGear.Api.IntegrationTests.Infrastructure;
 namespace ZenGear.Api.IntegrationTests.Identity.Account;
 
 /// <summary>
-/// GET and PATCH /api/v1/me and POST /api/v1/me/change-password (STF-03) against PostgreSQL and Redis, with Firebase
+/// GET and PATCH /api/v1/admin/me and POST /api/v1/admin/me/change-password (STF-03) against PostgreSQL and Redis, with Firebase
 /// Authentication faked and the clock fixed.
 /// </summary>
 public class CurrentUserTests : IntegrationTestBase
 {
-    private const string MePath = "/api/v1/me";
-    private const string ChangePasswordPath = "/api/v1/me/change-password";
+    private const string MePath = "/api/v1/admin/me";
+    private const string ChangePasswordPath = "/api/v1/admin/me/change-password";
     private const string StaffUid = "uid-staff";
     private const string StaffEmail = "uid-staff@zengear.test";
     private const string CustomerUid = "uid-customer";
@@ -172,7 +172,7 @@ public class CurrentUserTests : IntegrationTestBase
     public async Task R_USR_04_password_change_sets_firebase_password_clears_flag_and_revokes_sessions()
     {
         var token = Token(StaffUid);
-        (await SendAsync(HttpMethod.Get, "/test/me", token)).StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+        (await SendAsync(HttpMethod.Get, "/api/v1/admin/test/me", token)).StatusCode.ShouldBe(HttpStatusCode.Forbidden);
 
         var response = await ChangePasswordAsync(token, NewPassword);
 
@@ -181,7 +181,7 @@ public class CurrentUserTests : IntegrationTestBase
         (await StaffRowAsync(_staffId)).ShouldBe(new StaffRow(MustChangePassword: false, _staffId, Now));
         Auth.Revoked.ShouldBe([StaffUid]);
         // The access cache was bumped: the token in hand reaches the other endpoints again.
-        (await SendAsync(HttpMethod.Get, "/test/me", token)).StatusCode.ShouldBe(HttpStatusCode.OK);
+        (await SendAsync(HttpMethod.Get, "/api/v1/admin/test/me", token)).StatusCode.ShouldBe(HttpStatusCode.OK);
         (await JsonAsync(await SendAsync(HttpMethod.Get, MePath, token))).GetProperty("mustChangePassword").GetBoolean()
             .ShouldBeFalse();
     }

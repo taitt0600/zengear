@@ -3,7 +3,7 @@ description: |-
   DEC-094: after the change must_change_password is cleared. The ID token in hand stays valid until it expires (the
   API does not check revocation yet, AUT-06), so the same session reads the account.
 method: GET
-url: '{{baseUrl}}/api/v1/me'
+url: '{{baseUrl}}/api/v1/admin/me'
 order: 10000
 headers:
   - key: X-ZenGear-As

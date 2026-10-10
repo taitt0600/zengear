@@ -3,7 +3,7 @@ description: |-
   STF-03 acceptance criterion 1 (R-USR-04): the staff member changes the display name, sent with spaces and stored
   trimmed; the ETag changes. Keeps the new tag as `etag2`.
 method: PATCH
-url: '{{baseUrl}}/api/v1/me'
+url: '{{baseUrl}}/api/v1/admin/me'
 order: 15000
 headers:
   - key: X-ZenGear-As

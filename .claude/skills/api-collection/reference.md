@@ -56,7 +56,7 @@ $kind: http-request
 description: |-
   R-SEC-01: a staff account holds at least one role.
 method: POST                      # GET POST PUT PATCH DELETE HEAD OPTIONS
-url: '{{baseUrl}}/api/v1/staff'
+url: '{{baseUrl}}/api/v1/admin/staff'
 order: 6000                       # bare number, relative: space by 1000
 headers:
   - key: X-ZenGear-As             # the account the collection script signs in (ZenGear convention)
@@ -106,7 +106,7 @@ hold only shared values that never change during a run. `.postman/` (the link to
 
 ## YAML rules that keep a file parsing
 
-1. Single-quote every value that holds `{{variable}}`: `url: '{{baseUrl}}/api/v1/me'`.
+1. Single-quote every value that holds `{{variable}}`: `url: '{{baseUrl}}/api/v1/admin/me'`.
 2. Single-quote values with `: # & * ! [ ] { } > |`.
 3. Bodies and scripts are `|-` block scalars, indented under the key.
 4. Quote strings that look like booleans or numbers: `value: '123'`.

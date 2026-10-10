@@ -3,7 +3,7 @@ description: |-
   R-SEC-03: business_location.update is the Admin's only (owner's decision for LOC-01); the customer of the STF-03
   fixture, who holds no permission, cannot open the edit form (403 /problems/permission-denied).
 method: GET
-url: '{{baseUrl}}/api/v1/business-locations/{{businessLocationId}}'
+url: '{{baseUrl}}/api/v1/admin/business-locations/{{businessLocationId}}'
 order: 12000
 headers:
   - key: X-ZenGear-As

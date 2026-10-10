@@ -30,7 +30,7 @@ file.
    - values unique to the run: the first request sets `pm.variables.set('run', Date.now().toString(36))` and every
      email, code or name that must be unique carries `{{run}}`, so the folder passes twice in a row without a reset.
      An id a later request needs is read during the run, from a response of the same folder (as LOC-01 request 01
-     reads the location id from the public list), and kept with `pm.variables.set` (`staffId`); never add an
+     reads the location id from the shop list), and kept with `pm.variables.set` (`staffId`); never add an
      environment variable for it: the Postman app keeps an empty value for an environment variable it has not seen
      while the Postman CLI reads the file, so the folder passes in CI and fails in the app (#40, first test). Run
      state lives in `pm.variables` only, never in collection variables, environments or globals, which the Postman

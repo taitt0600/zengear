@@ -8,7 +8,7 @@ description: |-
   Needs tools/dev_reset.ps1 first: the Admin owner@zengear.test (bootstrap-admin, DEC-096) and the dev-only fixtures
   postman/fixtures/STF-01.sql (the Store Manager manager.fixture@zengear.test), STF-02.sql (Store Manager holds
   staff.disable; the ANONYMIZED staff account anonymizedStaffId) and STF-03.sql (the customer
-  customer.fixture@zengear.test). The folder creates its own staff member through POST /api/v1/staff, with an email
+  customer.fixture@zengear.test). The folder creates its own staff member through POST /api/v1/admin/staff, with an email
   and employee code carrying the run id `run`, so it runs again without a reset.
 
   09 asks the Store Manager to disable the Admin and 17 asks the Admin to disable their own account, both expecting

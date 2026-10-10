@@ -9,7 +9,10 @@ using ZenGear.Services.Identity.Permissions;
 
 namespace ZenGear.Api.IntegrationTests.Locations.BusinessLocations;
 
-/// <summary>/api/v1/business-locations (LOC-01, UC-070) against PostgreSQL, with Firebase Authentication faked.</summary>
+/// <summary>
+/// /api/v1/admin/business-locations and /api/v1/shop/business-locations (LOC-01, UC-070) against PostgreSQL, with
+/// Firebase Authentication faked.
+/// </summary>
 public class BusinessLocationTests : IntegrationTestBase
 {
     private const string AdminUid = "uid-admin";
@@ -43,7 +46,7 @@ public class BusinessLocationTests : IntegrationTestBase
     [Test]
     public async Task R_LOC_01_admin_reads_the_location_with_its_etag()
     {
-        var response = await SendAsync(HttpMethod.Get, $"/api/v1/business-locations/{_locationId}", AdminUid);
+        var response = await SendAsync(HttpMethod.Get, $"/api/v1/admin/business-locations/{_locationId}", AdminUid);
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
         response.Headers.ETag.ShouldNotBeNull();
@@ -94,7 +97,7 @@ public class BusinessLocationTests : IntegrationTestBase
     {
         (await UpdateAsync(AdminUid, await ETagAsync(), ValidUpdate())).StatusCode.ShouldBe(HttpStatusCode.OK);
 
-        var response = await Client.SendAsync(TestTokens.Get("/api/v1/business-locations?page=1&pageSize=20", null));
+        var response = await Client.SendAsync(TestTokens.Get("/api/v1/shop/business-locations?page=1&pageSize=20", null));
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
         var body = await JsonAsync(response);
@@ -124,15 +127,15 @@ public class BusinessLocationTests : IntegrationTestBase
         (await UpdateAsync(AdminUid, await ETagAsync(), ValidUpdate())).StatusCode.ShouldBe(HttpStatusCode.OK);
         Factory.Time.AdjustTime(Now.AddDays(2));
 
-        var body = await JsonAsync(await Client.SendAsync(TestTokens.Get("/api/v1/business-locations", null)));
+        var body = await JsonAsync(await Client.SendAsync(TestTokens.Get("/api/v1/shop/business-locations", null)));
 
         var special = body.GetProperty("items")[0].GetProperty("specialHours");
         special.GetArrayLength().ShouldBe(1);
         special[0].GetProperty("date").GetString().ShouldBe("2027-02-07");
     }
 
-    [TestCase("POST", "/api/v1/business-locations")]
-    [TestCase("DELETE", "/api/v1/business-locations/{0}")]
+    [TestCase("POST", "/api/v1/admin/business-locations")]
+    [TestCase("DELETE", "/api/v1/admin/business-locations/{0}")]
     public async Task R_LOC_01_admin_cannot_add_or_delete_a_location(string method, string path)
     {
         var response = await SendAsync(new HttpMethod(method), string.Format(path, _locationId), AdminUid,
@@ -252,7 +255,7 @@ public class BusinessLocationTests : IntegrationTestBase
     public async Task Public_list_page_beyond_the_last_possible_page_is_400()
     {
         var response = await Client.SendAsync(TestTokens.Get(
-            $"/api/v1/business-locations?page={ZenGear.Services.Common.Models.PageRequest.MaxPage + 1}&pageSize=100", null));
+            $"/api/v1/shop/business-locations?page={ZenGear.Services.Common.Models.PageRequest.MaxPage + 1}&pageSize=100", null));
 
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
         (await JsonAsync(response)).GetProperty("errors").TryGetProperty("page", out _).ShouldBeTrue();
@@ -295,7 +298,7 @@ public class BusinessLocationTests : IntegrationTestBase
     [Test]
     public async Task Unknown_location_is_404()
     {
-        var response = await SendAsync(HttpMethod.Get, $"/api/v1/business-locations/{Guid.NewGuid()}", AdminUid);
+        var response = await SendAsync(HttpMethod.Get, $"/api/v1/admin/business-locations/{Guid.NewGuid()}", AdminUid);
 
         response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
     }
@@ -303,7 +306,7 @@ public class BusinessLocationTests : IntegrationTestBase
     [Test]
     public async Task R_SEC_03_staff_without_the_permission_is_refused()
     {
-        var read = await SendAsync(HttpMethod.Get, $"/api/v1/business-locations/{_locationId}", CashierUid);
+        var read = await SendAsync(HttpMethod.Get, $"/api/v1/admin/business-locations/{_locationId}", CashierUid);
         await read.ShouldBeForbiddenProblemAsync("/problems/permission-denied", "R-SEC-03");
 
         var update = await UpdateAsync(CashierUid, "*", ValidUpdate());
@@ -314,7 +317,7 @@ public class BusinessLocationTests : IntegrationTestBase
     [Test]
     public async Task Staff_read_without_token_is_401()
     {
-        var response = await Client.SendAsync(TestTokens.Get($"/api/v1/business-locations/{_locationId}", null));
+        var response = await Client.SendAsync(TestTokens.Get($"/api/v1/admin/business-locations/{_locationId}", null));
 
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
     }
@@ -322,10 +325,54 @@ public class BusinessLocationTests : IntegrationTestBase
     [Test]
     public async Task Public_list_page_size_above_100_is_400()
     {
-        var response = await Client.SendAsync(TestTokens.Get("/api/v1/business-locations?pageSize=101", null));
+        var response = await Client.SendAsync(TestTokens.Get("/api/v1/shop/business-locations?pageSize=101", null));
 
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
         (await JsonAsync(response)).GetProperty("errors").TryGetProperty("pageSize", out _).ShouldBeTrue();
+    }
+
+    [Test]
+    public async Task R_LOC_01_admin_list_gives_the_one_location_with_its_edit_fields()
+    {
+        var response = await SendAsync(HttpMethod.Get, "/api/v1/admin/business-locations", AdminUid);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        var body = await JsonAsync(response);
+        body.GetProperty("totalCount").GetInt32().ShouldBe(1);
+        var location = body.GetProperty("items")[0];
+        location.GetProperty("id").GetGuid().ShouldBe(_locationId);
+        location.GetProperty("provinceId").GetInt32().ShouldBe(TestLocations.HoChiMinhCity);
+        location.GetProperty("wardId").GetInt32().ShouldBe(TestLocations.SaiGonWard);
+    }
+
+    [Test]
+    public async Task Admin_list_page_after_the_last_is_empty_with_the_total()
+    {
+        var response = await SendAsync(HttpMethod.Get, "/api/v1/admin/business-locations?page=2&pageSize=1", AdminUid);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        var body = await JsonAsync(response);
+        body.GetProperty("items").GetArrayLength().ShouldBe(0);
+        body.GetProperty("totalCount").GetInt32().ShouldBe(1);
+    }
+
+    [Test]
+    public async Task R_SEC_03_staff_without_the_permission_cannot_list_the_locations()
+    {
+        var response = await SendAsync(HttpMethod.Get, "/api/v1/admin/business-locations", CashierUid);
+
+        await response.ShouldBeForbiddenProblemAsync("/problems/permission-denied", "R-SEC-03");
+    }
+
+    [Test]
+    public async Task Admin_list_page_size_above_100_is_400_without_rule()
+    {
+        var response = await SendAsync(HttpMethod.Get, "/api/v1/admin/business-locations?pageSize=101", AdminUid);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        var body = await JsonAsync(response);
+        body.GetProperty("errors").TryGetProperty("pageSize", out _).ShouldBeTrue();
+        body.TryGetProperty("ruleId", out _).ShouldBeFalse();
     }
 
     private static Update ValidUpdate() => new(
@@ -348,13 +395,13 @@ public class BusinessLocationTests : IntegrationTestBase
 
     private async Task<string> ETagAsync()
     {
-        var response = await SendAsync(HttpMethod.Get, $"/api/v1/business-locations/{_locationId}", AdminUid);
+        var response = await SendAsync(HttpMethod.Get, $"/api/v1/admin/business-locations/{_locationId}", AdminUid);
         return response.Headers.ETag!.Tag;
     }
 
     private Task<HttpResponseMessage> UpdateAsync(string uid, string? ifMatch, Update body)
     {
-        var request = Request(HttpMethod.Put, $"/api/v1/business-locations/{_locationId}", uid, body);
+        var request = Request(HttpMethod.Put, $"/api/v1/admin/business-locations/{_locationId}", uid, body);
         if (ifMatch is not null)
         {
             request.Headers.TryAddWithoutValidation("If-Match", ifMatch);

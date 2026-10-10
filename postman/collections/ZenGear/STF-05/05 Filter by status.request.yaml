@@ -2,7 +2,7 @@ $kind: http-request
 description: |-
   Acceptance criterion 2, R-USR-13: `status=DISABLED` lists DISABLED accounts only.
 method: GET
-url: '{{baseUrl}}/api/v1/staff?status=DISABLED&pageSize=100'
+url: '{{baseUrl}}/api/v1/admin/staff?status=DISABLED&pageSize=100'
 order: 5000
 headers:
   - key: X-ZenGear-As
@@ -23,7 +23,7 @@ scripts:
             return done(rows, first);
           }
           pm.sendRequest({
-            url: `${pm.variables.get('baseUrl')}/api/v1/staff?${query}&page=${page}`,
+            url: `${pm.variables.get('baseUrl')}/api/v1/admin/staff?${query}&page=${page}`,
             method: 'GET',
             header: [{ key: 'Authorization', value: auth }],
           }, (error, response) => {

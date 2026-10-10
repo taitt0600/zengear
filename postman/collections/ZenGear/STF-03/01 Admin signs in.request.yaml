@@ -4,7 +4,7 @@ description: |-
   unique, and the two new passwords of the run: `p1` (forced change) and `p2` (self change), 12+ characters, on no
   blocklist and without "zengear".
 method: GET
-url: '{{baseUrl}}/api/v1/me'
+url: '{{baseUrl}}/api/v1/admin/me'
 order: 1000
 headers:
   - key: X-ZenGear-As

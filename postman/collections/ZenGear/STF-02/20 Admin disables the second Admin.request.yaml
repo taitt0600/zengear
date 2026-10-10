@@ -3,7 +3,7 @@ description: |-
   Set-up for 21: an Admin disables another Admin, who is not the last ACTIVE account holding the Admin role
   (R-TX-11, R-USR-12).
 method: POST
-url: '{{baseUrl}}/api/v1/staff/{{secondAdminId}}/disable'
+url: '{{baseUrl}}/api/v1/admin/staff/{{secondAdminId}}/disable'
 order: 20000
 headers:
   - key: X-ZenGear-As

@@ -2,7 +2,7 @@ $kind: http-request
 description: |-
   Set-up: a Cashier of this run (STF-01), named so that it sorts first.
 method: POST
-url: '{{baseUrl}}/api/v1/staff'
+url: '{{baseUrl}}/api/v1/admin/staff'
 order: 2000
 headers:
   - key: X-ZenGear-As

@@ -2,7 +2,7 @@ $kind: http-request
 description: |-
   A request without a token is refused before anything else.
 method: POST
-url: '{{baseUrl}}/api/v1/staff/{{staffId}}/restore'
+url: '{{baseUrl}}/api/v1/admin/staff/{{staffId}}/restore'
 order: 14000
 scripts:
   - type: afterResponse

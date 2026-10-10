@@ -2,7 +2,7 @@ $kind: http-request
 description: |-
   Clean-up: the second Admin of this run ends DISABLED, so repeated runs do not leave ACTIVE Admin accounts behind.
 method: POST
-url: '{{baseUrl}}/api/v1/staff/{{secondAdminId}}/disable'
+url: '{{baseUrl}}/api/v1/admin/staff/{{secondAdminId}}/disable'
 order: 24000
 headers:
   - key: X-ZenGear-As

@@ -16,7 +16,7 @@ namespace ZenGear.Api.IntegrationTests.Identity.Access;
 public class AccessCacheTests : IntegrationTestBase
 {
     private const string Uid = "staff-uid-1";
-    private const string PermissionPath = "/test/permission";
+    private const string PermissionPath = "/api/v1/admin/test/permission";
 
     [Test]
     public async Task R_SEC_07_second_request_is_served_from_cache()
@@ -34,18 +34,18 @@ public class AccessCacheTests : IntegrationTestBase
     public async Task R_SEC_07_disabled_user_is_refused_on_the_next_request()
     {
         var userId = await TestUsers.InsertAsync(Uid);
-        await WarmCacheAsync("/test/me");
+        await WarmCacheAsync("/api/v1/admin/test/me");
 
         await Factory.SetUserStatusAsync(userId, UserStatus.Disabled);
 
-        await (await GetAsync("/test/me")).ShouldBeForbiddenProblemAsync("/problems/account-disabled", "R-SEC-04");
+        await (await GetAsync("/api/v1/admin/test/me")).ShouldBeForbiddenProblemAsync("/problems/account-disabled", "R-SEC-04");
     }
 
     [Test]
     public async Task R_SEC_07_stale_write_after_status_change_is_not_served()
     {
         var userId = await TestUsers.InsertAsync(Uid);
-        await WarmCacheAsync("/test/me");
+        await WarmCacheAsync("/api/v1/admin/test/me");
         var cache = Factory.AccessCache();
 
         // A request read the version and the ACTIVE row, then the change committed, then the request wrote.
@@ -53,7 +53,7 @@ public class AccessCacheTests : IntegrationTestBase
         await Factory.SetUserStatusAsync(userId, UserStatus.Disabled);
         await cache.SetUserAsync(userId, versionBefore, ActiveEntry());
 
-        await (await GetAsync("/test/me")).ShouldBeForbiddenProblemAsync("/problems/account-disabled", "R-SEC-04");
+        await (await GetAsync("/api/v1/admin/test/me")).ShouldBeForbiddenProblemAsync("/problems/account-disabled", "R-SEC-04");
     }
 
     [Test]
@@ -69,14 +69,14 @@ public class AccessCacheTests : IntegrationTestBase
         await Factory.SetUserStatusAsync(userId, UserStatus.Disabled);
         await cache.SetUserAsync(userId, versionBefore, ActiveEntry());
 
-        await (await GetAsync("/test/me")).ShouldBeForbiddenProblemAsync("/problems/account-disabled", "R-SEC-04");
+        await (await GetAsync("/api/v1/admin/test/me")).ShouldBeForbiddenProblemAsync("/problems/account-disabled", "R-SEC-04");
     }
 
     [Test]
     public async Task R_SEC_07_failed_bump_is_retried_before_stale_entry_is_served()
     {
         var userId = await TestUsers.InsertAsync(Uid);
-        await WarmCacheAsync("/test/me");
+        await WarmCacheAsync("/api/v1/admin/test/me");
         var versionKey = RedisAccessCache.UserVersionKey(userId);
         var cachedVersion = await ApiScope.VersionAsync(versionKey);
         await RedisContainer.Database.StringSetAsync(versionKey, "not-a-number"); // INCR now fails
@@ -85,13 +85,13 @@ public class AccessCacheTests : IntegrationTestBase
 
         // The bump is pending: PostgreSQL is read meanwhile, although the ACTIVE entry is still cached.
         Factory.Services.GetRequiredService<PendingAccessBumps>().HasAny.ShouldBeTrue();
-        await (await GetAsync("/test/me")).ShouldBeForbiddenProblemAsync("/problems/account-disabled", "R-SEC-04");
+        await (await GetAsync("/api/v1/admin/test/me")).ShouldBeForbiddenProblemAsync("/problems/account-disabled", "R-SEC-04");
 
         await RedisContainer.Database.StringSetAsync(versionKey, cachedVersion); // Redis works again
         await Factory.WaitForPendingBumpsAsync();
 
         (await ApiScope.VersionAsync(versionKey)).ShouldBe(cachedVersion + 1);
-        await (await GetAsync("/test/me")).ShouldBeForbiddenProblemAsync("/problems/account-disabled", "R-SEC-04");
+        await (await GetAsync("/api/v1/admin/test/me")).ShouldBeForbiddenProblemAsync("/problems/account-disabled", "R-SEC-04");
     }
 
     [Test]
@@ -109,7 +109,7 @@ public class AccessCacheTests : IntegrationTestBase
     public async Task R_SEC_07_new_staff_profile_with_must_change_password_applies_on_the_next_request()
     {
         var userId = await TestUsers.InsertAsync(Uid, isStaff: false);
-        await WarmCacheAsync("/test/me");
+        await WarmCacheAsync("/api/v1/admin/test/me");
 
         await Factory.WithDbAsync(async db =>
         {
@@ -120,7 +120,7 @@ public class AccessCacheTests : IntegrationTestBase
             await db.SaveChangesAsync();
         });
 
-        await (await GetAsync("/test/me")).ShouldBeForbiddenProblemAsync("/problems/password-change-required", "R-USR-03");
+        await (await GetAsync("/api/v1/admin/test/me")).ShouldBeForbiddenProblemAsync("/problems/password-change-required", "R-USR-03");
     }
 
     [Test]
@@ -214,7 +214,7 @@ public class AccessCacheTests : IntegrationTestBase
 
         for (var i = 0; i < 3; i++)
         {
-            using var request = TestTokens.Get("/test/me", token);
+            using var request = TestTokens.Get("/api/v1/admin/test/me", token);
             (await Client.SendAsync(request)).StatusCode.ShouldBe(HttpStatusCode.OK);
         }
 

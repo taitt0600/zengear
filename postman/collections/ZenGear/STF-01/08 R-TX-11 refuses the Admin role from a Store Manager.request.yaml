@@ -4,7 +4,7 @@ description: |-
   (postman/fixtures/STF-01.sql), who holds staff.create; reaching that state needs the fixture until STF-03
   and AUT-05 exist.
 method: POST
-url: '{{baseUrl}}/api/v1/staff'
+url: '{{baseUrl}}/api/v1/admin/staff'
 order: 8000
 headers:
   - key: X-ZenGear-As

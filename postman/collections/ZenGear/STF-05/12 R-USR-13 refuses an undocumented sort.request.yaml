@@ -2,7 +2,7 @@ $kind: http-request
 description: |-
   R-USR-13: `sort` takes name, employeeCode or joinedDate (descending with -) only.
 method: GET
-url: '{{baseUrl}}/api/v1/staff?sort=email'
+url: '{{baseUrl}}/api/v1/admin/staff?sort=email'
 order: 12000
 headers:
   - key: X-ZenGear-As

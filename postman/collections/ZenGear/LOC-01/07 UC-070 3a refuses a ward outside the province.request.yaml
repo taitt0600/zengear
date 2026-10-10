@@ -3,7 +3,7 @@ description: |-
   UC-070 3a (acceptance criterion "Phường/xã phải thuộc tỉnh/thành đã chọn"): Phường Hoàn Kiếm (Hà Nội) with TP. Hồ Chí
   Minh is refused with 400 on wardId; 09 shows nothing changed.
 method: PUT
-url: '{{baseUrl}}/api/v1/business-locations/{{businessLocationId}}'
+url: '{{baseUrl}}/api/v1/admin/business-locations/{{businessLocationId}}'
 order: 7000
 headers:
   - key: X-ZenGear-As

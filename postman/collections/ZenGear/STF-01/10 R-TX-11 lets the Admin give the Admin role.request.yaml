@@ -2,7 +2,7 @@ $kind: http-request
 description: |-
   R-TX-11: an Admin may create another Admin.
 method: POST
-url: '{{baseUrl}}/api/v1/staff'
+url: '{{baseUrl}}/api/v1/admin/staff'
 order: 10000
 headers:
   - key: X-ZenGear-As

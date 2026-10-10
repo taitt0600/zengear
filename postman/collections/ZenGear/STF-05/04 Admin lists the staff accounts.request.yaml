@@ -3,7 +3,7 @@ description: |-
   Acceptance criterion 1, R-USR-13: staff accounts only, ACTIVE and DISABLED, never ANONYMIZED nor a customer;
   each row has the name, email, employee code, status, roles and left date, and no work phone.
 method: GET
-url: '{{baseUrl}}/api/v1/staff?pageSize=100'
+url: '{{baseUrl}}/api/v1/admin/staff?pageSize=100'
 order: 4000
 headers:
   - key: X-ZenGear-As
@@ -24,7 +24,7 @@ scripts:
             return done(rows, first);
           }
           pm.sendRequest({
-            url: `${pm.variables.get('baseUrl')}/api/v1/staff?${query}&page=${page}`,
+            url: `${pm.variables.get('baseUrl')}/api/v1/admin/staff?${query}&page=${page}`,
             method: 'GET',
             header: [{ key: 'Authorization', value: auth }],
           }, (error, response) => {

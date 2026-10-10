@@ -2,7 +2,7 @@ $kind: http-request
 description: |-
   R-USR-13: at most 100 rows per page.
 method: GET
-url: '{{baseUrl}}/api/v1/staff?pageSize=101'
+url: '{{baseUrl}}/api/v1/admin/staff?pageSize=101'
 order: 13000
 headers:
   - key: X-ZenGear-As

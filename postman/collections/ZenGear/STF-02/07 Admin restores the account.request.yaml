@@ -3,7 +3,7 @@ description: |-
   R-USR-03 (UC-006, 1a): DISABLED back to ACTIVE when the staff member returns; the left date is cleared (still
   employed).
 method: POST
-url: '{{baseUrl}}/api/v1/staff/{{staffId}}/restore'
+url: '{{baseUrl}}/api/v1/admin/staff/{{staffId}}/restore'
 order: 7000
 headers:
   - key: X-ZenGear-As

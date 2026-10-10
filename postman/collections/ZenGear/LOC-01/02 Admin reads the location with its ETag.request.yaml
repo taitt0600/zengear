@@ -3,7 +3,7 @@ description: |-
   UC-070 step 1: the Admin opens the business location; the ETag is kept as `etag` for the update of 03 and the stale
   update of 10.
 method: GET
-url: '{{baseUrl}}/api/v1/business-locations/{{businessLocationId}}'
+url: '{{baseUrl}}/api/v1/admin/business-locations/{{businessLocationId}}'
 order: 2000
 headers:
   - key: X-ZenGear-As

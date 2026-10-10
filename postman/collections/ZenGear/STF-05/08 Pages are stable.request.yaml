@@ -3,7 +3,7 @@ description: |-
   Acceptance criterion 2, R-USR-13: `page` and `pageSize` page the list; page 2 of size 1 is the second row of a
   page of size 2 (the order ends with the id, so pages do not overlap).
 method: GET
-url: '{{baseUrl}}/api/v1/staff?page=2&pageSize=1'
+url: '{{baseUrl}}/api/v1/admin/staff?page=2&pageSize=1'
 order: 8000
 headers:
   - key: X-ZenGear-As
@@ -21,7 +21,7 @@ scripts:
         pm.expect(body.totalCount).to.be.at.least(2);
       });
       pm.sendRequest({
-        url: `${pm.variables.get('baseUrl')}/api/v1/staff?pageSize=2`,
+        url: `${pm.variables.get('baseUrl')}/api/v1/admin/staff?pageSize=2`,
         method: 'GET',
         header: [{ key: 'Authorization', value: pm.request.headers.get('Authorization') }],
       }, (error, response) => {

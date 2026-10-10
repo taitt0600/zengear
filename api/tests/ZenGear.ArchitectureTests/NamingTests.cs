@@ -110,7 +110,7 @@ public sealed class NamingTests
     {
         IsMisplacedGenericDto(typeof(SampleDto<>)).ShouldBeTrue();
         IsMisplacedGenericDto(typeof(PagedDto<>)).ShouldBeFalse();
-        IsMisplacedGenericDto(typeof(BusinessLocationPublicDto)).ShouldBeFalse();
+        IsMisplacedGenericDto(typeof(BusinessLocationShopDto)).ShouldBeFalse();
     }
 
     [Test] // *Validator names the validator of one request, which sits beside it in its module

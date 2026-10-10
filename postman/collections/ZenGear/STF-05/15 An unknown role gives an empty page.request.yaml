@@ -2,7 +2,7 @@ $kind: http-request
 description: |-
   R-USR-13, DEC-105: a valid `roleId` of no role returns an empty page, not an error.
 method: GET
-url: '{{baseUrl}}/api/v1/staff?roleId=0199a000-0000-7000-8000-0000000000ff'
+url: '{{baseUrl}}/api/v1/admin/staff?roleId=0199a000-0000-7000-8000-0000000000ff'
 order: 15000
 headers:
   - key: X-ZenGear-As

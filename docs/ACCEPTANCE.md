@@ -71,7 +71,7 @@ not the local one of `api/docker-compose.yml` (it never touches another database
 - **By hand**: `python tools/emulator_token.py <email> <password> [--create]` signs up or signs in an emulator account
   and prints its ID token, for Scalar (Bearer) or `curl`. A Firebase account is not yet a ZenGear account: until a
   user row links its uid, the API answers `403 /problems/account-not-registered`. A staff account created through
-  `POST /api/v1/staff` signs in with the default password of the user-secret `Firebase:DefaultStaffPassword` and must
+  `POST /api/v1/admin/staff` signs in with the default password of the user-secret `Firebase:DefaultStaffPassword` and must
   change it first (`403 /problems/password-change-required`, STF-03).
 
 A feature that needs accounts or data adds them as fixtures, or as requests of its folder, in the same pull request

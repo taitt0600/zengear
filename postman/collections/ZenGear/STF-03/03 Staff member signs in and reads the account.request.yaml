@@ -3,7 +3,7 @@ description: |-
   UC-007 step 1: the staff member signs in (emulator custom token) and reads the account, with its ETag; the
   password change is pending.
 method: GET
-url: '{{baseUrl}}/api/v1/me'
+url: '{{baseUrl}}/api/v1/admin/me'
 order: 3000
 headers:
   - key: X-ZenGear-As

@@ -2,7 +2,7 @@ $kind: http-request
 description: |-
   A new email with the employee code of request 02.
 method: POST
-url: '{{baseUrl}}/api/v1/staff'
+url: '{{baseUrl}}/api/v1/admin/staff'
 order: 12000
 headers:
   - key: X-ZenGear-As

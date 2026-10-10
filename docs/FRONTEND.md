@@ -9,7 +9,7 @@ One Next.js app (App Router) serves the storefront, the admin pages and the POS,
 ```
 web/src/
 ├─ app/
-│  ├─ (storefront)/        public pages: home, category, product, cart, checkout, account
+│  ├─ (shop)/              storefront pages: home, category, product, cart, checkout, account (API /api/v1/shop/)
 │  ├─ (admin)/admin/       back office: catalog, inventory, purchasing, orders, after-sales, cash book, reports
 │  └─ (pos)/pos/           counter sales and shifts, full-screen layout
 ├─ features/<area>/        components, query hooks and Zod schemas per business area (same area names as the backend)
@@ -27,7 +27,7 @@ web/messages/vi.json       every text the user sees, by key (en.json later, stor
 
 ## Rendering
 
-- Storefront catalog and product pages are rendered on the server so search engines see them; they call only public endpoints.
+- Storefront catalog and product pages are rendered on the server so search engines see them; they call only shop endpoints (`/api/v1/shop/`).
 - Admin and POS pages are client components behind sign-in; they call endpoints with the Firebase ID token.
 - `url_redirects` (old slugs, 301) are resolved by the API; the storefront follows what the API returns.
 
@@ -56,7 +56,7 @@ Every text the user sees goes through next-intl: `t('key')` with the keys of `we
 
 ## Authentication
 
-Firebase Authentication in the browser (Phase 1): staff sign in to admin and POS; customers sign in on the storefront (Phase 2). The SDK keeps the session (its default persistence); there is no session cookie. Admin and POS pages are client components behind sign-in: the client layout of each part sends a visitor without a Firebase session to the sign-in page (the session lives in browser storage, which `proxy.ts` on the server cannot see). `proxy.ts` only makes fixed route redirects; neither is authorization, and the API still answers 401 and 403. The client only sends the ID token; roles and permissions come from the API (`GET /api/v1/me`) and are used to hide menus — the API still enforces them. A password change revokes every refresh token (DEC-094): the web signs the user in again. In development the client connects to the Firebase Auth Emulator.
+Firebase Authentication in the browser (Phase 1): staff sign in to admin and POS; customers sign in on the storefront (Phase 2). The SDK keeps the session (its default persistence); there is no session cookie. Admin and POS pages are client components behind sign-in: the client layout of each part sends a visitor without a Firebase session to the sign-in page (the session lives in browser storage, which `proxy.ts` on the server cannot see). `proxy.ts` only makes fixed route redirects; neither is authorization, and the API still answers 401 and 403. The client only sends the ID token; roles and permissions come from the API (`GET /api/v1/admin/me`) and are used to hide menus — the API still enforces them. A password change revokes every refresh token (DEC-094): the web signs the user in again. In development the client connects to the Firebase Auth Emulator.
 
 ## Security headers
 
@@ -66,7 +66,7 @@ Firebase Authentication in the browser (Phase 1): staff sign in to admin and POS
 
 | Variable | Content |
 |---|---|
-| `NEXT_PUBLIC_API_BASE_URL` | Base URL of `ZenGear.Api` (`…/api/v1` is added by the client) |
+| `NEXT_PUBLIC_API_BASE_URL` | Base URL of `ZenGear.Api`; the client adds `/api/v1/admin` for the admin and POS parts and `/api/v1/shop` for the storefront (DEC-106) |
 | `NEXT_PUBLIC_FIREBASE_*` | Firebase web app config (public by design) |
 | `NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST` | Development only: the Auth Emulator (`localhost:9099`) |
 

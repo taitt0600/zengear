@@ -72,7 +72,8 @@ services:
       ConnectionStrings__Redis: redis:6379
       Firebase__ProjectId: demo-zengear
       Firebase__UseEmulator: "true"
-      # The password of every staff account created through POST /api/v1/staff (STF-01), for this environment only.
+      # The password of every staff account created through POST /api/v1/admin/staff (STF-01), for this environment
+      # only.
       Firebase__DefaultStaffPassword: acceptance
       # Where the Firebase Admin SDK finds the emulator and the project.
       FIREBASE_AUTH_EMULATOR_HOST: firebase:9099
