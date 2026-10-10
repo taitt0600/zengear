@@ -23,6 +23,7 @@ Decision: DEC-093 (monorepo), DEC-091 (3-Layer backend).
 | Backend structure, table ownership per area | `docs/ARCHITECTURE.md` |
 | HTTP API shape | `docs/API_CONVENTIONS.md` |
 | Web app structure | `docs/FRONTEND.md` |
+| How to write and judge backend code: the order of SOLID, DRY, YAGNI and KISS, interfaces, intentional duplication, comments, adding a feature by hand | `docs/CODING_GUIDE.md` (DEC-106) |
 | Everything one feature needs, in one file | `python3 tools/feature_context.py <Feature ID> --out out/feature-<Feature ID>.md` — the feature dossier: its row, rules (implementation rules included), use cases, the decisions they cite, its glossary rows and the `docs/DATABASE.md` sections of its tables, cut from the files above (`python` on Windows) |
 
 ## Rules for every change
