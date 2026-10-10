@@ -132,11 +132,7 @@ public sealed class StaffService(
                     .ToList()))
             .SingleOrDefaultAsync(cancellationToken);
 
-    /// <summary>
-    /// One page of the staff accounts (R-USR-13, DEC-105): users with a staff profile, ACTIVE or DISABLED, never
-    /// ANONYMIZED nor a customer; optionally of one status or holding one role. Sorted by name in Vietnamese order (the
-    /// database collation), employee code or joined date, empty values last, then by id so that pages do not overlap.
-    /// </summary>
+    /// <summary>One page of the staff accounts (R-USR-13).</summary>
     public async Task<PagedDto<StaffListItemDto>> ListAsync(StaffListRequest request, CancellationToken cancellationToken)
     {
         await listValidator.ValidateAndThrowAsync(request, cancellationToken);
@@ -188,7 +184,7 @@ public sealed class StaffService(
 
     /// <summary>
     /// The order of <see cref="StaffListRequest.Sort"/>, one arm per value of <see cref="StaffListRequestValidator.Sorts"/>;
-    /// the id last keeps pages stable.
+    /// the id last keeps pages stable. Names sort in Vietnamese order through the column collation, not here.
     /// </summary>
     private static IQueryable<User> Sorted(IQueryable<User> staff, string? sort) => sort switch
     {

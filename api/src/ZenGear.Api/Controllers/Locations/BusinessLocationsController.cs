@@ -8,10 +8,7 @@ using ZenGear.Services.Locations.BusinessLocations;
 
 namespace ZenGear.Api.Controllers.Locations;
 
-/// <summary>
-/// The business location for the Admin (LOC-01). Phase 1 has exactly one, created at go-live: there is no
-/// <c>POST</c> or <c>DELETE</c>, and both answer 405 (R-LOC-01).
-/// </summary>
+/// <summary>The business location for the Admin (LOC-01); no <c>POST</c> or <c>DELETE</c>: both answer 405 (R-LOC-01).</summary>
 [ApiController]
 [Route("business-locations")]
 public sealed class BusinessLocationsController(BusinessLocationService locations) : ControllerBase
@@ -53,9 +50,8 @@ public sealed class BusinessLocationsController(BusinessLocationService location
     }
 
     /// <summary>
-    /// Replaces the name, hotline, email, address, weekly hours and holiday schedule (UC-070); the website, receipts and
-    /// emails read them from here (R-LOC-01). Send every field: the lists replace the stored ones. Send the <c>ETag</c> of
-    /// <c>GET</c> in <c>If-Match</c> (<c>*</c> skips the check).
+    /// Replaces the name, hotline, email, address, weekly hours and holiday schedule (UC-070). Send every field: the
+    /// lists replace the stored ones. Send the <c>ETag</c> of <c>GET</c> in <c>If-Match</c> (<c>*</c> skips the check).
     /// </summary>
     /// <response code="400">
     /// Invalid input; a ward outside the province, or a ward or province chosen anew that is no longer in use (UC-070 3a);

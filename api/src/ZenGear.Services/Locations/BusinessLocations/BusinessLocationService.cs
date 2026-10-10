@@ -8,10 +8,7 @@ using ZenGear.Services.Common.Models;
 
 namespace ZenGear.Services.Locations.BusinessLocations;
 
-/// <summary>
-/// The business location for the Admin (LOC-01, UC-070). Phase 1 has exactly one, created at go-live: there is no
-/// method to add or remove one (R-LOC-01).
-/// </summary>
+/// <summary>The business location for the Admin (LOC-01); no method adds or removes one (R-LOC-01).</summary>
 public sealed class BusinessLocationService(
     ZenGearDbContext db,
     IValidator<BusinessLocationUpdateRequest> validator,

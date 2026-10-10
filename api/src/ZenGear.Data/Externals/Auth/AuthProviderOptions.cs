@@ -20,9 +20,8 @@ public sealed class AuthProviderOptions
     public bool UseEmulator { get; set; }
 
     /// <summary>
-    /// The password every new staff account gets (STF-01); the staff member must change it before anything else
-    /// (R-USR-03, DEC-094). Set by the environment variable <c>Firebase__DefaultStaffPassword</c> or the
-    /// user-secrets, never in a settings file; never logged.
+    /// The password every new staff account gets (STF-01). Set by the environment variable
+    /// <c>Firebase__DefaultStaffPassword</c> or the user-secrets, never in a settings file; never logged.
     /// </summary>
     public string? DefaultStaffPassword { get; set; }
 }

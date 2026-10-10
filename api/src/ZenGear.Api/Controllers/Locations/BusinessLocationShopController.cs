@@ -11,11 +11,7 @@ namespace ZenGear.Api.Controllers.Locations;
 [Route("business-locations")]
 public sealed class BusinessLocationShopController(BusinessLocationShopService locations) : ControllerBase
 {
-    /// <summary>
-    /// The business locations by name, as the website shows them: address, hotline, weekly hours, the holiday schedule
-    /// from today, and the hours of the 7 days from today with the holiday schedule applied (R-LOC-01). Phase 1 has
-    /// exactly one location. Public.
-    /// </summary>
+    /// <summary>The business locations by name, as the website shows them (R-LOC-01).</summary>
     /// <response code="400"><c>page</c> below 1, or <c>pageSize</c> outside 1–100.</response>
     [HttpGet]
     [ProducesResponseType<PagedDto<BusinessLocationShopDto>>(StatusCodes.Status200OK, "application/json")]

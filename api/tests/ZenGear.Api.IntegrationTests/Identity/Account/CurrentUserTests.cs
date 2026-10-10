@@ -9,8 +9,8 @@ using ZenGear.Api.IntegrationTests.Infrastructure;
 namespace ZenGear.Api.IntegrationTests.Identity.Account;
 
 /// <summary>
-/// GET and PATCH /api/v1/admin/me and POST /api/v1/admin/me/change-password (STF-03) against PostgreSQL and Redis, with Firebase
-/// Authentication faked and the clock fixed.
+/// GET and PATCH /api/v1/admin/me and POST /api/v1/admin/me/change-password (STF-03) against PostgreSQL and Redis,
+/// with Firebase Authentication faked and the clock fixed.
 /// </summary>
 public class CurrentUserTests : IntegrationTestBase
 {

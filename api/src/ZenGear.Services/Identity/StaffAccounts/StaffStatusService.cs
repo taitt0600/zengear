@@ -19,11 +19,9 @@ public sealed class StaffStatusService(
     ILogger<StaffStatusService> logger)
 {
     /// <summary>
-    /// Disables the staff account <paramref name="id"/> and records the left date in the same change (R-USR-07), then
-    /// revokes its Firebase sessions (R-SEC-04). Refused for the caller's own account and for the last ACTIVE account
-    /// holding the Admin role (R-USR-12), and for a left date after today (R-USR-07). The access cache is bumped on
-    /// commit, so the account is refused from its next request. Repeating the request is safe: a DISABLED account
-    /// records a given left date and its sessions are revoked again, which is how a failed revoke (500) is retried.
+    /// Disables the staff account <paramref name="id"/> (STF-02). The access cache is bumped on commit, so the account
+    /// is refused from its next request. Repeating the request is safe: a DISABLED account records a given left date
+    /// and its sessions are revoked again, which is how a failed revoke (500) is retried.
     /// </summary>
     /// <param name="actorId">The signed-in staff member disabling the account.</param>
     /// <returns>Null when there is no staff account with this id.</returns>
@@ -114,9 +112,8 @@ public sealed class StaffStatusService(
     }
 
     /// <summary>
-    /// Restores the DISABLED staff account <paramref name="id"/> to ACTIVE and clears its left date (R-USR-03); an
-    /// ACTIVE account is returned unchanged. Only a caller holding the Admin role restores, or gets back unchanged, an
-    /// account holding it (R-USR-12). Its sessions were revoked on disable: the staff member signs in again.
+    /// Restores the DISABLED staff account <paramref name="id"/> (STF-02); an ACTIVE account is returned unchanged. Its
+    /// sessions were revoked on disable: the staff member signs in again.
     /// </summary>
     /// <param name="actorId">The signed-in staff member restoring the account.</param>
     /// <returns>Null when there is no staff account with this id.</returns>

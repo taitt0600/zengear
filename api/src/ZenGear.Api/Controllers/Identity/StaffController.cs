@@ -12,10 +12,7 @@ namespace ZenGear.Api.Controllers.Identity;
 [Route("staff")]
 public sealed class StaffController(StaffService staff) : ControllerBase
 {
-    /// <summary>
-    /// Creates a staff account with the default password and one or more roles (STF-01). The staff member must change
-    /// the password before using anything else (R-USR-03).
-    /// </summary>
+    /// <summary>Creates a staff account with the default password and one or more roles (STF-01).</summary>
     /// <response code="400">Invalid input, or a role that does not exist.</response>
     /// <response code="403"><c>/problems/permission-denied</c>: <c>staff.create</c> missing.</response>
     /// <response code="409">
@@ -37,9 +34,8 @@ public sealed class StaffController(StaffService staff) : ControllerBase
     }
 
     /// <summary>
-    /// The staff accounts, ACTIVE and DISABLED, never ANONYMIZED nor customers, with their roles (STF-05, R-USR-13). No
-    /// parameter searches by name, email or phone: personal data stays out of the query string; a client filters the
-    /// rows it loaded.
+    /// The staff accounts with their roles (R-USR-13). No parameter searches by name, email or phone: personal data
+    /// stays out of the query string; a client filters the rows it loaded.
     /// </summary>
     /// <response code="400">An invalid <c>status</c>, <c>roleId</c>, <c>sort</c>, <c>page</c> or <c>pageSize</c> (R-USR-13).</response>
     /// <response code="403"><c>/problems/permission-denied</c>: <c>staff.read</c> missing.</response>

@@ -1,9 +1,8 @@
 namespace ZenGear.Api.Logging;
 
 /// <summary>
-/// Structured security log of sign-in events (R-SEC-11, DEC-085): one entry per new sign-in
-/// (SUCCESS) and per request rejected because the account is disabled or the session was revoked
-/// (REJECTED). Sign-in events are not stored in the database. Never pass a token, password or OTP.
+/// Structured security log of sign-in events (R-SEC-11): SUCCESS and REJECTED; not stored in the database (DEC-085).
+/// Never pass a token, password or OTP.
 /// </summary>
 public sealed partial class SecurityLog(ILoggerFactory loggerFactory)
 {
