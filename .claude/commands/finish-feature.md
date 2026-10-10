@@ -33,8 +33,9 @@ folder, then the whole collection, leaving the API running), then show the guide
    Fix every Blocking and Should fix item of the agent and every finding of `/code-review` you confirm, then run
    steps 2–3 and both reviews again, at most three rounds; an item you do not fix gets its reason in the report, and
    a Blocking item left after three rounds is a Needs decision item. Keep the final verdict, the number of Blocking
-   items found and fixed, and for each reviewer the number of findings that only it made ("Phát hiện riêng" in the
-   report): after three features, the reviewer with none is dropped (DEC-100). When each review returns its report,
+   items found and fixed, for each reviewer the number of findings that only it made ("Phát hiện riêng" in the
+   report): after three features, the reviewer with none is dropped (DEC-100), and the number of the agent's
+   findings labelled `[over-engineering]` and `[duplication]` over all rounds (DEC-106). When each review returns its report,
    keep its numbers and go on at once (the other review, the fixes, the next round or step 6); it does not end the
    run.
 6. **Security review**: run `/security-review` when the branch touches authentication or authorization
@@ -130,9 +131,12 @@ folder, then the whole collection, leaving the API running), then show the guide
     out/report.md` when there is a pull request, and end your last reply with the same text followed by the section
     "Tóm tắt cho chủ dự án" (`CLAUDE.md`, Workflow), which is not posted in the report comment. Sections:
     - **Kết quả**: "Đạt — auto-merge bật" (**Đạt**), waiting for the owner's test (**Để sau**), draft waiting
-      for a decision, or stopped at the ready check — with the pull request link; then the two lines
-      `Nơi chạy: local` and `Thời gian bạn tham gia: <the owner's answer at step 13> phút` (`?` when the run
-      stopped before step 13), which the routine "ZenGear PR merged" copies to issue #24.
+      for a decision, or stopped at the ready check — with the pull request link; then the four lines
+      `Nơi chạy: local`, `Thời gian bạn tham gia: <the owner's answer at step 13> phút` (`?` when the run
+      stopped before step 13), `Phát hiện over-engineering / duplication: <a> / <b>` (the labelled findings of
+      plan-reviewer, passed on by `/implement-feature`, plus those of code-reviewer at step 5) and
+      `Folder mỗi commit feat: <n1>, <n2>, …` (the last line of `python3 tools/structure_metrics.py --range
+      origin/main..HEAD`), which the routine "ZenGear PR merged" copies to issue #24 (DEC-106).
     - **Chức năng**: what a user can now do, in the words of the user story.
     - **Cách chạy để kiểm thử**: the steps of the guide (step 13.2), appendix included.
     - **Kịch bản kiểm thử**: one line per request of the folder: the criterion or rule it checks, the account, the
@@ -140,7 +144,8 @@ folder, then the whole collection, leaving the API running), then show the guide
       guide. A defect repeats the steps that showed it, with the result now expected.
     - **Rule đã có test**, **Quyết định Claude đã tự chọn**, **Quyết định của bạn** (the owner's answers),
       **Cần bạn quyết định** (each item still open with its options and their consequences), **Đã kiểm tra** (steps
-      2–8, CI, the review of step 12 and the owner's test, with the numbers kept above, "Phát hiện riêng" included).
+      2–8, CI, the review of step 12 and the owner's test, with the numbers kept above, "Phát hiện riêng" and the
+      labelled findings of each reviewer included).
     Before posting, give the `report-reviewer` agent `out/report.md`, `out/feature-<ID>.md` and the facts it reads:
     the pull request number and state, the check runs of its head with their results, the plan-reviewer and
     code-reviewer verdicts, whether the security review ran, the Postman runs with their results and the owner's

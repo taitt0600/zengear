@@ -4,19 +4,19 @@ using ZenGear.ArchitectureTests.Infrastructure;
 
 namespace ZenGear.ArchitectureTests;
 
-/// <summary>docs/ARCHITECTURE.md, section "Folder structure": services are split before they grow (DEC-097).</summary>
+/// <summary>docs/ARCHITECTURE.md, section "Folder structure": services are split before they grow.</summary>
 public sealed class ServiceSizeTests
 {
     private const int MaxLinesOfCode = 400;
     private const int MaxPublicMethods = 10;
     private const int MaxExceptions = 3;
 
-    /// <summary>Type (file) name → why it may exceed a limit. More than <see cref="MaxExceptions"/> reopen DEC-097.</summary>
+    /// <summary>Type (file) name → why it may exceed a limit. More than <see cref="MaxExceptions"/> call for a Decision (Evolution thresholds).</summary>
     private static readonly Dictionary<string, string> Exceptions = new(StringComparer.Ordinal);
 
     private static readonly string ServicesDirectory = Path.Combine(RepositoryLayout.SourceDirectory, "ZenGear.Services");
 
-    [Test]
+    [Test] // a file that a person cannot read in one sitting holds more than one family of use cases
     public void Services_files_have_at_most_400_lines_of_code()
     {
         Directory.EnumerateFiles(ServicesDirectory, "*.cs", SearchOption.AllDirectories)
@@ -27,7 +27,7 @@ public sealed class ServiceSizeTests
             .ShouldBeEmpty("Split the type by family of use cases (docs/ARCHITECTURE.md, Folder structure).");
     }
 
-    [Test]
+    [Test] // a service with many use cases is split by family before it grows
     public void Services_have_at_most_10_public_methods()
     {
         RepositoryLayout.Services.GetTypes()
@@ -40,10 +40,10 @@ public sealed class ServiceSizeTests
             .ShouldBeEmpty("Split the service by family of use cases: <Entity><UseCase>Service.");
     }
 
-    [Test]
+    [Test] // many exceptions mean the limits no longer fit the code
     public void Size_exceptions_stay_few()
     {
-        Exceptions.Count.ShouldBeLessThanOrEqualTo(MaxExceptions, "More exceptions reopen DEC-097 instead of adding one.");
+        Exceptions.Count.ShouldBeLessThanOrEqualTo(MaxExceptions, "More exceptions call for a Decision instead of adding one (docs/ARCHITECTURE.md, Evolution thresholds).");
     }
 
     /// <summary>Lines that are neither blank nor only a comment.</summary>

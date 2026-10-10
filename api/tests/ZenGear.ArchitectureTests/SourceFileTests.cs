@@ -11,7 +11,7 @@ namespace ZenGear.ArchitectureTests;
 /// </summary>
 public sealed partial class SourceFileTests
 {
-    [Test]
+    [Test] // a type is found by its file name
     public void Each_file_declares_one_top_level_type_named_after_the_file()
     {
         var offenders = Directory.EnumerateFiles(RepositoryLayout.SourceDirectory, "*.cs", SearchOption.AllDirectories)

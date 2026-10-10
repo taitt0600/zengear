@@ -48,7 +48,9 @@ facts you are given. You never edit files.
 1. **Kết quả**: "Đạt — auto-merge bật" (written before auto-merge is enabled, so the pull request is still open),
    waiting for the owner's test, draft waiting for a decision, or stopped at the ready check, with the pull request
    link; it matches the state and the owner's answer you are given. A draft lists at least one item under
-   "Cần bạn quyết định". The lines `Nơi chạy: local` and `Thời gian bạn tham gia: <answer> phút` are present.
+   "Cần bạn quyết định". The lines `Nơi chạy: local`, `Thời gian bạn tham gia: <answer> phút`,
+   `Phát hiện over-engineering / duplication: <a> / <b>` and `Folder mỗi commit feat: <list>` are present (the
+   routine "ZenGear PR merged" copies them to issue #24).
 2. **Chức năng**: the User Story of the feature row, in the owner's words; nothing the row does not ask for.
 3. **Cách chạy để kiểm thử**: the steps of the guide, appendix included.
 4. **Kịch bản kiểm thử**: one line per request of the folder, and the results it states are the results of the
@@ -61,7 +63,9 @@ facts you are given. You never edit files.
 7. **Cần bạn quyết định**: each item gives its options, their consequences and the option recommended, so that the
    owner can answer in one line.
 8. **Đã kiểm tra**: steps 2 to 8, CI, the review of the pull request and the owner's test are all reported, with
-   "Phát hiện riêng" for each code reviewer, and every claim agrees with the facts you are given.
+   "Phát hiện riêng" for each code reviewer and the labelled findings (`[over-engineering]`, `[duplication]`) of
+   plan-reviewer and code-reviewer, which add up to the line of **Kết quả**; every claim agrees with the facts you are
+   given.
 9. **Language and safety**: Vietnamese; no token, password, OTP, reset link or personal data of a real person
    (R-SEC-11; Personal data in `docs/DATABASE.md`).
 

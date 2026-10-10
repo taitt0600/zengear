@@ -11,15 +11,14 @@ using ZenGear.Services.Locations.BusinessLocations;
 
 namespace ZenGear.ArchitectureTests;
 
-/// <summary>docs/ARCHITECTURE.md, section "Folder structure": where a type goes follows from its name.</summary>
+/// <summary>docs/ARCHITECTURE.md, section "Folder structure": the names that still decide a folder.</summary>
 public sealed class NamingTests
 {
     private static readonly string[] ForbiddenSuffixes = ["Helper", "Helpers", "Util", "Utils", "Manager"];
 
-    /// <summary>Suffix of an API type, and the folder (namespace) it lives in.</summary>
+    /// <summary>Suffix of an API type, and the folder (namespace) it lives in; controllers go by area (below).</summary>
     private static readonly (string Suffix, string Namespace)[] ApiSuffixes =
     [
-        ("Controller", "ZenGear.Api.Controllers"),
         ("ExceptionHandler", "ZenGear.Api.ExceptionHandling"),
         ("Problem", "ZenGear.Api.ExceptionHandling"),
         ("Middleware", "ZenGear.Api.Middlewares"),
@@ -33,7 +32,7 @@ public sealed class NamingTests
         ("Claims", "ZenGear.Api.Constants"),
     ];
 
-    [Test]
+    [Test] // a name that says nothing about the job hides a type that does several
     public void No_type_is_a_helper_or_a_manager()
     {
         OwnTypes(RepositoryLayout.Api, RepositoryLayout.Services, RepositoryLayout.Data)
@@ -42,7 +41,7 @@ public sealed class NamingTests
             .ShouldBeEmpty("Name the type after what it does.");
     }
 
-    [Test]
+    [Test] // a utility is pure and shared by two or more areas, so it lives in Common only
     public void Utilities_are_static_classes_in_services_common()
     {
         OwnTypes(RepositoryLayout.Api, RepositoryLayout.Services, RepositoryLayout.Data)
@@ -53,7 +52,7 @@ public sealed class NamingTests
             .ShouldBeEmpty();
     }
 
-    [Test]
+    [Test] // the technical folders of the API are found by the suffix of their types
     public void Api_types_live_in_the_folder_of_their_suffix()
     {
         var misplaced = OwnTypes(RepositoryLayout.Api)
@@ -68,26 +67,36 @@ public sealed class NamingTests
         misplaced.ShouldBeEmpty();
     }
 
-    [Test]
-    public void Controllers_are_in_the_controllers_folder()
+    [Test] // DEC-106 (5): a controller calls the services of one area and sits in Controllers/<Area>/ of that area
+    public void Controllers_sit_in_the_folder_of_the_area_of_their_service()
     {
-        LayerTests.Controllers()
-            .Where(type => type.Namespace != "ZenGear.Api.Controllers" || !NameOf(type).EndsWith("Controller", StringComparison.Ordinal))
-            .Select(type => type.FullName)
-            .ShouldBeEmpty();
+        var misplaced = LayerTests.Controllers()
+            .Select(controller => (Controller: controller, Areas: controller.GetConstructors()
+                .SelectMany(constructor => constructor.GetParameters())
+                .Select(parameter => AreaBoundaryTests.ServiceArea(parameter.ParameterType))
+                .OfType<string>()
+                .Distinct()
+                .ToList()))
+            .Where(x => !NameOf(x.Controller).EndsWith("Controller", StringComparison.Ordinal)
+                || x.Areas.Count != 1
+                || x.Controller.Namespace != $"ZenGear.Api.Controllers.{x.Areas[0]}")
+            .Select(x => $"{x.Controller.FullName} (calls services of: {string.Join(", ", x.Areas)})")
+            .ToList();
+
+        misplaced.ShouldBeEmpty("A controller calls the services of one area and sits in ZenGear.Api/Controllers/<that area>.");
     }
 
-    [Test]
-    public void Requests_and_dtos_are_in_the_models_folder_of_their_area()
+    [Test] // only the request and DTOs shared by every list endpoint live outside a module
+    public void Requests_and_dtos_are_in_a_module_or_in_common_models()
     {
         OwnTypes(RepositoryLayout.Services)
             .Where(type => NameOf(type).EndsWith("Request", StringComparison.Ordinal) || NameOf(type).EndsWith("Dto", StringComparison.Ordinal))
-            .Where(type => !IsInAreaFolder(type, "Models") && type.Namespace != "ZenGear.Services.Common.Models")
+            .Where(type => !IsInModule(type) && type.Namespace != "ZenGear.Services.Common.Models")
             .Select(type => type.FullName)
             .ShouldBeEmpty();
     }
 
-    [Test]
+    [Test] // list endpoints return PagedDto<T>, never a page DTO per entity
     public void Generic_dtos_are_only_in_services_common_models()
     {
         OwnTypes(RepositoryLayout.Services)
@@ -96,7 +105,7 @@ public sealed class NamingTests
             .ShouldBeEmpty("A generic DTO is shared by every list endpoint (PagedDto<T>): it lives in ZenGear.Services/Common/Models.");
     }
 
-    [Test]
+    [Test] // the check above must catch a generic DTO outside Common/Models, or it passes on nothing
     public void A_generic_dto_outside_common_models_fails()
     {
         IsMisplacedGenericDto(typeof(SampleDto<>)).ShouldBeTrue();
@@ -104,41 +113,38 @@ public sealed class NamingTests
         IsMisplacedGenericDto(typeof(BusinessLocationPublicDto)).ShouldBeFalse();
     }
 
-    [Test]
-    public void Validators_are_request_validators_in_the_validators_folder()
+    [Test] // *Validator names the validator of one request, which sits beside it in its module
+    public void Validators_are_request_validators_in_a_module_or_in_common_validators()
     {
         OwnTypes(RepositoryLayout.Services)
             .Where(type => NameOf(type).EndsWith("Validator", StringComparison.Ordinal) || typeof(IValidator).IsAssignableFrom(type))
             .Where(type => !NameOf(type).EndsWith("Validator", StringComparison.Ordinal)
                 || !typeof(IValidator).IsAssignableFrom(type)
-                || (!IsInAreaFolder(type, "Validators") && type.Namespace != "ZenGear.Services.Common.Validators"))
+                || (!IsInModule(type) && type.Namespace != "ZenGear.Services.Common.Validators"))
             .Select(type => type.FullName)
-            .ShouldBeEmpty("*Validator is the FluentValidation validator of a request, in Validators/; name other checks after what they check.");
+            .ShouldBeEmpty("*Validator is the FluentValidation validator of a request; name other checks after what they check.");
     }
 
-    [Test]
-    public void Service_enums_are_in_the_enums_folder_of_their_area_or_in_a_mechanism()
+    [Test] // an enum of the Services layer belongs to the module that uses it
+    public void Service_enums_are_in_a_module()
     {
         OwnTypes(RepositoryLayout.Services)
-            .Where(type => type.IsEnum)
-            .Where(type => type.Namespace?.Split('.') is not ["ZenGear", "Services", var area, var folder]
-                || !RepositoryLayout.Areas.Contains(area) || folder is "Models" or "Validators")
+            .Where(type => type.IsEnum && !IsInModule(type))
             .Select(type => type.FullName)
             .ShouldBeEmpty();
     }
 
-    [Test]
+    [Test] // the host starts every job, and a job serves the area that owns what it changes
     public void Jobs_are_hosted_services_in_their_area()
     {
         OwnTypes(RepositoryLayout.Services)
             .Where(type => NameOf(type).EndsWith("Job", StringComparison.Ordinal) && !type.IsAbstract)
-            .Where(type => !typeof(IHostedService).IsAssignableFrom(type)
-                || type.Namespace?.Split('.') is not ["ZenGear", "Services", var area, ..] || !RepositoryLayout.Areas.Contains(area))
+            .Where(type => !typeof(IHostedService).IsAssignableFrom(type) || !IsInModule(type))
             .Select(type => type.FullName)
             .ShouldBeEmpty();
     }
 
-    [Test]
+    [Test] // rule 7: one map per DTO, next to the DTO, and never to an entity
     public void Mapping_is_declared_in_the_dto_it_maps_to()
     {
         var offenders = new[] { RepositoryLayout.Api, RepositoryLayout.Services, RepositoryLayout.Data }
@@ -153,7 +159,7 @@ public sealed class NamingTests
         offenders.ShouldBeEmpty("A map is a nested private class Mapping inside the DTO it maps to (rule 7).");
     }
 
-    [Test]
+    [Test] // the enums of entity columns sit with their entities
     public void Data_enums_are_in_the_enums_folder_of_their_area()
     {
         OwnTypes(RepositoryLayout.Data)
@@ -163,7 +169,7 @@ public sealed class NamingTests
             .ShouldBeEmpty();
     }
 
-    [Test]
+    [Test] // value converters are shared by every area's configurations
     public void Converters_are_in_data_common()
     {
         OwnTypes(RepositoryLayout.Data)
@@ -173,7 +179,7 @@ public sealed class NamingTests
             .ShouldBeEmpty();
     }
 
-    [Test]
+    [Test] // a configuration sits in the area of the entity it configures
     public void Entity_configurations_live_in_configurations_by_area()
     {
         RepositoryLayout.Data.GetTypes()
@@ -184,7 +190,7 @@ public sealed class NamingTests
             .ShouldBeEmpty();
     }
 
-    [Test]
+    [Test] // one place per project registers its services
     public void Dependency_injection_classes_are_at_the_root_of_services_and_data()
     {
         OwnTypes(RepositoryLayout.Api, RepositoryLayout.Services, RepositoryLayout.Data)
@@ -193,7 +199,7 @@ public sealed class NamingTests
             .ShouldBe(new[] { "ZenGear.Data.DependencyInjection", "ZenGear.Services.DependencyInjection" }, ignoreOrder: true);
     }
 
-    [Test]
+    [Test] // the OpenAPI document names its schemas after the type
     public void Type_names_are_unique_across_the_projects()
     {
         OwnTypes(RepositoryLayout.Api, RepositoryLayout.Services, RepositoryLayout.Data)
@@ -204,7 +210,7 @@ public sealed class NamingTests
             .ShouldBeEmpty("The OpenAPI document names its schemas after the type; put the entity in the name.");
     }
 
-    [Test]
+    [Test] // a nested public type would be named after its parent in the OpenAPI document
     public void No_public_type_is_nested()
     {
         new[] { RepositoryLayout.Api, RepositoryLayout.Services, RepositoryLayout.Data }
@@ -225,9 +231,9 @@ public sealed class NamingTests
     /// <summary>The name without the generic arity (<c>AttributeEnumConverter`1</c> → <c>AttributeEnumConverter</c>).</summary>
     private static string NameOf(Type type) => type.Name.Split('`')[0];
 
-    // ZenGear.Services.<Area>.<folder>
-    private static bool IsInAreaFolder(Type type, string folder) =>
-        type.Namespace?.Split('.') is ["ZenGear", "Services", var area, var actual] && actual == folder && RepositoryLayout.Areas.Contains(area);
+    // ZenGear.Services.<Area>.<Module>, or a mechanism folder inside the module
+    private static bool IsInModule(Type type) =>
+        type.Namespace?.Split('.') is ["ZenGear", "Services", var area, _, ..] && RepositoryLayout.Areas.Contains(area);
 
     private static bool IsMisplacedGenericDto(Type type) =>
         type.IsGenericTypeDefinition && NameOf(type).EndsWith("Dto", StringComparison.Ordinal)

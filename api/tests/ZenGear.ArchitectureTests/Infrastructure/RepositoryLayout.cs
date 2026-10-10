@@ -4,8 +4,9 @@ using System.Text.RegularExpressions;
 namespace ZenGear.ArchitectureTests.Infrastructure;
 
 /// <summary>
-/// The repository as the tests see it: the three production assemblies, the source folders, and the business
-/// areas read from the table in <c>docs/ARCHITECTURE.md</c>, so the documentation stays the only list of areas.
+/// The repository as the tests see it: the three production assemblies, the source folders, the business areas
+/// read from the table in <c>docs/ARCHITECTURE.md</c> (so the documentation stays the only list of areas), and the
+/// <c>README.md</c> of each area of ZenGear.Services.
 /// </summary>
 internal static partial class RepositoryLayout
 {
@@ -26,6 +27,29 @@ internal static partial class RepositoryLayout
         relativePath.Split(PathSeparators)
             .Any(segment => segment is "bin" or "obj" or "Migrations");
 
+    /// <summary>The README.md of an area of ZenGear.Services, or null when it has none.</summary>
+    public static string? AreaReadme(string area)
+    {
+        var path = Path.Combine(SourceDirectory, "ZenGear.Services", area, "README.md");
+        return File.Exists(path) ? File.ReadAllText(path) : null;
+    }
+
+    /// <summary>The lines under <c>## heading</c> up to the next <c>## </c> heading, or null when the heading is missing.</summary>
+    public static string? Section(string markdown, string heading)
+    {
+        var lines = markdown.Split('\n').Select(line => line.TrimEnd('\r')).ToList();
+        var start = lines.IndexOf($"## {heading}");
+        return start < 0
+            ? null
+            : string.Join('\n', lines.Skip(start + 1).TakeWhile(line => !line.StartsWith("## ", StringComparison.Ordinal)));
+    }
+
+    /// <summary>The backticked names that open the bullets of a section: <c>- `Access` — sign-in …</c> gives Access.</summary>
+    public static HashSet<string> BulletNames(string? section) =>
+        section is null
+            ? []
+            : BulletName().Matches(section).Select(match => match.Groups["name"].Value).ToHashSet(StringComparer.Ordinal);
+
     private static string FindRoot()
     {
         for (var dir = new DirectoryInfo(AppContext.BaseDirectory); dir is not null; dir = dir.Parent)
@@ -41,8 +65,11 @@ internal static partial class RepositoryLayout
 
     private static HashSet<string> ReadAreas()
     {
+        // Only this section: another table of the file whose rows start with a backticked word must not add areas.
         var architecture = File.ReadAllText(Path.Combine(Root, "docs", "ARCHITECTURE.md"));
-        var areas = AreaRow().Matches(architecture).Select(match => match.Groups["area"].Value).ToHashSet(StringComparer.Ordinal);
+        var table = Section(architecture, "Business areas and table ownership")
+            ?? throw new InvalidOperationException("No section \"Business areas and table ownership\" in docs/ARCHITECTURE.md.");
+        var areas = AreaRow().Matches(table).Select(match => match.Groups["area"].Value).ToHashSet(StringComparer.Ordinal);
 
         // A changed table format must fail loudly, not silently allow nothing or everything.
         if (areas.Count < 10)
@@ -56,4 +83,7 @@ internal static partial class RepositoryLayout
     // "| `Identity` | `users`, ..." in the section "Business areas and table ownership"
     [GeneratedRegex(@"^\| `(?<area>[A-Za-z]+)` \|", RegexOptions.Multiline)]
     private static partial Regex AreaRow();
+
+    [GeneratedRegex(@"^- `(?<name>[A-Za-z][A-Za-z0-9]*)`", RegexOptions.Multiline)]
+    private static partial Regex BulletName();
 }

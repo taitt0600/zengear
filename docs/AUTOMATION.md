@@ -108,7 +108,9 @@ in Vietnamese.
 
 Issue #24 (*Workflow metrics*) gets one comment per feature or fix pull request merged or opened as a draft, and one
 per defect taken: time from opened to merged, commits, review rounds, Needs decision items, scenarios, where it ran
-(local or cloud), owner-minutes, defects per feature. Compare features with it before changing the workflow.
+(local or cloud), owner-minutes, defects per feature, and since DEC-106 the reviewers' findings labelled
+over-engineering and duplication and the folders touched per `feat` commit (`tools/structure_metrics.py`). Compare
+features with it before changing the workflow.
 
 ## CI/CD pipeline (DEC-100 (8))
 
@@ -162,9 +164,10 @@ nothing, and write every comment on GitHub in English.
 3. Add one comment to issue #24 with this line, taking the review rounds, the Needs decision items and the
    scenarios from the report ("Đã kiểm tra", "Cần bạn quyết định", "Kịch bản kiểm thử", one line per Postman
    request) and writing "?" for a number the report does not give:
-   PR #<n> | <Feature ID> | <feat or fix> | opened → merged: <hours>h<minutes> or draft | commits: <c> | reviews: plan <a> / code <b> / report <r> rounds | needs decision: <k> | scenarios: <s> | where: <local or cloud> | owner-minutes: <m>
-   Take "where" from the line "Nơi chạy:" and "owner-minutes" from the line "Thời gian bạn tham gia:" of the
-   report, writing "local" and "?" when a line is missing. "opened → merged" includes the time the pull request
+   PR #<n> | <Feature ID> | <feat or fix> | opened → merged: <hours>h<minutes> or draft | commits: <c> | reviews: plan <a> / code <b> / report <r> rounds | needs decision: <k> | scenarios: <s> | where: <local or cloud> | owner-minutes: <m> | over-engineering: <o> | duplication: <d> | folders per feat commit: <f>
+   Take "where" from the line "Nơi chạy:", "owner-minutes" from the line "Thời gian bạn tham gia:", <o> and <d>
+   from the line "Phát hiện over-engineering / duplication: <o> / <d>" and <f> from the line "Folder mỗi commit
+   feat:" of the report, writing "local" and "?" when a line is missing. "opened → merged" includes the time the pull request
    waited for the owner's test.
 4. End the run with a Vietnamese message of at most four lines whose first line says what happened or what the
    owner must do:

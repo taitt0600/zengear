@@ -126,8 +126,8 @@ ZenGear.Data/
 ```
 
 - A module folder exists even when the area has one module; the root of an area holds only its `README.md` and its modules. The name of a type says its kind (`StaffCreateRequest`, `StaffDto`, `StaffCreateRequestValidator`, `StaffService`), so there is no `Models`, `Validators` or `Enums` folder in an area.
-- A new module of an area of the table above, the first module of such an area included, is created with the feature that needs it, together with its line under *Modules* in the area's `README.md` (and the README with the first module). A new area, a mechanism folder, or a folder of `ZenGear.Api`, `ZenGear.Data` or `Common` is asked first; `ZenGear.ArchitectureTests` fails on any folder this section does not allow.
-- A folder is created with its first file (`Utilities/`, `Enums/` of an entity area).
+- New folders: the feature that needs them creates, without asking, a module of an area of the table above (with its line under *Modules* in the area's `README.md`, and the README with the area's first module), and for such an area its folders `Controllers/<Area>`, `Entities/<Area>` (with `Enums/`), `Configurations/<Area>` and the test folders `<Area>/<Module>`. A new area, a mechanism folder, a technical folder of `ZenGear.Api` or `ZenGear.Data`, or a folder in `Common` is asked first. `ZenGear.ArchitectureTests` fails on any folder this section does not allow.
+- A folder is created with its first file.
 
 Where a name still decides the folder:
 

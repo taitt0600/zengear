@@ -31,8 +31,8 @@ DEC-099 marked **Checkpoint** below (two here, one in `/finish-feature`); withou
    more tests per rule, the Postman scenarios (one per acceptance criterion, a refusal per rule) and the open
    questions sorted by the policy of step 4. Give the plan and the path `out/feature-<ID>.md` to the
    `plan-reviewer` agent and fix every Blocking and Should fix item; repeat until it answers READY, at most three
-   rounds. A Blocking item left after three rounds becomes a Needs decision item. Keep the final verdict for the
-   report.
+   rounds. A Blocking item left after three rounds becomes a Needs decision item. Keep the final verdict and the
+   number of its findings labelled `[over-engineering]` and `[duplication]`, over all rounds, for the report.
    - **Needs decision items**, once plan-reviewer answers READY: ask every item known so far at once,
      with AskUserQuestion. One call takes at most 4 questions, so more items go in consecutive calls at the same
      moment, before any other work. Each question gives the options with their consequences, your recommendation
@@ -51,7 +51,11 @@ DEC-099 marked **Checkpoint** below (two here, one in `/finish-feature`); withou
      `docs/DATABASE.md`, `api/db/`, `docs/ARCHITECTURE.md`); concerns money, prices, tax, invoices or accounting, a
      legal duty or personal data, the permissions the seed grants to roles, or data that is hard to migrate (a
      column, a stored enum value); or needs a new business term in `docs/GLOSSARY.md`, a new package, a build file
-     that runs code, a new folder, a suppressed analyzer rule or an exception to an architecture test. The same
+     that runs code, a new area, a mechanism folder, a technical folder of `ZenGear.Api` or `ZenGear.Data`, a folder in
+     `Common`, a suppressed analyzer rule or an exception to an architecture test. The other new folders of
+     *Folder structure* in `docs/ARCHITECTURE.md` are yours to decide (a module of a listed area with its line in
+     the area's `README.md`, and that area's `Controllers/`, `Entities/`, `Configurations/` and test folders): list
+     them under "Decisions made". The same
      applies wherever `CLAUDE.md`, `api/CLAUDE.md` or `web/CLAUDE.md` says to ask or to stop and ask, and whenever a
      hook denies a change.
    - Ask a Needs decision item at once, with AskUserQuestion as in step 3, also when it appears later in the run.
@@ -71,10 +75,11 @@ DEC-099 marked **Checkpoint** below (two here, one in `/finish-feature`); withou
    (one request per acceptance criterion, a refusal per rule, tests on status, Problem Details `type` and fields,
    values unique to the run, dev-only fixtures for a state the API cannot reach yet) and runs it twice with skill
    `api-run`. A request that fails because the code is wrong is a failed test of step 5: fix the code first.
-7. **Web**, following `web/CLAUDE.md` — only when `docs/SCREENS.md` describes the screens of this feature;
-   otherwise the report says that the feature is tested through the API:
+7. **Web**, following `web/CLAUDE.md` — only for the screens of this feature that `docs/SCREENS.md` describes and
+   whose cell in the column *Blocked by* of its screen list is empty. The report names every other screen of the
+   feature as not built, with what blocks it; a feature with no screen built is tested through the API:
    - From `web/`: `npm run gen:api`, then pages and components in the matching `features/<area>`.
    - `npm run lint` and `npm run build`.
-8. Run `/finish-feature` with the Feature ID (and `--checkpoints` when it was given), the plan verdict, the decisions
-   made and the Needs decision items: it verifies, commits, opens the pull request, follows CI, has the owner test
+8. Run `/finish-feature` with the Feature ID (and `--checkpoints` when it was given), the plan verdict and its
+   counts of `[over-engineering]` and `[duplication]` findings, the decisions made and the Needs decision items: it verifies, commits, opens the pull request, follows CI, has the owner test
    the feature before merge and reports.

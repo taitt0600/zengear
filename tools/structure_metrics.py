@@ -1,63 +1,95 @@
-"""Metrics of the code structure that reopen DEC-097 (docs/ARCHITECTURE.md, Folder structure).
-Usage, from the repository root: python tools/structure_metrics.py [number of feat commits, default 20]"""
-import os, re, subprocess, sys
-from collections import Counter
+"""Metrics of the code structure (DEC-106, docs/ARCHITECTURE.md, Folder structure): the size of each area, which
+grows into its own project above its thresholds, and the folders touched per feat commit (target: at most 5).
+Usage, from the repository root:
+  python tools/structure_metrics.py [number of feat commits, default 20]
+  python tools/structure_metrics.py --range origin/main..HEAD   (the feat commits of a branch, for the report)"""
+import os, posixpath, subprocess, sys
 
 SRC = 'api/src'
 SERVICES = f'{SRC}/ZenGear.Services'
-AREA_FOLDER_LIMIT, MODELS_LIMIT = 20, 40
-KIND_FOLDERS = {'Models', 'Enums', 'Validators'}
-AREAS = set(re.findall(r'^\| `([A-Za-z]+)` \|', open('docs/ARCHITECTURE.md', encoding='utf-8').read(), re.M))
+MODULE_LIMIT, FILE_LIMIT, FOLDER_TARGET = 8, 60, 5
+NOT_AREAS = {'Common', 'bin', 'obj'}
 
 def skipped(path):
     return any(part in ('bin', 'obj', 'Migrations') for part in path.split('/'))
 
-def folder_sizes():
-    sizes = Counter()
-    for root, _, files in os.walk(SRC):
-        root = root.replace('\\', '/')
-        if not skipped(root):
-            sizes[root] = sum(f.endswith('.cs') for f in files)
+def cs_files(folder):
+    return sum(f.endswith('.cs') for root, _, files in os.walk(folder)
+               if not skipped(root.replace('\\', '/')) for f in files)
+
+def area_sizes(root='.'):
+    """Area of ZenGear.Services → (modules, .cs files). Only ZenGear.Services counts: it is what would become the
+    area's project, while entities stay in the one DbContext of ZenGear.Data."""
+    services = os.path.join(root, SERVICES)
+    sizes = {}
+    for area in sorted(os.listdir(services)):
+        path = os.path.join(services, area)
+        if area in NOT_AREAS or not os.path.isdir(path):
+            continue
+        modules = [m for m in os.listdir(path) if os.path.isdir(os.path.join(path, m)) and cs_files(os.path.join(path, m))]
+        sizes[area] = (len(modules), cs_files(path))
     return sizes
 
 def over_limit(sizes):
-    for folder, count in sorted(sizes.items()):
-        rel = folder[len(SERVICES) + 1:].split('/') if folder.startswith(SERVICES + '/') else None
-        if folder.endswith('/Models') and count > MODELS_LIMIT:
-            yield folder, count, MODELS_LIMIT
-        elif rel and rel[0] != 'Common' and (len(rel) == 1 or rel[-1] not in KIND_FOLDERS) and count > AREA_FOLDER_LIMIT:
-            yield folder, count, AREA_FOLDER_LIMIT
+    return [(area, modules, files) for area, (modules, files) in sizes.items()
+            if modules > MODULE_LIMIT or files > FILE_LIMIT]
 
-def git(*args):
-    return subprocess.run(['git', *args], capture_output=True, text=True, encoding='utf-8', check=True).stdout
+def module_folder(path):
+    """A file of ZenGear.Services/<Area>/<Module>/ counts as its module, also inside a mechanism folder; any other file
+    counts as its own folder."""
+    parts = path.split('/')
+    if path.startswith(SERVICES + '/') and len(parts) > 6:
+        return '/'.join(parts[:5])
+    return posixpath.dirname(path)
 
-def commits(grep):
-    out = git('log', '--no-merges', '-E', f'--grep={grep}', '--format=%x1e%h %s', '--name-only', '--', SRC)
+def folders_touched(files):
+    return len({module_folder(f) for f in files if not skipped(f)})
+
+def git(root, *args):
+    return subprocess.run(['git', '-C', root, *args], capture_output=True, text=True, encoding='utf-8', check=True).stdout
+
+def commits(root, grep, revisions=()):
+    out = git(root, 'log', '--no-merges', '-E', f'--grep={grep}', '--format=%x1e%h %s', '--name-only', *revisions, '--', SRC)
     for block in out.split('\x1e')[1:]:
         head, *files = [line for line in block.splitlines() if line.strip()]
         yield head, [f for f in files if not skipped(f)]
 
-def main(limit):
-    sizes = folder_sizes()
-    over = list(over_limit(sizes))
-    print(f'Folders above their limit (area root or mechanism: {AREA_FOLDER_LIMIT}, Models: {MODELS_LIMIT}): {len(over)}')
-    for folder, count, cap in over:
-        print(f'  {count:3} > {cap}  {folder}')
-    print('Largest folders:')
-    for folder, count in sizes.most_common(5):
-        print(f'  {count:3}  {folder}')
+def feat_lines(root, revisions, limit=None):
+    for head, files in list(commits(root, '^feat', revisions))[:limit]:
+        areas = sorted({f.split('/')[3] for f in files if f.startswith(SERVICES + '/') and f.count('/') > 3} - NOT_AREAS)
+        yield folders_touched(files), f'{",".join(areas) or "-":20}  {head}'
 
-    print(f'Folders touched by the last {limit} feat commits (newest first):')
-    for head, files in list(commits('^feat'))[:limit]:
-        folders = {os.path.dirname(f) for f in files}
-        areas = sorted({f.split('/')[3] for f in files if f.startswith(SERVICES + '/')} & AREAS)
-        print(f'  {len(folders):3}  {",".join(areas) or "-":20}  {head}')
+def report_range(root, revision_range):
+    lines = list(feat_lines(root, [revision_range]))
+    for count, line in lines:
+        print(f'  {count:3}  {line}')
+    print(f'Folders per feat commit: {", ".join(str(count) for count, _ in lines) or "none"}')
 
-    renamed = [head for head, _ in commits('.') if not re.match(r'^\w+ refactor', head)
-               and git('show', '--format=', '--diff-filter=R', '--name-only', head.split()[0], '--', SRC).strip()]
+def main(root, limit):
+    sizes = area_sizes(root)
+    over = over_limit(sizes)
+    print(f'Areas above a threshold ({MODULE_LIMIT} modules or {FILE_LIMIT} files of ZenGear.Services): {len(over)}')
+    for area, modules, files in over:
+        print(f'  {area}: {modules} modules, {files} files')
+    print('Areas:')
+    for area, (modules, files) in sizes.items():
+        print(f'  {modules:3} modules {files:4} files  {area}')
+
+    print(f'Folders touched (module level) by the last {limit} feat commits, newest first (target: at most {FOLDER_TARGET}):')
+    for count, line in feat_lines(root, [], limit):
+        print(f'  {count:3}  {line}')
+
+    renamed = [head for head, _ in commits(root, '.') if not head.split(' ', 1)[1].startswith('refactor')
+               and git(root, 'show', '--format=', '--diff-filter=R', '--name-only', head.split()[0], '--', SRC).strip()]
     print(f'Commits outside refactor that rename files: {len(renamed)}')
     for head in renamed[:10]:
         print(f'  {head}')
 
 if __name__ == '__main__':
-    main(int(sys.argv[1]) if len(sys.argv) > 1 else 20)
+    args = sys.argv[1:]
+    if args[:1] == ['--range'] and len(args) == 2:
+        report_range('.', args[1])
+    elif not args or (len(args) == 1 and args[0].isdigit()):
+        main('.', int(args[0]) if args else 20)
+    else:
+        sys.exit(__doc__)

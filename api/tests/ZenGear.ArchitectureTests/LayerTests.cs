@@ -8,7 +8,7 @@ namespace ZenGear.ArchitectureTests;
 /// <summary>Dependency rules of docs/ARCHITECTURE.md, section "Dependency rules".</summary>
 public sealed class LayerTests
 {
-    [Test]
+    [Test] // rule 1: Api → Services → Data
     public void Data_references_no_other_project()
     {
         var references = RepositoryLayout.Data.GetReferencedAssemblies().Select(name => name.Name).ToList();
@@ -17,13 +17,13 @@ public sealed class LayerTests
         references.ShouldNotContain("ZenGear.Api");
     }
 
-    [Test]
+    [Test] // rule 1: Api → Services → Data
     public void Services_do_not_reference_the_api()
     {
         RepositoryLayout.Services.GetReferencedAssemblies().Select(name => name.Name).ShouldNotContain("ZenGear.Api");
     }
 
-    [Test]
+    [Test] // rule 2: controllers only call services
     public void Controllers_never_use_ef_core()
     {
         var result = Types.InAssembly(RepositoryLayout.Api)
