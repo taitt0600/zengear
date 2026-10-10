@@ -10,7 +10,8 @@ repository's specifications and code. You never edit files.
 ## Read first
 
 - `CLAUDE.md`, `api/CLAUDE.md` (and `web/CLAUDE.md` if the plan touches the web)
-- `docs/ARCHITECTURE.md`, `docs/API_CONVENTIONS.md`, `docs/GLOSSARY.md`
+- `docs/ARCHITECTURE.md`, `docs/CODING_GUIDE.md`, `docs/API_CONVENTIONS.md`, `docs/GLOSSARY.md`
+- The `README.md` of each area of `api/src/ZenGear.Services` the plan touches or calls
 - The feature dossier `out/feature-<ID>.md` given with the plan (written by `tools/feature_context.py`): the
   feature row, its use cases, every rule it lists (implementation rules included), the decisions they cite,
   its glossary rows and the `docs/DATABASE.md` section of each table its rules touch. Without it, read those
@@ -21,8 +22,8 @@ repository's specifications and code. You never edit files.
 - The existing code the plan changes
 - A plan of a change that is not a feature (tooling, CI, documents) has no dossier. Read instead the files it
   changes and the documents that describe them: `docs/AUTOMATION.md`, `docs/ACCEPTANCE.md`, the `CLAUDE.md` files
-  and the Decisions it cites (`docs/blueprint/decisions.md`). Apply items 3, 7, 10 and 11 where they apply, and
-  item 12 in full
+  and the Decisions it cites (`docs/blueprint/decisions.md`). Apply items 3, 7, 10, 11 and 13 where they apply,
+  and item 12 in full
 
 ## Checklist
 
@@ -36,11 +37,13 @@ repository's specifications and code. You never edit files.
    the use case sits in the area that owns the aggregate it creates or changes and writes only that
    area's tables (table ownership in `docs/ARCHITECTURE.md`); new services are split by audience and
    by family of use cases and stay within 400 lines of code and 10 public methods.
-   Every new file follows *Folder structure* in `docs/ARCHITECTURE.md`: its folder, its name
-   (one type per file), interfaces beside their implementation, no folder or `*Helper`/`*Manager` type
-   outside the lists; a mechanism folder only for five or more types; controllers take `*Request` and
-   return `*Dto` only; mapping only as the nested `Mapping` of a DTO; type names unique across the
-   projects and no public nested type.
+   Every new file follows *Folder structure* in `docs/ARCHITECTURE.md`: its area and module
+   (`ZenGear.Services/<Area>/<Module>/`, a new module with its line in the area's `README.md`), its name
+   (one type per file), interfaces beside their implementation, no `*Helper`/`*Manager` type; a
+   mechanism folder only for five or more types; a controller in `Controllers/<Area>/` of its service;
+   controllers take `*Request` and return `*Dto` only; mapping only as the nested `Mapping` of a DTO; type
+   names unique across the projects and no public nested type. A call to another area goes to a service
+   listed under *Public contract* in that area's README, or the plan adds it there.
 4. **Schema**: entity configurations and migrations reproduce the spec exactly: table, column,
    type, length, nullability, default, every `pk_`/`fk_`/`ck_`/`ix_` name, `ON DELETE` actions,
    partial and expression indexes. PostgreSQL-only objects (triggers, functions, exclusion
@@ -97,6 +100,15 @@ repository's specifications and code. You never edit files.
        - a tool that writes back into tracked files (the Postman app, generators, formatters) leaves `git status`
          clean;
        - a secret never reaches a log, a file, an annotation or a command line.
+13. **Simplicity and duplication** (`docs/CODING_GUIDE.md`, section 7), for every plan:
+    1. Is there a simpler way that does the same job?
+    2. Does every interface, base class or option have a reason from section 2 of the guide, or a second caller
+       today?
+    3. Is a duplication intentional (section 3 of the guide)? If not, is it the third copy?
+    4. Does every planned comment say why, not what?
+    5. Is the code in its area and module, and does it change another area's data only through that area's public
+       services?
+    A finding of questions 1 to 3 starts with the label `[over-engineering]` (1 and 2) or `[duplication]` (3).
 
 ## Output
 
@@ -115,5 +127,7 @@ Notes
 - …
 ```
 
-Blocking means the plan would ship a bug, a security hole, a schema mismatch or a violated rule.
+Blocking means the plan would ship a bug, a security hole, a schema mismatch or a violated rule. A finding of
+item 13 keeps its label at the start (`- [over-engineering] [section of the plan] …`), so that the run can count
+them.
 Be specific and cite files and rule IDs; do not restate the plan; do not praise.

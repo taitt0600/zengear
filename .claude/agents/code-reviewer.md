@@ -33,7 +33,9 @@ reported as unchecked; a PowerShell script is never run, read its `ShouldProcess
 
 ## Read first
 
-- `CLAUDE.md`, `api/CLAUDE.md`, `docs/ARCHITECTURE.md`, `docs/API_CONVENTIONS.md`, `docs/GLOSSARY.md`
+- `CLAUDE.md`, `api/CLAUDE.md`, `docs/ARCHITECTURE.md`, `docs/CODING_GUIDE.md`, `docs/API_CONVENTIONS.md`,
+  `docs/GLOSSARY.md`
+- The `README.md` of each area of `api/src/ZenGear.Services` the diff touches or calls
 - The feature dossier `out/feature-<ID>.md` given with the request (written by `tools/feature_context.py`): the
   feature row, every rule it lists (implementation rules included) and the `docs/DATABASE.md` section of each
   table its rules touch. Without it, read those in `docs/blueprint/` and `docs/DATABASE.md` yourself
@@ -41,12 +43,15 @@ reported as unchecked; a PowerShell script is never run, read its `ShouldProcess
   not read the whole file)
 - A change that is not a feature (tooling, CI, documents) has no dossier. Read instead the files it changes and the
   documents that describe them: `docs/AUTOMATION.md`, `docs/ACCEPTANCE.md`, the `CLAUDE.md` files and the Decisions
-  it cites (`docs/blueprint/decisions.md`). Apply items 4, 7 and 8 where they apply, and item 11 in full
+  it cites (`docs/blueprint/decisions.md`). Apply items 4, 7, 8 and 12 where they apply, and item 11 in
+  full
 
 ## Checklist
 
-`ZenGear.ArchitectureTests` already checks folders, names, layers, entity writes across areas in the IL,
-service size and unique type names: do not repeat those. Check what no test sees:
+`ZenGear.ArchitectureTests` already checks folders (areas, modules, mechanism folders, the README of each area,
+controllers by area), names, layers, entity writes across areas in the IL, constructor calls across areas against
+the public contracts of the READMEs, the upstream area `Locations`, service size and unique type names: do not
+repeat those. Check what no test sees:
 
 1. **Rules**: the code does what each rule says, including every refusal and edge case of the rule text;
    each `R_…` test would fail if the rule were broken (no test that only checks the happy path or its own
@@ -108,6 +113,14 @@ service size and unique type names: do not repeat those. Check what no test sees
        - a tool that writes back into tracked files (the Postman app, generators, formatters) leaves `git status`
          clean;
        - a secret never reaches a log, a file, an annotation or a command line.
+12. **Simplicity and duplication** (`docs/CODING_GUIDE.md`, section 7):
+    1. Is there a simpler way that does the same job?
+    2. Does every interface, base class or option have a reason from section 2 of the guide, or a second caller
+       today?
+    3. Is a duplication intentional (section 3 of the guide)? If not, is it the third copy?
+    4. Does every comment say why, not what (section 4 of the guide)?
+    5. Is the code in its module, and does a new module have its line under *Modules* in the area's README?
+    A finding of questions 1 to 3 starts with the label `[over-engineering]` (1 and 2) or `[duplication]` (3).
 
 ## Output
 
@@ -127,5 +140,6 @@ Notes
 ```
 
 Blocking means the change would ship a bug, a security hole, a data leak or a violated rule. Every item
-cites a file and line and the rule or document it breaks; an item you cannot tie to one is a Note. Do not
+cites a file and line and the rule or document it breaks; an item you cannot tie to one is a Note. A finding of
+item 12 keeps its label at the start (`- [duplication] path:line …`), so that the run can count them. Do not
 restate the diff; do not praise.

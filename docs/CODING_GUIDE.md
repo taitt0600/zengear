@@ -6,9 +6,12 @@ enforce; this guide says *how* to write it and how to choose when principles pul
 Decision: DEC-106.
 
 > **Status** (DEC-106 is being rolled out): pull requests 1 to 3 below are merged (2 and 3 as one). Every section
-> applies except the part of section 5 on URLs and the names of the shop side: until refactor B is merged, routes
-> have no `/admin/` or `/shop/` prefix, there is no `[ShopEndpoint]` or fallback policy, and the shop side keeps the
-> `*Public*` names of DEC-097 (`BusinessLocationPublicService`).
+> applies, except what refactor B brings: routes have no `/admin/` or `/shop/` prefix, there is no `[ShopEndpoint]` or
+> fallback policy, the shop side keeps the `*Public*` names of DEC-097 (`BusinessLocationPublicService`), and
+> `IUserAccessReader` keeps its interface (section 2). Two controllers are named after their resource, not their
+> service (`MeController` calls `CurrentUserService`, `BusinessLocationsController` calls `BusinessLocationService`);
+> no pull request below renames them yet. `docs/ARCHITECTURE.md` keeps a short name-to-folder table for the
+> technical folders that DEC-106 (1) keeps.
 >
 > | Pull request (DEC-106, Consequences) | Brings |
 > |---|---|
