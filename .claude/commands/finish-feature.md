@@ -112,8 +112,8 @@ folder, then the whole collection, leaving the API running), then show the guide
     4. Ask with AskUserQuestion: the result — **Đạt** / **Có lỗi** / **Để sau** — and the minutes spent on this
        feature so far — ≤ 10, 10–20, 20–40, more than 40.
        - **Đạt**: first write, review and post the report of step 14, with **Kết quả** "Đạt — auto-merge bật" and
-         the lines `Nơi chạy` and `Thời gian bạn tham gia`: the routine "ZenGear PR merged" starts on the merge
-         event and reads the report at once, so it must be on the pull request before anything can merge. Then
+         the four lines of **Kết quả** (step 14): the routine "ZenGear PR merged" starts on the merge event and
+         reads the report at once, so it must be on the pull request before anything can merge. Then
          `python3 tools/github_pr.py auto-merge <number>` (not while the pull request is a draft). Exit code 5
          means the owner merges it (it changes a file only the owner merges, or `main` does not enforce every
          required check): say so, and add a one-line comment on the pull request that auto-merge stays off and the
@@ -134,7 +134,8 @@ folder, then the whole collection, leaving the API running), then show the guide
       for a decision, or stopped at the ready check — with the pull request link; then the four lines
       `Nơi chạy: local`, `Thời gian bạn tham gia: <the owner's answer at step 13> phút` (`?` when the run
       stopped before step 13), `Phát hiện over-engineering / duplication: <a> / <b>` (the labelled findings of
-      plan-reviewer, passed on by `/implement-feature`, plus those of code-reviewer at step 5) and
+      plan-reviewer, passed on by `/implement-feature`, plus those of code-reviewer at step 5; a `/fix-defect` run
+      has no plan and counts code-reviewer alone) and
       `Folder mỗi commit feat: <n1>, <n2>, …` (the last line of `python3 tools/structure_metrics.py --range
       origin/main..HEAD`), which the routine "ZenGear PR merged" copies to issue #24 (DEC-106).
     - **Chức năng**: what a user can now do, in the words of the user story.

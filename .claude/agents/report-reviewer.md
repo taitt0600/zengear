@@ -64,8 +64,8 @@ facts you are given. You never edit files.
    owner can answer in one line.
 8. **Đã kiểm tra**: steps 2 to 8, CI, the review of the pull request and the owner's test are all reported, with
    "Phát hiện riêng" for each code reviewer and the labelled findings (`[over-engineering]`, `[duplication]`) of
-   plan-reviewer and code-reviewer, which add up to the line of **Kết quả**; every claim agrees with the facts you are
-   given.
+   plan-reviewer and code-reviewer, which add up to the line of **Kết quả** (a `/fix-defect` run has no plan, so its
+   report counts code-reviewer alone); every claim agrees with the facts you are given.
 9. **Language and safety**: Vietnamese; no token, password, OTP, reset link or personal data of a real person
    (R-SEC-11; Personal data in `docs/DATABASE.md`).
 
