@@ -70,11 +70,9 @@ public sealed class MeController(CurrentUserService currentUsers) : ControllerBa
     }
 
     /// <summary>
-    /// Changes the password of the signed-in staff member: the forced change while <c>mustChangePassword</c> is true
-    /// (R-USR-03) and the self change (STF-03), through the Firebase Admin SDK (DEC-094). The sign-in must be at most 5
-    /// minutes old. On success <c>mustChangePassword</c> becomes false and every refresh token of the account is
-    /// revoked, this device's included: the web signs in again with the new password. ID tokens already issued stay
-    /// valid until they expire. The password is never logged.
+    /// Changes the password of the signed-in staff member (STF-03, R-USR-03). On success every refresh token of the
+    /// account is revoked, this device's included: the web signs in again with the new password. ID tokens already
+    /// issued stay valid until they expire.
     /// </summary>
     /// <response code="204">Password changed.</response>
     /// <response code="400">The new password breaks R-USR-11 (<c>ruleId</c> <c>R-USR-11</c>, errors on <c>newPassword</c>); nothing changed.</response>

@@ -11,17 +11,11 @@ using ZenGear.Services.Identity.Access;
 namespace ZenGear.Api.Middlewares;
 
 /// <summary>
-/// Runs after authentication, for requests with a valid Firebase ID token:
-/// <list type="bullet">
-/// <item>a user that is not ACTIVE is refused on every request and logged REJECTED (R-SEC-04, R-SEC-11);</item>
-/// <item>an ACTIVE user gets the <see cref="ZenGearClaims"/> and its <c>UserAccess</c> (permissions, read by
-/// <see cref="PermissionAuthorizationHandler"/>), and the first request of each sign-in
-/// (<c>auth_time</c> later than <c>last_login_at</c>) records it and logs SUCCESS (R-SEC-11);</item>
-/// <item>staff who must change their password are refused on protected endpoints not marked
-/// <see cref="AllowWhilePasswordChangeRequiredAttribute"/> (R-USR-03).</item>
-/// </list>
-/// An unregistered Firebase uid gets no claim and goes on: the policies refuse it, anonymous endpoints
-/// (and the AUT-02 registration endpoint) accept it.
+/// Runs after authentication, for requests with a valid Firebase ID token: refuses a user that is not ACTIVE
+/// (R-SEC-04), gives an ACTIVE user the <see cref="ZenGearClaims"/> and its <c>UserAccess</c> (read by
+/// <see cref="PermissionAuthorizationHandler"/>), records a new sign-in (R-SEC-11) and refuses staff who must change
+/// their password (R-USR-03). An unregistered Firebase uid gets no claim and goes on: the policies refuse it,
+/// anonymous endpoints (and the AUT-02 registration endpoint) accept it.
 /// </summary>
 public sealed class ActiveUserMiddleware(RequestDelegate next)
 {

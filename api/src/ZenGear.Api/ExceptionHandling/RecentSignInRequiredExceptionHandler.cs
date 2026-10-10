@@ -4,8 +4,7 @@ using ZenGear.Services.Identity.Access;
 namespace ZenGear.Api.ExceptionHandling;
 
 /// <summary>
-/// <see cref="RecentSignInRequiredException"/> → 403 <c>/problems/recent-login-required</c> with <c>ruleId</c> R-USR-04:
-/// the web signs the user in again with Firebase and retries (docs/API_CONVENTIONS.md, Authentication; DEC-094).
+/// <see cref="RecentSignInRequiredException"/> → 403 <c>/problems/recent-login-required</c> with <c>ruleId</c> R-USR-04.
 /// </summary>
 public sealed class RecentSignInRequiredExceptionHandler(IProblemDetailsService problemDetails) : IExceptionHandler
 {

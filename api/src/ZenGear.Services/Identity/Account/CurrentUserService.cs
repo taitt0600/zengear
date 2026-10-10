@@ -59,9 +59,8 @@ public sealed class CurrentUserService(
     }
 
     /// <summary>
-    /// Changes the password of the signed-in staff member (UC-007, DEC-094): the forced change while
-    /// <c>must_change_password</c> is set (R-USR-03) and the self change of STF-03. Checks, in order: a staff account,
-    /// a sign-in within <see cref="RecentSignInWindow"/> (R-USR-04), the password policy (R-USR-11); a refused request
+    /// Changes the password of the signed-in staff member (STF-03, R-USR-03). Checks, in order: a staff account, a
+    /// sign-in within <see cref="RecentSignInWindow"/> (R-USR-04), the password policy (R-USR-11); a refused request
     /// changes nothing. Then Firebase first, the flag second, the sessions last: a failure after Firebase leaves the
     /// flag set or the sessions alive, and the staff member changes the password again.
     /// </summary>
