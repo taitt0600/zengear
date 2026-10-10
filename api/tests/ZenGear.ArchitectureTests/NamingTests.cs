@@ -7,7 +7,7 @@ using Microsoft.Extensions.Hosting;
 using Shouldly;
 using ZenGear.ArchitectureTests.Infrastructure;
 using ZenGear.Services.Common.Models;
-using ZenGear.Services.Inventory.Models;
+using ZenGear.Services.Locations.BusinessLocations;
 
 namespace ZenGear.ArchitectureTests;
 

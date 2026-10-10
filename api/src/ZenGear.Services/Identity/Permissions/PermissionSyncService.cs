@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using ZenGear.Data;
 using ZenGear.Data.Entities.Identity;
 using ZenGear.Services.Common;
-using ZenGear.Services.Identity.AccessCache;
+using ZenGear.Services.Identity.Access.AccessCache;
 
 namespace ZenGear.Services.Identity.Permissions;
 

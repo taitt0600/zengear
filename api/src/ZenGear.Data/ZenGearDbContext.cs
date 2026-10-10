@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ZenGear.Data.Common;
 using ZenGear.Data.Entities.Geography;
 using ZenGear.Data.Entities.Identity;
-using ZenGear.Data.Entities.Inventory;
+using ZenGear.Data.Entities.Locations;
 
 namespace ZenGear.Data;
 

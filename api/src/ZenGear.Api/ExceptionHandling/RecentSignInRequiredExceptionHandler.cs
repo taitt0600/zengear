@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Diagnostics;
-using ZenGear.Services.Identity;
+using ZenGear.Services.Identity.Access;
 
 namespace ZenGear.Api.ExceptionHandling;
 
