@@ -137,7 +137,9 @@ folder, then the whole collection, leaving the API running), then show the guide
       plan-reviewer, passed on by `/implement-feature`, plus those of code-reviewer at step 5; a `/fix-defect` run
       has no plan and counts code-reviewer alone) and
       `Folder mỗi commit feat: <n1>, <n2>, …` (the last line of `python3 tools/structure_metrics.py --range
-      origin/main..HEAD`), which the routine "ZenGear PR merged" copies to issue #24 (DEC-106).
+      origin/main..HEAD`); when the run stopped before the code review (`/finish-feature` step 5), these two lines
+      are `Phát hiện over-engineering / duplication: ? / ?` and `Folder mỗi commit feat: ?` (no review or commit
+      yet). The routine "ZenGear PR merged" copies the four lines to issue #24 (DEC-106).
     - **Chức năng**: what a user can now do, in the words of the user story.
     - **Cách chạy để kiểm thử**: the steps of the guide (step 13.2), appendix included.
     - **Kịch bản kiểm thử**: one line per request of the folder: the criterion or rule it checks, the account, the

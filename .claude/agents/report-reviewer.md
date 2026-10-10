@@ -50,7 +50,8 @@ facts you are given. You never edit files.
    link; it matches the state and the owner's answer you are given. A draft lists at least one item under
    "Cần bạn quyết định". The lines `Nơi chạy: local`, `Thời gian bạn tham gia: <answer> phút`,
    `Phát hiện over-engineering / duplication: <a> / <b>` and `Folder mỗi commit feat: <list>` are present (the
-   routine "ZenGear PR merged" copies them to issue #24).
+   routine "ZenGear PR merged" copies them to issue #24); `?` stands for the minutes before the owner's test, and for
+   `<a> / <b>` and `<list>` before the code review (`/finish-feature` step 14).
 2. **Chức năng**: the User Story of the feature row, in the owner's words; nothing the row does not ask for.
 3. **Cách chạy để kiểm thử**: the steps of the guide, appendix included.
 4. **Kịch bản kiểm thử**: one line per request of the folder, and the results it states are the results of the
@@ -64,8 +65,9 @@ facts you are given. You never edit files.
    owner can answer in one line.
 8. **Đã kiểm tra**: steps 2 to 8, CI, the review of the pull request and the owner's test are all reported, with
    "Phát hiện riêng" for each code reviewer and the labelled findings (`[over-engineering]`, `[duplication]`) of
-   plan-reviewer and code-reviewer, which add up to the line of **Kết quả** (a `/fix-defect` run has no plan, so its
-   report counts code-reviewer alone); every claim agrees with the facts you are given.
+   plan-reviewer and code-reviewer, which add up to the line of **Kết quả** unless that line is `? / ?` (a run stopped
+   before the code review); a `/fix-defect` run has no plan, so its report counts code-reviewer alone; every claim
+   agrees with the facts you are given.
 9. **Language and safety**: Vietnamese; no token, password, OTP, reset link or personal data of a real person
    (R-SEC-11; Personal data in `docs/DATABASE.md`).
 
