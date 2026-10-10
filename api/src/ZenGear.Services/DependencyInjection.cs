@@ -44,7 +44,7 @@ public static class DependencyInjection
         services.AddSingleton<IAuthProvider, FirebaseAuthProvider>();
         services.AddValidatorsFromAssemblyContaining<StaffService>();
 
-        services.AddScoped<IUserAccessReader, UserAccessReader>();
+        services.AddScoped<UserAccessReader>();
         services.AddScoped<SignInService>();
         services.AddScoped<CurrentUserService>();
         services.AddScoped<StaffService>();

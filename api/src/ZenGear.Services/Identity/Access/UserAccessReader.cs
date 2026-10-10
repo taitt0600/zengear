@@ -12,8 +12,8 @@ namespace ZenGear.Services.Identity.Access;
 /// bump is pending, PostgreSQL is read and nothing is written.
 /// </summary>
 public sealed class UserAccessReader(ZenGearDbContext db, IAccessCache cache, ILogger<UserAccessReader> logger)
-    : IUserAccessReader
 {
+    /// <returns>Null when no user is linked to the Firebase uid.</returns>
     public async Task<UserAccess?> GetAsync(string firebaseUid, CancellationToken cancellationToken)
     {
         if (!cache.IsAvailable)

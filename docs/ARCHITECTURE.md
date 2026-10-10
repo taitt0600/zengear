@@ -220,7 +220,7 @@ Two exceptions:
 
 ## Caching
 
-Redis caches the user status and the permissions per role (R-SEC-07), behind `IUserAccessReader`; nothing else is cached yet. The connection is in `ZenGear.Data/Externals/Redis`; the cache and its rules are in `ZenGear.Services/Identity/Access/AccessCache`.
+Redis caches the user status and the permissions per role (R-SEC-07), read through `UserAccessReader`; nothing else is cached yet. The connection is in `ZenGear.Data/Externals/Redis`; the cache and its rules are in `ZenGear.Services/Identity/Access/AccessCache`.
 
 - **Versioned keys:** entries are stored under a version: `zengear:access:user:{id}:{epoch}:{ver}` and `…role:{id}:{epoch}:{ver}`, 5-minute TTL. The versions are `…ver:user:{id}`, `…ver:role:{id}` and the global `…epoch`, with no TTL. Every entry is written under the version read before its query, so data read before a change commits never becomes current.
 - **Invalidation:** the version is incremented (INCR) after the commit that changes `users.status`, `users.firebase_uid`, `staff_profiles`, `user_roles` or `role_permissions`. The EF Core interceptor `AccessCacheInvalidationInterceptor` does it for tracked changes. `ExecuteUpdate`, raw SQL and FK cascades bypass it, so their caller calls `IAccessCache.BumpAsync`.
