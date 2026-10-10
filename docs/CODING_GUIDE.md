@@ -5,10 +5,10 @@ without access to Claude). `docs/ARCHITECTURE.md` says *where* code goes and whi
 enforce; this guide says *how* to write it and how to choose when principles pull in different directions.
 Decision: DEC-106.
 
-> **Status** (DEC-106 is being rolled out): sections 1 to 4 apply now, and section 7 except question 6. Sections 5
-> and 6 describe the target layout; until the pull requests below are merged, the code and `docs/ARCHITECTURE.md`
-> still follow DEC-097 (`ZenGear.Services/<Area>/Models/`, `Validators/`, `business_locations` in Inventory,
-> `*Public*` names, routes without prefix).
+> **Status** (DEC-106 is being rolled out): pull requests 1 to 3 below are merged (2 and 3 as one). Every section
+> applies except the part of section 5 on URLs and the names of the shop side: until refactor B is merged, routes
+> have no `/admin/` or `/shop/` prefix, there is no `[ShopEndpoint]` or fallback policy, and the shop side keeps the
+> `*Public*` names of DEC-097 (`BusinessLocationPublicService`).
 >
 > | Pull request (DEC-106, Consequences) | Brings |
 > |---|---|
@@ -77,9 +77,9 @@ These look like duplication but must stay separate. Do not merge them for DRY:
   a lock, a workaround and its reason.
 - A comment that copies the specification is cut (DEC-106 measured 974 comment lines, 25 % of the code).
 
-## 5. Structure at a glance (target of DEC-106)
+## 5. Structure at a glance
 
-The rules are in `docs/ARCHITECTURE.md` once pull request 2 of the Status table is merged; this is the map to find code.
+The rules are in `docs/ARCHITECTURE.md`; this is the map to find code.
 
 ```
 ZenGear.Api/Controllers/<Area>/                 one controller per service, named after it
@@ -109,7 +109,7 @@ tests: ZenGear.Services.Tests/<Area>/<Module>/, ZenGear.Api.IntegrationTests/<Ar
 
 The other areas keep the tables of `docs/ARCHITECTURE.md`. An area grows into its own project when it passes 8
 modules or 60 files, when the build and tests of the solution pass 5 minutes, or when a second developer works on it
-alone (DEC-106); `tools/structure_metrics.py` will report the first (pull request 2 of the Status table).
+alone (DEC-106); `tools/structure_metrics.py` reports the first.
 
 ### URLs and controllers
 
@@ -193,8 +193,7 @@ machine; pushing and the CI wait for the network. Before going offline, once:
 
 ## 7. Review questions
 
-A person reviewing by hand asks these questions now; `plan-reviewer` and `code-reviewer` ask them from pull request
-2 of the Status table on:
+A person reviewing by hand asks these questions, and so do `plan-reviewer` and `code-reviewer`:
 
 1. Does it do what the specification says, and nothing it does not?
 2. **Is there a simpler way** that does the same job?
@@ -202,7 +201,7 @@ A person reviewing by hand asks these questions now; `plan-reviewer` and `code-r
 4. Is this duplication intentional (section 3)? If not, is it the third copy?
 5. Does every comment say why, not what?
 6. Is the code in its area and module, and does it change another area's data only through that area's public
-   services? (From refactor A on, when areas and modules exist.)
+   services?
 
 A finding of questions 2 to 4 is labelled `over-engineering` or `duplication` in the report, so that the numbers can
 be followed over time.

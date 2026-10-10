@@ -38,14 +38,14 @@ zengear/
 └─ tools/                      blueprint export, schema snapshot and comparison, PR gates, pull request steps
 ```
 
-Folders inside the three projects follow [Folder structure](#folder-structure); namespaces follow folders (`ZenGear.Api.Controllers`, `ZenGear.Services.Sales`, `ZenGear.Services.Sales.Models`, `ZenGear.Data.Entities.Sales`).
+Folders inside the three projects follow [Folder structure](#folder-structure); namespaces follow folders (`ZenGear.Api.Controllers.Identity`, `ZenGear.Services.Identity.StaffAccounts`, `ZenGear.Data.Entities.Identity`). How to write the code inside them is in `docs/CODING_GUIDE.md`.
 
 ## Dependency rules
 
 1. `ZenGear.Api` → `ZenGear.Services` → `ZenGear.Data`. `ZenGear.Data` references no other project.
 2. Controllers only call services; they never use `ZenGearDbContext`.
 3. Controllers receive and return the requests and DTOs of `ZenGear.Services`, never entities — cost fields and `internal_note` must not leak (R-SEC-09, R-SEC-10). A DTO serves one audience: staff and customers get different DTOs (`ProductStaffDto`, `ProductPublicDto`), never one shared type.
-4. A service writes only the tables of its own area. A use case lives in the area that owns the aggregate it creates or changes, and calls the services of the other areas for their tables (e.g. the POS sale is in `Sales`: `OrderPlacementService` calls `StockService.Issue(...)` and never updates `stock_balances`; Inventory recalculates the average cost (R-COST-01) and calls `IProductSkuService.SetAverageCost(...)`). Reading other areas' tables is allowed. `ZenGear.ArchitectureTests` scans the IL of the services: creating an entity, calling one of its setters or void methods (an entity method that changes state returns nothing), a static method of it that returns it, `DbSet.Add/Attach/Update/Remove` and `ExecuteUpdate/ExecuteDelete` must target an entity of the caller's area.
+4. A service writes only the tables of its own area. A use case lives in the area that owns the aggregate it creates or changes, and calls the services of the other areas for their tables (e.g. the POS sale is in `Sales`: `OrderPlacementService` calls `StockService.Issue(...)` and never updates `stock_balances`; Inventory recalculates the average cost (R-COST-01) and calls `IProductSkuService.SetAverageCost(...)`). Reading other areas' tables is allowed. Another area calls an area only through a service listed under *Public contract* in that area's `README.md` (DEC-106); `ZenGear.ArchitectureTests` checks the constructor dependencies of the services across areas. It also scans the IL of the services: creating an entity, calling one of its setters or void methods (an entity method that changes state returns nothing), a static method of it that returns it, `DbSet.Add/Attach/Update/Remove` and `ExecuteUpdate/ExecuteDelete` must target an entity of the caller's area.
 5. Services use `ZenGearDbContext` directly; no repository and no unit of work: the context is both, and use cases need `SELECT … FOR UPDATE`, `ExecuteUpdate` and one transaction across areas. A query repeated in three or more services becomes a query class (`<Entity><Purpose>Query`) in the owning area. Repositories are reconsidered only for a second database or data access technology.
 6. External systems are called only through the interfaces in `ZenGear.Data/Externals/<System>` (`IEmailSender`, `IEInvoiceClient`, `IPaymentGateway`, `IFileStorage`, `IAuthProvider`, the Redis connection); the packages of those systems are referenced by `ZenGear.Data` only. Business rules built on them stay in `ZenGear.Services` (e.g. the access cache, R-SEC-07). Tests use fakes.
 7. Mapping (AutoMapper) exists only in `ZenGear.Services`, from entity to DTO. Each DTO declares its own map in a nested `private sealed class Mapping : Profile`; there is no mapping folder or profile file. There is no map from a DTO or request to an entity: entities change through their methods (see [Where business rules live](#where-business-rules-live)). `ZenGear.Api` has no mapping.
@@ -57,9 +57,10 @@ Folders inside the three projects follow [Folder structure](#folder-structure); 
 | `Identity` | `users`, `customer_profiles`, `staff_profiles`, `roles`, `permissions`, `user_roles`, `role_permissions` |
 | `Customers` | `addresses`, `wishlists` |
 | `Geography` | `countries`, `provinces`, `wards` |
+| `Locations` | `business_locations` |
 | `Catalog` | `categories`, `brands`, `product_series`, `products`, `product_skus`, `product_images`, `pc_build_components`, `product_badges`, `product_badge_assignments`, `product_tags`, `url_redirects` |
 | `Tax` | `tax_classes`, `tax_rates` |
-| `Inventory` | `warehouses`, `business_locations`, `stock_balances`, `stock_ledger_entries`, `serial_units`, `pc_assemblies`, `pc_assembly_components`, `stock_adjustments`, `adjustment_reasons`, `stock_counts`, `stock_count_lines` |
+| `Inventory` | `warehouses`, `stock_balances`, `stock_ledger_entries`, `serial_units`, `pc_assemblies`, `pc_assembly_components`, `stock_adjustments`, `adjustment_reasons`, `stock_counts`, `stock_count_lines` |
 | `Purchasing` | `suppliers`, `purchase_orders`, `purchase_order_items`, `purchase_receipts`, `purchase_returns`, `purchase_return_items`, `supplier_payments` |
 | `Sales` | `orders`, `order_items`, `order_item_serials`, `order_item_components`, `order_invoice_details`, `cart_items`, `cart_serial_units`, `daily_sequences` |
 | `Shipping` | `carriers`, `shipping_methods`, `shipping_fee_rules`, `order_shipping_details`, `carrier_settlements`, `carrier_settlement_lines` |
@@ -76,13 +77,17 @@ Folders inside the three projects follow [Folder structure](#folder-structure); 
 
 `Audit` tables are written through shared services called by the owning service in the same transaction: status changes (`status_history`, R-HIS-01), evidence files (`attachments`, R-ATT-01) and the EF Core audit interceptor (`audit_logs`, R-AUD-01).
 
+`Locations` is upstream (DEC-106): the website, receipts, emails and other areas read the business location, so its services read `Geography` and depend on no other area; `ZenGear.ArchitectureTests` checks it.
+
+Each area of `ZenGear.Services` has a `README.md`: its purpose, its modules, its public contract (the services other areas may call, rule 4) and its dependencies. The tables an area owns are listed only in the table above.
+
 ## Folder structure
 
-`ZenGear.Api` is organised by technical role only. `ZenGear.Services` is organised by business area (table above, same names), with folders by kind inside each area. `ZenGear.Data` keeps its technical folders at the top and the areas inside `Entities` and `Configurations`. No other folder is created without first changing this section; `ZenGear.ArchitectureTests` fails on any folder not listed.
+`ZenGear.Services` is organised by business area (table above, same names) and, inside an area, by module. `ZenGear.Api` keeps its technical folders, with the controllers by area. `ZenGear.Data` keeps its technical folders at the top and the areas inside `Entities` and `Configurations`: the modules of an area share its entities. Decision: DEC-106, which replaced the folders by kind of DEC-097.
 
 ```
 ZenGear.Api/
-├─ Controllers/          every controller, flat
+├─ Controllers/<Area>/   one controller per service, named after it, in the area of that service
 ├─ ExceptionHandling/    IExceptionHandler implementations and the Problem Details they write
 ├─ Middlewares/          request pipeline middleware
 ├─ Extensions/           *Setup classes called by Program.cs, extension methods (also for functions on HTTP types)
@@ -96,12 +101,11 @@ ZenGear.Api/
 └─ Program.cs
 ZenGear.Services/
 ├─ <Area>/
-│  ├─ Models/            requests, DTOs (each with its nested Mapping) and internal data records
-│  ├─ Enums/             enums used only by the area's services
-│  ├─ Validators/        validators of the area's requests
-│  ├─ <Mechanism>/       five or more types that form one mechanism (e.g. Identity/AccessCache): flat inside,
-│  │                     with its own interfaces, records, enums and jobs
-│  └─ services and their interfaces side by side, jobs and other classes that do the area's work
+│  ├─ README.md          purpose, modules, public contract and dependencies of the area
+│  └─ <Module>/          one aggregate or one group of screens around it, flat: services, *Query, *Job, requests,
+│     │                  DTOs (each with its nested Mapping), validators, enums and records of the module
+│     └─ <Mechanism>/    five or more types that form one mechanism (Identity/Access/AccessCache): flat, with
+│                        its own interfaces, records, enums and jobs
 ├─ Common/               shared code used by two or more areas; not an area
 │  ├─ Models/            requests and DTOs of every list endpoint (PageRequest, PagedDto<T>)
 │  ├─ Validators/        their validators
@@ -121,13 +125,15 @@ ZenGear.Data/
 └─ ZenGearDbContext.cs
 ```
 
-A folder is created with its first file (`Validators/`, `Enums/`, `Utilities/`).
+- A module folder exists even when the area has one module; the root of an area holds only its `README.md` and its modules. The name of a type says its kind (`StaffCreateRequest`, `StaffDto`, `StaffCreateRequestValidator`, `StaffService`), so there is no `Models`, `Validators` or `Enums` folder in an area.
+- A new module of an area of the table above, the first module of such an area included, is created with the feature that needs it, together with its line under *Modules* in the area's `README.md` (and the README with the first module). A new area, a mechanism folder, or a folder of `ZenGear.Api`, `ZenGear.Data` or `Common` is asked first; `ZenGear.ArchitectureTests` fails on any folder this section does not allow.
+- A folder is created with its first file (`Utilities/`, `Enums/` of an entity area).
 
-Where a type goes follows from its name:
+Where a name still decides the folder:
 
 | Type | Folder |
 |---|---|
-| `*Controller` | `ZenGear.Api/Controllers` |
+| `*Controller` | `ZenGear.Api/Controllers/<Area>`, the area of the service it calls |
 | `*ExceptionHandler`, `*Problem` | `ZenGear.Api/ExceptionHandling` |
 | `*Middleware` | `ZenGear.Api/Middlewares` |
 | `*Setup` (the set-up of one concern, called by `Program.cs`), `*Extensions` (extension methods, including functions on HTTP types) | `ZenGear.Api/Extensions` |
@@ -137,10 +143,8 @@ Where a type goes follows from its name:
 | `*Claims` and other constant sets | `ZenGear.Api/Constants` |
 | security log, log masking (`SecurityLog`, `SensitivePropertyMasker`) | `ZenGear.Api/Logging` |
 | environment and pipeline set-up that is not a `*Setup` (`BuildTimeDocumentGeneration`), a one-off command of the host (`bootstrap-admin`, DEC-096) | `ZenGear.Api/Hosting` |
-| `*Request`, `*Dto`, and records that only carry data (a record used only inside one mechanism stays in it) | `ZenGear.Services/<Area>/Models`; shared by every list endpoint: `ZenGear.Services/Common/Models` (list endpoints return `PagedDto<T>`, never a page DTO per entity; a generic DTO lives only there) |
-| enum of the Services layer | `ZenGear.Services/<Area>/Enums` |
-| `*Validator`: the FluentValidation validator of one request; other checks are named after what they check | `ZenGear.Services/<Area>/Validators` (`Common/Validators` for `Common/Models`) |
-| `*Service`, `*Query`, `*Job` and other classes that do the area's work; `I*Service` only when another area calls the service, a test replaces it or it has two implementations | `ZenGear.Services/<Area>` |
+| requests and DTOs shared by every list endpoint (`PageRequest`, `PagedDto<T>`: list endpoints return `PagedDto<T>`, never a page DTO per entity; a generic DTO lives only there), and their validators | `ZenGear.Services/Common/Models`, `ZenGear.Services/Common/Validators` |
+| every other type of an area: `*Service`, `*Query`, `*Job`, `*Request`, `*Dto`, `*Validator` (the FluentValidation validator of one request; other checks are named after what they check), enums and records | `ZenGear.Services/<Area>/<Module>`, or the mechanism folder it belongs to |
 | `*Utility`: static, pure (values in, values out; no framework, database or DI), used by two or more areas; a pure function of one area is a static class of that area named after what it computes (`AverageCostCalculator`) | `ZenGear.Services/Common/Utilities` |
 | entity | `ZenGear.Data/Entities/<Area>` |
 | enum of an entity column | `ZenGear.Data/Entities/<Area>/Enums` |
@@ -157,15 +161,17 @@ Services are split by audience and by use case, as DTOs are (rule 3): `<Entity>S
 
 - One top-level type per file, the file named after the type. A nested type is private, like the `Mapping` class of a DTO; a public type is never nested.
 - Type names are unique across the three projects, `DependencyInjection` excepted: the OpenAPI document names its schemas after the type.
-- An interface sits next to its implementation, in its own file (`IStaffService.cs` beside `StaffService.cs`).
-- Controllers take `*Request` and return `*Dto` only; the other records of `Models/` never leave the services.
+- An interface exists only for a reason of `docs/CODING_GUIDE.md`, section 2 (a test seam, an external system, the public contract of an area, two implementations), and sits next to its implementation, in its own file.
+- Controllers take `*Request` and return `*Dto` only; the other records of a module never leave the services.
 - A utility does one thing, is a static class without state and has unit tests. A shared function that works on HTTP types is an extension method in `ZenGear.Api/Extensions`, not a utility.
-- No `Helpers`, `Interfaces`, `Dtos`, `Mappings`, `Repositories`, `Jobs` or `BackgroundServices` folders; `Utilities` only in `ZenGear.Services/Common`; no type named `*Helper` or `*Manager`.
+- No `Helpers`, `Interfaces`, `Dtos`, `Mappings`, `Repositories`, `Jobs`, `BackgroundServices`, `Models`, `Validators` or `Enums` folder in an area of `ZenGear.Services`; `Utilities` only in `ZenGear.Services/Common`; no type named `*Helper` or `*Manager`.
 - No type is added without a caller in the same change.
 
-Tests mirror the folders of the code they test: `ZenGear.Services.Tests/<Area>` (and `Data/` for `ZenGear.Data`), `ZenGear.Api.IntegrationTests/<Area>` for the endpoints of an area and `ZenGear.Api.IntegrationTests/<Api folder>` for the pipeline (`Authorization/`, `ExceptionHandling/`, `Logging/`), with shared fixtures in `Infrastructure/`. The assembly-wide NUnit `[SetUpFixture]` classes (`PostgresContainer`, `RedisContainer`) stay at the root of their project: NUnit applies a set-up fixture only to tests in its namespace and below. `ZenGear.Services.Tests` asserts that the AutoMapper configuration of every DTO is valid.
+Tests mirror the folders of the code they test: `ZenGear.Services.Tests/<Area>/<Module>` (and `Data/` for `ZenGear.Data`), `ZenGear.Api.IntegrationTests/<Area>/<Module>` for the endpoints of a module and `ZenGear.Api.IntegrationTests/<Api folder>` for the pipeline (`Authorization/`, `ExceptionHandling/`, `Logging/`), with shared fixtures in `Infrastructure/`. A test that covers two modules sits with the module of the rule it proves. The assembly-wide NUnit `[SetUpFixture]` classes (`PostgresContainer`, `RedisContainer`) stay at the root of their project: NUnit applies a set-up fixture only to tests in its namespace and below. `ZenGear.Services.Tests` asserts that the AutoMapper configuration of every DTO is valid.
 
-This structure is DEC-097. It is reopened only when `python tools/structure_metrics.py` reports an area root or a mechanism folder above 20 files, a `Models/` folder above 40 files, or more folders touched per `feat` commit in three areas in a row; when `ServiceSizeTests` lists more than three exceptions; or when a second host uses `ZenGear.Services` or the API needs a second version (requests and responses then move to `ZenGear.Api`).
+### Evolution thresholds
+
+The backend stays three projects (DEC-091) while an area fits in them. An area becomes a project of its own (a modular monolith, one area at a time) when it passes 8 modules or 60 files of `ZenGear.Services`, when the build and tests of the solution pass 5 minutes, or when a second developer works on one area alone (DEC-106). `python tools/structure_metrics.py` reports the modules and files of each area and the folders touched per `feat` commit at module level (target: at most 5); it is read every month. More than three exceptions in `ServiceSizeTests`, a second host using `ZenGear.Services`, or a second version of the API (requests and responses then move to `ZenGear.Api`) also call for a Decision.
 
 ## Where business rules live
 
@@ -174,7 +180,7 @@ Column "Enforced At" of `docs/blueprint/business-rules.md`:
 | Enforced At | Code location |
 |---|---|
 | `Service — <Entity> aggregate` | A rule on one entity: a method on the entity in `ZenGear.Data/Entities/<Area>` that is the only way to change that state (e.g. `Order.Confirm()`); services call it |
-| `Service — <Handler/Service>` | A rule spanning several entities or needing queries: the service of the owning area, in `ZenGear.Services/<Area>` |
+| `Service — <Handler/Service>` | A rule spanning several entities or needing queries: the service of the owning area, in `ZenGear.Services/<Area>/<Module>` |
 | `Api — <component>` | Middleware, authorization handlers, serializers, query endpoints (`ZenGear.Api`) |
 | `Database — <object>` | CHECK, unique, exclusion, FK, trigger in the schema; the service still validates first for a clear error |
 | `Scheduled job — <job>` | A `*Job` in the owning area of `ZenGear.Services`, hosted by `ZenGear.Api` |
@@ -202,18 +208,18 @@ Every rule has at least one test whose name starts with its ID (`R_INV_01_...`).
 
 ## Background jobs
 
-A job is a `*Job` class in the area that owns what it changes (`Sales/OrderExpiryJob`, `Notifications/NotificationSenderJob`, `Invoicing/EInvoiceIssuingJob`, `Reporting/NightlyReconciliationJob`), or in the mechanism folder it serves (`Identity/AccessCache/AccessBumpRetryJob`). `ZenGear.Api` registers every job. A job only orchestrates: it takes the lock, loops and calls the service of its area; business rules stay in that service, and rule 4 applies to jobs as to services.
+A job is a `*Job` class in the module that owns what it changes (`OrderExpiryJob` in a module of `Sales`, `NotificationSenderJob` of `Notifications`, `EInvoiceIssuingJob` of `Invoicing`, `NightlyReconciliationJob` of `Reporting`), or in the mechanism folder it serves (`Identity/Access/AccessCache/AccessBumpRetryJob`). `ZenGear.Api` registers every job. A job only orchestrates: it takes the lock, loops and calls the service of its area; business rules stay in that service, and rule 4 applies to jobs as to services.
 
 Periodic jobs are a `BackgroundService` with a `PeriodicTimer`: pending order expiry, notification sender, e-invoice issuing, nightly reconciliation (02:00, report only), nightly cleanup. A job takes a PostgreSQL advisory lock (`pg_try_advisory_lock`) so only one API instance runs it at a time; every lock key is declared once in `ZenGear.Services/Common/AdvisoryLockKeys`, so no two jobs share a key.
 
 Two exceptions:
 
 - `PermissionSyncJob` (`Identity/Permissions`) is a one-shot `IHostedService` at startup. It applies the permission catalog of the code (DEC-095) under a blocking `pg_advisory_xact_lock`, so instances starting together run it one after the other. A failure is logged and the API starts with the grants already stored.
-- `AccessBumpRetryJob` (`Identity/AccessCache`) retries the access cache bumps that failed (see Caching).
+- `AccessBumpRetryJob` (`Identity/Access/AccessCache`) retries the access cache bumps that failed (see Caching).
 
 ## Caching
 
-Redis caches the user status and the permissions per role (R-SEC-07), behind `IUserAccessReader`; nothing else is cached yet. The connection is in `ZenGear.Data/Externals/Redis`; the cache and its rules are in `ZenGear.Services/Identity/AccessCache`.
+Redis caches the user status and the permissions per role (R-SEC-07), behind `IUserAccessReader`; nothing else is cached yet. The connection is in `ZenGear.Data/Externals/Redis`; the cache and its rules are in `ZenGear.Services/Identity/Access/AccessCache`.
 
 - **Versioned keys:** entries are stored under a version: `zengear:access:user:{id}:{epoch}:{ver}` and `…role:{id}:{epoch}:{ver}`, 5-minute TTL. The versions are `…ver:user:{id}`, `…ver:role:{id}` and the global `…epoch`, with no TTL. Every entry is written under the version read before its query, so data read before a change commits never becomes current.
 - **Invalidation:** the version is incremented (INCR) after the commit that changes `users.status`, `users.firebase_uid`, `staff_profiles`, `user_roles` or `role_permissions`. The EF Core interceptor `AccessCacheInvalidationInterceptor` does it for tracked changes. `ExecuteUpdate`, raw SQL and FK cascades bypass it, so their caller calls `IAccessCache.BumpAsync`.
