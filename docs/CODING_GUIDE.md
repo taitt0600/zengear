@@ -13,13 +13,14 @@ Decision: DEC-106.
 > | Pull request (DEC-106, Consequences) | Brings |
 > |---|---|
 > | 1. Documentation | this guide |
-> | 2. Owner path | `docs/ARCHITECTURE.md`, `docs/API_CONVENTIONS.md` (URLs, Authentication), `api/CLAUDE.md`, the architecture tests, the review questions in `plan-reviewer` and `code-reviewer`, step 7 of `/implement-feature`, `tools/structure_metrics.py` at module level |
+> | 2. Owner path | `docs/ARCHITECTURE.md`, `api/CLAUDE.md`, the architecture tests, the review questions in `plan-reviewer` and `code-reviewer`, step 7 of `/implement-feature`, `tools/structure_metrics.py` at module level |
 > | 3. Refactor A | `<Area>/<Module>/` folders and namespaces (`git mv`), area `Locations`, the README of each area |
-> | 4. Refactor B | `/api/v1/admin/` and `/api/v1/shop/` added by a convention, the fallback policy, `[ShopEndpoint]`, `*Public*` renamed `*Shop*`, `IUserAccessReader` without its interface |
+> | 4. Refactor B | `/api/v1/admin/` and `/api/v1/shop/` added by a convention, the fallback policy, `[ShopEndpoint]`, `*Public*` renamed `*Shop*`, `IUserAccessReader` without its interface, `docs/API_CONVENTIONS.md` (URLs, Authentication) |
 >
-> The READMEs of the areas come with refactor A rather than with this guide: the areas and modules they describe
-> exist only after it. Pull requests 2 and 3 may be one pull request, because the architecture tests check the
-> folders they move.
+> Three choices differ from the order of DEC-106, so that `main` never documents what the code does not do yet:
+> the READMEs of the areas come with refactor A (the areas and modules they describe exist only after it);
+> pull requests 2 and 3 may be one pull request (the architecture tests check the folders they move); and
+> `docs/API_CONVENTIONS.md` changes with the routes in refactor B.
 
 ## 1. Order of priority
 
