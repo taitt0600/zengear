@@ -2,7 +2,7 @@ $kind: http-request
 description: |-
   The new staff member signs in (emulator custom token) and is accepted: the account is ACTIVE.
 method: GET
-url: '{{baseUrl}}/api/v1/me'
+url: '{{baseUrl}}/api/v1/admin/me'
 order: 3000
 headers:
   - key: X-ZenGear-As

@@ -7,12 +7,12 @@ using ZenGear.Services.Identity.Account;
 namespace ZenGear.Api.Controllers.Identity;
 
 [ApiController]
-[Route("api/v1/me")]
+[Route("me")]
 public sealed class MeController(CurrentUserService currentUsers) : ControllerBase
 {
     /// <summary>
     /// The signed-in user; called by the web right after Firebase sign-in (AUT-01). The <c>ETag</c> header is the
-    /// version of the account (<c>users</c>), sent back in <c>If-Match</c> by <c>PATCH /api/v1/me</c>.
+    /// version of the account (<c>users</c>), sent back in <c>If-Match</c> by <c>PATCH /api/v1/admin/me</c>.
     /// </summary>
     /// <response code="401">Missing or invalid Firebase ID token.</response>
     /// <response code="403">
@@ -33,7 +33,7 @@ public sealed class MeController(CurrentUserService currentUsers) : ControllerBa
 
     /// <summary>
     /// Changes the display name of the signed-in user (STF-03, R-USR-04): the only field a user edits here; any other
-    /// property of the body, such as <c>email</c>, is ignored. Send the <c>ETag</c> of <c>GET /api/v1/me</c> in
+    /// property of the body, such as <c>email</c>, is ignored. Send the <c>ETag</c> of <c>GET /api/v1/admin/me</c> in
     /// <c>If-Match</c> (<c>*</c> skips the check). The tag covers the account row only, not
     /// <c>mustChangePassword</c>; a new sign-in of the same account (recorded in <c>last_login_at</c>, R-SEC-11)
     /// changes it too, so on 412 read the account again and retry.
@@ -56,7 +56,7 @@ public sealed class MeController(CurrentUserService currentUsers) : ControllerBa
         if (string.IsNullOrWhiteSpace(ifMatch))
         {
             return Problem(statusCode: StatusCodes.Status428PreconditionRequired, type: "/problems/if-match-required",
-                title: "If-Match required", detail: "Send the ETag of GET /api/v1/me in the If-Match header.");
+                title: "If-Match required", detail: "Send the ETag of GET /api/v1/admin/me in the If-Match header.");
         }
 
         if (!ETagExtensions.TryParseIfMatch(ifMatch, out var version))

@@ -2,7 +2,7 @@ $kind: http-request
 description: |-
   R-SEC-03: the permission staff.disable is checked through the caller's roles; the fixture customer has none.
 method: POST
-url: '{{baseUrl}}/api/v1/staff/{{staffId}}/restore'
+url: '{{baseUrl}}/api/v1/admin/staff/{{staffId}}/restore'
 order: 12000
 headers:
   - key: X-ZenGear-As

@@ -5,20 +5,33 @@ without access to Claude). `docs/ARCHITECTURE.md` says *where* code goes and whi
 enforce; this guide says *how* to write it and how to choose when principles pull in different directions.
 Decision: DEC-106.
 
-> **Status** (DEC-106 is being rolled out): pull requests 1 to 3 below are merged (2 and 3 as one). Every section
-> applies, except what refactor B brings: routes have no `/admin/` or `/shop/` prefix, there is no `[ShopEndpoint]` or
-> fallback policy, the shop side keeps the `*Public*` names of DEC-097 (`BusinessLocationPublicService`), and
-> `IUserAccessReader` keeps its interface (section 2). Two controllers are named after their resource, not their
-> service (`MeController` calls `CurrentUserService`, `BusinessLocationsController` calls `BusinessLocationService`);
-> no pull request below renames them yet. `docs/ARCHITECTURE.md` keeps a short name-to-folder table for the
-> technical folders that DEC-106 (1) keeps.
+> **Status**: the pull requests of DEC-106 below are merged (2 and 3 as one) and every section applies. These points
+> differ from DEC-106; one later `/decision-draft` amends it with all of them:
+>
+> - `[ShopEndpoint]` holds only the anonymous access. The shop's rate limit and output cache come with their own
+>   Decision before the storefront is deployed: the limits need real traffic, and a cached list of business locations
+>   must not serve the opening hours of the day before after midnight in Asia/Ho_Chi_Minh (owner's decision D1).
+> - Refactor B added `GET /api/v1/admin/business-locations`, from which SCR-LOC-01 reads the id of the location
+>   (owner's decision D2).
+> - Two controllers keep the name of their resource, not of their service (`MeController` calls `CurrentUserService`,
+>   `BusinessLocationsController` calls `BusinessLocationService`): renaming them changes the OpenAPI tags again.
+> - The paging rule is not shared yet (DEC-106 (8)): the staff list answers its paging errors with `ruleId` R-USR-13
+>   and its own messages, while the `PageRequest` validator of `Common` names no rule. Sharing it needs a rule-builder
+>   in `Common` that takes the caller's code, a new kind of type that `docs/ARCHITECTURE.md` asks about first.
+> - The route and anonymous-access checks of DEC-106 (6) are tests of `ZenGear.Api.IntegrationTests`
+>   (`Authorization/AccessSurfaceTests`), not of `ZenGear.ArchitectureTests`: they read the routes the host builds
+>   after the route prefix convention has run.
+> - `IUserAccessReader` keeps its interface (section 2).
+>
+> Refactor B renamed the shop side of DEC-097 (`BusinessLocationPublicService` became `BusinessLocationShopService`).
+> `docs/ARCHITECTURE.md` keeps a short name-to-folder table for the technical folders that DEC-106 (1) keeps.
 >
 > | Pull request (DEC-106, Consequences) | Brings |
 > |---|---|
 > | 1. Documentation | this guide |
 > | 2. Owner path | `docs/ARCHITECTURE.md`, `api/CLAUDE.md`, the architecture tests, the review questions in `plan-reviewer` and `code-reviewer`, step 7 of `/implement-feature`, `tools/structure_metrics.py` at module level |
 > | 3. Refactor A | `<Area>/<Module>/` folders and namespaces (`git mv`), area `Locations`, the README of each area |
-> | 4. Refactor B | `/api/v1/admin/` and `/api/v1/shop/` added by a convention, the fallback policy, `[ShopEndpoint]`, `*Public*` renamed `*Shop*`, `IUserAccessReader` without its interface, `docs/API_CONVENTIONS.md` (URLs, Authentication) |
+> | 4. Refactor B | `/api/v1/admin/` and `/api/v1/shop/` added by a convention, `[ShopEndpoint]` (the fallback policy was already in place), `*Public*` renamed `*Shop*`, the admin list of business locations, `IUserAccessReader` without its interface, the comments that copied the specification cut, `docs/API_CONVENTIONS.md` (URLs, Authentication) |
 >
 > Three choices differ from the order of DEC-106, so that `main` never documents what the code does not do yet:
 > the READMEs of the areas come with refactor A (the areas and modules they describe exist only after it);
@@ -64,7 +77,7 @@ These look like duplication but must stay separate. Do not merge them for DRY:
 
 | Duplication | Why it stays |
 |---|---|
-| A DTO per audience (`BusinessLocationDto` for staff, `BusinessLocationPublicDto` for the shop) | R-SEC-10: one shared type is one permission bug away from showing cost fields or internal notes to customers |
+| A DTO per audience (`BusinessLocationDto` for staff, `BusinessLocationShopDto` for the shop) | R-SEC-10: one shared type is one permission bug away from showing cost fields or internal notes to customers |
 | A list DTO and a detail DTO of one entity (`StaffListItemDto`, `StaffDto`) | The list carries less personal data (no work phone) and less work per row |
 | The error code of each rule in its validator | Every 400 names its own `ruleId` (`docs/API_CONVENTIONS.md`, Errors) |
 | One Postman folder per feature | Each feature is tested alone, in any order |
@@ -123,8 +136,12 @@ alone (DEC-106); `tools/structure_metrics.py` reports the first.
 
 - A controller declares only its resource (`[Route("staff")]`); the prefix is added from its name by a convention.
 - Every action declares its access. Without it, the fallback policy requires a signed-in user. A shop controller
-  carries `[ShopEndpoint]` (anonymous, with the shop's rate limit and cache policies), and no other controller does;
-  an architecture test checks both. `/health` stays outside both prefixes, with `AllowAnonymous`.
+  carries `[ShopEndpoint]` (anonymous; no rate limit or output cache yet, see Status), and no other controller does;
+  `Authorization/AccessSurfaceTests` in `ZenGear.Api.IntegrationTests` checks both, and that every shop action returns
+  a `*ShopDto` or `PagedDto<*ShopDto>`. `/health` stays outside both prefixes, with `AllowAnonymous`.
+- `[ShopEndpoint]` makes every action of its controller anonymous and wins over any access declared on an action.
+  The first shop endpoint for a signed-in customer (the customer's own account of AUT-02) and the payment callbacks
+  therefore need a Decision that changes `[ShopEndpoint]` and its test first; they do not follow today's rule.
 - One controller per service: a new family of use cases on a resource gets its own service and controller on the
   same route (`StaffStatusController` beside `StaffController`). Sonar S6960, which flags a controller whose actions
   use disjoint dependencies, catches most breaches.
@@ -162,8 +179,9 @@ STF-05 (the staff list); paths are those of section 5.
      returns as a 409.
 6. **Controller**, in `ZenGear.Api/Controllers/<Area>/`: one action that calls the service, with
    - its access attribute (`[RequirePermission(PermissionKeys.StaffRead)]`);
-   - `[ProducesResponseType]` for every answer and an XML `<response>` comment for each error code, which feed the
-     OpenAPI document;
+   - `[ProducesResponseType]` for every answer, which feeds the OpenAPI document, and an XML `<response>` comment for
+     each error code, for the reader (no project sets `GenerateDocumentationFile`, so XML comments do not reach the
+     OpenAPI document);
    - `[BadRequestRule(<Validator>.RuleId)]` when the 400 of model binding (`?roleId=abc`) must name the rule, as
      STF-05 does;
    - no data access and no rule of its own.

@@ -41,7 +41,7 @@ folder, then the whole collection, leaving the API running), then show the guide
 6. **Security review**: run `/security-review` when the branch touches authentication or authorization
    (`ZenGear.Api/Authorization`, `Attributes`, `Middlewares`, `Extensions/AuthenticationSetup.cs`, the `Identity`
    area), payments, invoicing, a column listed under Personal data in `docs/DATABASE.md`, raw SQL, file uploads or
-   an `[AllowAnonymous]` endpoint; otherwise skip it and say so. Fix every finding, or give the reason it is not a
+   a `[ShopEndpoint]` controller; otherwise skip it and say so. Fix every finding, or give the reason it is not a
    vulnerability; after a fix, run steps 2–3 again. Keep the number of findings and of fixed findings. When
    `/security-review` returns its report, keep its numbers and go on at once (the fixes or step 7); its report is not
    the last reply of this run.

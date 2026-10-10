@@ -4,7 +4,7 @@ description: |-
   of this run unique, `today` and `tomorrow` in Asia/Ho_Chi_Minh (UTC+7, no daylight saving) for the left dates
   (R-USR-07: not after today), and keeps the Admin's id for 09, 17 and 18.
 method: GET
-url: '{{baseUrl}}/api/v1/me'
+url: '{{baseUrl}}/api/v1/admin/me'
 order: 1000
 headers:
   - key: X-ZenGear-As

@@ -4,7 +4,7 @@ description: |-
   are ignored and the list is the same as without them (the web filters the rows it loaded). The values match no
   row, so any search would empty the list; no personal data goes in a URL, even in a test.
 method: GET
-url: '{{baseUrl}}/api/v1/staff?pageSize=100&q=no-match&name=no-match&email=no-match&phone=no-match'
+url: '{{baseUrl}}/api/v1/admin/staff?pageSize=100&q=no-match&name=no-match&email=no-match&phone=no-match'
 order: 9000
 headers:
   - key: X-ZenGear-As
@@ -16,7 +16,7 @@ scripts:
       pm.test('status 200', () => pm.response.to.have.status(200));
       const body = pm.response.json();
       pm.sendRequest({
-        url: `${pm.variables.get('baseUrl')}/api/v1/staff?pageSize=100`,
+        url: `${pm.variables.get('baseUrl')}/api/v1/admin/staff?pageSize=100`,
         method: 'GET',
         header: [{ key: 'Authorization', value: pm.request.headers.get('Authorization') }],
       }, (error, response) => {

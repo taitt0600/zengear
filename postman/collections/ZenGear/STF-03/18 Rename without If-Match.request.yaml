@@ -2,7 +2,7 @@ $kind: http-request
 description: |-
   API conventions: PATCH on a resource with an ETag needs If-Match (428 /problems/if-match-required).
 method: PATCH
-url: '{{baseUrl}}/api/v1/me'
+url: '{{baseUrl}}/api/v1/admin/me'
 order: 18000
 headers:
   - key: X-ZenGear-As

@@ -2,7 +2,7 @@ $kind: http-request
 description: |-
   The email of request 02 again, in upper case: emails compare after normalization (R-USR-02).
 method: POST
-url: '{{baseUrl}}/api/v1/staff'
+url: '{{baseUrl}}/api/v1/admin/staff'
 order: 11000
 headers:
   - key: X-ZenGear-As

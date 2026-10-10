@@ -6,7 +6,7 @@ namespace ZenGear.Services.Locations.BusinessLocations;
 /// </summary>
 /// <param name="SpecialHours">Holiday entries from today on (Asia/Ho_Chi_Minh).</param>
 /// <param name="WeekHours">The 7 days from today, each with its hours after the holiday schedule replaced the weekly ones.</param>
-public sealed record BusinessLocationPublicDto(
+public sealed record BusinessLocationShopDto(
     Guid Id,
     string Name,
     string Phone,

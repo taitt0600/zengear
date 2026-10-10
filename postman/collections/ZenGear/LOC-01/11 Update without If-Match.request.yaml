@@ -2,7 +2,7 @@ $kind: http-request
 description: |-
   API conventions: PUT on a resource with an ETag needs If-Match (428 /problems/if-match-required).
 method: PUT
-url: '{{baseUrl}}/api/v1/business-locations/{{businessLocationId}}'
+url: '{{baseUrl}}/api/v1/admin/business-locations/{{businessLocationId}}'
 order: 11000
 headers:
   - key: X-ZenGear-As

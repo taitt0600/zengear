@@ -2,7 +2,7 @@ $kind: http-request
 description: |-
   R-USR-11: a refused password leaves the flag set (and Firebase untouched): the change is still pending.
 method: GET
-url: '{{baseUrl}}/api/v1/me'
+url: '{{baseUrl}}/api/v1/admin/me'
 order: 8000
 headers:
   - key: X-ZenGear-As

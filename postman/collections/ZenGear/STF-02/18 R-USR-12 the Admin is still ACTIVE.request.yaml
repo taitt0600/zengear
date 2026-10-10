@@ -2,7 +2,7 @@ $kind: http-request
 description: |-
   R-USR-12 (DEC-103): the refusal of 17 changed nothing: the Admin account stays ACTIVE.
 method: GET
-url: '{{baseUrl}}/api/v1/staff/{{adminId}}'
+url: '{{baseUrl}}/api/v1/admin/staff/{{adminId}}'
 order: 18000
 headers:
   - key: X-ZenGear-As

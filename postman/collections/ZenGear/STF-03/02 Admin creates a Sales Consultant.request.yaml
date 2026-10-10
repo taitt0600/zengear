@@ -2,7 +2,7 @@ $kind: http-request
 description: |-
   Set-up: a new Sales Consultant (STF-01), who must change the default password before anything else (R-USR-03).
 method: POST
-url: '{{baseUrl}}/api/v1/staff'
+url: '{{baseUrl}}/api/v1/admin/staff'
 order: 2000
 headers:
   - key: X-ZenGear-As

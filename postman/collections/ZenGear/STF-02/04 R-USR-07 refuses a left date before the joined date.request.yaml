@@ -2,7 +2,7 @@ $kind: http-request
 description: |-
   R-USR-07: the left date is not before the joined date (UC-006, 3a). Nothing changes.
 method: POST
-url: '{{baseUrl}}/api/v1/staff/{{staffId}}/disable'
+url: '{{baseUrl}}/api/v1/admin/staff/{{staffId}}/disable'
 order: 4000
 headers:
   - key: X-ZenGear-As

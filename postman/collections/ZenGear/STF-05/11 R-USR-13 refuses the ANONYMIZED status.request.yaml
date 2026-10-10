@@ -2,7 +2,7 @@ $kind: http-request
 description: |-
   R-USR-13: `status` takes ACTIVE or DISABLED only; ANONYMIZED accounts are never listed.
 method: GET
-url: '{{baseUrl}}/api/v1/staff?status=ANONYMIZED'
+url: '{{baseUrl}}/api/v1/admin/staff?status=ANONYMIZED'
 order: 11000
 headers:
   - key: X-ZenGear-As

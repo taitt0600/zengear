@@ -45,7 +45,10 @@ builder.Services.AddFirebaseJwtBearer(builder.Environment);
 
 // Enums as their stored string values, no naming policy; [JsonStringEnumMemberName] where they differ.
 builder.Services.AddControllers(options =>
-        options.ModelMetadataDetailsProviders.Add(new SystemTextJsonValidationMetadataProvider()))
+    {
+        options.ModelMetadataDetailsProviders.Add(new SystemTextJsonValidationMetadataProvider());
+        options.Conventions.Add(new AudienceRoutePrefixConvention());
+    })
     .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.ConfigureHttpJsonOptions(options =>
     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));

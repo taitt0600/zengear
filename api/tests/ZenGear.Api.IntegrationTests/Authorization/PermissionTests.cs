@@ -1,7 +1,6 @@
 using System.Net;
 using System.Reflection;
 using System.Text.Json;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,7 +14,7 @@ namespace ZenGear.Api.IntegrationTests.Authorization;
 public class PermissionTests : IntegrationTestBase
 {
     private const string Uid = "staff-uid-1";
-    private const string Path = "/test/permission";
+    private const string Path = "/api/v1/admin/test/permission";
 
     [Test]
     public async Task R_SEC_03_endpoint_without_granted_permission_is_403_permission_denied()
@@ -87,7 +86,7 @@ public class PermissionTests : IntegrationTestBase
     {
         await TestUsers.InsertAsync(Uid);
 
-        var response = await GetAsync("/api/v1/me");
+        var response = await GetAsync("/api/v1/admin/me");
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
@@ -123,16 +122,16 @@ public class PermissionTests : IntegrationTestBase
 
         actions.ShouldNotBeEmpty();
         var undeclared = actions
-            .Where(a => !Declares(a.MethodInfo) && !Declares(a.ControllerTypeInfo))
+            .Where(a => !Declares(a.MethodInfo) && !Declares(a.ControllerTypeInfo)
+                && !a.ControllerTypeInfo.IsDefined(typeof(ShopEndpointAttribute), inherit: true))
             .Select(a => $"{a.ControllerName}.{a.ActionName}")
             .ToList();
         undeclared.ShouldBeEmpty(
-            "Every action needs [RequirePermission], [AllowAnonymous] or [AnyRegisteredUser] (AUT-04, R-SEC-03).");
+            "Every action needs [RequirePermission] or [AnyRegisteredUser], or its controller [ShopEndpoint] (AUT-04, R-SEC-03).");
     }
 
     private static bool Declares(MemberInfo member) =>
         member.IsDefined(typeof(RequirePermissionAttribute), inherit: true)
-        || member.IsDefined(typeof(AllowAnonymousAttribute), inherit: true)
         || member.IsDefined(typeof(AnyRegisteredUserAttribute), inherit: true);
 
     private async Task<HttpResponseMessage> GetAsync(string path)

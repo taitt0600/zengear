@@ -3,7 +3,7 @@ description: |-
   R-USR-04: the display name cannot be blank (400 validation problem, errors on name). An input error of the name
   carries no ruleId: the API names a rule only for R-USR-11.
 method: PATCH
-url: '{{baseUrl}}/api/v1/me'
+url: '{{baseUrl}}/api/v1/admin/me'
 order: 17000
 headers:
   - key: X-ZenGear-As

@@ -15,7 +15,7 @@ only the shape of the input (required, length, format) with the limits below, wh
 - **Text**: every label, message and button comes from `web/messages/vi.json` (next-intl). The texts quoted below
   are the Vietnamese wording for that file; terms of `docs/GLOSSARY.md` keep its Vietnamese label.
 - **Access**: a staff screen needs a signed-in staff account; the permission of each screen is the one its endpoints
-  require. Menus and buttons the user's permissions do not allow are hidden (`GET /api/v1/me`), and the API still
+  require. Menus and buttons the user's permissions do not allow are hidden (`GET /api/v1/admin/me`), and the API still
   answers 403 (see *Known gaps*, 1).
 - **Errors**: a 400 validation problem puts each message of `errors` under its form field and keeps what was typed;
   any other problem shows the message of its `type` (table of each screen) in a toast, or `detail` when the type has
@@ -57,12 +57,12 @@ their features (catalog, stock, orders) have no API.
 
 Every admin screen except the sign-in page sits in this layout.
 
-- **Header**: the store name, the signed-in user's `name` (from `GET /api/v1/me`) with a menu: "Tài khoản của tôi"
+- **Header**: the store name, the signed-in user's `name` (from `GET /api/v1/admin/me`) with a menu: "Tài khoản của tôi"
   (SCR-ACC-01) and "Đăng xuất" (signs out of Firebase, clears the query cache, goes to SCR-AUT-01).
 - **Menu**: "Nhân viên" (SCR-STF-01, needs `staff.read`), "Cài đặt" → "Địa điểm kinh doanh" (SCR-LOC-01, needs
   `business_location.update`). An entry the user cannot use is hidden.
 - **Guard**: without a Firebase session, every admin route goes to SCR-AUT-01 with the requested path kept as
-  `?next=`. When `GET /api/v1/me` says `mustChangePassword: true`, every admin route goes to SCR-AUT-02. When it says
+  `?next=`. When `GET /api/v1/admin/me` says `mustChangePassword: true`, every admin route goes to SCR-AUT-02. When it says
   `isStaff: false`, the user is signed out with "Tài khoản này không phải tài khoản nhân viên."
 - **No-permission page** (403): "Bạn không có quyền xem trang này." and a link back to the first menu entry the user
   can open.
@@ -77,7 +77,7 @@ Staff sign in with their company email and password (UC-001).
 | Password ("Mật khẩu") | required; shown as dots, with a show/hide button |
 
 1. "Đăng nhập" signs in with Firebase (email and password).
-2. Then `GET /api/v1/me`:
+2. Then `GET /api/v1/admin/me`:
    - `mustChangePassword: true` → SCR-AUT-02;
    - otherwise the `?next=` path, or SCR-STF-01 when the user may open it, or SCR-ACC-01.
 
@@ -104,7 +104,7 @@ password before anything else.
 Help text under the field: "Tối thiểu 12 ký tự. Không dùng mật khẩu mặc định, mật khẩu phổ biến hay chữ zengear."
 The web does not check the blocklist or the default password: the API does (R-USR-11).
 
-1. "Đổi mật khẩu" sends `POST /api/v1/me/change-password` `{ newPassword }`.
+1. "Đổi mật khẩu" sends `POST /api/v1/admin/me/change-password` `{ newPassword }`.
 2. 204: every session of the account is revoked (DEC-094). The web signs out and shows SCR-AUT-01 with "Đã đổi mật
    khẩu. Vui lòng đăng nhập lại bằng mật khẩu mới." The password is never kept after the request.
 
@@ -120,14 +120,14 @@ The web does not check the blocklist or the default password: the API does (R-US
 
 The staff member's own account (UC-007): display name and password; the email is read-only.
 
-Loaded from `GET /api/v1/me` (keep its `ETag`).
+Loaded from `GET /api/v1/admin/me` (keep its `ETag`).
 
 | Field | API | Rule (web) |
 |---|---|---|
 | Display name ("Tên hiển thị") | `name` | required, at most 100 characters after trimming |
 | Email | `email` | read-only, with the note "Email là tên đăng nhập. Liên hệ quản trị viên khi cần đổi." (gap 5) |
 
-- "Lưu" sends `PATCH /api/v1/me` `{ name }` with `If-Match`; 200 shows "Đã lưu." and refreshes the header name.
+- "Lưu" sends `PATCH /api/v1/admin/me` `{ name }` with `If-Match`; 200 shows "Đã lưu." and refreshes the header name.
 - "Đổi mật khẩu" opens the form of SCR-AUT-02 in a dialog, with the same answers; after 204 the user is signed out the
   same way.
 
@@ -140,7 +140,7 @@ Loaded from `GET /api/v1/me` (keep its `ETag`).
 
 All staff accounts with their status and roles, to find the one to open, disable or restore (STF-05, DEC-105).
 
-Loaded from `GET /api/v1/staff`. The filters, sort and page are kept in the URL (`?status=&roleId=&sort=&page=`), so a
+Loaded from `GET /api/v1/admin/staff`. The filters, sort and page are kept in the URL (`?status=&roleId=&sort=&page=`), so a
 reload or a shared link shows the same list.
 
 | Column | API | Shown as |
@@ -180,7 +180,7 @@ The Admin (or a Store Manager holding `staff.create`) creates a staff account wi
 | SĐT công việc | `workPhone` | optional; 8 to 15 digits, may start with + |
 | Vai trò | `roleIds` | at least one, at most 20; multi-select of the roles (gap 2), Admin included for every caller: the web never checks a role name (R-SEC-03), and the API refuses a caller who may not give it (R-TX-11, row below) |
 
-1. "Tạo tài khoản" sends `POST /api/v1/staff`.
+1. "Tạo tài khoản" sends `POST /api/v1/admin/staff`.
 2. 201 opens SCR-STF-03 of the new account with "Đã tạo tài khoản. Nhân viên đăng nhập bằng mật khẩu mặc định và
    phải đổi mật khẩu ngay lần đầu." The web never shows or knows the default password.
 
@@ -198,7 +198,7 @@ The Admin (or a Store Manager holding `staff.create`) creates a staff account wi
 
 One staff account, with the actions to disable or restore it (UC-005, UC-006).
 
-Loaded from `GET /api/v1/staff/{id}`: name, email, employee code, joined date, left date, work phone, status, roles,
+Loaded from `GET /api/v1/admin/staff/{id}`: name, email, employee code, joined date, left date, work phone, status, roles,
 and "Chưa đổi mật khẩu mặc định" when `mustChangePassword` is true. No field is editable in Phase 1 (STF-01 creates,
 STF-02 disables and restores).
 
@@ -211,10 +211,10 @@ named "Khóa lại", for the case of a 500 below; not shown on the user's own ac
 | Ngày nghỉ việc | `leftDate` | date picker, not after today (Asia/Ho_Chi_Minh), not before the joined date |
 
 with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị ngay lập tức." "Khóa" sends
-`POST /api/v1/staff/{id}/disable` `{ leftDate }` (null when not ticked); 200 shows the account as returned.
+`POST /api/v1/admin/staff/{id}/disable` `{ leftDate }` (null when not ticked); 200 shows the account as returned.
 
 **Action "Khôi phục tài khoản"** (with `staff.disable`, on a DISABLED account): a confirmation, then
-`POST /api/v1/staff/{id}/restore`; 200 shows the account as returned.
+`POST /api/v1/admin/staff/{id}/restore`; 200 shows the account as returned.
 
 | Answer | Shown |
 |---|---|
@@ -235,8 +235,8 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
 The Admin edits the store's address, hotline and opening hours (UC-070, R-LOC-01). Phase 1 has one location: the
 screen opens it directly; there is no list, no add and no delete.
 
-Loaded from `GET /api/v1/business-locations` (the one item's `id`), then `GET /api/v1/business-locations/{id}`
-(keep its `ETag`).
+Loaded from `GET /api/v1/admin/business-locations` (the one item's `id`), then
+`GET /api/v1/admin/business-locations/{id}` (keep its `ETag`).
 
 | Field | API | Rule (web) |
 |---|---|---|
@@ -249,7 +249,7 @@ Loaded from `GET /api/v1/business-locations` (the one item's `id`), then `GET /a
 | Giờ mở cửa hằng tuần | `regularHours[]` | for each day Thứ 2 … Chủ nhật (`day` 1–7): closed, or 1 to 3 periods `open`–`close` (`HH:mm`), each opening before it closes, periods of a day not overlapping; at least one period in the week |
 | Lịch ngày lễ | `specialHours[]` | at most 100 rows: a date, then "Đóng cửa" (`closed: true`, no hours) or 1 to 3 non-overlapping periods `open`–`close` that replace that day's weekly hours; a date before today is dropped when saving, so the list says "Ngày đã qua sẽ được xóa khi lưu." |
 
-"Lưu" sends `PUT /api/v1/business-locations/{id}` with every field and `If-Match`; 200 shows "Đã lưu." The note under
+"Lưu" sends `PUT /api/v1/admin/business-locations/{id}` with every field and `If-Match`; 200 shows "Đã lưu." The note under
 the title says "Website, phiếu in và email dùng thông tin này."
 
 | Answer | Shown |
@@ -263,9 +263,9 @@ the title says "Website, phiếu in và email dùng thông tin này."
 
 What the API does not offer yet for the screens above. A screen whose row names a gap is built once the gap is closed.
 
-1. **Permissions of the signed-in user.** `GET /api/v1/me` returns `id`, `name`, `email`, `isStaff` and
+1. **Permissions of the signed-in user.** `GET /api/v1/admin/me` returns `id`, `name`, `email`, `isStaff` and
    `mustChangePassword`, but not the user's permissions, which `docs/FRONTEND.md` (Authentication) says the web uses
-   to hide menus and buttons. Needed: the permission keys of the user in the answer of `GET /api/v1/me` (AUT-04),
+   to hide menus and buttons. Needed: the permission keys of the user in the answer of `GET /api/v1/admin/me` (AUT-04),
    before SCR-ADM-01.
 2. **Roles to choose from.** No endpoint lists the roles: SCR-STF-02 cannot offer them and SCR-STF-01 cannot filter by
    role. Comes with AUT-05 (Manage Role & Permission).
@@ -274,6 +274,6 @@ What the API does not offer yet for the screens above. A screen whose row names 
    has only the sample rows of `postman/fixtures/LOC-01.sql`. SCR-LOC-01 cannot offer the selects. The address
    book (ACC-02) and the checkout will need the same list. Needs a Decision.
 4. **Contract for the web** (DEC-104): CORS exposing `ETag` and `Location`, the `ETag` response header in the OpenAPI
-   document (`If-Match` is already there), and `enum` values for `status` and `sort` of `GET /api/v1/staff`.
+   document (`If-Match` is already there), and `enum` values for `status` and `sort` of `GET /api/v1/admin/staff`.
 5. **Changing a staff member's email.** No endpoint changes it, while UC-007 (2a) and R-USR-04 say the Admin does it in the
    staff management of STF-01, whose feature row has no such criterion; SCR-ACC-01 only points the staff member to the Admin. Needs a feature or a Decision when the Admin must do it.

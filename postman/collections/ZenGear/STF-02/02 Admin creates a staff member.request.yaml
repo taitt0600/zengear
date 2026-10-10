@@ -2,7 +2,7 @@ $kind: http-request
 description: |-
   Set-up: a Cashier who joined on 2026-10-01 (STF-01), ACTIVE, no left date.
 method: POST
-url: '{{baseUrl}}/api/v1/staff'
+url: '{{baseUrl}}/api/v1/admin/staff'
 order: 2000
 headers:
   - key: X-ZenGear-As

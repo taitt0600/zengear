@@ -21,13 +21,13 @@ public class AccessCacheRedisUnavailableTests : IntegrationTestBase
         await TestRoles.AssignAsync(userId, role);
         await TestRoles.GrantAsync(role, TestEndpointsController.TestPermission);
 
-        var granted = await TimedGetAsync("/test/permission");
+        var granted = await TimedGetAsync("/api/v1/admin/test/permission");
         granted.Response.StatusCode.ShouldBe(HttpStatusCode.OK);
         granted.Elapsed.ShouldBeLessThan(TimeSpan.FromSeconds(1));
 
         await Factory.SetUserStatusAsync(userId, Data.Entities.Identity.Enums.UserStatus.Disabled);
 
-        var refused = await TimedGetAsync("/test/permission");
+        var refused = await TimedGetAsync("/api/v1/admin/test/permission");
         await refused.Response.ShouldBeForbiddenProblemAsync("/problems/account-disabled", "R-SEC-04");
         refused.Elapsed.ShouldBeLessThan(TimeSpan.FromSeconds(1));
     }

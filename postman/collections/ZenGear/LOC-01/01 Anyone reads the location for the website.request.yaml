@@ -5,7 +5,7 @@ description: |-
   and `businessLocationId`, the id of that one location, used by every later request: it is read here rather than
   from the environment, so the folder runs the same in the Postman app and the CLI, whatever id the location has.
 method: GET
-url: '{{baseUrl}}/api/v1/business-locations?page=1&pageSize=20'
+url: '{{baseUrl}}/api/v1/shop/business-locations?page=1&pageSize=20'
 order: 1000
 scripts:
   - type: beforeRequest

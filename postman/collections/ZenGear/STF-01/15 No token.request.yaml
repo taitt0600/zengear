@@ -2,7 +2,7 @@ $kind: http-request
 description: |-
   A request without a token is refused before anything else.
 method: POST
-url: '{{baseUrl}}/api/v1/staff'
+url: '{{baseUrl}}/api/v1/admin/staff'
 order: 15000
 headers:
   - key: Content-Type

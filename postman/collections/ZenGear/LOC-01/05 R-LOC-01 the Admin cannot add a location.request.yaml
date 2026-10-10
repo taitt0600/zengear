@@ -2,7 +2,7 @@ $kind: http-request
 description: |-
   R-LOC-01 (UC-070 2a): Phase 1 has exactly one location; there is no endpoint to add one, even for the Admin (405).
 method: POST
-url: '{{baseUrl}}/api/v1/business-locations'
+url: '{{baseUrl}}/api/v1/admin/business-locations'
 order: 5000
 headers:
   - key: X-ZenGear-As

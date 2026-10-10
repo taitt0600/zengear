@@ -2,7 +2,7 @@ $kind: http-request
 description: |-
   R-USR-01: a staff account cannot hold the Customer role (scoping SELF).
 method: POST
-url: '{{baseUrl}}/api/v1/staff'
+url: '{{baseUrl}}/api/v1/admin/staff'
 order: 7000
 headers:
   - key: X-ZenGear-As

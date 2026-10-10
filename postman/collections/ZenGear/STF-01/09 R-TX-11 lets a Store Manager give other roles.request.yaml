@@ -2,7 +2,7 @@ $kind: http-request
 description: |-
   R-TX-11 only blocks the Admin role: the fixture Store Manager creates a Cashier.
 method: POST
-url: '{{baseUrl}}/api/v1/staff'
+url: '{{baseUrl}}/api/v1/admin/staff'
 order: 9000
 headers:
   - key: X-ZenGear-As

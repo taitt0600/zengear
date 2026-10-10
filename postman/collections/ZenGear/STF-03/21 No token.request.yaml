@@ -2,7 +2,7 @@ $kind: http-request
 description: |-
   Without a token the password change is refused with 401.
 method: POST
-url: '{{baseUrl}}/api/v1/me/change-password'
+url: '{{baseUrl}}/api/v1/admin/me/change-password'
 order: 21000
 headers:
   - key: Content-Type

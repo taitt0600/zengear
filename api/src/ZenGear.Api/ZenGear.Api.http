@@ -4,18 +4,18 @@
 @tokenNobody = eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vZGVtby16ZW5nZWFyIiwiYXVkIjoiZGVtby16ZW5nZWFyIiwic3ViIjoibWFudWFsLW5vYm9keSIsInVzZXJfaWQiOiJtYW51YWwtbm9ib2R5IiwiYXV0aF90aW1lIjoxNzkwNjk4MjUyLCJpYXQiOjE3OTA2OTgyNTIsImV4cCI6MTc5MTMwMzA1Mn0.
 
 ### 1. Không có token → 401
-GET {{host}}/api/v1/me
+GET {{host}}/api/v1/admin/me
 
 ### 2. Uid chưa đăng ký → 403 account-not-registered
-GET {{host}}/api/v1/me
+GET {{host}}/api/v1/admin/me
 Authorization: Bearer {{tokenNobody}}
 
 ### 3. Phiên cũ → 200 (gửi 2 lần)
-GET {{host}}/api/v1/me
+GET {{host}}/api/v1/admin/me
 Authorization: Bearer {{tokenOld}}
 
 ### 4. Phiên mới → 200
-GET {{host}}/api/v1/me
+GET {{host}}/api/v1/admin/me
 Authorization: Bearer {{tokenNew}}
 
 ### 5. Health, không cần token

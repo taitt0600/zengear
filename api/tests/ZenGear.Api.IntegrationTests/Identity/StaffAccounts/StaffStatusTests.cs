@@ -9,7 +9,7 @@ using ZenGear.Services.Identity.Permissions;
 
 namespace ZenGear.Api.IntegrationTests.Identity.StaffAccounts;
 
-/// <summary>POST /api/v1/staff/{id}/disable and /restore (STF-02) against PostgreSQL, with Firebase Authentication faked.</summary>
+/// <summary>POST /api/v1/admin/staff/{id}/disable and /restore (STF-02) against PostgreSQL, with Firebase Authentication faked.</summary>
 public class StaffStatusTests : IntegrationTestBase
 {
     private const string AdminUid = "uid-admin";
@@ -103,7 +103,7 @@ public class StaffStatusTests : IntegrationTestBase
     [Test]
     public async Task R_SEC_04_disable_without_a_body_disables_and_revokes()
     {
-        using var request = new HttpRequestMessage(HttpMethod.Post, new Uri($"/api/v1/staff/{_staffId}/disable", UriKind.Relative));
+        using var request = new HttpRequestMessage(HttpMethod.Post, new Uri($"/api/v1/admin/staff/{_staffId}/disable", UriKind.Relative));
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", TestTokens.EmulatorToken(AdminUid));
 
         var response = await Client.SendAsync(request);
@@ -454,7 +454,7 @@ public class StaffStatusTests : IntegrationTestBase
     [Test]
     public async Task No_token_is_401()
     {
-        using var request = new HttpRequestMessage(HttpMethod.Post, new Uri($"/api/v1/staff/{_staffId}/restore", UriKind.Relative));
+        using var request = new HttpRequestMessage(HttpMethod.Post, new Uri($"/api/v1/admin/staff/{_staffId}/restore", UriKind.Relative));
 
         (await Client.SendAsync(request)).StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
     }
@@ -473,7 +473,7 @@ public class StaffStatusTests : IntegrationTestBase
 
     private async Task<HttpResponseMessage> DisableAsync(string uid, Guid id, object body)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Post, new Uri($"/api/v1/staff/{id}/disable", UriKind.Relative))
+        using var request = new HttpRequestMessage(HttpMethod.Post, new Uri($"/api/v1/admin/staff/{id}/disable", UriKind.Relative))
         {
             Content = JsonContent.Create(body),
         };
@@ -483,14 +483,14 @@ public class StaffStatusTests : IntegrationTestBase
 
     private async Task<HttpResponseMessage> RestoreAsync(string uid, Guid id)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Post, new Uri($"/api/v1/staff/{id}/restore", UriKind.Relative));
+        using var request = new HttpRequestMessage(HttpMethod.Post, new Uri($"/api/v1/admin/staff/{id}/restore", UriKind.Relative));
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", TestTokens.EmulatorToken(uid));
         return await Client.SendAsync(request);
     }
 
     private async Task<HttpResponseMessage> MeAsync(string uid)
     {
-        using var request = TestTokens.Get("/api/v1/me", TestTokens.EmulatorToken(uid));
+        using var request = TestTokens.Get("/api/v1/admin/me", TestTokens.EmulatorToken(uid));
         return await Client.SendAsync(request);
     }
 

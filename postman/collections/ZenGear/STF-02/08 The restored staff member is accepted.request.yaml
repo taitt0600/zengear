@@ -2,7 +2,7 @@ $kind: http-request
 description: |-
   R-USR-03: the restored account is ACTIVE and its requests are accepted again.
 method: GET
-url: '{{baseUrl}}/api/v1/me'
+url: '{{baseUrl}}/api/v1/admin/me'
 order: 8000
 headers:
   - key: X-ZenGear-As

@@ -329,18 +329,18 @@ jobs:
         run: |
           postman collection run postman/collections/ZenGear -e postman/environments/ci.environment.yaml \
             --no-report-events 2>&1 | tee "$RUNNER_TEMP/postman.log"
-      # What the collection does not check: GET /api/v1/me without a token, and with a valid token of an account
-      # the API does not know.
+      # What the collection does not check: GET /api/v1/admin/me without a token, and with a valid token of an
+      # account the API does not know.
       - name: A token is required, an emulator token of an unknown account is refused
         env:
           FIREBASE_AUTH_EMULATOR_HOST: 127.0.0.1:9099
         run: |
-          status=$(curl -s -o /dev/null -w '%{http_code}' "$API/api/v1/me")
-          [ "$status" = "401" ] || { echo "::error::GET /api/v1/me without a token: $status, expected 401"; exit 1; }
+          status=$(curl -s -o /dev/null -w '%{http_code}' "$API/api/v1/admin/me")
+          [ "$status" = "401" ] || { echo "::error::GET /api/v1/admin/me without a token: $status, expected 401"; exit 1; }
           token=$(python3 tools/emulator_token.py smoke@zengear.test smoke-password --create 2>/dev/null)
-          body=$(curl -s -H "Authorization: Bearer $token" "$API/api/v1/me")
+          body=$(curl -s -H "Authorization: Bearer $token" "$API/api/v1/admin/me")
           echo "$body" | grep -q 'account-not-registered' \
-            || { echo "::error::GET /api/v1/me with an emulator token of an unknown user: $body"; exit 1; }
+            || { echo "::error::GET /api/v1/admin/me with an emulator token of an unknown user: $body"; exit 1; }
 
       # Main only, after every test above passed: the image tested goes to GHCR, the bundle to the deploy jobs.
       - name: Push the image to GHCR

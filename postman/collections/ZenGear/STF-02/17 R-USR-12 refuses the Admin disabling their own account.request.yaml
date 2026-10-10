@@ -3,7 +3,7 @@ description: |-
   R-USR-12 (DEC-103): no one disables their own account (UC-006, 1d). Should it ever regress, the Admin is disabled
   and only tools/dev_reset.ps1 brings it back.
 method: POST
-url: '{{baseUrl}}/api/v1/staff/{{adminId}}/disable'
+url: '{{baseUrl}}/api/v1/admin/staff/{{adminId}}/disable'
 order: 17000
 headers:
   - key: X-ZenGear-As

@@ -9,10 +9,10 @@ using ZenGear.Services.Identity.Permissions;
 
 namespace ZenGear.Api.IntegrationTests.Identity.StaffAccounts;
 
-/// <summary>POST and GET /api/v1/staff (STF-01) against PostgreSQL, with Firebase Authentication faked.</summary>
+/// <summary>POST and GET /api/v1/admin/staff (STF-01) against PostgreSQL, with Firebase Authentication faked.</summary>
 public class StaffTests : IntegrationTestBase
 {
-    private const string Path = "/api/v1/staff";
+    private const string Path = "/api/v1/admin/staff";
     private const string AdminUid = "uid-admin";
     private const string ManagerUid = "uid-manager";
 
@@ -272,7 +272,7 @@ public class StaffTests : IntegrationTestBase
         await PostAsync(AdminUid, Body("new@zengear.test", "NV0001", _cashierRole));
         var uid = Auth.Find("new@zengear.test")!.Uid;
 
-        using var request = TestTokens.Get("/api/v1/me", TestTokens.EmulatorToken(uid));
+        using var request = TestTokens.Get("/api/v1/admin/me", TestTokens.EmulatorToken(uid));
         var me = await Client.SendAsync(request);
 
         me.StatusCode.ShouldBe(HttpStatusCode.OK);

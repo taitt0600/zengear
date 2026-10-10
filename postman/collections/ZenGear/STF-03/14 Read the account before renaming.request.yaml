@@ -2,7 +2,7 @@ $kind: http-request
 description: |-
   UC-007 step 1 for the name: the account and its ETag, kept as `etag` for the rename.
 method: GET
-url: '{{baseUrl}}/api/v1/me'
+url: '{{baseUrl}}/api/v1/admin/me'
 order: 14000
 headers:
   - key: X-ZenGear-As

@@ -3,7 +3,7 @@ description: |-
   The staff member of request 02 signs in (emulator custom token, emulator only) and is told to change the
   password.
 method: GET
-url: '{{baseUrl}}/api/v1/me'
+url: '{{baseUrl}}/api/v1/admin/me'
 order: 4000
 headers:
   - key: X-ZenGear-As

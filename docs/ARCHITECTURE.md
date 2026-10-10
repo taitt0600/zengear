@@ -44,7 +44,7 @@ Folders inside the three projects follow [Folder structure](#folder-structure); 
 
 1. `ZenGear.Api` → `ZenGear.Services` → `ZenGear.Data`. `ZenGear.Data` references no other project.
 2. Controllers only call services; they never use `ZenGearDbContext`.
-3. Controllers receive and return the requests and DTOs of `ZenGear.Services`, never entities — cost fields and `internal_note` must not leak (R-SEC-09, R-SEC-10). A DTO serves one audience: staff and customers get different DTOs (`ProductStaffDto`, `ProductPublicDto`), never one shared type.
+3. Controllers receive and return the requests and DTOs of `ZenGear.Services`, never entities — cost fields and `internal_note` must not leak (R-SEC-09, R-SEC-10). A DTO serves one audience: staff and customers get different DTOs (`ProductDto` for staff, `ProductShopDto` for the shop), never one shared type.
 4. A service writes only the tables of its own area. A use case lives in the area that owns the aggregate it creates or changes, and calls the services of the other areas for their tables (e.g. the POS sale is in `Sales`: `OrderPlacementService` calls `StockService.Issue(...)` and never updates `stock_balances`; Inventory recalculates the average cost (R-COST-01) and calls `IProductSkuService.SetAverageCost(...)`). Reading other areas' tables is allowed. Another area calls an area only through a service listed under *Public contract* in that area's `README.md` (DEC-106); `ZenGear.ArchitectureTests` checks the constructor dependencies of the services across areas. It also scans the IL of the services: creating an entity, calling one of its setters or void methods (an entity method that changes state returns nothing), a static method of it that returns it, `DbSet.Add/Attach/Update/Remove` and `ExecuteUpdate/ExecuteDelete` must target an entity of the caller's area.
 5. Services use `ZenGearDbContext` directly; no repository and no unit of work: the context is both, and use cases need `SELECT … FOR UPDATE`, `ExecuteUpdate` and one transaction across areas. A query repeated in three or more services becomes a query class (`<Entity><Purpose>Query`) in the owning area. Repositories are reconsidered only for a second database or data access technology.
 6. External systems are called only through the interfaces in `ZenGear.Data/Externals/<System>` (`IEmailSender`, `IEInvoiceClient`, `IPaymentGateway`, `IFileStorage`, `IAuthProvider`, the Redis connection); the packages of those systems are referenced by `ZenGear.Data` only. Business rules built on them stay in `ZenGear.Services` (e.g. the access cache, R-SEC-07). Tests use fakes.
@@ -97,7 +97,8 @@ ZenGear.Api/
 ├─ Constants/            claim types and other constant sets
 ├─ Logging/              security log, masking of sensitive values
 ├─ Hosting/              environment and pipeline types that are not a *Setup (build-time OpenAPI detection,
-│                        custom policies of the request pipeline, one-off commands such as bootstrap-admin)
+│                        custom policies of the request pipeline such as the route prefix convention, one-off
+│                        commands such as bootstrap-admin)
 └─ Program.cs
 ZenGear.Services/
 ├─ <Area>/
@@ -142,7 +143,7 @@ Where a name still decides the folder:
 | `*Options` | `ZenGear.Api/Options`; in `ZenGear.Data`, next to the client that reads it |
 | `*Claims` and other constant sets | `ZenGear.Api/Constants` |
 | security log, log masking (`SecurityLog`, `SensitivePropertyMasker`) | `ZenGear.Api/Logging` |
-| environment and pipeline set-up that is not a `*Setup` (`BuildTimeDocumentGeneration`), a one-off command of the host (`bootstrap-admin`, DEC-096) | `ZenGear.Api/Hosting` |
+| environment and pipeline set-up that is not a `*Setup` (`BuildTimeDocumentGeneration`, `AudienceRoutePrefixConvention`), a one-off command of the host (`bootstrap-admin`, DEC-096) | `ZenGear.Api/Hosting` |
 | requests and DTOs shared by every list endpoint (`PageRequest`, `PagedDto<T>`: list endpoints return `PagedDto<T>`, never a page DTO per entity; a generic DTO lives only there), and their validators | `ZenGear.Services/Common/Models`, `ZenGear.Services/Common/Validators` |
 | every other type of an area: `*Service`, `*Query`, `*Job`, `*Request`, `*Dto`, `*Validator` (the FluentValidation validator of one request; other checks are named after what they check), enums and records | `ZenGear.Services/<Area>/<Module>`, or the mechanism folder it belongs to |
 | `*Utility`: static, pure (values in, values out; no framework, database or DI), used by two or more areas; a pure function of one area is a static class of that area named after what it computes (`AverageCostCalculator`) | `ZenGear.Services/Common/Utilities` |
@@ -157,7 +158,7 @@ A type of a mechanism folder (interface, record, enum, job) stays in that folder
 
 Names put the entity first, so a folder sorts by entity: `<Entity><Action>Request` (`StaffCreateRequest`), `<Entity><Shape>Dto` (`StaffDto`, `StaffListItemDto`), `<Request>Validator` (`StaffCreateRequestValidator`), `<Entity>Service` and `I<Entity>Service`, `<Entity><Purpose>Query`, `<Purpose>Job` (`OrderExpiryJob`). A line of a request or DTO is a top-level type (`StockAdjustmentLineRequest`, `OrderItemDto`).
 
-Services are split by audience and by use case, as DTOs are (rule 3): `<Entity>Service` serves the staff screens, `<Entity>PublicService` the storefront and never reads cost fields. An entity with many use cases gets one service per family of use cases, `<Entity><UseCase>Service` (`OrderPlacementService`, `OrderCancellationService`), not one `OrderService` for all of them. A file of `ZenGear.Services` has at most 400 lines of code (blank and comment lines not counted) and a `*Service` at most 10 public methods; a larger one is split before it is merged. An exception is listed in `ServiceSizeTests` with its reason.
+Services are split by audience and by use case, as DTOs are (rule 3): `<Entity>Service` serves the staff screens, `<Entity>ShopService` the shop (`/api/v1/shop/`) and never reads cost fields. An entity with many use cases gets one service per family of use cases, `<Entity><UseCase>Service` (`OrderPlacementService`, `OrderCancellationService`), not one `OrderService` for all of them. A file of `ZenGear.Services` has at most 400 lines of code (blank and comment lines not counted) and a `*Service` at most 10 public methods; a larger one is split before it is merged. An exception is listed in `ServiceSizeTests` with its reason.
 
 - One top-level type per file, the file named after the type. A nested type is private, like the `Mapping` class of a DTO; a public type is never nested.
 - Type names are unique across the three projects, `DependencyInjection` excepted: the OpenAPI document names its schemas after the type.

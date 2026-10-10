@@ -1,8 +1,8 @@
 $kind: http-request
 description: |-
-  Without a token the edit form is refused with 401 (the public list of 01 needs none).
+  Without a token the edit form is refused with 401 (the shop list of 01 needs none).
 method: GET
-url: '{{baseUrl}}/api/v1/business-locations/{{businessLocationId}}'
+url: '{{baseUrl}}/api/v1/admin/business-locations/{{businessLocationId}}'
 order: 13000
 scripts:
   - type: afterResponse

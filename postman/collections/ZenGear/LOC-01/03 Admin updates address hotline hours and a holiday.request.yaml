@@ -4,7 +4,7 @@ description: |-
   periods on weekdays) and adds a holiday closed tomorrow and one with its own hours (10:00–16:00) the day after.
   The new ETag is kept as `etag2`.
 method: PUT
-url: '{{baseUrl}}/api/v1/business-locations/{{businessLocationId}}'
+url: '{{baseUrl}}/api/v1/admin/business-locations/{{businessLocationId}}'
 order: 3000
 headers:
   - key: X-ZenGear-As

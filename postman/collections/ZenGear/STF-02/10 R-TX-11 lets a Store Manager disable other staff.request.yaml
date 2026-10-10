@@ -2,7 +2,7 @@ $kind: http-request
 description: |-
   R-TX-11 only protects Admin accounts: the Store Manager disables the Cashier of this run.
 method: POST
-url: '{{baseUrl}}/api/v1/staff/{{staffId}}/disable'
+url: '{{baseUrl}}/api/v1/admin/staff/{{staffId}}/disable'
 order: 10000
 headers:
   - key: X-ZenGear-As

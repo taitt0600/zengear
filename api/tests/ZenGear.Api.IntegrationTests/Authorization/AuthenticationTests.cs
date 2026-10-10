@@ -58,7 +58,7 @@ public class AuthenticationTests : IntegrationTestBase
 
     private async Task<HttpResponseMessage> GetMeAsync(string? token)
     {
-        using var request = TestTokens.Get("/test/me", token);
+        using var request = TestTokens.Get("/api/v1/admin/test/me", token);
         return await Client.SendAsync(request);
     }
 }

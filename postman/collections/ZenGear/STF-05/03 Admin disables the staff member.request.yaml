@@ -3,7 +3,7 @@ description: |-
   Set-up: the staff member of this run leaves today (STF-02), so the list shows a DISABLED account with a left
   date.
 method: POST
-url: '{{baseUrl}}/api/v1/staff/{{staffId}}/disable'
+url: '{{baseUrl}}/api/v1/admin/staff/{{staffId}}/disable'
 order: 3000
 headers:
   - key: X-ZenGear-As

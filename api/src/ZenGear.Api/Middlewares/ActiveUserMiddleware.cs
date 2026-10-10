@@ -65,7 +65,7 @@ public sealed class ActiveUserMiddleware(RequestDelegate next)
             securityLog.LoginSucceeded(access.Id, authTime, ip, userAgent);
         }
 
-        // Public endpoints stay open: they need no account, so there is nothing to protect.
+        // Shop endpoints stay open: they need no account, so there is nothing to protect.
         var endpoint = context.GetEndpoint();
         if (access.MustChangePassword
             && endpoint?.Metadata.GetMetadata<AllowWhilePasswordChangeRequiredAttribute>() is null

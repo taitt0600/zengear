@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using ZenGear.Data;
 using ZenGear.Data.Entities.Locations;
 using ZenGear.Services.Common;
+using ZenGear.Services.Common.Models;
 
 namespace ZenGear.Services.Locations.BusinessLocations;
 
@@ -14,32 +15,30 @@ namespace ZenGear.Services.Locations.BusinessLocations;
 public sealed class BusinessLocationService(
     ZenGearDbContext db,
     IValidator<BusinessLocationUpdateRequest> validator,
+    IValidator<PageRequest> pageValidator,
     IClock clock)
 {
+    /// <summary>The locations by name, as the Admin edits them (Phase 1: the one location, R-LOC-01).</summary>
+    public async Task<PagedDto<BusinessLocationDto>> ListAsync(PageRequest page, CancellationToken cancellationToken)
+    {
+        await pageValidator.ValidateAndThrowAsync(page, cancellationToken);
+
+        var locations = db.BusinessLocations.AsNoTracking();
+        // Id after name keeps the pages stable when two locations share a name.
+        var rows = await WithNames(locations.OrderBy(b => b.Name).ThenBy(b => b.Id).Skip(page.Skip).Take(page.PageSize))
+            .ToListAsync(cancellationToken);
+
+        // A first page that is not full holds every row: no COUNT (Phase 1 has one row).
+        var total = page.Page == 1 && rows.Count < page.PageSize ? rows.Count : await locations.CountAsync(cancellationToken);
+        return new PagedDto<BusinessLocationDto>([.. rows.Select(ToDto)], page.Page, page.PageSize, total);
+    }
+
     /// <summary>The location <paramref name="id"/>; null when there is none.</summary>
     public async Task<BusinessLocationDto?> GetAsync(Guid id, CancellationToken cancellationToken)
     {
-        var found = await db.BusinessLocations
-            .AsNoTracking()
-            .Where(b => b.Id == id)
-            .Select(b => new
-            {
-                Location = b,
-                ProvinceName = db.Provinces.Where(p => p.Id == b.ProvinceId).Select(p => p.Name).First(),
-                WardName = db.Wards.Where(w => w.Id == b.WardId).Select(w => w.Name).First(),
-            })
+        var found = await WithNames(db.BusinessLocations.AsNoTracking().Where(b => b.Id == id))
             .SingleOrDefaultAsync(cancellationToken);
-        if (found is null)
-        {
-            return null;
-        }
-
-        var location = found.Location;
-        return new BusinessLocationDto(location.Id, location.Name, location.Phone, location.Email, location.AddressDetail,
-            location.ProvinceId, found.ProvinceName, location.WardId, found.WardName,
-            [.. location.RegularHours.OrderBy(r => r.Day).ThenBy(r => r.Open).Select(RegularHoursPeriodDto.From)],
-            [.. (location.SpecialHours ?? []).OrderBy(s => s.Date).ThenBy(s => s.Open).Select(SpecialHoursPeriodDto.From)],
-            location.UpdatedAt, location.Version);
+        return found is null ? null : ToDto(found);
     }
 
     /// <summary>
@@ -89,6 +88,22 @@ public sealed class BusinessLocationService(
         return await GetAsync(id, cancellationToken);
     }
 
+    private IQueryable<LocationWithNames> WithNames(IQueryable<BusinessLocation> locations) =>
+        locations.Select(b => new LocationWithNames(
+            b,
+            db.Provinces.Where(p => p.Id == b.ProvinceId).Select(p => p.Name).First(),
+            db.Wards.Where(w => w.Id == b.WardId).Select(w => w.Name).First()));
+
+    private static BusinessLocationDto ToDto(LocationWithNames found)
+    {
+        var location = found.Location;
+        return new BusinessLocationDto(location.Id, location.Name, location.Phone, location.Email, location.AddressDetail,
+            location.ProvinceId, found.ProvinceName, location.WardId, found.WardName,
+            [.. location.RegularHours.OrderBy(r => r.Day).ThenBy(r => r.Open).Select(RegularHoursPeriodDto.From)],
+            [.. (location.SpecialHours ?? []).OrderBy(s => s.Date).ThenBy(s => s.Open).Select(SpecialHoursPeriodDto.From)],
+            location.UpdatedAt, location.Version);
+    }
+
     /// <summary>The province exists and the ward belongs to it (UC-070 3a); each must be active when newly chosen.</summary>
     private async Task CheckWardAsync(int provinceId, bool provinceChanged, int wardId, bool wardChanged,
         CancellationToken cancellationToken)
@@ -119,4 +134,6 @@ public sealed class BusinessLocationService(
 
     private static ValidationException Invalid(string propertyName, string message) =>
         new([new ValidationFailure(propertyName, message)]);
+
+    private sealed record LocationWithNames(BusinessLocation Location, string ProvinceName, string WardName);
 }

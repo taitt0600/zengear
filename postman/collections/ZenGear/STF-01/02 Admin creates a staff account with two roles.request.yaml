@@ -3,7 +3,7 @@ description: |-
   Happy path of STF-01: Cashier and Sales Consultant at once. The email is sent with upper case and spaces
   and is stored trimmed and lower case (R-USR-02). The new account must change its password (R-USR-03).
 method: POST
-url: '{{baseUrl}}/api/v1/staff'
+url: '{{baseUrl}}/api/v1/admin/staff'
 order: 2000
 headers:
   - key: X-ZenGear-As
@@ -29,7 +29,7 @@ scripts:
       const staff = pm.response.json();
       const run = pm.variables.get('run');
       pm.test('Location names the new account', () =>
-        pm.expect(pm.response.headers.get('Location')).to.match(new RegExp(`/api/v1/staff/${staff.id}$`)));
+        pm.expect(pm.response.headers.get('Location')).to.match(new RegExp(`/api/v1/admin/staff/${staff.id}$`)));
       pm.test('R-USR-02 email trimmed and lower case', () =>
         pm.expect(staff.email).to.eql(`stf01-${run}-cashier@zengear.test`));
       pm.test('profile fields', () => {

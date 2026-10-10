@@ -9,7 +9,7 @@ using ZenGear.Services.Identity.StaffAccounts;
 namespace ZenGear.Api.Controllers.Identity;
 
 [ApiController]
-[Route("api/v1/staff")]
+[Route("staff")]
 public sealed class StaffController(StaffService staff) : ControllerBase
 {
     /// <summary>

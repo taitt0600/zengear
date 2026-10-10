@@ -2,7 +2,7 @@ $kind: http-request
 description: |-
   API conventions: the ETag of 14 is stale after the rename of 15 (412), and the name stays as 15 set it.
 method: PATCH
-url: '{{baseUrl}}/api/v1/me'
+url: '{{baseUrl}}/api/v1/admin/me'
 order: 19000
 headers:
   - key: X-ZenGear-As
@@ -23,7 +23,7 @@ scripts:
       pm.test('problem type 412', () =>
         pm.expect(pm.response.json().type).to.eql('https://tools.ietf.org/html/rfc9110#section-15.5.13'));
       pm.sendRequest({
-        url: `${pm.variables.get('baseUrl')}/api/v1/me`,
+        url: `${pm.variables.get('baseUrl')}/api/v1/admin/me`,
         method: 'GET',
         header: [{ key: 'Authorization', value: pm.request.headers.get('Authorization') }],
       }, (error, me) => {

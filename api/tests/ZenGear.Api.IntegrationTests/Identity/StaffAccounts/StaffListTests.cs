@@ -7,10 +7,10 @@ using ZenGear.Services.Identity.Permissions;
 
 namespace ZenGear.Api.IntegrationTests.Identity.StaffAccounts;
 
-/// <summary>GET /api/v1/staff (STF-05, DEC-105) against PostgreSQL with the Vietnamese ICU collation.</summary>
+/// <summary>GET /api/v1/admin/staff (STF-05, DEC-105) against PostgreSQL with the Vietnamese ICU collation.</summary>
 public class StaffListTests : IntegrationTestBase
 {
-    private const string Path = "/api/v1/staff";
+    private const string Path = "/api/v1/admin/staff";
     private const string AdminUid = "uid-admin";
     private const string ManagerUid = "uid-manager";
     private const string CashierUid = "uid-cashier";

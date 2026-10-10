@@ -30,7 +30,7 @@ Folders, file names and type names follow `../docs/ARCHITECTURE.md`, section *Fo
 - Mapping (AutoMapper) only from entity to DTO, declared in the DTO as a nested `private sealed class Mapping : Profile`; no mapping in `ZenGear.Api`, no map to an entity.
 - No repository or unit of work: services use `ZenGearDbContext`. A query repeated in three or more services becomes a `*Query` class in the owning area.
 - A use case lives in the area that owns the aggregate it creates or changes; it writes only that area's tables and calls the owning service for anything else (an IL scan in `ZenGear.ArchitectureTests` checks it). Another area is called only through a service listed under *Public contract* in its `README.md`; adding one there is part of the change that needs it. `Locations` depends on no area but reads of `Geography`.
-- Services are split by audience (`<Entity>Service` for staff, `<Entity>PublicService` for the storefront) and by family of use cases (`<Entity><UseCase>Service`). A file of `ZenGear.Services` has at most 400 lines of code, a `*Service` at most 10 public methods; never add an exception to `ServiceSizeTests` without asking.
+- Services are split by audience (`<Entity>Service` for staff, `<Entity>ShopService` for the shop, `/api/v1/shop/`) and by family of use cases (`<Entity><UseCase>Service`). A file of `ZenGear.Services` has at most 400 lines of code, a `*Service` at most 10 public methods; never add an exception to `ServiceSizeTests` without asking.
 - Type names are unique across the three projects and no public type is nested: a line of a request or DTO is a top-level `*LineRequest` or `*Dto`.
 - Schema changes only through EF Core migrations. The result must match `db/` exactly (names, types, constraints, indexes). Update `db/` and `../docs/DATABASE.md` in the same change.
 - Constraint and index names are set explicitly to the names in `db/` (≤ 63 characters). PostgreSQL-only objects (exclusion constraint, triggers, view, functions) go through `migrationBuilder.Sql`.
@@ -80,6 +80,6 @@ Connection strings and the default staff password live in the user-secrets of `Z
 | `ConnectionStrings:ZenGear` | the running API and jobs | a login granted `zengear_app` (jobs: `zengear_jobs`) |
 | `ConnectionStrings:ZenGearMigrations` | `dotnet ef` (selected when `EF.IsDesignTime`) | the schema owner |
 | `ConnectionStrings:Redis` | the access cache (R-SEC-07); `localhost:6379` locally, `redis:6379` inside docker-compose | — (without it every request reads PostgreSQL) |
-| `Firebase:DefaultStaffPassword` | the password of every staff account created through `POST /api/v1/staff` (STF-01); at least 6 characters; in production the environment variable `Firebase__DefaultStaffPassword` | — (without it creating a staff account fails with 500 and creates nothing) |
+| `Firebase:DefaultStaffPassword` | the password of every staff account created through `POST /api/v1/admin/staff` (STF-01); at least 6 characters; in production the environment variable `Firebase__DefaultStaffPassword` | — (without it creating a staff account fails with 500 and creates nothing) |
 
 Until the first migration and `db/zengear_08_roles.sql` have run, both keys use the local `postgres` user. The application never connects as the schema owner outside local work (DEC-089).

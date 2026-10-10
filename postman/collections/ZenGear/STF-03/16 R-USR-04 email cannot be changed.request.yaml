@@ -3,7 +3,7 @@ description: |-
   STF-03 acceptance criterion 3 (R-USR-04, UC-007 2a): an email in the body is ignored; only the Admin changes a
   staff email (STF-01).
 method: PATCH
-url: '{{baseUrl}}/api/v1/me'
+url: '{{baseUrl}}/api/v1/admin/me'
 order: 16000
 headers:
   - key: X-ZenGear-As
