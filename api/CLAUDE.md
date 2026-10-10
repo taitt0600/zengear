@@ -1,13 +1,13 @@
 # ZenGear API
 
-.NET 10, ASP.NET Core, EF Core 10 + Npgsql, PostgreSQL 18 — hosted on Azure. Read `../docs/ARCHITECTURE.md` before adding code. All commands below run from `api/`.
+.NET 10, ASP.NET Core, EF Core 10 + Npgsql, PostgreSQL 18 — hosted on Azure. Read `../docs/ARCHITECTURE.md` (where code goes) and `../docs/CODING_GUIDE.md` (how to write it) before adding code. All commands below run from `api/`.
 
 ## Layout
 
 ```
 api/
-├─ src/ZenGear.Api/            Presentation: Controllers/ and technical folders (ExceptionHandling/, Middlewares/, Extensions/, …)
-├─ src/ZenGear.Services/       Business Logic: <Area>/ (services, Models/, Enums/, Validators/, mechanisms, jobs), Common/
+├─ src/ZenGear.Api/            Presentation: Controllers/<Area>/ and technical folders (ExceptionHandling/, Middlewares/, Extensions/, …)
+├─ src/ZenGear.Services/       Business Logic: <Area>/README.md, <Area>/<Module>/ (flat: services, requests, DTOs, validators, jobs; a mechanism folder inside), Common/
 ├─ src/ZenGear.Data/           Data Access: Common/, Entities/<Area>/, Configurations/<Area>/, Externals/<System>/, Migrations/
 ├─ tests/ZenGear.Services.Tests/        unit — NUnit, Shouldly, Moq
 ├─ tests/ZenGear.Api.IntegrationTests/  integration — NUnit, Testcontainers (postgres:18), Respawn
@@ -19,17 +19,17 @@ api/
 └─ docker-compose.yml   local PostgreSQL 18 and Redis (+ ZenGear.Api container)
 ```
 
-Folders, file names and type names follow `../docs/ARCHITECTURE.md`, section *Folder structure*: a top-level folder is a business area or a listed technical folder, one type per file, and where a type goes follows from its name. Namespaces follow folders.
+Folders, file names and type names follow `../docs/ARCHITECTURE.md`, section *Folder structure*: `ZenGear.Services/<Area>/<Module>/` with a `README.md` per area, `ZenGear.Api/Controllers/<Area>/`, the listed technical folders, one type per file. Namespaces follow folders. Tests mirror `<Area>/<Module>/`.
 
 ## Rules that must not be broken
 
 - `Api` → `Services` → `Data`; `Data` references no other project.
-- Never create a folder that *Folder structure* does not allow, nor a `*Helper` or `*Manager` type (`*Utility` only in `ZenGear.Services/Common/Utilities`); `ZenGear.ArchitectureTests` fails `dotnet test` and CI otherwise. If the code needs a new folder, stop and ask.
+- A new module of an area listed in `../docs/ARCHITECTURE.md` is created with the feature that needs it, together with its line under *Modules* in the area's `README.md`. A new area, a mechanism folder, or any other new folder: stop and ask. Never a `*Helper` or `*Manager` type (`*Utility` only in `ZenGear.Services/Common/Utilities`); `ZenGear.ArchitectureTests` fails `dotnet test` and CI otherwise.
 - SonarAnalyzer.CSharp runs in every build and its warnings are errors: fix the code. Never silence a rule (`#pragma warning disable`, `[SuppressMessage]`, `.editorconfig` severity) without asking; a suppression that is approved carries its reason (`Justification = "…"` or a comment).
 - Controllers never touch `ZenGearDbContext`; they take `*Request` and return `*Dto` of `ZenGear.Services` only, one DTO per audience (cost fields and `internal_note` must not leak — R-SEC-09, R-SEC-10).
 - Mapping (AutoMapper) only from entity to DTO, declared in the DTO as a nested `private sealed class Mapping : Profile`; no mapping in `ZenGear.Api`, no map to an entity.
 - No repository or unit of work: services use `ZenGearDbContext`. A query repeated in three or more services becomes a `*Query` class in the owning area.
-- A use case lives in the area that owns the aggregate it creates or changes; it writes only that area's tables and calls the owning service for anything else (an IL scan in `ZenGear.ArchitectureTests` checks it).
+- A use case lives in the area that owns the aggregate it creates or changes; it writes only that area's tables and calls the owning service for anything else (an IL scan in `ZenGear.ArchitectureTests` checks it). Another area is called only through a service listed under *Public contract* in its `README.md`; adding one there is part of the change that needs it. `Locations` depends on no area but reads of `Geography`.
 - Services are split by audience (`<Entity>Service` for staff, `<Entity>PublicService` for the storefront) and by family of use cases (`<Entity><UseCase>Service`). A file of `ZenGear.Services` has at most 400 lines of code, a `*Service` at most 10 public methods; never add an exception to `ServiceSizeTests` without asking.
 - Type names are unique across the three projects and no public type is nested: a line of a request or DTO is a top-level `*LineRequest` or `*Dto`.
 - Schema changes only through EF Core migrations. The result must match `db/` exactly (names, types, constraints, indexes). Update `db/` and `../docs/DATABASE.md` in the same change.

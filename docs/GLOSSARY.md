@@ -32,7 +32,7 @@ Class names are singular PascalCase in `ZenGear.Data/Entities/<Area>`; table nam
 | Chuyển hướng đường dẫn (301) | `UrlRedirect` | `url_redirects` | Catalog |
 | Nhóm ngành nghề tính thuế | `TaxClass` | `tax_classes` | Tax |
 | Tỷ lệ % thuế GTGT trên doanh thu | `TaxRate` | `tax_rates` | Tax |
-| Địa điểm kinh doanh | `BusinessLocation` | `business_locations` | Inventory |
+| Địa điểm kinh doanh | `BusinessLocation` | `business_locations` | Locations |
 | Kho (khu vực tồn kho) | `Warehouse` | `warehouses` | Inventory |
 | Tồn kho | `StockBalance` | `stock_balances` | Inventory |
 | Sổ kho, thẻ kho (dòng biến động) | `StockLedgerEntry` | `stock_ledger_entries` | Inventory |
