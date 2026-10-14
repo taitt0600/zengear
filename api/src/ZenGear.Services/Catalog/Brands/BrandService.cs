@@ -28,11 +28,7 @@ public sealed class BrandService(
         }
 
         // Names sort in Vietnamese order through the database collation; the id keeps pages stable.
-        var items = await ToDto(brands.OrderBy(b => b.Name).ThenBy(b => b.Id).Skip(page.Skip).Take(page.PageSize))
-            .ToListAsync(cancellationToken);
-
-        var total = page.Page == 1 && items.Count < page.PageSize ? items.Count : await brands.CountAsync(cancellationToken);
-        return new PagedDto<BrandDto>(items, page.Page, page.PageSize, total);
+        return await PagedQuery.ToPagedDtoAsync(ToDto(brands.OrderBy(b => b.Name).ThenBy(b => b.Id)), page, cancellationToken);
     }
 
     /// <summary>The brand <paramref name="id"/>, retired or not; null when there is none.</summary>

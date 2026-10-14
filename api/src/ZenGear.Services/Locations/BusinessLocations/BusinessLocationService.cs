@@ -22,12 +22,8 @@ public sealed class BusinessLocationService(
 
         var locations = db.BusinessLocations.AsNoTracking();
         // Id after name keeps the pages stable when two locations share a name.
-        var rows = await WithNames(locations.OrderBy(b => b.Name).ThenBy(b => b.Id).Skip(page.Skip).Take(page.PageSize))
-            .ToListAsync(cancellationToken);
-
-        // A first page that is not full holds every row: no COUNT (Phase 1 has one row).
-        var total = page.Page == 1 && rows.Count < page.PageSize ? rows.Count : await locations.CountAsync(cancellationToken);
-        return new PagedDto<BusinessLocationDto>([.. rows.Select(ToDto)], page.Page, page.PageSize, total);
+        return await PagedQuery.ToPagedDtoAsync(WithNames(locations.OrderBy(b => b.Name).ThenBy(b => b.Id)), page, ToDto,
+            cancellationToken);
     }
 
     /// <summary>The location <paramref name="id"/>; null when there is none.</summary>

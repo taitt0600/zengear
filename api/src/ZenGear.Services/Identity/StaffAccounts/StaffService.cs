@@ -149,10 +149,7 @@ public sealed class StaffService(
             staff = staff.Where(u => u.UserRoles.Any(ur => ur.RoleId == roleId));
         }
 
-        var page = new PageRequest(request.Page, request.PageSize);
-        var items = await Sorted(staff, request.Sort)
-            .Skip(page.Skip)
-            .Take(page.PageSize)
+        var rows = Sorted(staff, request.Sort)
             .Select(u => new StaffListItemDto(
                 u.Id,
                 u.Name,
@@ -165,12 +162,9 @@ public sealed class StaffService(
                     .Where(r => u.UserRoles.Any(ur => ur.RoleId == r.Id))
                     .OrderBy(r => r.Name)
                     .Select(r => new StaffRoleDto(r.Id, r.Name))
-                    .ToList()))
-            .ToListAsync(cancellationToken);
+                    .ToList()));
 
-        // A first page that is not full holds every row: no COUNT (a household business has fewer staff than a page).
-        var total = page.Page == 1 && items.Count < page.PageSize ? items.Count : await staff.CountAsync(cancellationToken);
-        return new PagedDto<StaffListItemDto>(items, page.Page, page.PageSize, total);
+        return await PagedQuery.ToPagedDtoAsync(rows, new PageRequest(request.Page, request.PageSize), cancellationToken);
     }
 
     /// <summary>

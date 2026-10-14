@@ -16,7 +16,8 @@ Decision: DEC-106, amended by DEC-107.
 > - Two controllers keep the name of their resource, not of their service (`MeController` calls `CurrentUserService`,
 >   `BusinessLocationsController` calls `BusinessLocationService`): renaming them changes the OpenAPI tags again
 >   (DEC-107 (3)).
-> - The paging rule is not shared yet (DEC-106 (8), DEC-107 (5)): the staff list answers its paging errors with
+> - The paging rule is not shared yet (DEC-106 (8), DEC-107 (5)); the paging query is, through `PagedQuery`
+>   (DEC-109). The staff list answers its paging errors with
 >   `ruleId` R-USR-13 and its own messages, while the `PageRequest` validator of `Common` names no rule. Sharing it
 >   needs a rule-builder in `Common` that takes the caller's code, a new kind of type that `docs/ARCHITECTURE.md` asks
 >   about first.
@@ -174,9 +175,9 @@ STF-05 (the staff list); paths are those of section 5.
    - the validator (`StaffListRequestValidator`, FluentValidation), each failure with `.WithErrorCode("R-…")` when it
      breaks a rule, and a message that never repeats the value sent;
    - the method on the service of the use-case family (`StaffService.ListAsync`, taking a `CancellationToken`):
-     validate, query with `ZenGearDbContext` (projection to the DTO, `AsNoTracking` for reads), and for a rule
-     broken by the current data throw `BusinessRuleException(ruleId, problemType, title, detail)`, which the API
-     returns as a 409.
+     validate, query with `ZenGearDbContext` (projection to the DTO, `AsNoTracking` for reads; a list pages its
+     ordered query through `PagedQuery.ToPagedDtoAsync`), and for a rule broken by the current data throw
+     `BusinessRuleException(ruleId, problemType, title, detail)`, which the API returns as a 409.
 6. **Controller**, in `ZenGear.Api/Controllers/<Area>/`: one action that calls the service, with
    - its access attribute (`[RequirePermission(PermissionKeys.StaffRead)]`);
    - `[ProducesResponseType]` for every answer, which feeds the OpenAPI document, and an XML `<response>` comment for
