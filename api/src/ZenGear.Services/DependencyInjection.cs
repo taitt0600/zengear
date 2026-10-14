@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using ZenGear.Data;
 using ZenGear.Data.Externals.Auth;
 using ZenGear.Data.Externals.Redis;
+using ZenGear.Services.Catalog.Brands;
 using ZenGear.Services.Common;
 using ZenGear.Services.Identity.Access;
 using ZenGear.Services.Identity.Access.AccessCache;
@@ -54,6 +55,7 @@ public static class DependencyInjection
         services.AddScoped<PermissionSyncService>();
         services.AddScoped<BusinessLocationService>();
         services.AddScoped<BusinessLocationShopService>();
+        services.AddScoped<BrandService>();
 
         services.AddHealthChecks().AddDbContextCheck<ZenGearDbContext>();
 

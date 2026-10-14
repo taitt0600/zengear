@@ -19,6 +19,9 @@ public sealed class PermissionCatalog : IPermissionCatalog
         new(PermissionKeys.StaffRead, "View staff accounts"),
         new(PermissionKeys.StaffDisable, "Disable and restore staff accounts"),
         new(PermissionKeys.BusinessLocationUpdate, "Edit the business location: address, hotline, opening hours"),
+        new(PermissionKeys.BrandRead, "View brands"),
+        new(PermissionKeys.BrandCreate, "Create brands"),
+        new(PermissionKeys.BrandUpdate, "Rename, retire and restore brands"),
     ];
 
     public IReadOnlyList<PermissionDefinition> Permissions => Definitions;
@@ -30,7 +33,10 @@ public sealed class PermissionCatalog : IPermissionCatalog
         new("Customer", IsSystemRole: true, []),
         // STF-02, the owner's decision: a Store Manager disables and restores staff, and reads the accounts it changes.
         // R-TX-11 still refuses the Store Manager disabling an Admin account.
-        new("Store Manager", IsSystemRole: false, [PermissionKeys.StaffRead, PermissionKeys.StaffDisable]),
+        // PRD-02, the owner's decision: a Store Manager manages the brands (A02, DEC-013).
+        new("Store Manager", IsSystemRole: false,
+            [PermissionKeys.StaffRead, PermissionKeys.StaffDisable, PermissionKeys.BrandRead, PermissionKeys.BrandCreate,
+                PermissionKeys.BrandUpdate]),
         new("Sales Consultant", IsSystemRole: false, []),
         new("Technical Support", IsSystemRole: false, []),
         new("Cashier", IsSystemRole: false, []),

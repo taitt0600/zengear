@@ -131,11 +131,15 @@ public class StaffStatusTests
     }
 
     [Test]
-    public void Store_manager_gets_staff_disable_and_staff_read_by_default()
+    public void Store_manager_gets_exactly_the_grants_the_owner_decided_by_default()
     {
         var manager = new PermissionCatalog().Roles.Single(r => r.RoleName == "Store Manager");
 
-        manager.PermissionKeys.ShouldBe([PermissionKeys.StaffRead, PermissionKeys.StaffDisable], ignoreOrder: true);
+        // STF-02: staff.read and staff.disable; PRD-02: the three brand keys. Anything else is a new owner decision.
+        manager.PermissionKeys.ShouldBe(
+            [PermissionKeys.StaffRead, PermissionKeys.StaffDisable, PermissionKeys.BrandRead, PermissionKeys.BrandCreate,
+                PermissionKeys.BrandUpdate],
+            ignoreOrder: true);
         manager.IsSystemRole.ShouldBeFalse();
     }
 
