@@ -1,0 +1,24 @@
+$kind: http-request
+description: |-
+  R-SEC-03: creating a brand needs brand.create (Admin and Store Manager by default, the owner's decision for PRD-02);
+  the customer of the STF-03 fixture, who holds no permission, is refused (403 /problems/permission-denied).
+method: POST
+url: '{{baseUrl}}/api/v1/admin/brands'
+order: 12000
+headers:
+  - key: X-ZenGear-As
+    value: '{{customerEmail}}'
+  - key: Content-Type
+    value: 'application/json'
+body:
+  type: json
+  content: |-
+    { "name": "0 Không có quyền {{run}}" }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 403', () => pm.response.to.have.status(403));
+      pm.test('problem type /problems/permission-denied', () =>
+        pm.expect(pm.response.json().type).to.eql('/problems/permission-denied'));
+      pm.test('ruleId R-SEC-03', () => pm.expect(pm.response.json().ruleId).to.eql('R-SEC-03'));

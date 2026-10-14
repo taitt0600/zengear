@@ -1,0 +1,19 @@
+$kind: http-request
+description: |-
+  UC-011 step 1: the brand to edit, with its ETag kept as `etag` for the rename of 05.
+method: GET
+url: '{{baseUrl}}/api/v1/admin/brands/{{brandId}}'
+order: 2000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 200', () => pm.response.to.have.status(200));
+      pm.test('an ETag', () => pm.expect(pm.response.headers.get('ETag')).to.match(/^"\d+"$/));
+      pm.variables.set('etag', pm.response.headers.get('ETag'));
+      pm.test('the ETag of the POST is the stored version', () =>
+        pm.expect(pm.response.headers.get('ETag')).to.eql(pm.variables.get('createdEtag')));
+      pm.test('the brand of 01', () => pm.expect(pm.response.json().id).to.eql(pm.variables.get('brandId')));

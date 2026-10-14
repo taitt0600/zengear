@@ -1,0 +1,29 @@
+$kind: http-request
+description: |-
+  UC-011: a rename keeps the slug the brand was created with (the seed finds brands by slug at every deploy); the new
+  ETag is kept as `etag`.
+method: PUT
+url: '{{baseUrl}}/api/v1/admin/brands/{{brandId}}'
+order: 5000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+  - key: Content-Type
+    value: 'application/json'
+  - key: If-Match
+    value: '{{etag}}'
+body:
+  type: json
+  content: |-
+    { "name": "0 Hãng Đổi Tên {{run}}", "isActive": true }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 200', () => pm.response.to.have.status(200));
+      pm.variables.set('etag', pm.response.headers.get('ETag'));
+      const body = pm.response.json();
+      pm.test('renamed, slug unchanged', () => {
+        pm.expect(body.name).to.eql('0 Hãng Đổi Tên ' + pm.variables.get('run'));
+        pm.expect(body.slug).to.eql('0-hang-thu-' + pm.variables.get('run'));
+      });

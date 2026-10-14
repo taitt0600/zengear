@@ -1,0 +1,14 @@
+$kind: http-request
+description: |-
+  R-DEL-01, DEC-022: master data is never deleted; there is no DELETE on a brand (405).
+method: DELETE
+url: '{{baseUrl}}/api/v1/admin/brands/{{brandId}}'
+order: 10000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 405', () => pm.response.to.have.status(405));

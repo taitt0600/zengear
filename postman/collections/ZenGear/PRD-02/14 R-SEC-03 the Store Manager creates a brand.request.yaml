@@ -1,0 +1,22 @@
+$kind: http-request
+description: |-
+  R-SEC-03, the owner's decision for PRD-02: the Store Manager gets brand.create by default (synced at startup,
+  DEC-095), so manager.fixture@zengear.test of postman/fixtures/STF-01.sql creates a brand.
+method: POST
+url: '{{baseUrl}}/api/v1/admin/brands'
+order: 14000
+headers:
+  - key: X-ZenGear-As
+    value: '{{managerEmail}}'
+  - key: Content-Type
+    value: 'application/json'
+body:
+  type: json
+  content: |-
+    { "name": "0 Hãng của Quản lý {{run}}" }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 201', () => pm.response.to.have.status(201));
+      pm.test('active', () => pm.expect(pm.response.json().isActive).to.eql(true));

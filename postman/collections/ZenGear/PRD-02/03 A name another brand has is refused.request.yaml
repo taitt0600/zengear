@@ -1,0 +1,23 @@
+$kind: http-request
+description: |-
+  Acceptance criterion 1, a standardised list of brands: the same name in other case and without marks gives the same
+  slug, so it is refused (409 /problems/brand-already-exists).
+method: POST
+url: '{{baseUrl}}/api/v1/admin/brands'
+order: 3000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+  - key: Content-Type
+    value: 'application/json'
+body:
+  type: json
+  content: |-
+    { "name": "0 HANG THU {{run}}" }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 409', () => pm.response.to.have.status(409));
+      pm.test('problem type /problems/brand-already-exists', () =>
+        pm.expect(pm.response.json().type).to.eql('/problems/brand-already-exists'));

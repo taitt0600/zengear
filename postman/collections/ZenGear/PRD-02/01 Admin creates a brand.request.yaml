@@ -1,0 +1,36 @@
+$kind: http-request
+description: |-
+  UC-010: a new brand is active, with a slug made from its name; its id is kept as `brandId`.
+method: POST
+url: '{{baseUrl}}/api/v1/admin/brands'
+order: 1000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+  - key: Content-Type
+    value: 'application/json'
+body:
+  type: json
+  content: |-
+    { "name": "0 Hãng Thử {{run}}" }
+scripts:
+  - type: beforeRequest
+    language: text/javascript
+    code: |-
+      pm.variables.set('run', Date.now().toString(36));
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 201', () => pm.response.to.have.status(201));
+      pm.test('a Location and an ETag', () => {
+        pm.expect(pm.response.headers.get('Location')).to.include('/api/v1/admin/brands/');
+        pm.expect(pm.response.headers.get('ETag')).to.match(/^"\d+"$/);
+      });
+      const body = pm.response.json();
+      pm.variables.set('brandId', body.id);
+      pm.variables.set('createdEtag', pm.response.headers.get('ETag'));
+      pm.test('active, slug from the name', () => {
+        pm.expect(body.name).to.eql('0 Hãng Thử ' + pm.variables.get('run'));
+        pm.expect(body.slug).to.eql('0-hang-thu-' + pm.variables.get('run'));
+        pm.expect(body.isActive).to.eql(true);
+      });

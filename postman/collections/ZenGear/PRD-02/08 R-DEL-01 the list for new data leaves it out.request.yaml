@@ -1,0 +1,18 @@
+$kind: http-request
+description: |-
+  R-DEL-01: the list a creation screen offers (isActive=true) leaves the retired brand out.
+method: GET
+url: '{{baseUrl}}/api/v1/admin/brands?isActive=true&pageSize=100'
+order: 8000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 200', () => pm.response.to.have.status(200));
+      const items = pm.response.json().items;
+      pm.test('only active brands', () => pm.expect(items.every(b => b.isActive)).to.eql(true));
+      pm.test('the retired brand is not listed', () =>
+        pm.expect(items.map(b => b.id)).to.not.include(pm.variables.get('brandId')));
