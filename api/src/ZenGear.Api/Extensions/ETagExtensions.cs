@@ -1,4 +1,6 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ZenGear.Api.Extensions;
 
@@ -10,6 +12,33 @@ public static class ETagExtensions
 {
     public static void SetETag(this HttpResponse response, uint version) =>
         response.Headers.ETag = $"\"{version.ToString(CultureInfo.InvariantCulture)}\"";
+
+    /// <summary>
+    /// The version an update sends in <c>If-Match</c> (<see cref="TryParseIfMatch"/>); when it sends none, the 428
+    /// <c>/problems/if-match-required</c> naming <paramref name="readPath"/>, the <c>GET</c> that gives the tag; when it
+    /// sends a tag that can never match, 412.
+    /// </summary>
+    public static bool TryReadIfMatch(this ControllerBase controller, string? ifMatch, string readPath, out uint? version,
+        [NotNullWhen(false)] out ActionResult? refusal)
+    {
+        ArgumentNullException.ThrowIfNull(controller);
+        version = null;
+        if (string.IsNullOrWhiteSpace(ifMatch))
+        {
+            refusal = controller.Problem(statusCode: StatusCodes.Status428PreconditionRequired, type: "/problems/if-match-required",
+                title: "If-Match required", detail: $"Send the ETag of GET {readPath} in the If-Match header.");
+            return false;
+        }
+
+        if (!TryParseIfMatch(ifMatch, out version))
+        {
+            refusal = controller.Problem(statusCode: StatusCodes.Status412PreconditionFailed);
+            return false;
+        }
+
+        refusal = null;
+        return true;
+    }
 
     /// <summary>
     /// Reads an <c>If-Match</c> value: <c>*</c> matches any current version (<paramref name="version"/> null, RFC 9110
