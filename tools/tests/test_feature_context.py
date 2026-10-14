@@ -105,6 +105,70 @@ class FakeSpecTests(unittest.TestCase):
         self.assertNotIn('Feature dossier', (self.root / 'docs' / 'blueprint' / 'features.md').read_text(encoding='utf-8'))
 
 
+NEXT = '## Next\n\n| Key | Item | Who | Source |\n|---|---|---|---|\n'
+WAITING = '## Waiting for a trigger\n\n| Trigger | Item | Source |\n|---|---|---|\n'
+
+
+class WorkStateTests(unittest.TestCase):
+    """The rows of docs/STATUS.md that name the feature (DEC-110 (5)); test_pr_gates.py checks the same cases."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self.tmp.name)
+        write_docs(self.root, {'features.md': ['| POS-01 | Sell at counter | — | — | — |']},
+                   glossary='## Entities\n\n| Thuật ngữ | Entity | Table | Area |\n|---|---|---|---|\n')
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def dossier(self, status=None):
+        if status is not None:
+            (self.root / 'docs' / 'STATUS.md').write_text('# Status\n\n' + status, encoding='utf-8')
+        return feature_context.build('POS-01', self.root)
+
+    def test_shows_a_next_row_keyed_by_the_feature_right_after_the_feature(self):
+        out = self.dossier(NEXT + '| POS-01 | Sell at counter | local | features.md |\n')
+        self.assertIn('## Work state (docs/STATUS.md)\n\n| Key | Item | Who | Source |\n|---|---|---|---|\n'
+                      '| POS-01 | Sell at counter | local | features.md |', out)
+        self.assertLess(out.index('## Feature'), out.index('## Work state'))
+        self.assertLess(out.index('## Work state'), out.index('## Rules'))
+
+    def test_shows_a_waiting_row_triggered_before_the_feature(self):
+        out = self.dossier(NEXT + '| web | Other | local | DEC-104 |\n\n' + WAITING + '| before POS-01 | Decide x | DEC-1 |\n')
+        self.assertIn('| Trigger | Item | Source |\n|---|---|---|\n| before POS-01 | Decide x | DEC-1 |', out)
+        self.assertNotIn('| Key |', out)  # no table for a kind without a matching row
+
+    def test_a_key_in_backticks_matches(self):
+        self.assertIn('| `POS-01` | Sell | local | x |', self.dossier(NEXT + '| `POS-01` | Sell | local | x |\n'))
+
+    def test_an_id_only_in_the_item_does_not_match(self):
+        out = self.dossier(NEXT + '| web-shell | After POS-01 | local | x |\n\n'
+                           + WAITING + '| storefront deploy | POS-01 cache | x |\n')
+        self.assertNotIn('## Work state', out)
+
+    def test_pos_01_does_not_match_pos_010(self):
+        out = self.dossier(NEXT + '| POS-010 | Other | local | x |\n\n' + WAITING + '| before POS-010 | Other | x |\n')
+        self.assertNotIn('## Work state', out)
+
+    def test_no_status_file_gives_no_section(self):
+        self.assertNotIn('## Work state', self.dossier())
+
+    def test_a_file_with_only_next(self):
+        self.assertIn('| POS-01 | Sell | local | x |', self.dossier(NEXT + '| POS-01 | Sell | local | x |\n'))
+
+    def test_headings_without_a_table_give_no_section(self):
+        self.assertNotIn('## Work state', self.dossier('## Next\n\nNothing yet.\n\n## Waiting for a trigger\n\nNone.\n'))
+
+    def test_next_without_a_table_then_a_waiting_row(self):
+        out = self.dossier('## Next\n\nNothing yet.\n\n' + WAITING + '| before POS-01 | Decide x | DEC-1 |\n')
+        self.assertEqual(out.count('| before POS-01 | Decide x | DEC-1 |'), 1)
+        self.assertEqual(out.count('| Trigger | Item | Source |'), 1)
+
+    def test_an_escaped_pipe_stays_inside_its_row(self):
+        out = self.dossier(NEXT + r'| POS-01 | a \| b | local | x |' + '\n')
+        self.assertIn(r'| POS-01 | a \| b | local | x |', out)
+
+
 class RealSpecTests(unittest.TestCase):
     """Every feature of docs/blueprint/features.md gives a dossier that holds each rule it lists."""
 
