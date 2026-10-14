@@ -37,8 +37,9 @@ reported as unchecked; a PowerShell script is never run, read its `ShouldProcess
   `docs/GLOSSARY.md`
 - The `README.md` of each area of `api/src/ZenGear.Services` the diff touches or calls
 - The feature dossier `out/feature-<ID>.md` given with the request (written by `tools/feature_context.py`): the
-  feature row, every rule it lists (implementation rules included) and the `docs/DATABASE.md` section of each
-  table its rules touch. Without it, read those in `docs/blueprint/` and `docs/DATABASE.md` yourself
+  feature row, its rows of `docs/STATUS.md` (section *Work state*), every rule it lists (implementation rules
+  included) and the `docs/DATABASE.md` section of each table its rules touch. Without it, read those in
+  `docs/blueprint/` and `docs/DATABASE.md` yourself
 - For a table the diff touches that the dossier does not hold: `#### <table>` in `docs/DATABASE.md` (search, do
   not read the whole file)
 - A change that is not a feature (tooling, CI, documents) has no dossier. Read instead the files it changes and the
@@ -55,7 +56,10 @@ repeat those. Check what no test sees:
 
 1. **Rules**: the code does what each rule says, including every refusal and edge case of the rule text;
    each `R_…` test would fail if the rule were broken (no test that only checks the happy path or its own
-   setup); a refusal throws `BusinessRuleException` with the rule ID.
+   setup); a refusal throws `BusinessRuleException` with the rule ID. Each *Work state* row of the dossier that
+   the diff deletes from `docs/STATUS.md` was done in the diff or is a Needs decision item of the pull request
+   body, as the handling given with the request says; no other row of `docs/STATUS.md` changed, except the rows
+   the request lists as added for a deferred item or an owner's comment.
 2. **Audience and data exposure**: staff and customers get different DTOs and services (rule 3, DEC-097);
    a `*ShopDto` or `*ShopService` never selects `average_cost`, `unit_cost` or `internal_note`; cost
    fields reach only callers with `cost.view` (R-SEC-09, R-SEC-10); personal data columns follow

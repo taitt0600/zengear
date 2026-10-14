@@ -42,6 +42,8 @@
       "Bash(postman collection run *)",
       "Bash(gh issue list *)",
       "Bash(gh issue view *)",
+      "Bash(gh pr list *)",
+      "Bash(gh pr view *)",
       "Bash(gh run list *)",
       "Bash(gh run view *)",
       "mcp__postgres__list_schemas",

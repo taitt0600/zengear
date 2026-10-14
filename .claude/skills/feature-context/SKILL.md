@@ -1,6 +1,6 @@
 ---
 name: feature-context
-description: Write the feature dossier of one ZenGear feature to out/feature-<ID>.md (its row, rules with implementation rules, use cases, the decisions they cite, glossary rows and DATABASE.md tables) and read it. Use before planning, reviewing or fixing a feature, instead of searching docs/blueprint and docs/DATABASE.md by hand.
+description: Write the feature dossier of one ZenGear feature to out/feature-<ID>.md (its row, its rows of docs/STATUS.md, rules with implementation rules, use cases, the decisions they cite, glossary rows and DATABASE.md tables) and read it. Use before planning, reviewing or fixing a feature, instead of searching docs/blueprint and docs/DATABASE.md by hand.
 argument-hint: <Feature ID, e.g. POS-01>
 allowed-tools: Bash(python3 tools/feature_context.py *), Bash(python tools/feature_context.py *), Read
 ---
