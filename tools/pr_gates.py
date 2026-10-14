@@ -17,6 +17,10 @@ check, run by .github/workflows/gates.yml on every pull request:
      message carries a Co-Authored-By or Claude-Session trailer (CLAUDE.md, Commits).
   5. Owner merges: a pull request opened through a GitHub App (a Claude Code cloud session opens it through the
      Claude app) changes no file of owner_paths; the owner opens those pull requests on GitHub.
+  6. Work state: a feat pull request whose title ends with a feature ID leaves no row of docs/STATUS.md at the head
+     that names that feature (a Next row keyed by it, a Waiting row triggered "before <ID>"; DEC-110 (5)); the pull
+     request that does the work deletes it (CLAUDE.md, Work state). fix pull requests and other titles are not
+     checked.
 check reads the pull request from git objects only: nothing of the pull request is checked out or run.
 coverage reads the working tree, new files included (used by /implement-feature and /finish-feature).
 owner_paths lists the changed files that only the owner merges (tools/github_pr.py refuses auto-merge for them)."""
@@ -34,9 +38,14 @@ CODE_PATHS = ('api/src/', 'web/')
 FEATURES = 'docs/blueprint/features.md'
 DECISIONS = 'docs/blueprint/decisions.md'
 PACKAGES = 'api/Directory.Packages.props'
+STATUS = 'docs/STATUS.md'
+# Tables of docs/STATUS.md: (heading, column, value of that column in a row that names the feature).
+WORK_STATE = (('Next', 'Key', '{}'), ('Waiting for a trigger', 'Trigger', 'before {}'))
 RUNS_CODE = re.compile(r'<\s*(Exec|Target|UsingTask|Import|PreBuildEvent|PostBuildEvent|Analyzer|Sdk)\b|\bSdk\s*=')
 FEATURE_IN_TITLE = re.compile(r'\(([A-Z]{3}-\d{2})\)\s*$')
 CODE_TITLE = re.compile(r'^(feat|fix)(\([^)]*\))?!?:')
+FEAT_TITLE = re.compile(r'^feat(\([^)]*\))?!?:')
+HEADING = re.compile(r'^#{1,6}\s+(.*\S)')
 DECISION = re.compile(r'\bDEC-\d{3}\b')
 TEST_METHOD = re.compile(r'\b(?:Task|ValueTask|void)\s+(R_[A-Z]+_\d+)_\w*\s*\(')
 AGENT_EMAIL = 'noreply@anthropic.com'
@@ -78,6 +87,28 @@ def feature_rules(feature, rev):
         if row and row[0] == feature:
             return set(re.findall(r'\bR-[A-Z]+-\d+\b', row[5]))
     return None
+
+
+def work_state_rows(text, feature):
+    """Rows of docs/STATUS.md that name the feature: in the first table after the heading, the whole cell of the
+    column, without backticks, is the ID (Next) or "before <ID>" (Waiting); an ID anywhere else does not count. No
+    heading or no table gives no row. tools/feature_context.py keeps the same reader for the dossier."""
+    found = []
+    for heading, column, value in WORK_STATE:
+        header, armed = None, False
+        for line in text.splitlines():
+            title = HEADING.match(line)
+            if title and not armed:
+                armed = title.group(1) == heading
+            elif armed and line.startswith('|'):
+                row = cells(line)
+                if header is None:
+                    header = row
+                elif dict(zip(header, row)).get(column, '').strip('`').strip() == value.format(feature):
+                    found.append(line.strip())
+            elif armed and header is not None:
+                break
+    return found
 
 
 def accepted_decisions(rev):
@@ -152,6 +183,10 @@ def check(base, head, title, app=''):
     elif CODE_TITLE.match(title) and any(path.startswith(CODE_PATHS) for path in changed):
         errors.append('a feat or fix pull request that changes code ends its title with the feature ID, '
                       'e.g. "(STF-01)", so that its rules are checked')
+    if feature and FEAT_TITLE.match(title):
+        for line in work_state_rows(show(head, STATUS), feature.group(1)):
+            errors.append(f'{STATUS} at the head still has a row that names {feature.group(1)}: {line}; '
+                          'the pull request that does the work deletes it (CLAUDE.md, Work state)')
 
     accepted = accepted_decisions(head)
     for commit, author, committer, message, files in commits(base, head):
