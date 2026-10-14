@@ -1,18 +1,23 @@
 # Automation around the owner
 
 The owner picks and starts features in a local session with one command, answers the Needs decision items it asks
-and tests the result before it merges (CLAUDE.md, Workflow; DEC-100). Everything else runs by itself, except three
+and tests the result before it merges (CLAUDE.md, Workflow; DEC-100). Everything else runs by itself, except four
 things kept for the owner on purpose: answering a **Needs decision** item (money, tax, legal duties, personal data,
-role permissions, data that is hard to migrate, packages, build code), the test before merge, and merging a pull
-request that changes the specification or the tooling (`owner_paths` in `tools/pr_gates.py`).
+role permissions, data that is hard to migrate, packages, build code), the test before merge, merging a pull
+request that changes the specification or the tooling (`owner_paths` in `tools/pr_gates.py`), and merging the pull
+requests that change only `docs/STATUS.md` and the docs pull requests of cloud sessions (DEC-110), which never get
+auto-merge.
 
 ## The owner's part
 
-1. Pick a feature of `docs/blueprint/features.md` whose *Depends On* features are done, and start it in a local
-   session: open VS Code on the repository, `git switch main`, `git pull`, then `/implement-feature <Feature ID>`
-   in Claude Code (`--checkpoints` to also approve the plan, the failing tests and the diff, as in DEC-099). Cloud
-   sessions do not run features or fixes (DEC-100): they run only the two notification routines below,
-   `/report-review` and `/decision-draft`.
+1. Take the first row of *Next* in `docs/STATUS.md` and start it in a local session: open VS Code on the
+   repository, `git switch main`, `git pull`. A feature row (or another feature of `docs/blueprint/features.md`
+   whose *Depends On* features are done) runs with `/implement-feature <Feature ID>` in Claude Code
+   (`--checkpoints` to also approve the plan, the failing tests and the diff, as in DEC-099). Any other row is asked
+   of Claude in words, from its *Source*; when its *Who* says owner path, Claude pushes the branch and the owner opens
+   and merges the pull request. Cloud sessions do not run features or fixes (DEC-100): they run only the two
+   notification routines below, `/report-review`, `/decision-draft`, and the pull requests and comments of
+   DEC-110 (4).
 2. Answer the **Needs decision** items when Claude asks them: all the items known after the plan in one question,
    a later one at once. An answer that changes a specification stops the run: `/decision-draft <what was decided>`
    drafts the Decision for the workbook, and the owner opens that specification pull request.
@@ -26,6 +31,11 @@ request that changes the specification or the tooling (`owner_paths` in `tools/p
    fix pull request closes the issue when it merges, after the same test before merge.
 5. Plans and pull requests are reviewed locally (`plan-reviewer`, `code-reviewer`) and end with the section
    "Tóm tắt cho chủ dự án" (CLAUDE.md, Workflow): read that summary instead of sending them to a cloud session.
+6. After a few days away, or in a new session, ask **"Việc tiếp theo là gì?"**: Claude answers from
+   `docs/STATUS.md` and the open pull requests, issues and branches (CLAUDE.md, *Work state*). Say first whether the
+   answer was right, then what it missed; Claude logs that as a Re-entry line (below, *Metrics*). Merge a pull request
+   that changes only `docs/STATUS.md` when no feature pull request waits to merge: every merge to `main` puts the
+   open pull requests behind it.
 
 ## What runs by itself
 
@@ -111,6 +121,17 @@ per defect taken: time from opened to merged, commits, review rounds, Needs deci
 (local or cloud), owner-minutes, defects per feature, and since DEC-106 the reviewers' findings labelled
 over-engineering and duplication and the folders touched per `feat` commit (`tools/structure_metrics.py`). Compare
 features with it before changing the workflow.
+
+Since DEC-110, when the owner asks what is next in a new session and says whether the answer was right, Claude adds
+one comment to issue #24 (`gh issue comment 24 --body "<line>"` locally, the GitHub tools in a cloud session):
+
+```
+Re-entry | <yyyy-mm-dd> | <local or cloud> | <pass or fail> | missed: <the items the answer left out or got wrong, or none>
+```
+
+When the owner has to remind Claude of an item already discussed, or an old item comes back as a new one, Claude adds
+`Reminder | <yyyy-mm-dd> | <local or cloud> | <the item>`. These lines count M2 and M1 of DEC-110 (7); when DEC-110 is
+evaluated (DEC-110 (7)), Claude takes M3 and M4 from `git log -p origin/main -- docs/STATUS.md` after `git fetch`.
 
 ## CI/CD pipeline (DEC-100 (8))
 
