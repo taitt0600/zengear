@@ -18,24 +18,18 @@ public sealed class BusinessLocationShopService(ZenGearDbContext db, IValidator<
     {
         await pageValidator.ValidateAndThrowAsync(page, cancellationToken);
 
-        var locations = db.BusinessLocations.AsNoTracking();
-        var rows = await locations
+        var rows = db.BusinessLocations.AsNoTracking()
             .OrderBy(b => b.Name)
-            .Skip(page.Skip)
-            .Take(page.PageSize)
             .Select(b => new
             {
                 Location = b,
                 ProvinceName = db.Provinces.Where(p => p.Id == b.ProvinceId).Select(p => p.Name).First(),
                 WardName = db.Wards.Where(w => w.Id == b.WardId).Select(w => w.Name).First(),
-            })
-            .ToListAsync(cancellationToken);
+            });
 
-        // A first page that is not full holds every row: no COUNT (Phase 1 has one row).
-        var total = page.Page == 1 && rows.Count < page.PageSize ? rows.Count : await locations.CountAsync(cancellationToken);
         var today = clock.Today;
-        var items = rows.Select(r => ToDto(r.Location, r.WardName, r.ProvinceName, today)).ToList();
-        return new PagedDto<BusinessLocationShopDto>(items, page.Page, page.PageSize, total);
+        return await PagedQuery.ToPagedDtoAsync(rows, page, r => ToDto(r.Location, r.WardName, r.ProvinceName, today),
+            cancellationToken);
     }
 
     private static BusinessLocationShopDto ToDto(BusinessLocation location, string wardName, string provinceName, DateOnly today)

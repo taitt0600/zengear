@@ -111,7 +111,7 @@ ZenGear.Services/
 │  ├─ Models/            requests and DTOs of every list endpoint (PageRequest, PagedDto<T>)
 │  ├─ Validators/        their validators
 │  ├─ Utilities/         pure static functions used by two or more areas
-│  └─ IClock and Clock, BusinessRuleException, AdvisoryLockKeys
+│  └─ IClock and Clock, BusinessRuleException, AdvisoryLockKeys, PagedQuery
 └─ DependencyInjection.cs
 ZenGear.Data/
 ├─ Common/               building blocks shared by every area's entities, configurations and migrations:
@@ -145,6 +145,7 @@ Where a name still decides the folder:
 | security log, log masking (`SecurityLog`, `SensitivePropertyMasker`) | `ZenGear.Api/Logging` |
 | environment and pipeline set-up that is not a `*Setup` (`BuildTimeDocumentGeneration`, `AudienceRoutePrefixConvention`), a one-off command of the host (`bootstrap-admin`, DEC-096) | `ZenGear.Api/Hosting` |
 | requests and DTOs shared by every list endpoint (`PageRequest`, `PagedDto<T>`: list endpoints return `PagedDto<T>`, never a page DTO per entity; a generic DTO lives only there), and their validators | `ZenGear.Services/Common/Models`, `ZenGear.Services/Common/Validators` |
+| `PagedQuery`: the paging of every list endpoint, an ordered query to `PagedDto<T>` (DEC-109); a static class for the list endpoints of every area, not a `*Query` class of rule 5 | `ZenGear.Services/Common` |
 | every other type of an area: `*Service`, `*Query`, `*Job`, `*Request`, `*Dto`, `*Validator` (the FluentValidation validator of one request; other checks are named after what they check), enums and records | `ZenGear.Services/<Area>/<Module>`, or the mechanism folder it belongs to |
 | `*Utility`: static, pure (values in, values out; no framework, database or DI), used by two or more areas; a pure function of one area is a static class of that area named after what it computes (`AverageCostCalculator`) | `ZenGear.Services/Common/Utilities` |
 | entity | `ZenGear.Data/Entities/<Area>` |
@@ -168,7 +169,7 @@ Services are split by audience and by use case, as DTOs are (rule 3): `<Entity>S
 - No `Helpers`, `Interfaces`, `Dtos`, `Mappings`, `Repositories`, `Jobs`, `BackgroundServices`, `Models`, `Validators` or `Enums` folder in an area of `ZenGear.Services`; `Utilities` only in `ZenGear.Services/Common`; no type named `*Helper` or `*Manager`.
 - No type is added without a caller in the same change.
 
-Tests mirror the folders of the code they test: `ZenGear.Services.Tests/<Area>/<Module>` (and `Data/` for `ZenGear.Data`), `ZenGear.Api.IntegrationTests/<Area>/<Module>` for the endpoints of a module and `ZenGear.Api.IntegrationTests/<Api folder>` for the pipeline (`Authorization/`, `ExceptionHandling/`, `Logging/`), with shared fixtures in `Infrastructure/`. A test that covers two modules sits with the module of the rule it proves. The assembly-wide NUnit `[SetUpFixture]` classes (`PostgresContainer`, `RedisContainer`) stay at the root of their project: NUnit applies a set-up fixture only to tests in its namespace and below. `ZenGear.Services.Tests` asserts that the AutoMapper configuration of every DTO is valid.
+Tests mirror the folders of the code they test: `ZenGear.Services.Tests/<Area>/<Module>` (and `Data/` for `ZenGear.Data`), `ZenGear.Api.IntegrationTests/<Area>/<Module>` for the endpoints of a module, `ZenGear.Api.IntegrationTests/<Api folder>` for the pipeline (`Authorization/`, `ExceptionHandling/`, `Logging/`) and `ZenGear.Api.IntegrationTests/Common` for code of `ZenGear.Services/Common` that needs the database (`PagedQuery`), with shared fixtures in `Infrastructure/`. A test that covers two modules sits with the module of the rule it proves. The assembly-wide NUnit `[SetUpFixture]` classes (`PostgresContainer`, `RedisContainer`) stay at the root of their project: NUnit applies a set-up fixture only to tests in its namespace and below. `ZenGear.Services.Tests` asserts that the AutoMapper configuration of every DTO is valid.
 
 ### Evolution thresholds
 
