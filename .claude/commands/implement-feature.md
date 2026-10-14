@@ -13,23 +13,28 @@ DEC-099 marked **Checkpoint** below (two here, one in `/finish-feature`); withou
    pull request:
    - `git fetch origin main` and `git switch -c feat/<id in lowercase> origin/main`. Never `main`. `git status`
      shows no change.
-   - The feature is a row of `docs/blueprint/features.md`; for every feature in its Depends On column,
-     `python3 tools/pr_gates.py coverage <ID>` exits 0 (every rule has a test, so it is implemented).
+   - The feature is a row of `docs/blueprint/features.md`, and every Feature ID in its Depends On column is done
+     (an Epic name there is not checked). A feature is done when a merged `feat` pull request ends its title with
+     `(<ID>)`: `gh pr list --state merged --search "<ID> in:title" --json number,title` gives candidates only; keep
+     the titles that match `^feat(\([^)]*\))?!?:.*\(<ID>\)$`. And `python3 tools/pr_gates.py coverage <ID>` exits 0,
+     which is necessary, not sufficient (DEC-110 (1)).
    - `dotnet --version` is the SDK of `api/global.json`, `dotnet tool restore` succeeds, `docker info` answers
      (the integration tests start PostgreSQL with Testcontainers), `pwsh -v` answers (without PowerShell 7 the
      hooks of `.claude/settings.json` do not run, and nothing guards the specification) and `postman --version`
      answers (the Postman CLI, `docs/ACCEPTANCE.md`).
 2. **Read** the feature dossier: `python3 tools/feature_context.py <ID> --out out/feature-<ID>.md` (skill
    `feature-context`), then `out/feature-<ID>.md`. It holds the row of the feature in `docs/blueprint/features.md`,
-   its use cases, every rule of its Rules column (implementation rules — R-DB-, R-TX-, R-NOT-, R-AUD-, R-SEC-07,
-   R-ORD-12, R-REC- — from `docs/blueprint/technical-design.md`, section 8), the decisions they cite, its rows of
-   `docs/GLOSSARY.md` and the `docs/DATABASE.md` section of each table its rules touch. Then read the owning area of
+   its rows of `docs/STATUS.md` (section *Work state*: a Next row keyed by its ID, a Waiting row triggered
+   `before <ID>`), its use cases, every rule of its Rules column (implementation rules — R-DB-, R-TX-, R-NOT-,
+   R-AUD-, R-SEC-07, R-ORD-12, R-REC- — from `docs/blueprint/technical-design.md`, section 8), the decisions they
+   cite, its rows of `docs/GLOSSARY.md` and the `docs/DATABASE.md` section of each table its rules touch. Then read the owning area of
    each table in `docs/ARCHITECTURE.md`. Open a source document only for what the dossier does not hold; a rule the
    dossier reports as not found is a Needs decision item (step 4). When the code the feature touches is unfamiliar,
    the agent `feature-dev:code-explorer` may map it first (entry points, call paths, the tests that cover it).
 3. **Plan**: endpoints (per `docs/API_CONVENTIONS.md`), service methods, entity methods, migrations if any, one or
-   more tests per rule, the Postman scenarios (one per acceptance criterion, a refusal per rule) and the open
-   questions sorted by the policy of step 4. Give the plan and the path `out/feature-<ID>.md` to the
+   more tests per rule, the Postman scenarios (one per acceptance criterion, a refusal per rule), how each row of
+   the dossier's *Work state* section is handled (done in this pull request, or a Needs decision item of step 4)
+   and the open questions sorted by the policy of step 4. Give the plan and the path `out/feature-<ID>.md` to the
    `plan-reviewer` agent and fix every Blocking and Should fix item; repeat until it answers READY, at most three
    rounds. A Blocking item left after three rounds becomes a Needs decision item. Keep the final verdict and the
    number of its findings labelled `[over-engineering]` and `[duplication]`, over all rounds, for the report.
@@ -81,5 +86,6 @@ DEC-099 marked **Checkpoint** below (two here, one in `/finish-feature`); withou
    - From `web/`: `npm run gen:api`, then pages and components in the matching `features/<area>`.
    - `npm run lint` and `npm run build`.
 8. Run `/finish-feature` with the Feature ID (and `--checkpoints` when it was given), the plan verdict and its
-   counts of `[over-engineering]` and `[duplication]` findings, the decisions made and the Needs decision items: it verifies, commits, opens the pull request, follows CI, has the owner test
-   the feature before merge and reports.
+   counts of `[over-engineering]` and `[duplication]` findings, the decisions made, the Needs decision items and
+   how the plan handled each Work state row (step 3): it verifies, commits, opens the pull request, follows CI,
+   has the owner test the feature before merge and reports.

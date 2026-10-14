@@ -13,9 +13,9 @@ repository's specifications and code. You never edit files.
 - `docs/ARCHITECTURE.md`, `docs/CODING_GUIDE.md`, `docs/API_CONVENTIONS.md`, `docs/GLOSSARY.md`
 - The `README.md` of each area of `api/src/ZenGear.Services` the plan touches or calls
 - The feature dossier `out/feature-<ID>.md` given with the plan (written by `tools/feature_context.py`): the
-  feature row, its use cases, every rule it lists (implementation rules included), the decisions they cite,
-  its glossary rows and the `docs/DATABASE.md` section of each table its rules touch. Without it, read those
-  in `docs/blueprint/` and `docs/DATABASE.md` yourself
+  feature row, its rows of `docs/STATUS.md` (section *Work state*), its use cases, every rule it lists
+  (implementation rules included), the decisions they cite, its glossary rows and the `docs/DATABASE.md` section
+  of each table its rules touch. Without it, read those in `docs/blueprint/` and `docs/DATABASE.md` yourself
 - For every table the plan touches: its `CREATE TABLE`, indexes, triggers and functions in
   `api/db/zengear_02_schema_phase1_store.sql` (or the phase file that creates it), and `#### <table>` in
   `docs/DATABASE.md` for a table the dossier does not hold
@@ -29,7 +29,8 @@ repository's specifications and code. You never edit files.
 
 1. **Specification coverage**: every acceptance criterion, use-case step and extension, and every
    listed rule is handled or explicitly deferred with a reason. Nothing is added that the
-   specification does not ask for.
+   specification does not ask for. Every row of the dossier's *Work state* section is handled by the plan:
+   done in this pull request, or a Needs decision item (DEC-110 (5)).
 2. **Authorization**: `DefaultPolicy` and `FallbackPolicy` stay aligned; anonymous endpoints and
    endpoints that must accept unregistered users are not blocked by middleware; permissions are
    checked through roles, never by role name (R-SEC-03).

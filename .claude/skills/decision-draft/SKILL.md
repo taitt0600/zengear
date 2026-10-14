@@ -36,6 +36,9 @@ in Vietnamese; every cell of the row is in Vietnamese, in the style of the rows 
 5. **Rows that change with it**: for each feature or rule, its ID, the column, the current text and the new text; a
    new rule as a full row of `docs/blueprint/business-rules.md`:
    Rule ID | Rule | Type | Static/Dynamic | Enforced At | Source | Features | Tables | Phase.
+   Then, as a separate list marked **not in the patch**, the exact lines of `docs/STATUS.md` that the Decision
+   settles: its Next row, when the owner had postponed applying it, and the Waiting rows it settles (CLAUDE.md,
+   *Work state*). The owner deletes them at step 8.4.
 6. **The patch**, every row and cell change of steps 4 and 5 as JSON for `tools/blueprint_apply.py` (its docstring
    has the format):
    ```json
@@ -61,10 +64,13 @@ in Vietnamese; every cell of the row is in Vietnamese, in the style of the rows 
       problem and writes nothing (ask for a new draft, or fall back to pasting the tab line of step 4 and making the
       changes of step 5 by hand, then `python tools/export_blueprint.py docs/product-domain-blueprint-MVP.xlsx docs/blueprint`).
    3. Open the workbook in Excel once to look at the new rows, then close it without saving.
-   4. `git status --short` lists the workbook and only the exported files the change explains, and
+   4. Delete from `docs/STATUS.md` the rows of the list "not in the patch" (step 5), each found by its Key or
+      Trigger cell: its other text may have changed on `main` since the draft.
+   5. `git status --short` lists the workbook, only the exported files the change explains and `docs/STATUS.md`
+      when step 8.4 changed it, and
       `python -c "l=open('docs/blueprint/decisions.md',encoding='utf-8').read().splitlines()[-1]; print(l.startswith('| DEC-0xx |'))"`
       prints `True`.
-   5. Commit the workbook and the exported files with the message of step 7.
-   6. `python tools/pr_gates.py check origin/main HEAD "<subject>"` prints `PR gates passed`.
-   7. `git push -u origin docs/dec-0xx`, open `https://github.com/taitt0600/zengear/pull/new/docs/dec-0xx` with the
+   6. Commit the workbook, the exported files and `docs/STATUS.md` with the commit message of step 7.
+   7. `python tools/pr_gates.py check origin/main HEAD "<subject>"` prints `PR gates passed`.
+   8. `git push -u origin docs/dec-0xx`, open `https://github.com/taitt0600/zengear/pull/new/docs/dec-0xx` with the
       subject as title, and merge with **Rebase and merge** once every check passes.

@@ -16,7 +16,9 @@ facts you are given. You never edit files.
   Postman runs (requests run, tests passed and failed, for the folder and for the whole collection) and, for a
   report, the owner's answer to the test (Đạt, Có lỗi or Để sau, and the minutes).
 - The feature dossier `out/feature-<ID>.md`: acceptance criteria, rules (implementation rules included), use cases,
-  decisions.
+  decisions, and the feature's rows of `docs/STATUS.md` (section *Work state*).
+- The guide and the report start with the line `<!-- finish-feature -->`, which marks the comments `/finish-feature`
+  posts; it is expected, not a finding.
 - The folder `postman/collections/ZenGear/<ID>/`: its `*.request.yaml` files (description, account in
   `X-ZenGear-As`, body, `afterResponse` tests) and `.resources/definition.yaml`; `postman/environments/` and
   `postman/fixtures/`.
