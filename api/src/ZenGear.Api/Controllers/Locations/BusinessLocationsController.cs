@@ -73,15 +73,9 @@ public sealed class BusinessLocationsController(BusinessLocationService location
     public async Task<ActionResult<BusinessLocationDto>> Update(Guid id, BusinessLocationUpdateRequest request,
         [FromHeader(Name = "If-Match")] string? ifMatch, CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(ifMatch))
+        if (!this.TryReadIfMatch(ifMatch, "/api/v1/admin/business-locations/{id}", out var version, out var refusal))
         {
-            return Problem(statusCode: StatusCodes.Status428PreconditionRequired, type: "/problems/if-match-required",
-                title: "If-Match required", detail: "Send the ETag of GET /api/v1/admin/business-locations/{id} in the If-Match header.");
-        }
-
-        if (!ETagExtensions.TryParseIfMatch(ifMatch, out var version))
-        {
-            return Problem(statusCode: StatusCodes.Status412PreconditionFailed);
+            return refusal;
         }
 
         if (await locations.UpdateAsync(id, version, request, User.GetUserId(), cancellationToken) is not { } location)

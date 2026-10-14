@@ -53,15 +53,9 @@ public sealed class MeController(CurrentUserService currentUsers) : ControllerBa
     public async Task<ActionResult<CurrentUserDto>> Update(CurrentUserUpdateRequest request,
         [FromHeader(Name = "If-Match")] string? ifMatch, CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(ifMatch))
+        if (!this.TryReadIfMatch(ifMatch, "/api/v1/admin/me", out var version, out var refusal))
         {
-            return Problem(statusCode: StatusCodes.Status428PreconditionRequired, type: "/problems/if-match-required",
-                title: "If-Match required", detail: "Send the ETag of GET /api/v1/admin/me in the If-Match header.");
-        }
-
-        if (!ETagExtensions.TryParseIfMatch(ifMatch, out var version))
-        {
-            return Problem(statusCode: StatusCodes.Status412PreconditionFailed);
+            return refusal;
         }
 
         var user = await currentUsers.UpdateAsync(User.GetUserId(), version, request, cancellationToken);
