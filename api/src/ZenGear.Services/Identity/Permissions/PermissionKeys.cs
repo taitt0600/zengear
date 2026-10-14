@@ -17,4 +17,13 @@ public static class PermissionKeys
 
     /// <summary>Read the edit form of the business location and change it (LOC-01).</summary>
     public const string BusinessLocationUpdate = "business_location.update";
+
+    /// <summary>Read the brands (PRD-02).</summary>
+    public const string BrandRead = "brand.read";
+
+    /// <summary>Create a brand (PRD-02).</summary>
+    public const string BrandCreate = "brand.create";
+
+    /// <summary>Rename, retire and restore a brand (PRD-02).</summary>
+    public const string BrandUpdate = "brand.update";
 }
