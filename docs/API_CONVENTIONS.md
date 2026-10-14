@@ -14,7 +14,7 @@ The OpenAPI document `api/openapi/ZenGear.Api.json` is generated from the contro
 - Actions that are not CRUD are sub-resources named after the business command: `POST /api/v1/admin/orders/{id}/confirm`, `POST /api/v1/admin/shifts/{id}/close`.
 - No personal data in URLs or query strings (phone, email); send it in the body.
 - Infrastructure rules (CDN cache, rate limit, WAF) allow-list `/api/v1/shop/*`; they are never written as "everything except `/api/v1/admin/`", so a route that misses its prefix is never cached or opened by mistake.
-- A breaking change gets a new version prefix. Moving every route under the two prefixes stayed in `v1` (DEC-106): its only callers were the Postman collection and the tests, changed with it.
+- A breaking change gets a new version prefix. Moving every route under the two prefixes stayed in `v1` (DEC-106, DEC-107 (4)): its only callers were the Postman collection and the tests, changed with it.
 
 ## Requests and responses
 
@@ -76,7 +76,7 @@ The fallback and default authorization policies require a registered, ACTIVE use
 
 - `[RequirePermission("resource.action")]`: the permission must be granted through one of the caller's roles, never checked by role name (R-SEC-03).
 - `[AnyRegisteredUser]`: any registered, ACTIVE user.
-- `[ShopEndpoint]` on a `*ShopController`: every action of it is anonymous. No other controller carries it, and `[AllowAnonymous]` is not used on the controllers of `ZenGear.Api`; the access-surface tests of `ZenGear.Api.IntegrationTests` check both. `[ShopEndpoint]` holds only the anonymous access: the shop's rate limit and output cache come with their own Decision before the storefront is deployed (the owner's decision D1, which differs from DEC-106 (6)).
+- `[ShopEndpoint]` on a `*ShopController`: every action of it is anonymous. No other controller carries it, and `[AllowAnonymous]` is not used on the controllers of `ZenGear.Api`; the access-surface tests of `ZenGear.Api.IntegrationTests` check both. `[ShopEndpoint]` holds only the anonymous access: the shop's rate limit and output cache come with their own Decision before the storefront is deployed (DEC-107 (1), which amends DEC-106 (6)).
 
 `/health`, the OpenAPI document and Scalar are minimal-API endpoints outside `/api/v1`, mapped with `AllowAnonymous()`.
 

@@ -3,24 +3,26 @@
 How to write and judge the backend code of ZenGear, for Claude Code and for the owner coding by hand (offline, or
 without access to Claude). `docs/ARCHITECTURE.md` says *where* code goes and which rules the architecture tests
 enforce; this guide says *how* to write it and how to choose when principles pull in different directions.
-Decision: DEC-106.
+Decision: DEC-106, amended by DEC-107.
 
-> **Status**: the pull requests of DEC-106 below are merged (2 and 3 as one) and every section applies. These points
-> differ from DEC-106; one later `/decision-draft` amends it with all of them:
+> **Status**: the pull requests of DEC-106 below are merged (2 and 3 as one) and every section applies. DEC-107
+> amends DEC-106 with these points, among others:
 >
 > - `[ShopEndpoint]` holds only the anonymous access. The shop's rate limit and output cache come with their own
 >   Decision before the storefront is deployed: the limits need real traffic, and a cached list of business locations
->   must not serve the opening hours of the day before after midnight in Asia/Ho_Chi_Minh (owner's decision D1).
+>   must not serve the opening hours of the day before after midnight in Asia/Ho_Chi_Minh (DEC-107 (1)).
 > - Refactor B added `GET /api/v1/admin/business-locations`, from which SCR-LOC-01 reads the id of the location
->   (owner's decision D2).
+>   (DEC-107 (2)).
 > - Two controllers keep the name of their resource, not of their service (`MeController` calls `CurrentUserService`,
->   `BusinessLocationsController` calls `BusinessLocationService`): renaming them changes the OpenAPI tags again.
-> - The paging rule is not shared yet (DEC-106 (8)): the staff list answers its paging errors with `ruleId` R-USR-13
->   and its own messages, while the `PageRequest` validator of `Common` names no rule. Sharing it needs a rule-builder
->   in `Common` that takes the caller's code, a new kind of type that `docs/ARCHITECTURE.md` asks about first.
+>   `BusinessLocationsController` calls `BusinessLocationService`): renaming them changes the OpenAPI tags again
+>   (DEC-107 (3)).
+> - The paging rule is not shared yet (DEC-106 (8), DEC-107 (5)): the staff list answers its paging errors with
+>   `ruleId` R-USR-13 and its own messages, while the `PageRequest` validator of `Common` names no rule. Sharing it
+>   needs a rule-builder in `Common` that takes the caller's code, a new kind of type that `docs/ARCHITECTURE.md` asks
+>   about first.
 > - The route and anonymous-access checks of DEC-106 (6) are tests of `ZenGear.Api.IntegrationTests`
 >   (`Authorization/AccessSurfaceTests`), not of `ZenGear.ArchitectureTests`: they read the routes the host builds
->   after the route prefix convention has run.
+>   after the route prefix convention has run (DEC-107 (6)).
 >
 > Refactor B renamed the shop side of DEC-097 (`BusinessLocationPublicService` became `BusinessLocationShopService`).
 > `docs/ARCHITECTURE.md` keeps a short name-to-folder table for the technical folders that DEC-106 (1) keeps.
