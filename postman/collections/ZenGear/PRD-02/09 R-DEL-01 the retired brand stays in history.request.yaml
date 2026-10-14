@@ -1,0 +1,20 @@
+$kind: http-request
+description: |-
+  R-DEL-01: the retired brand is still there for history, in the list of retired brands (isActive=false), which stays
+  short since request 11 restores the brand of each run.
+method: GET
+url: '{{baseUrl}}/api/v1/admin/brands?isActive=false&pageSize=100'
+order: 9000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 200', () => pm.response.to.have.status(200));
+      const brand = pm.response.json().items.find(b => b.id === pm.variables.get('brandId'));
+      pm.test('listed, retired', () => {
+        pm.expect(brand).to.be.an('object');
+        pm.expect(brand.isActive).to.eql(false);
+      });
