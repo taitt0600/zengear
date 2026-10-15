@@ -1,0 +1,11 @@
+$kind: http-request
+description: |-
+  A request without a token gets no permission list: 401.
+method: GET
+url: '{{baseUrl}}/api/v1/admin/me'
+order: 5000
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 401', () => pm.response.to.have.status(401));

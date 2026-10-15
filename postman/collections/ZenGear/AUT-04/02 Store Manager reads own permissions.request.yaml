@@ -1,0 +1,20 @@
+$kind: http-request
+description: |-
+  AUT-04, R-SEC-03: the Store Manager sees only the keys of its own roles: staff.read, and not
+  business_location.update, which stays with the Admin (LOC-01).
+method: GET
+url: '{{baseUrl}}/api/v1/admin/me'
+order: 2000
+headers:
+  - key: X-ZenGear-As
+    value: '{{managerEmail}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 200', () => pm.response.to.have.status(200));
+      const me = pm.response.json();
+      pm.test('the Store Manager', () => pm.expect(me.email).to.eql(pm.variables.get('managerEmail')));
+      pm.test('contains staff.read', () => pm.expect(me.permissions).to.include('staff.read'));
+      pm.test('does not contain business_location.update', () =>
+        pm.expect(me.permissions).to.not.include('business_location.update'));
