@@ -4,7 +4,7 @@ REST over HTTPS, JSON, served by `ZenGear.Api`.
 
 ## Contract
 
-The OpenAPI document `api/openapi/ZenGear.Api.json` is generated from the controllers at build time and committed. The web app generates its TypeScript types from it (`docs/FRONTEND.md`). Every endpoint declares its response types and Problem Details responses so the document is complete.
+The OpenAPI document `api/openapi/ZenGear.Api.json` is generated from the controllers at build time and committed. The web app generates its TypeScript types from it (`docs/FRONTEND.md`). Every endpoint declares its response types and Problem Details responses so the document is complete. What attributes cannot say is added by the transformers of `OpenApiSetup`: the `ETag` response header of every 200 and 201 whose body is a versioned resource (a DTO with a `[JsonIgnore] uint Version`), beside the `If-Match` request header of its updates, and the `enum` values of a query parameter that a validator restricts (`status` and `sort` of `GET /api/v1/admin/staff`), kept as strings in C# so that a wrong value still gets the 400 of its rule.
 
 ## URLs
 
@@ -85,6 +85,17 @@ The fallback and default authorization policies require a registered, ACTIVE use
 A token for no ZenGear account gets 403 `/problems/account-not-registered`. A registered user without the permission gets 403 `/problems/permission-denied` with `ruleId` `R-SEC-03`. The scope of the permission (NONE = all data, SELF = the caller's own data) is read with `HttpContext.GetUserAccess()`.
 
 Security-sensitive operations (changing the password) need a recent sign-in: when the `auth_time` of the ID token is more than 5 minutes old the API returns 403 with `type` `/problems/recent-login-required`; the web signs the user in again with Firebase and retries (DEC-094).
+
+## CORS
+
+The web calls the API from another origin (DEC-104 (9)). One CORS policy, set up by `CorsSetup` and run before HTTPS redirection and authentication, applies to every route: `/api/v1/admin/`, `/api/v1/shop/`, `/health` and the OpenAPI document, existing or not. A preflight is answered there without a token and never redirected, and every answer to an allowed origin, a 401, 403, 4xx or 500 Problem Details included, carries `Access-Control-Allow-Origin`, so the web reads its body and `ruleId`.
+
+- **Origins**: the list `Cors:AllowedOrigins` (`WebClientCorsOptions`): `http://localhost:3000` in Development (`appsettings.Development.json`), empty in every other environment until the web deploys, so no cross-origin call is allowed there; then set per environment with `Cors__AllowedOrigins__0`, `__1`, …; configuration merges a list by index, so `__0` replaces the first entry of `appsettings`, it does not add one. Each entry is an origin as the browser sends it: `http` or `https`, lower case, without path, trailing slash or default port. `*`, a wildcard host or any other entry stops the API at start-up; `AllowAnyOrigin` is never used. The preview origins of Vercel stay for later, with the rest of DEC-104's deployment.
+- **Methods**: `GET`, `POST`, `PUT`, `PATCH`, `DELETE`.
+- **Request headers**: `Authorization`, `Content-Type`, `If-Match`, `Idempotency-Key`.
+- **Exposed headers**: `ETag` and `Location`, which the web reads from JavaScript.
+- **No credentials**: the web sends a Bearer token, never a cookie, so `Access-Control-Allow-Credentials` is never sent.
+- **Preflight max age**: 10 minutes.
 
 ## Health
 
