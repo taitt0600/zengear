@@ -86,6 +86,77 @@ namespace ZenGear.Data.Migrations
                     b.ToTable("brands", (string)null);
                 });
 
+            modelBuilder.Entity("ZenGear.Data.Entities.Catalog.ProductSeries", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("uuidv7()");
+
+                    b.Property<Guid>("BrandId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("brand_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("varchar")
+                        .HasColumnName("name");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasColumnType("varchar")
+                        .HasColumnName("slug");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("updated_by");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_product_series");
+
+                    b.HasIndex("BrandId")
+                        .HasDatabaseName("ix_product_series_brand_id");
+
+                    b.HasIndex("Slug")
+                        .IsUnique()
+                        .HasDatabaseName("ix_product_series_slug");
+
+                    b.HasIndex("Id", "BrandId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_product_series_id_brand_id");
+
+                    b.ToTable("product_series", (string)null);
+                });
+
             modelBuilder.Entity("ZenGear.Data.Entities.Geography.Country", b =>
                 {
                     b.Property<int>("Id")
@@ -733,6 +804,16 @@ namespace ZenGear.Data.Migrations
 
                             t.HasCheckConstraint("ck_business_locations_special_hours", "special_hours is null or jsonb_typeof(special_hours) = 'array'");
                         });
+                });
+
+            modelBuilder.Entity("ZenGear.Data.Entities.Catalog.ProductSeries", b =>
+                {
+                    b.HasOne("ZenGear.Data.Entities.Catalog.Brand", null)
+                        .WithMany()
+                        .HasForeignKey("BrandId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_product_series_brands_brand_id");
                 });
 
             modelBuilder.Entity("ZenGear.Data.Entities.Geography.Province", b =>
