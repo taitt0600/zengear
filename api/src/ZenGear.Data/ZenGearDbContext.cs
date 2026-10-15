@@ -41,6 +41,8 @@ public class ZenGearDbContext : DbContext
 
     public DbSet<Brand> Brands => Set<Brand>();
 
+    public DbSet<ProductSeries> ProductSeries => Set<ProductSeries>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ZenGearDbContext).Assembly);
