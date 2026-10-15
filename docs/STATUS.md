@@ -15,8 +15,10 @@ flight, what is done and how this file changes: `CLAUDE.md`, *Work state*.
 
 | Trigger | Item | Source |
 |---|---|---|
-| before PRD-01 | Decision: where code shared by the modules of an area goes (`CatalogSlug`, for the third module of Catalog) | DEC-109 (2) |
+| before PRD-01 | Decision: where code shared by the modules of an area goes (`CatalogSlug` and `CatalogNameValidator` in `Catalog/Brands`, for the third module of Catalog) | DEC-109 (2) |
+| before PRD-01 | Decision: a shared `If-Match` version check in `Common` (copied in `BusinessLocationService`, `CurrentUserService`, `BrandService` and `ProductSeriesService`; a new `Common` type changes `docs/ARCHITECTURE.md`) | `docs/CODING_GUIDE.md`, section 1 item 3; code-reviewer of the product series pull request |
 | before PRD-05 | Decision: TAX-01 first, or PRD-05 creates the tax tables (`products.tax_class_id` is NOT NULL and no migration creates `tax_classes` yet) | `docs/DATABASE.md`, `#### products` |
+| before PRD-05 | The update of a product series refuses moving it to another brand while products reference it (UC-013 extension 3a, R-PRD-07); `fk_products_product_series_series_id` will refuse it in the database once `products` is migrated | DEC-108; `docs/blueprint/use-cases.md`, UC-013 |
 | before AUT-02 | Decision: change `[ShopEndpoint]` for the endpoints of a signed-in customer | DEC-107 (1) |
 | before PAY-02 | Decision: change `[ShopEndpoint]` for the payment callbacks (VNPay IPN) | DEC-107 (1) |
 | storefront deploy | Decision: rate limit and output cache of `/api/v1/shop/` | DEC-107 (1) |
