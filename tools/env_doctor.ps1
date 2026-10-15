@@ -2,8 +2,8 @@
 # database set-up of api/CLAUDE.md ("Local database"), the user-secrets and the running API.
 # Usage, from anywhere: pwsh -NoProfile -File tools/env_doctor.ps1 [-Json]
 # Prints one row per check (PASS, WARN, FAIL or SKIP) with the fix to try; exit code 1 when a check fails.
-# Changes nothing. Never prints a secret: user-secrets are reported by key name only, their values are
-# dropped as soon as they are read.
+# Changes nothing. Never prints a secret: user-secrets are reported by key name only; the only value compared is
+# the host of ConnectionStrings:Redis, and the values are dropped once the secrets are checked.
 param([switch]$Json)
 $ErrorActionPreference = 'Continue'
 $root = Split-Path -Parent $PSScriptRoot
@@ -94,9 +94,10 @@ if (-not $postgres) {
     }
 }
 
-# 4. User-secrets of ZenGear.Api: key names only.
-$keys = @(dotnet user-secrets list --project (Join-Path $root 'api/src/ZenGear.Api') 2>$null |
-    Where-Object { $_ -match ' = ' } | ForEach-Object { ($_ -split ' = ', 2)[0].Trim() })
+# 4. User-secrets of ZenGear.Api: key names only, and the host of the Redis one (never printed).
+$secretLines = @(dotnet user-secrets list --project (Join-Path $root 'api/src/ZenGear.Api') 2>$null |
+    Where-Object { $_ -match ' = ' })
+$keys = @($secretLines | ForEach-Object { ($_ -split ' = ', 2)[0].Trim() })
 foreach ($key in 'ConnectionStrings:ZenGear', 'ConnectionStrings:ZenGearMigrations', 'ConnectionStrings:Redis') {
     $k = $key
     # Without Redis every request reads PostgreSQL: slower, still correct (R-SEC-07).
@@ -104,6 +105,17 @@ foreach ($key in 'ConnectionStrings:ZenGear', 'ConnectionStrings:ZenGearMigratio
     Check "Secret $k is set" { $keys -contains $k } `
         "dotnet user-secrets set `"$k`" `"<value>`" --project api/src/ZenGear.Api (api/CLAUDE.md, Local database)." $level
 }
+$redisLine = $secretLines | Where-Object { ($_ -split ' = ', 2)[0].Trim() -eq 'ConnectionStrings:Redis' } | Select-Object -First 1
+if ($redisLine) {
+    # The endpoint of a StackExchange.Redis configuration is its part without '='. localhost resolves to ::1 first, which
+    # api/docker-compose.yml does not publish, and Windows refuses it after the API's connect timeout: the cache stays off (#69).
+    $endpoint = ((($redisLine -split ' = ', 2)[1]) -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ -notmatch '=' } |
+        Select-Object -First 1)
+    $redisHost = if ($endpoint) { ($endpoint -split ':')[0] } else { '' }
+    Check 'Secret ConnectionStrings:Redis names 127.0.0.1' { $redisHost -eq '127.0.0.1' } `
+        'dotnet user-secrets set "ConnectionStrings:Redis" "127.0.0.1:6379" --project api/src/ZenGear.Api (localhost resolves to ::1 first, where Redis is not published; api/CLAUDE.md, Local database).' 'WARN'
+}
+$secretLines = $null; $redisLine = $null; $endpoint = $null
 
 # 5. The API started from Visual Studio or `dotnet run` (profile http).
 Check 'API answers http://localhost:5256/health' {
