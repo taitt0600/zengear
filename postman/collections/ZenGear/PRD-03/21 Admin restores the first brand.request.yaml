@@ -1,0 +1,23 @@
+$kind: http-request
+description: |-
+  Clean-up: brand A of this run is restored, so the list of retired brands that PRD-02 reads stays short.
+method: PUT
+url: '{{baseUrl}}/api/v1/admin/brands/{{brandAId}}'
+order: 21000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+  - key: Content-Type
+    value: 'application/json'
+  - key: If-Match
+    value: '*'
+body:
+  type: json
+  content: |-
+    { "name": "1 Hãng A {{run}}", "isActive": true }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 200', () => pm.response.to.have.status(200));
+      pm.test('brand A active again', () => pm.expect(pm.response.json().isActive).to.eql(true));

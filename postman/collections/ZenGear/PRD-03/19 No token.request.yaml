@@ -1,0 +1,11 @@
+$kind: http-request
+description: |-
+  The product series are for signed-in staff: no token is 401.
+method: GET
+url: '{{baseUrl}}/api/v1/admin/product-series'
+order: 19000
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 401', () => pm.response.to.have.status(401));

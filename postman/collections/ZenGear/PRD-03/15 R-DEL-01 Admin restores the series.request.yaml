@@ -1,0 +1,23 @@
+$kind: http-request
+description: |-
+  R-DEL-01, UC-013: a retired series is restored with isActive true and is in use again.
+method: PUT
+url: '{{baseUrl}}/api/v1/admin/product-series/{{seriesId}}'
+order: 15000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+  - key: Content-Type
+    value: 'application/json'
+  - key: If-Match
+    value: '{{etag}}'
+body:
+  type: json
+  content: |-
+    { "name": "0 Dòng Đổi Tên {{run}}", "brandId": "{{brandBId}}", "isActive": true }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 200', () => pm.response.to.have.status(200));
+      pm.test('active again', () => pm.expect(pm.response.json().isActive).to.eql(true));

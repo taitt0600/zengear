@@ -1,0 +1,23 @@
+$kind: http-request
+description: |-
+  The slug of a series is unique across brands (ix_product_series_slug, the owner's decision for PRD-03): the same
+  name in other case and without marks, in brand B, is refused (409 /problems/product-series-already-exists).
+method: POST
+url: '{{baseUrl}}/api/v1/admin/product-series'
+order: 5000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+  - key: Content-Type
+    value: 'application/json'
+body:
+  type: json
+  content: |-
+    { "name": "0 DONG THU {{run}}", "brandId": "{{brandBId}}" }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 409', () => pm.response.to.have.status(409));
+      pm.test('problem type /problems/product-series-already-exists', () =>
+        pm.expect(pm.response.json().type).to.eql('/problems/product-series-already-exists'));

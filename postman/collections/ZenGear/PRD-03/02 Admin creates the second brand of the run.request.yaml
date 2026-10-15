@@ -1,0 +1,22 @@
+$kind: http-request
+description: |-
+  Set-up: a second brand, its id kept as `brandBId`, to show that series slugs are unique across brands (05) and that
+  a series moves to another brand (09).
+method: POST
+url: '{{baseUrl}}/api/v1/admin/brands'
+order: 2000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+  - key: Content-Type
+    value: 'application/json'
+body:
+  type: json
+  content: |-
+    { "name": "1 Hãng B {{run}}" }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 201', () => pm.response.to.have.status(201));
+      pm.variables.set('brandBId', pm.response.json().id);

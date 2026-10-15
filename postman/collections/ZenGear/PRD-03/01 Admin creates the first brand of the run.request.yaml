@@ -1,0 +1,25 @@
+$kind: http-request
+description: |-
+  Set-up (UC-012 precondition: the brand exists): a brand for the series of this run, its id kept as `brandAId`.
+method: POST
+url: '{{baseUrl}}/api/v1/admin/brands'
+order: 1000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+  - key: Content-Type
+    value: 'application/json'
+body:
+  type: json
+  content: |-
+    { "name": "1 Hãng A {{run}}" }
+scripts:
+  - type: beforeRequest
+    language: text/javascript
+    code: |-
+      pm.variables.set('run', Date.now().toString(36));
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 201', () => pm.response.to.have.status(201));
+      pm.variables.set('brandAId', pm.response.json().id);

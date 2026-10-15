@@ -1,0 +1,23 @@
+$kind: http-request
+description: |-
+  Set-up for 17: brand A of this run is retired (PRD-02); 21 restores it.
+method: PUT
+url: '{{baseUrl}}/api/v1/admin/brands/{{brandAId}}'
+order: 16000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+  - key: Content-Type
+    value: 'application/json'
+  - key: If-Match
+    value: '*'
+body:
+  type: json
+  content: |-
+    { "name": "1 Hãng A {{run}}", "isActive": false }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 200', () => pm.response.to.have.status(200));
+      pm.test('brand A retired', () => pm.expect(pm.response.json().isActive).to.eql(false));
