@@ -101,6 +101,14 @@
         "responses": {
           "200": {
             "description": "OK",
+            "headers": {
+              "ETag": {
+                "description": "Version of the resource; send it back in If-Match to change it.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -186,6 +194,14 @@
         "responses": {
           "200": {
             "description": "OK",
+            "headers": {
+              "ETag": {
+                "description": "Version of the resource; send it back in If-Match to change it.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -322,6 +338,14 @@
         "responses": {
           "200": {
             "description": "OK",
+            "headers": {
+              "ETag": {
+                "description": "Version of the resource; send it back in If-Match to change it.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -388,6 +412,14 @@
         "responses": {
           "200": {
             "description": "OK",
+            "headers": {
+              "ETag": {
+                "description": "Version of the resource; send it back in If-Match to change it.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -609,6 +641,10 @@
             "in": "query",
             "description": "ACTIVE or DISABLED; both when left out.",
             "schema": {
+              "enum": [
+                "ACTIVE",
+                "DISABLED"
+              ],
               "type": "string"
             }
           },
@@ -626,6 +662,14 @@
             "in": "query",
             "description": "name (default, Vietnamese order), -name, employeeCode, -employeeCode, joinedDate or -joinedDate; empty codes and dates come last.",
             "schema": {
+              "enum": [
+                "-employeeCode",
+                "-joinedDate",
+                "-name",
+                "employeeCode",
+                "joinedDate",
+                "name"
+              ],
               "type": "string"
             }
           },
@@ -1075,6 +1119,14 @@
         "responses": {
           "201": {
             "description": "Created",
+            "headers": {
+              "ETag": {
+                "description": "Version of the resource; send it back in If-Match to change it.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -1145,6 +1197,14 @@
         "responses": {
           "200": {
             "description": "OK",
+            "headers": {
+              "ETag": {
+                "description": "Version of the resource; send it back in If-Match to change it.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -1230,6 +1290,14 @@
         "responses": {
           "200": {
             "description": "OK",
+            "headers": {
+              "ETag": {
+                "description": "Version of the resource; send it back in If-Match to change it.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -1433,6 +1501,14 @@
         "responses": {
           "201": {
             "description": "Created",
+            "headers": {
+              "ETag": {
+                "description": "Version of the resource; send it back in If-Match to change it.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -1503,6 +1579,14 @@
         "responses": {
           "200": {
             "description": "OK",
+            "headers": {
+              "ETag": {
+                "description": "Version of the resource; send it back in If-Match to change it.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -1588,6 +1672,14 @@
         "responses": {
           "200": {
             "description": "OK",
+            "headers": {
+              "ETag": {
+                "description": "Version of the resource; send it back in If-Match to change it.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
