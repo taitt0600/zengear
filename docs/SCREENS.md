@@ -15,8 +15,8 @@ only the shape of the input (required, length, format) with the limits below, wh
 - **Text**: every label, message and button comes from `web/messages/vi.json` (next-intl). The texts quoted below
   are the Vietnamese wording for that file; terms of `docs/GLOSSARY.md` keep its Vietnamese label.
 - **Access**: a staff screen needs a signed-in staff account; the permission of each screen is the one its endpoints
-  require. Menus and buttons the user's permissions do not allow are hidden (`GET /api/v1/admin/me`), and the API still
-  answers 403 (see *Known gaps*, 1).
+  require. Menus and buttons the user's permissions do not allow are hidden (`permissions` of `GET /api/v1/admin/me`,
+  the user's own permission keys; never a role name), and the API still answers 403.
 - **Errors**: a 400 validation problem puts each message of `errors` under its form field and keeps what was typed;
   any other problem shows the message of its `type` (table of each screen) in a toast, or `detail` when the type has
   no message; `ruleId` is never shown. 401 signs the user out to the sign-in page; 403
@@ -37,19 +37,20 @@ only the shape of the input (required, length, format) with the limits below, wh
 
 | ID | Screen | Route | Part | Feature | Permission | Blocked by |
 |---|---|---|---|---|---|---|
-| SCR-ADM-01 | Admin layout and menu | `/admin` (layout) | Admin | AUT-04 | signed-in staff | Web shell, gaps 1 and 4 |
-| SCR-AUT-01 | Staff sign-in | `/admin/sign-in` | Admin | AUT-01 | — | Web shell, gap 4 |
-| SCR-AUT-02 | Required password change | `/admin/change-password` | Admin | STF-03 | signed-in staff | Web shell, gap 4 |
-| SCR-ACC-01 | My account | `/admin/account` | Admin | STF-03 | signed-in staff | Web shell, gaps 1 and 4 |
-| SCR-STF-01 | Staff list | `/admin/staff` | Admin | STF-05 | `staff.read` | Web shell, gaps 1 and 4 (role filter: gap 2) |
-| SCR-STF-02 | New staff account | `/admin/staff/new` | Admin | STF-01 | `staff.create` | Web shell, gaps 1, 2 and 4 |
-| SCR-STF-03 | Staff account | `/admin/staff/[id]` | Admin | STF-01, STF-02 | `staff.read`; actions `staff.disable` | Web shell, gaps 1 and 4 |
-| SCR-LOC-01 | Business location | `/admin/settings/business-location` | Admin | LOC-01 | `business_location.update` | Web shell, gaps 1, 3 and 4 |
+| SCR-ADM-01 | Admin layout and menu | `/admin` (layout) | Admin | AUT-04 | signed-in staff | Web shell |
+| SCR-AUT-01 | Staff sign-in | `/admin/sign-in` | Admin | AUT-01 | — | Web shell |
+| SCR-AUT-02 | Required password change | `/admin/change-password` | Admin | STF-03 | signed-in staff | Web shell |
+| SCR-ACC-01 | My account | `/admin/account` | Admin | STF-03 | signed-in staff | Web shell |
+| SCR-STF-01 | Staff list | `/admin/staff` | Admin | STF-05 | `staff.read` | Web shell (role filter: gap 2) |
+| SCR-STF-02 | New staff account | `/admin/staff/new` | Admin | STF-01 | `staff.create` | Web shell, gap 2 |
+| SCR-STF-03 | Staff account | `/admin/staff/[id]` | Admin | STF-01, STF-02 | `staff.read`; actions `staff.disable` | Web shell |
+| SCR-LOC-01 | Business location | `/admin/settings/business-location` | Admin | LOC-01 | `business_location.update` | Web shell, gap 3 |
 
-The order of DEC-104 holds: the tooling pull request (package checks, the job `web-test`), then the API pull request
-(gap 4), then the web shell (`web/` set up with SCR-ADM-01); until then no screen is built, even with its API ready.
-Every admin screen also sits inside SCR-ADM-01, which needs gap 1. The POS and the storefront have no screen yet:
-their features (catalog, stock, orders) have no API.
+The order of DEC-111 (7), which split the one tooling pull request of DEC-104: the API pull request for the web (gaps 1
+and 4) comes before or beside the three tooling pull requests T1 (package gate), T2 (CI and hooks) and T3 (Claude Code
+tools), which the owner opens and merges; the web shell (`web/` set up with SCR-ADM-01) comes after T1 and T2. Until
+the web shell, no screen is built, even with its API ready. Every admin screen sits inside SCR-ADM-01. The POS and
+the storefront have no screen yet: their features (catalog, stock, orders) have no API.
 
 ---
 
@@ -262,18 +263,20 @@ the title says "Website, phiếu in và email dùng thông tin này."
 ## Known gaps
 
 What the API does not offer yet for the screens above. A screen whose row names a gap is built once the gap is closed.
+A closed gap keeps its number, since other lines refer to it.
 
-1. **Permissions of the signed-in user.** `GET /api/v1/admin/me` returns `id`, `name`, `email`, `isStaff` and
-   `mustChangePassword`, but not the user's permissions, which `docs/FRONTEND.md` (Authentication) says the web uses
-   to hide menus and buttons. Needed: the permission keys of the user in the answer of `GET /api/v1/admin/me` (AUT-04),
-   before SCR-ADM-01.
+1. **Permissions of the signed-in user** — closed. `GET` and `PATCH /api/v1/admin/me` return `permissions`: the
+   permission keys the user's roles grant, sorted, without scope or role names (AUT-04, R-SEC-03). The web uses them
+   only to hide menus and buttons (`docs/FRONTEND.md`, Authentication); a change of roles shows at the next call.
 2. **Roles to choose from.** No endpoint lists the roles: SCR-STF-02 cannot offer them and SCR-STF-01 cannot filter by
    role. Comes with AUT-05 (Manage Role & Permission).
 3. **Provinces and wards.** No endpoint lists provinces and their wards, and no feature describes one; the official
    list of Quyết định 19/2025/QĐ-TTg is not seeded (`api/seed/README.md`) and not in the repository yet; development
    has only the sample rows of `postman/fixtures/LOC-01.sql`. SCR-LOC-01 cannot offer the selects. The address
    book (ACC-02) and the checkout will need the same list. Needs a Decision.
-4. **Contract for the web** (DEC-104): CORS exposing `ETag` and `Location`, the `ETag` response header in the OpenAPI
-   document (`If-Match` is already there), and `enum` values for `status` and `sort` of `GET /api/v1/admin/staff`.
+4. **Contract for the web** (DEC-104 (9)) — closed. CORS lets the origins of `Cors:AllowedOrigins` call every route
+   and read `ETag` and `Location` (`docs/API_CONVENTIONS.md`, CORS); the OpenAPI document declares the `ETag`
+   response header of every versioned resource beside its `If-Match`, and the `enum` values of `status` and `sort` of
+   `GET /api/v1/admin/staff`.
 5. **Changing a staff member's email.** No endpoint changes it, while UC-007 (2a) and R-USR-04 say the Admin does it in the
    staff management of STF-01, whose feature row has no such criterion; SCR-ACC-01 only points the staff member to the Admin. Needs a feature or a Decision when the Admin must do it.
