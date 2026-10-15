@@ -1,0 +1,17 @@
+$kind: collection
+name: PRD-03
+description: |-
+  PRD-03 — the staff manages the product series: each series belongs to exactly one brand; create, read, rename, move
+  to another brand, retire and restore; a series is never deleted, and a retired brand takes no new series (UC-012,
+  UC-013; R-DEL-01; DEC-022). R-PRD-07 (a product's series has the product's brand) is tested with the products of
+  PRD-05, not here (DEC-108).
+
+  Needs tools/dev_reset.ps1 first: the Admin owner@zengear.test (bootstrap-admin, DEC-096) runs requests 01–17 and 21,
+  the customer customer.fixture@zengear.test of postman/fixtures/STF-03.sql, who holds no permission, shows the
+  refusal of R-SEC-03 in 18, and the Store Manager manager.fixture@zengear.test of postman/fixtures/STF-01.sql creates
+  a series in 20 with the grant the startup sync gives its role (the owner's decision for PRD-03). Requests 01 and 02
+  create two brands named after the run id `run` (ids kept as `brandAId`, `brandBId`); 21 restores the brand 16
+  retires, so the folder runs again without a reset.
+
+  Emulator only: the requests sign in with emulator custom tokens (see the collection description).
+order: 7000

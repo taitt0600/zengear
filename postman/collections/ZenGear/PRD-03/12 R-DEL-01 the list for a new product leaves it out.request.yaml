@@ -1,0 +1,20 @@
+$kind: http-request
+description: |-
+  R-DEL-01, UC-012 step 4: the series a new product of brand B can take (brandId and isActive=true) leave the retired
+  series out.
+method: GET
+url: '{{baseUrl}}/api/v1/admin/product-series?brandId={{brandBId}}&isActive=true&pageSize=100'
+order: 12000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 200', () => pm.response.to.have.status(200));
+      const items = pm.response.json().items;
+      pm.test('only active series of brand B', () =>
+        pm.expect(items.every(s => s.isActive && s.brandId === pm.variables.get('brandBId'))).to.eql(true));
+      pm.test('the retired series is not listed', () =>
+        pm.expect(items.map(s => s.id)).to.not.include(pm.variables.get('seriesId')));

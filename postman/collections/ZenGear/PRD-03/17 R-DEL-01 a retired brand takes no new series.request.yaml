@@ -1,0 +1,24 @@
+$kind: http-request
+description: |-
+  R-DEL-01: the screens that create data offer only the records in use, so a series in a retired brand is refused
+  (409 /problems/brand-retired, ruleId R-DEL-01).
+method: POST
+url: '{{baseUrl}}/api/v1/admin/product-series'
+order: 17000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+  - key: Content-Type
+    value: 'application/json'
+body:
+  type: json
+  content: |-
+    { "name": "0 Dòng Hãng Ngừng {{run}}", "brandId": "{{brandAId}}" }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 409', () => pm.response.to.have.status(409));
+      pm.test('problem type /problems/brand-retired', () =>
+        pm.expect(pm.response.json().type).to.eql('/problems/brand-retired'));
+      pm.test('ruleId R-DEL-01', () => pm.expect(pm.response.json().ruleId).to.eql('R-DEL-01'));

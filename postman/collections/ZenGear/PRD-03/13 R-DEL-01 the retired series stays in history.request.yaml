@@ -1,0 +1,19 @@
+$kind: http-request
+description: |-
+  R-DEL-01: the retired series is still there for history, in the retired series of brand B (a brand of this run).
+method: GET
+url: '{{baseUrl}}/api/v1/admin/product-series?brandId={{brandBId}}&isActive=false'
+order: 13000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 200', () => pm.response.to.have.status(200));
+      const series = pm.response.json().items.find(s => s.id === pm.variables.get('seriesId'));
+      pm.test('listed, retired', () => {
+        pm.expect(series).to.be.an('object');
+        pm.expect(series.isActive).to.eql(false);
+      });

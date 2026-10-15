@@ -1,0 +1,25 @@
+$kind: http-request
+description: |-
+  UC-013 step 2: the series moves to brand B and still belongs to exactly one brand (acceptance criterion 1). The
+  check against its products comes with PRD-05 (R-PRD-07, DEC-108).
+method: PUT
+url: '{{baseUrl}}/api/v1/admin/product-series/{{seriesId}}'
+order: 9000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+  - key: Content-Type
+    value: 'application/json'
+  - key: If-Match
+    value: '{{etag}}'
+body:
+  type: json
+  content: |-
+    { "name": "0 Dòng Đổi Tên {{run}}", "brandId": "{{brandBId}}", "isActive": true }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 200', () => pm.response.to.have.status(200));
+      pm.variables.set('etag', pm.response.headers.get('ETag'));
+      pm.test('of brand B', () => pm.expect(pm.response.json().brandId).to.eql(pm.variables.get('brandBId')));

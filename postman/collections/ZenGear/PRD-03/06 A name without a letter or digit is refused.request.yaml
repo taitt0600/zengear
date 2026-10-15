@@ -1,0 +1,21 @@
+$kind: http-request
+description: |-
+  A name must give a slug: one without a Latin letter or digit is a validation error (400, errors.name).
+method: POST
+url: '{{baseUrl}}/api/v1/admin/product-series'
+order: 6000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+  - key: Content-Type
+    value: 'application/json'
+body:
+  type: json
+  content: |-
+    { "name": "!!!", "brandId": "{{brandAId}}" }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 400', () => pm.response.to.have.status(400));
+      pm.test('the error is on name', () => pm.expect(pm.response.json().errors).to.have.property('name'));
