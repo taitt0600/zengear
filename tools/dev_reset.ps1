@@ -87,7 +87,7 @@ foreach ($key in 'ConnectionStrings:ZenGearMigrations', 'ConnectionStrings:ZenGe
 }
 $redis = if ($secrets.ContainsKey('ConnectionStrings:Redis')) { Get-HostPort $secrets['ConnectionStrings:Redis'] 6379 } else { $null }
 if ($redis -and ($redis.Host -notin $LocalHosts -or $redis.Port -ne $Ports.Redis)) {
-    Stop-With 2 "ConnectionStrings:Redis does not point to the Redis of api/docker-compose.yml (localhost:$($Ports.Redis))."
+    Stop-With 2 "ConnectionStrings:Redis does not point to the Redis of api/docker-compose.yml (127.0.0.1:$($Ports.Redis))."
 }
 foreach ($value in $emulatorValues) {
     $emulator = Get-HostPort $value $Ports.Emulator
