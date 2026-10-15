@@ -79,6 +79,13 @@ public sealed class RedisConnection : IAsyncDisposable
 
             var multiplexer = await ConnectionMultiplexer.ConnectAsync(configuration);
             multiplexer.ConnectionRestored += (_, _) => ConnectionRestored?.Invoke();
+            if (!multiplexer.IsConnected)
+            {
+                // AbortOnConnectFail = false returns a client that keeps reconnecting: say so, without the connection
+                // string, or the cache stays off without a trace.
+                _logger.LogWarning("Redis is not reachable: the access cache is off and every request reads PostgreSQL until it connects");
+            }
+
             return multiplexer;
         }
         catch (Exception exception)

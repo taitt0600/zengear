@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Net;
+using Microsoft.Extensions.Logging;
 using Shouldly;
 using ZenGear.Api.IntegrationTests.Infrastructure;
 
@@ -30,6 +31,17 @@ public class AccessCacheRedisUnavailableTests : IntegrationTestBase
         var refused = await TimedGetAsync("/api/v1/admin/test/permission");
         await refused.Response.ShouldBeForbiddenProblemAsync("/problems/account-disabled", "R-SEC-04");
         refused.Elapsed.ShouldBeLessThan(TimeSpan.FromSeconds(1));
+    }
+
+    [Test]
+    public async Task R_SEC_07_unreachable_redis_is_logged_without_the_connection_string()
+    {
+        await TestUsers.InsertAsync(Uid);
+
+        (await TimedGetAsync("/api/v1/admin/test/me")).Response.StatusCode.ShouldBe(HttpStatusCode.OK);
+
+        await Factory.RedisLogs.WhenLoggedAsync(e => e.Level == LogLevel.Warning && e.Message.Contains("access cache is off"));
+        Factory.RedisLogs.Entries.ShouldAllBe(e => !e.Message.Contains("127.0.0.1:1"));
     }
 
     private async Task<(HttpResponseMessage Response, TimeSpan Elapsed)> TimedGetAsync(string path)

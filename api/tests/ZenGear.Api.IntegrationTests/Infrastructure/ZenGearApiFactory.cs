@@ -8,6 +8,7 @@ using Microsoft.Extensions.Time.Testing;
 using ZenGear.Api.Extensions;
 using ZenGear.Api.Logging;
 using ZenGear.Data.Externals.Auth;
+using ZenGear.Data.Externals.Redis;
 using ZenGear.Services.Identity.Account;
 using ZenGear.Services.Identity.StaffAccounts;
 
@@ -37,6 +38,9 @@ public class ZenGearApiFactory(string environment = AuthenticationSetup.TestingE
     /// <summary>Log entries of the staff services (Serilog replaces the logger factory, so they are captured by type).</summary>
     public InMemoryLoggerProvider StaffLogs { get; } = new();
 
+    /// <summary>Log entries of the Redis connection.</summary>
+    public InMemoryLoggerProvider RedisLogs { get; } = new();
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment(environment);
@@ -59,6 +63,8 @@ public class ZenGearApiFactory(string environment = AuthenticationSetup.TestingE
             services.AddSingleton<ILogger<StaffBootstrapService>>(new Logger<StaffBootstrapService>(staffLogs));
             services.AddSingleton<ILogger<CurrentUserService>>(new Logger<CurrentUserService>(staffLogs));
             services.AddSingleton<ILogger<StaffStatusService>>(new Logger<StaffStatusService>(staffLogs));
+            services.AddSingleton<ILogger<RedisConnection>>(
+                new Logger<RedisConnection>(LoggerFactory.Create(logging => logging.AddProvider(RedisLogs))));
             services.AddControllers().AddApplicationPart(typeof(ZenGearApiFactory).Assembly);
         });
     }
