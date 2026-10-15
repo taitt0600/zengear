@@ -42,6 +42,7 @@ if (!BuildTimeDocumentGeneration.IsActive)
 }
 builder.Services.AddZenGearProblemDetails();
 builder.Services.AddFirebaseJwtBearer(builder.Environment);
+builder.Services.AddZenGearCors();
 
 // Enums as their stored string values, no naming policy; [JsonStringEnumMemberName] where they differ.
 builder.Services.AddControllers(options =>
@@ -64,6 +65,7 @@ if (BootstrapAdminCommand.IsRequested(args))
 app.UseExceptionHandler();
 app.UseStatusCodePages();
 app.UseSerilogRequestLogging();
+app.UseZenGearCors();
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseActiveUser();
