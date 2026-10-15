@@ -1,0 +1,18 @@
+$kind: http-request
+description: |-
+  R-SEC-03: the list only hides menus; the API refuses the Store Manager, who lacks business_location.update, on the
+  business locations whatever the web shows.
+method: GET
+url: '{{baseUrl}}/api/v1/admin/business-locations'
+order: 4000
+headers:
+  - key: X-ZenGear-As
+    value: '{{managerEmail}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 403', () => pm.response.to.have.status(403));
+      const problem = pm.response.json();
+      pm.test('permission denied', () => pm.expect(problem.type).to.eql('/problems/permission-denied'));
+      pm.test('rule R-SEC-03', () => pm.expect(problem.ruleId).to.eql('R-SEC-03'));

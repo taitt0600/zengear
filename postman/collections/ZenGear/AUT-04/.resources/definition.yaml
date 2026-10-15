@@ -1,0 +1,18 @@
+$kind: collection
+name: AUT-04
+description: |-
+  AUT-04 — `GET /api/v1/admin/me` gives the signed-in user's own permission keys (`permissions`), which the web uses
+  only to hide the menus and buttons the user may not use; the API still checks every permission (R-SEC-03). Gap 1
+  of docs/SCREENS.md.
+
+  Needs tools/dev_reset.ps1 first: the Admin owner@zengear.test (bootstrap-admin, DEC-096), the Store Manager
+  manager.fixture@zengear.test (postman/fixtures/STF-01.sql) and the customer customer.fixture@zengear.test
+  (postman/fixtures/STF-03.sql). The folder changes nothing, so it runs again without a reset. The permission catalog
+  grows with every feature: the checks are "contains" and "does not contain", never an exact list, except the empty
+  list of the customer (request 03), whose role gets keys only through code.
+
+  Not checked here, covered by the integration tests of api/tests (CurrentUserTests, CorsTests): the ordinal order and
+  the union of several roles, `PATCH /api/v1/admin/me`, a change of roles seen at the next call, and CORS (a browser
+  preflight is not a Postman request). Emulator only: the requests sign in with emulator custom tokens (see the
+  collection description).
+order: 8000

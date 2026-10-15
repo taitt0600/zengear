@@ -1,0 +1,19 @@
+$kind: http-request
+description: |-
+  AUT-04, R-SEC-03: the customer's role (Customer) grants no permission, so `permissions` is an empty list. The one
+  exact check of the folder: Customer is a system role whose keys are set in code (PermissionCatalog, DEC-095), so
+  the feature that first grants it a key changes this request.
+method: GET
+url: '{{baseUrl}}/api/v1/admin/me'
+order: 3000
+headers:
+  - key: X-ZenGear-As
+    value: '{{customerEmail}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 200', () => pm.response.to.have.status(200));
+      const me = pm.response.json();
+      pm.test('the customer', () => pm.expect(me.email).to.eql(pm.variables.get('customerEmail')));
+      pm.test('permissions is an empty list', () => pm.expect(me.permissions).to.eql([]));
