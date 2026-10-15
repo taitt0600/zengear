@@ -135,10 +135,12 @@ public class StaffStatusTests
     {
         var manager = new PermissionCatalog().Roles.Single(r => r.RoleName == "Store Manager");
 
-        // STF-02: staff.read and staff.disable; PRD-02: the three brand keys. Anything else is a new owner decision.
+        // STF-02: staff.read and staff.disable; PRD-02: the three brand keys; PRD-03: the three product series keys.
+        // Anything else is a new owner decision.
         manager.PermissionKeys.ShouldBe(
             [PermissionKeys.StaffRead, PermissionKeys.StaffDisable, PermissionKeys.BrandRead, PermissionKeys.BrandCreate,
-                PermissionKeys.BrandUpdate],
+                PermissionKeys.BrandUpdate, PermissionKeys.ProductSeriesRead, PermissionKeys.ProductSeriesCreate,
+                PermissionKeys.ProductSeriesUpdate],
             ignoreOrder: true);
         manager.IsSystemRole.ShouldBeFalse();
     }

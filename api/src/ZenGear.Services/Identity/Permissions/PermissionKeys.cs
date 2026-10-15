@@ -26,4 +26,13 @@ public static class PermissionKeys
 
     /// <summary>Rename, retire and restore a brand (PRD-02).</summary>
     public const string BrandUpdate = "brand.update";
+
+    /// <summary>Read the product series (PRD-03).</summary>
+    public const string ProductSeriesRead = "product_series.read";
+
+    /// <summary>Create a product series (PRD-03).</summary>
+    public const string ProductSeriesCreate = "product_series.create";
+
+    /// <summary>Rename, move to another brand, retire and restore a product series (PRD-03).</summary>
+    public const string ProductSeriesUpdate = "product_series.update";
 }
