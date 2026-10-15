@@ -20,24 +20,34 @@ public sealed class CurrentUserService(
     /// <summary>How old the sign-in behind a password change may be (DEC-094).</summary>
     public static readonly TimeSpan RecentSignInWindow = TimeSpan.FromMinutes(5);
 
-    public Task<CurrentUserDto> GetAsync(Guid userId, CancellationToken cancellationToken) =>
-        db.Users
+    /// <param name="permissionKeys">The keys the caller's roles grant, as authorization read them for this request
+    /// (<see cref="UserAccess.Permissions"/>); returned sorted, never queried again.</param>
+    public async Task<CurrentUserDto> GetAsync(Guid userId, IEnumerable<string> permissionKeys,
+        CancellationToken cancellationToken)
+    {
+        var user = await db.Users
             .AsNoTracking()
             .Where(u => u.Id == userId)
-            .Select(u => new CurrentUserDto(
+            .Select(u => new
+            {
                 u.Id,
                 u.Name,
                 u.Email,
-                u.StaffProfile != null,
-                u.StaffProfile != null && u.StaffProfile.MustChangePassword,
-                u.Version))
+                IsStaff = u.StaffProfile != null,
+                MustChangePassword = u.StaffProfile != null && u.StaffProfile.MustChangePassword,
+                u.Version,
+            })
             .SingleAsync(cancellationToken);
+        return new CurrentUserDto(user.Id, user.Name, user.Email, user.IsStaff, user.MustChangePassword,
+            [.. permissionKeys.Order(StringComparer.Ordinal)], user.Version);
+    }
 
     /// <summary>Changes the display name of the signed-in user, staff or customer (R-USR-04).</summary>
+    /// <param name="permissionKeys">As for <see cref="GetAsync"/>.</param>
     /// <param name="expectedVersion">The <c>If-Match</c> version; null for <c>If-Match: *</c>.</param>
     /// <exception cref="DbUpdateConcurrencyException">The account changed since <paramref name="expectedVersion"/>.</exception>
-    public async Task<CurrentUserDto> UpdateAsync(Guid userId, uint? expectedVersion, CurrentUserUpdateRequest request,
-        CancellationToken cancellationToken)
+    public async Task<CurrentUserDto> UpdateAsync(Guid userId, IEnumerable<string> permissionKeys, uint? expectedVersion,
+        CurrentUserUpdateRequest request, CancellationToken cancellationToken)
     {
         await updateValidator.ValidateAndThrowAsync(request, cancellationToken);
 
@@ -55,7 +65,7 @@ public sealed class CurrentUserService(
 
         user.Rename(request.Name!, userId, clock.UtcNow);
         await db.SaveChangesAsync(cancellationToken);
-        return await GetAsync(userId, cancellationToken);
+        return await GetAsync(userId, permissionKeys, cancellationToken);
     }
 
     /// <summary>

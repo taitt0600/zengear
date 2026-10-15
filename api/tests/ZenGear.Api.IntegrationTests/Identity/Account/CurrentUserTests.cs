@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using Shouldly;
 using ZenGear.Api.IntegrationTests.Infrastructure;
@@ -312,7 +313,94 @@ public class CurrentUserTests : IntegrationTestBase
         await ShouldHaveChangedNothingAsync();
     }
 
+    // ---- permissions of GET / PATCH /me (R-SEC-03: the web hides what the user may not do; the API still checks) ----
+
+    [Test]
+    public async Task R_SEC_03_me_lists_the_keys_of_every_role_once_in_ordinal_order()
+    {
+        var userId = await TestUsers.InsertAsync("uid-staff-2");
+        var manager = await TestRoles.InsertAsync("Store Manager");
+        var cashier = await TestRoles.InsertAsync("Cashier", scopingType: "SELF");
+        await TestRoles.AssignAsync(userId, manager);
+        await TestRoles.AssignAsync(userId, cashier);
+        await TestRoles.GrantAsync(manager, "staff.read");
+        await TestRoles.GrantAsync(manager, "brand.read");
+        await TestRoles.GrantAsync(cashier, "staff.read");
+        await TestRoles.GrantAsync(cashier, "order.confirm");
+
+        var body = await JsonAsync(await SendAsync(HttpMethod.Get, MePath, Token("uid-staff-2")));
+
+        PermissionsOf(body).ShouldBe(["brand.read", "order.confirm", "staff.read"]);
+        body.EnumerateObject().Select(p => p.Name)
+            .ShouldBe(["id", "name", "email", "isStaff", "mustChangePassword", "permissions"], ignoreOrder: true);
+    }
+
+    [Test]
+    public async Task R_SEC_03_me_of_a_user_without_roles_lists_no_permission()
+    {
+        await TestUsers.InsertAsync(CustomerUid, isStaff: false);
+
+        var body = await JsonAsync(await SendAsync(HttpMethod.Get, MePath, Token(CustomerUid)));
+
+        body.GetProperty("permissions").ValueKind.ShouldBe(JsonValueKind.Array);
+        PermissionsOf(body).ShouldBeEmpty();
+    }
+
+    [Test]
+    public async Task R_SEC_03_patch_me_returns_the_same_keys_as_get()
+    {
+        var userId = await TestUsers.InsertAsync("uid-staff-2");
+        var role = await TestRoles.InsertAsync("Store Manager");
+        await TestRoles.AssignAsync(userId, role);
+        await TestRoles.GrantAsync(role, "staff.read");
+        await TestRoles.GrantAsync(role, "brand.update");
+        var read = await SendAsync(HttpMethod.Get, MePath, Token("uid-staff-2"));
+
+        var renamed = await RenameAsync("uid-staff-2", new { name = "Trần Thị Bình" }, read.Headers.ETag!.Tag);
+
+        renamed.StatusCode.ShouldBe(HttpStatusCode.OK);
+        PermissionsOf(await JsonAsync(renamed)).ShouldBe(PermissionsOf(await JsonAsync(read)));
+        PermissionsOf(await JsonAsync(renamed)).ShouldBe(["brand.update", "staff.read"]);
+    }
+
+    [Test]
+    public async Task R_SEC_03_me_shows_a_role_change_on_the_next_call()
+    {
+        var userId = await TestUsers.InsertAsync("uid-staff-2");
+        var kept = await TestRoles.InsertAsync("Store Manager");
+        var removed = await TestRoles.InsertAsync("Cashier");
+        await TestRoles.AssignAsync(userId, kept);
+        await TestRoles.AssignAsync(userId, removed);
+        await TestRoles.GrantAsync(kept, "staff.read");
+        await TestRoles.GrantAsync(removed, "brand.read");
+        await TestRoles.GrantAsync(await TestRoles.InsertAsync("Accountant"), "staff.disable"); // the permission row
+        // Two calls: the first records the sign-in and bumps the user version, the second is served from the cache.
+        (await PermissionsAsync("uid-staff-2")).ShouldBe(["brand.read", "staff.read"]);
+        (await PermissionsAsync("uid-staff-2")).ShouldBe(["brand.read", "staff.read"]);
+
+        // Through EF, so AccessCacheInvalidationInterceptor bumps the user and the role after the commit (R-SEC-07).
+        await Factory.WithDbAsync(async db =>
+        {
+            db.UserRoles.Remove(await db.UserRoles.SingleAsync(ur => ur.UserId == userId && ur.RoleId == removed));
+            var role = await db.Roles.Include(r => r.RolePermissions).SingleAsync(r => r.Id == kept);
+            role.GrantPermission((await db.Permissions.SingleAsync(p => p.Key == "staff.disable")).Id);
+            await db.SaveChangesAsync();
+        });
+
+        (await PermissionsAsync("uid-staff-2")).ShouldBe(["staff.disable", "staff.read"]);
+    }
+
     // ---- helpers ----
+
+    private static string[] PermissionsOf(JsonElement body) =>
+        [.. body.GetProperty("permissions").EnumerateArray().Select(key => key.GetString()!)];
+
+    private async Task<string[]> PermissionsAsync(string uid)
+    {
+        var response = await SendAsync(HttpMethod.Get, MePath, Token(uid));
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        return PermissionsOf(await JsonAsync(response));
+    }
 
     /// <summary>The token's lifetime follows the real clock (JWT validation); its <c>auth_time</c> the API's fake clock.</summary>
     private string Token(string uid, DateTimeOffset? authTime = null) =>
