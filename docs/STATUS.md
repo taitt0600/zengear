@@ -7,7 +7,7 @@ flight, what is done and how this file changes: `CLAUDE.md`, *Work state*.
 
 | Key | Item | Who | Source |
 |---|---|---|---|
-| web-tooling-dec | Decision amending DEC-104 before its tooling: the tooling in three pull requests, missing packages, `resolved` of web/package-lock.json, where shadcn is pinned, the playwright plugin and Dependabot with the web shell | cloud `/decision-draft`, then the owner | DEC-104; the pull request that adds this row |
+| web-tooling-dec | Decision amending DEC-104 before its tooling: the tooling in three pull requests, missing packages, `resolved` of web/package-lock.json, where shadcn is pinned, the playwright plugin and Dependabot with the web shell | cloud `/decision-draft`, then the owner | DEC-104; pull request #65 (the findings) |
 | web-tooling | Tooling of DEC-104 in three pull requests: gates, CI and hooks, Claude Code tools | local, owner path | DEC-104; the Decision of row `web-tooling-dec` |
 | web-api | API for the web: gaps 1 and 4 | local | `docs/SCREENS.md`, *Known gaps* |
 | web-shell | `web/` set up with SCR-ADM-01, then the screens whose API exists | local | DEC-104; the Decision of row `web-tooling-dec`; `docs/SCREENS.md`, *Screen list* |
