@@ -39,6 +39,18 @@ public class BrandRequestValidatorTests
         UpdateIsValid(new string('a', 101)).ShouldBeFalse();
     }
 
+    // The shared name check reports on the request's field, which the API returns as errors.name.
+    [TestCase(null)]
+    [TestCase("   ")]
+    [TestCase("!!!")]
+    public void A_refused_name_is_reported_on_the_name(string? name)
+    {
+        new BrandCreateRequestValidator().Validate(new BrandCreateRequest(name!)).Errors
+            .ShouldHaveSingleItem().PropertyName.ShouldBe(nameof(BrandCreateRequest.Name));
+        new BrandUpdateRequestValidator().Validate(new BrandUpdateRequest(name!, IsActive: true)).Errors
+            .ShouldHaveSingleItem().PropertyName.ShouldBe(nameof(BrandUpdateRequest.Name));
+    }
+
     [Test]
     public void An_update_without_is_active_is_refused() =>
         new BrandUpdateRequestValidator().Validate(new BrandUpdateRequest("ASUS", IsActive: null)).IsValid.ShouldBeFalse();
