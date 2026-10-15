@@ -11,8 +11,16 @@ namespace ZenGear.Api.Controllers.Identity;
 public sealed class MeController(CurrentUserService currentUsers) : ControllerBase
 {
     /// <summary>
+    /// The keys authorization reads for this request; ActiveUserMiddleware sets them for every registered ACTIVE user,
+    /// the only callers <see cref="AnyRegisteredUserAttribute"/> lets in.
+    /// </summary>
+    private IEnumerable<string> PermissionKeys => HttpContext.GetUserAccess()!.Permissions.Keys;
+
+    /// <summary>
     /// The signed-in user; called by the web right after Firebase sign-in (AUT-01). The <c>ETag</c> header is the
     /// version of the account (<c>users</c>), sent back in <c>If-Match</c> by <c>PATCH /api/v1/admin/me</c>.
+    /// <c>permissions</c> lists the user's own permission keys, for the web to hide what the user may not use; every
+    /// endpoint still checks its permission (R-SEC-03). A change of roles shows at the next call.
     /// </summary>
     /// <response code="401">Missing or invalid Firebase ID token.</response>
     /// <response code="403">
@@ -26,7 +34,7 @@ public sealed class MeController(CurrentUserService currentUsers) : ControllerBa
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden, "application/problem+json")]
     public async Task<CurrentUserDto> Get(CancellationToken cancellationToken)
     {
-        var user = await currentUsers.GetAsync(User.GetUserId(), cancellationToken);
+        var user = await currentUsers.GetAsync(User.GetUserId(), PermissionKeys, cancellationToken);
         Response.SetETag(user.Version);
         return user;
     }
@@ -58,7 +66,7 @@ public sealed class MeController(CurrentUserService currentUsers) : ControllerBa
             return refusal;
         }
 
-        var user = await currentUsers.UpdateAsync(User.GetUserId(), version, request, cancellationToken);
+        var user = await currentUsers.UpdateAsync(User.GetUserId(), PermissionKeys, version, request, cancellationToken);
         Response.SetETag(user.Version);
         return user;
     }

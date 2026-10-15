@@ -1942,7 +1942,8 @@
           "name",
           "email",
           "isStaff",
-          "mustChangePassword"
+          "mustChangePassword",
+          "permissions"
         ],
         "type": "object",
         "properties": {
@@ -1964,6 +1965,12 @@
           },
           "mustChangePassword": {
             "type": "boolean"
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
