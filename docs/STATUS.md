@@ -9,7 +9,7 @@ flight, what is done and how this file changes: `CLAUDE.md`, *Work state*.
 |---|---|---|---|
 | web-api | API for the web: gaps 1 and 4 | local | `docs/SCREENS.md`, *Known gaps* |
 | web-tooling | Tooling of DEC-104 in three pull requests: gates, CI and hooks, Claude Code tools | local, owner path | DEC-104; DEC-111 |
-| web-shell | `web/` set up with SCR-ADM-01, then the screens whose API exists | local, owner path | DEC-104; DEC-111, *Screen list* |
+| web-shell | `web/` set up with SCR-ADM-01, then the screens whose API exists | local, owner path | DEC-104; DEC-111; `docs/SCREENS.md`, *Screen list* |
 
 ## Waiting for a trigger
 
