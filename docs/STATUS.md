@@ -7,7 +7,6 @@ flight, what is done and how this file changes: `CLAUDE.md`, *Work state*.
 
 | Key | Item | Who | Source |
 |---|---|---|---|
-| PRD-03 | Manage Product Series | local, `/implement-feature PRD-03` | `docs/blueprint/features.md` |
 | web-tooling | Tooling pull request of DEC-104 | local, owner path | DEC-104; `docs/SCREENS.md`, *Screen list* |
 | web-api | API for the web: gaps 1 and 4 | local | `docs/SCREENS.md`, *Known gaps* |
 | web-shell | `web/` set up with SCR-ADM-01, then the screens whose API exists | local | DEC-104; `docs/SCREENS.md`, *Screen list* |
