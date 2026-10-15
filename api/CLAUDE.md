@@ -80,7 +80,7 @@ Connection strings and the default staff password live in the user-secrets of `Z
 |---|---|---|
 | `ConnectionStrings:ZenGear` | the running API and jobs | a login granted `zengear_app` (jobs: `zengear_jobs`) |
 | `ConnectionStrings:ZenGearMigrations` | `dotnet ef` (selected when `EF.IsDesignTime`) | the schema owner |
-| `ConnectionStrings:Redis` | the access cache (R-SEC-07); `localhost:6379` locally, `redis:6379` inside docker-compose | — (without it every request reads PostgreSQL) |
+| `ConnectionStrings:Redis` | the access cache (R-SEC-07); `127.0.0.1:6379` locally, never `localhost`: docker-compose publishes Redis on 127.0.0.1 only, `localhost` resolves to `::1` first, and Windows takes about 2 seconds to refuse it, longer than the 1-second connect timeout, so the client never reaches 127.0.0.1 and the cache stays off (#69); `redis:6379` inside docker-compose | — (without it every request reads PostgreSQL; a Redis that cannot be reached logs a Warning) |
 | `Firebase:DefaultStaffPassword` | the password of every staff account created through `POST /api/v1/admin/staff` (STF-01); at least 6 characters; in production the environment variable `Firebase__DefaultStaffPassword` | — (without it creating a staff account fails with 500 and creates nothing) |
 
 Until the first migration and `db/zengear_08_roles.sql` have run, both keys use the local `postgres` user. The application never connects as the schema owner outside local work (DEC-089).

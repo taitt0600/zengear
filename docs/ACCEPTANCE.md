@@ -50,7 +50,7 @@ not the local one of `api/docker-compose.yml` (it never touches another database
 | Scalar: API reference and requests | http://localhost:5256/scalar |
 | Firebase Emulator UI: accounts | http://localhost:4000/auth |
 | PostgreSQL (database `zengear`) | `localhost:5432` (pgAdmin) |
-| Redis: the access cache, keys `zengear:access:*` | `localhost:6379` (Redis Insight) |
+| Redis: the access cache, keys `zengear:access:*` | `127.0.0.1:6379` (Redis Insight; not `localhost`, which resolves to `::1` first) |
 
 ## Accounts
 
