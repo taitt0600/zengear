@@ -7,7 +7,6 @@ flight, what is done and how this file changes: `CLAUDE.md`, *Work state*.
 
 | Key | Item | Who | Source |
 |---|---|---|---|
-| token-usage | Measure the tokens of each run (`tools/token_usage.py`, a line in the acceptance report and in issue #24), with a baseline of the runs of pull requests #63, #64, #68, #70 and #72 (each marked feat, fix or chore) in its pull request body; that pull request deletes this row and adds its number to the Source of `token-usage-dec` | local, owner path; the owner pastes the changed routine prompt into both routines | pull request #73 (the analysis and the plan) |
 | token-usage-dec | Decision on the reviewers, plugins, models, efforts and sessions of DEC-100 from the baseline, with the checks DEC-100 has due (reviewers without findings of their own, the trials of security-guidance and analyzer-check); the commit that records it deletes this row, or a STATUS pull request citing the numbers if they call for no change | cloud `/decision-draft`, then the owner | pull request #73; the pull request of row `token-usage` (the baseline); DEC-100 (4), (9) |
 | web-tooling | Tooling of DEC-104 in three pull requests: gates, CI and hooks, Claude Code tools | local, owner path | DEC-104; DEC-111 |
 | web-shell | `web/` set up with SCR-ADM-01, then the screens whose API exists | local, owner path | DEC-104; DEC-111; `docs/SCREENS.md`, *Screen list* |
