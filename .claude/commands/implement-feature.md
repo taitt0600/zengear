@@ -1,10 +1,13 @@
 ---
-description: Implement one blueprint feature end to end with one command (rules → tests → code → Postman folder → pull request → test before merge)
+description: Implement one blueprint feature (rules → tests → code → Postman folder), then hand it to /finish-feature in a new session
 argument-hint: <Feature ID, e.g. POS-01> [--checkpoints]
 ---
-Implement the feature named in $ARGUMENTS of ZenGear and take it to a pull request with green CI that the owner
-tests before it merges (CLAUDE.md, Workflow; DEC-100). It runs in Claude Code on the owner's machine only, from the
-ready check to the test before merge, without stopping, except to ask a **Needs decision** item (step 4).
+Implement the feature named in $ARGUMENTS of ZenGear up to green tests and its Postman folder, and hand it to
+`/finish-feature`, which the owner starts after `/clear` (CLAUDE.md, Workflow; DEC-100; DEC-112 (4)). It runs in
+Claude Code on the owner's machine only, from the ready check to the handoff (step 8), without stopping, except to
+ask a **Needs decision** item (step 4).
+Builds, tests and Postman runs write their output to `out/logs/` and bring only a summary into the context, as
+**Output** of `/finish-feature` says (DEC-112 (5)).
 `$ARGUMENTS` is the Feature ID, optionally followed by `--checkpoints`: then also stop at the three checkpoints of
 DEC-099 marked **Checkpoint** below (two here, one in `/finish-feature`); without it, skip them.
 `python3` is `python` on Windows.
@@ -85,7 +88,10 @@ DEC-099 marked **Checkpoint** below (two here, one in `/finish-feature`); withou
    feature as not built, with what blocks it; a feature with no screen built is tested through the API:
    - From `web/`: `npm run gen:api`, then pages and components in the matching `features/<area>`.
    - `npm run lint` and `npm run build`.
-8. Run `/finish-feature` with the Feature ID (and `--checkpoints` when it was given), the plan verdict and its
-   counts of `[over-engineering]` and `[duplication]` findings, the decisions made, the Needs decision items and
-   how the plan handled each Work state row (step 3): it verifies, commits, opens the pull request, follows CI,
-   has the owner test the feature before merge and reports.
+8. **Handoff**, once steps 5–7 are green: write `out/handoff-<ID>.md` (ignored by git) with the branch, the
+   plan-reviewer verdict and its counts of `[over-engineering]` and `[duplication]` findings, the Needs decision
+   items with the owner's answers (and those left open), how the plan handled each Work state row (step 3), the
+   decisions made, the deviations from the approved plan, the results of the build, the tests and the Postman runs,
+   and whether `--checkpoints` was given. Then stop: tell the owner to type `/clear`, then `/finish-feature <ID>`
+   (with `--checkpoints` when it was given), which verifies, commits, opens the pull request, follows CI, has the
+   owner test the feature before merge and reports. End with the section "Tóm tắt cho chủ dự án".

@@ -7,7 +7,9 @@ Fix this defect of ZenGear (CLAUDE.md, Workflow; DEC-100): $ARGUMENTS
 It runs in Claude Code on the owner's machine only, and stops only to ask a Needs decision item (policy of
 `/implement-feature`, step 4), when no cause is found (step 4) and for the owner's test before merge
 (`/finish-feature`, step 13). With `--checkpoints` in $ARGUMENTS it also stops at the checkpoint of step 3 and at
-Checkpoint 3 of `/finish-feature`. at the checkpoint of step 3 and at Checkpoint 3 of `/finish-feature`.
+Checkpoint 3 of `/finish-feature`. It runs in one session (DEC-112 (4)). Builds, tests and Postman runs write their
+output to `out/logs/` and bring only a summary into the context, as **Output** of `/finish-feature` says
+(DEC-112 (5)).
 `python3` is `python` on Windows.
 
 1. **Branch and ready check**: the ready check of `/implement-feature` (step 1) without its branch step, then:
@@ -40,8 +42,8 @@ Checkpoint 3 of `/finish-feature`. at the checkpoint of step 3 and at Checkpoint
    the report.
 5. **Fix** the code, the smallest change that makes the tests pass without weakening another test, then
    `dotnet build ZenGear.slnx`, `dotnet test ZenGear.slnx` and the drift check from `api/`.
-6. **Finish** with `/finish-feature` for this feature (and `--checkpoints` when it was given), with these
-   differences:
+6. **Finish** with `/finish-feature` for this feature (and `--checkpoints` when it was given), in this session and
+   without reading a handoff file (pass it the facts of steps 2–5), with these differences:
    - On a new `fix/` branch: one commit `fix(<scope>): <subject>` with `Refs:` (and `Closes #<issue>`); pull request
      title `fix(<scope>): <subject> (<Feature ID>)`.
    - On the open branch of the feature: the commit is typed by what it changes (`fix` is only for a bug already on

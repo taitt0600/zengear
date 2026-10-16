@@ -19,16 +19,19 @@ the folder of that feature only.
 3. **Run**:
 
    ```bash
+   mkdir -p out/logs
    postman collection run postman/collections/ZenGear -e postman/environments/dev.environment.yaml \
-     -i "$ARGUMENTS" --no-report-events
+     -i "$ARGUMENTS" --no-report-events > "out/logs/postman-$ARGUMENTS.log" 2>&1; echo "exit=$?"
    ```
 
-   without `-i` for the whole collection. Postman CLI 1.69.0 (`postman --version`); it runs from the files without
+   without `-i` for the whole collection, logging to `out/logs/postman-all.log`. The whole output stays in the log
+   (DEC-112 (5)): read from it the summary table and the lines of the failed tests, and the rest only when they do
+   not say why a test failed. Postman CLI 1.69.0 (`postman --version`); it runs from the files without
    signing in, and prints a notice "No authorization data found" that is not an error. `--no-report-events` keeps the
    results on the machine. Do not add `--output`, `--postman-api-key` or `postman login`: they need a Postman account.
 4. **Report**: requests run, tests passed and failed (the summary table), then for each failed test: the folder and
    request, the test name, the expected and the actual value, and the status code with the Problem Details `type` of
-   the response, from the CLI output (the run prints each request, its status and each test). A failure in the collection script (sign-in)
+   the response, from the log (the run prints each request, its status and each test). A failure in the collection script (sign-in)
    means the emulator, the accounts of `tools/dev_reset.ps1` or a fixture is missing: say which.
 
 Never pass a secret with `--env-var`: nothing the collection needs is secret, and the command line ends up in the

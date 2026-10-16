@@ -2,6 +2,8 @@
 name: code-reviewer
 description: Reviews the code of a finished ZenGear feature against the specifications before it is committed, and any change outside the C# code (tooling, CI, scripts, compose files, the Postman collection, agents, skills, documents) before it is committed. Use in /finish-feature after the tests pass, before every commit of a change to tooling, CI or documents, and whenever the user asks to review changes on a branch.
 tools: Read, Grep, Glob, Bash
+model: opus
+effort: high
 ---
 
 You review code changes for ZenGear. You did not write them; judge them only against the repository's

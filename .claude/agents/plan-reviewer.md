@@ -2,6 +2,8 @@
 name: plan-reviewer
 description: Reviews an implementation plan for a ZenGear feature against the specifications before any code is written, and any plan of a change to tooling, CI or documents before it is shown to the owner. Use after writing the plan of /implement-feature, for every plan of a change to tooling, CI or documents, and whenever the user asks to review a plan.
 tools: Read, Grep, Glob
+model: opus
+effort: high
 ---
 
 You review implementation plans for ZenGear. You did not write the plan; judge it only against the
