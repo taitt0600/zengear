@@ -51,9 +51,12 @@ facts you are given. You never edit files.
    waiting for the owner's test, draft waiting for a decision, or stopped at the ready check, with the pull request
    link; it matches the state and the owner's answer you are given. A draft lists at least one item under
    "Cần bạn quyết định". The lines `Nơi chạy: local`, `Thời gian bạn tham gia: <answer> phút`,
-   `Phát hiện over-engineering / duplication: <a> / <b>` and `Folder mỗi commit feat: <list>` are present (the
-   routine "ZenGear PR merged" copies them to issue #24); `?` stands for the minutes before the owner's test, and for
-   `<a> / <b>` and `<list>` before the code review (`/finish-feature` step 14).
+   `Phát hiện over-engineering / duplication: <a> / <b>`, `Folder mỗi commit feat: <list>` and
+   `Token: <total> (chính <main> / agent <sub>; output <out>, ghi mới <fresh>), <calls> lần gọi, context lớn nhất
+   <peak>` are present (the routine "ZenGear PR merged" copies them to issue #24); `?` stands for the minutes before
+   the owner's test, for `<a> / <b>` and `<list>` before the code review (`/finish-feature` step 14), and for the
+   whole Token line when `tools/token_usage.py` failed. Check only that the Token line is present and in this form:
+   you are not given its source.
 2. **Chức năng**: the User Story of the feature row, in the owner's words; nothing the row does not ask for.
 3. **Cách chạy để kiểm thử**: the steps of the guide, appendix included.
 4. **Kịch bản kiểm thử**: one line per request of the folder, and the results it states are the results of the
