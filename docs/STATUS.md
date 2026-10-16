@@ -23,4 +23,4 @@ flight, what is done and how this file changes: `CLAUDE.md`, *Work state*.
 | storefront deploy | Decision: rate limit and output cache of `/api/v1/shop/` | DEC-107 (1) |
 | the owner codes a feature by hand (the owner says when) | Hand-coding measure of DEC-106 | DEC-107 (8) |
 | end of the DEC-110 measurement | Evaluate DEC-110 against its criteria | DEC-110 (7) |
-| the 5th `/implement-feature` or `/fix-defect` run after the pull request that applies DEC-112 merges | Evaluate DEC-112 against its criteria (8), with the Token lines of issue #24 | DEC-112 (8); `docs/AUTOMATION.md`, *Metrics* |
+| the 5th `/implement-feature` or `/fix-defect` run after the pull request that applies DEC-112 merges | (1) Evaluate DEC-112 against its criteria (8), with the Token lines of issue #24; (2) whatever the result, a Decision aligns the wording of DEC-112 (2) with DEC-111 (6), (7) | (1) DEC-112 (8); `docs/AUTOMATION.md`, *Metrics*; (2) DEC-111 (6), (7); `docs/AUTOMATION.md`, *Tools of local sessions*; pull request #77, *Deviations* |
