@@ -1,8 +1,8 @@
 # Automation around the owner
 
-The owner picks and starts features in a local session with one command, answers the Needs decision items it asks
-and tests the result before it merges (CLAUDE.md, Workflow; DEC-100). Everything else runs by itself, except four
-things kept for the owner on purpose: answering a **Needs decision** item (money, tax, legal duties, personal data,
+The owner picks and starts features in a local session with `/implement-feature`, then `/clear` and
+`/finish-feature` (DEC-112 (4)), answers the Needs decision items they ask and tests the result before it merges
+(CLAUDE.md, Workflow; DEC-100). Everything else runs by itself, except four things kept for the owner on purpose: answering a **Needs decision** item (money, tax, legal duties, personal data,
 role permissions, data that is hard to migrate, packages, build code), the test before merge, merging a pull
 request that changes the specification or the tooling (`owner_paths` in `tools/pr_gates.py`), and merging the pull
 requests that change only `docs/STATUS.md` and the docs pull requests of cloud sessions (DEC-110), which never get
@@ -67,8 +67,9 @@ only the owner merges. The repository's agents name their `model` and `effort` i
 | Hook `analyzer-check` (PostToolUse on Edit, Write and MultiEdit; kept by DEC-112 (6)) | After each edit of a `.cs` file under `api/`, a build of that project alone (`--no-dependencies`, about 2 s on the owner's machine) whose Sonar and CA errors go back to Claude at once instead of at the end. `api/CLAUDE.md` lists the rules that often fail | `.claude/hooks/analyzer-check.ps1`, `hooks` of `.claude/settings.json` |
 | MCP server `zengear` (Docker MCP Toolkit gateway, profile `zengear`): Postman, minimal tool set | Reading the workspace ZenGear (collections, environments, specs); every tool that writes asks, since the collections of the repository are the source | `.mcp.json`; the profile and the API key are per machine |
 
-`typescript-lsp` and `playwright` are enabled when the web starts (DEC-111); `security-guidance` when web-shell starts
-(DEC-112 (2)). The marketplace cannot be pinned to a commit (a
+`typescript-lsp` and `frontend-design` are enabled by the third web-tooling pull request (DEC-111 (6), (7)); the
+`playwright` plugin is not enabled (DEC-111 (6)); `security-guidance` comes back when web-shell starts (DEC-112 (2)).
+The marketplace cannot be pinned to a commit (a
 marketplace source takes only a branch or tag, and the repository has no tags): each machine turns off its
 auto-update (`/plugin` → **Marketplaces** → `claude-plugins-official` → **Disable auto-update**) and updates it by
 hand after reading what changed. Firebase has no MCP server: the auth tools of `firebase-tools mcp` call the real
