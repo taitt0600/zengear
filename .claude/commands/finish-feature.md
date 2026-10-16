@@ -149,7 +149,7 @@ items there, not as inline review comments.
     4. Ask with AskUserQuestion: the result — **Đạt** / **Có lỗi** / **Để sau** — and the minutes spent on this
        feature so far — ≤ 10, 10–20, 20–40, more than 40.
        - **Đạt**: first write, review and post the report of step 14, with **Kết quả** "Đạt — auto-merge bật" and
-         the four lines of **Kết quả** (step 14): the routine "ZenGear PR merged" starts on the merge event and
+         the five lines of **Kết quả** (step 14): the routine "ZenGear PR merged" starts on the merge event and
          reads the report at once, so it must be on the pull request before anything can merge. Then
          `python3 tools/github_pr.py auto-merge <number>` (not while the pull request is a draft). Exit code 5
          means the owner merges it (it changes a file only the owner merges, or `main` does not enforce every
@@ -170,7 +170,7 @@ items there, not as inline review comments.
     your last reply with the same text (without that first line) followed by the section
     "Tóm tắt cho chủ dự án" (`CLAUDE.md`, Workflow), which is not posted in the report comment. Sections:
     - **Kết quả**: "Đạt — auto-merge bật" (**Đạt**), waiting for the owner's test (**Để sau**), draft waiting
-      for a decision, or stopped at the ready check — with the pull request link; then the four lines
+      for a decision, or stopped at the ready check — with the pull request link; then the five lines
       `Nơi chạy: local`, `Thời gian bạn tham gia: <the owner's answer at step 13> phút` (`?` when the run
       stopped before step 13), `Phát hiện over-engineering / duplication: <a> / <b>` (the labelled findings of
       plan-reviewer, passed on by `/implement-feature`, plus those of code-reviewer at step 5; a `/fix-defect` run
@@ -178,7 +178,10 @@ items there, not as inline review comments.
       `Folder mỗi commit feat: <n1>, <n2>, …` (the last line of `python3 tools/structure_metrics.py --range
       origin/main..HEAD`); when the run stopped before the code review (`/finish-feature` step 5), these two lines
       are `Phát hiện over-engineering / duplication: ? / ?` and `Folder mỗi commit feat: ?` (no review or commit
-      yet). The routine "ZenGear PR merged" copies the four lines to issue #24 (DEC-106).
+      yet); and the line printed by `python3 tools/token_usage.py --branch <branch> --line`, `Token: <total>
+      (chính <main> / agent <sub>; output <out>, ghi mới <fresh>), <calls> lần gọi, context lớn nhất <peak>`
+      (`Token: ?` when the command fails). The routine "ZenGear PR merged" copies the five lines to issue #24
+      (DEC-106; the Token line for `token-usage-dec`, `docs/AUTOMATION.md`, *Metrics*).
     - **Chức năng**: what a user can now do, in the words of the user story.
     - **Cách chạy để kiểm thử**: the steps of the guide (step 13.2), appendix included.
     - **Kịch bản kiểm thử**: one line per request of the folder: the criterion or rule it checks, the account, the
