@@ -364,6 +364,27 @@ class PackageCheckTests(unittest.TestCase):
         self.assertRefused('"node_modules/react" installs "evil" under another name (an alias)',
                            lock=self.add_lock_entries({'node_modules/react': alias}))
 
+    def test_a_legacy_name_with_capital_letters_passes(self):
+        lock = self.add_lock_entries({'node_modules/JSONStream': entry('JSONStream', '1.3.5'),
+                                      'node_modules/next/node_modules/Base64': entry('Base64', '1.1.0')})
+        self.assertEqual(lock['packages']['node_modules/JSONStream']['resolved'],
+                         'https://registry.npmjs.org/JSONStream/-/JSONStream-1.3.5.tgz')
+        self.assertEqual(self.errors(lock=lock), [])
+
+    def test_a_legacy_name_still_resolves_to_its_own_tarball(self):
+        swapped = entry('JSONStream', '1.3.5', resolved=tarball('jsonstream', '1.3.5'))
+        lock = self.add_lock_entries({'node_modules/JSONStream': swapped})
+        self.assertRefused('"node_modules/JSONStream" resolves to', lock=lock)
+        self.assertFalse([e for e in self.errors(lock=lock) if 'is not a package under node_modules/' in e])
+
+    def test_keys_that_differ_only_in_case_are_refused(self):
+        self.assertRefused('"node_modules/React" differs only in case from "node_modules/react"',
+                           lock=self.add_lock_entries({'node_modules/React': entry('React', '19.2.0')}))
+
+    def test_a_scope_with_capital_letters_is_refused(self):
+        self.assertRefused('"node_modules/@Scope/x" is not a package under node_modules/',
+                           lock=self.add_lock_entries({'node_modules/@Scope/x': entry('@Scope/x')}))
+
     def test_a_key_that_is_not_a_package_under_node_modules(self):
         for key in ('packages/web-ui', 'node_modules/', 'node_modules/Evil Name', 'node_modules/@scope',
                     'node_modules/../x'):

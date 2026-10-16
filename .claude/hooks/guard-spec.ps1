@@ -24,7 +24,7 @@ $payload = [Console]::In.ReadToEnd() | ConvertFrom-Json
 $specReason = 'is part of the specification. Approve only if an accepted Decision (DEC-xxx) requires this change.'
 $codeReason = 'runs code or judges changes (build, git hook, Claude Code hook or setting, MCP server, CI workflow, PR gate, architecture test, secret scan). Approve only if you asked for this change.'
 $generatedReason = 'is written only by its generator (npm run gen:api for schema.d.ts; the shadcn CLI, then python tools/shadcn_lock.py write, for components/ui), never by hand (DEC-104 (5), DEC-111 (7)). Approve only if you asked for this change.'
-$unattendedReason ='cannot change in an unattended cloud session. Stop and report it as a "Needs decision" item instead.'
+$unattendedReason = 'cannot change in an unattended cloud session. Stop and report it as a "Needs decision" item instead.'
 $unattended = $env:CLAUDE_CODE_REMOTE -eq 'true'
 
 # $kind: 'spec' and 'tooling' are read-only when unattended; 'build' is left to the CI gates there.
