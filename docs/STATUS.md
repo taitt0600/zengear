@@ -7,7 +7,7 @@ flight, what is done and how this file changes: `CLAUDE.md`, *Work state*.
 
 | Key | Item | Who | Source |
 |---|---|---|---|
-| token-usage-dec | Decision on the reviewers, plugins, models, efforts and sessions of DEC-100 from the baseline, with the checks DEC-100 has due (reviewers without findings of their own, the trials of security-guidance and analyzer-check); the commit that records it deletes this row, or a STATUS pull request citing the numbers if they call for no change | cloud `/decision-draft`, then the owner | pull request #73; the pull request of row `token-usage` (the baseline); DEC-100 (4), (9) |
+| token-usage-dec | Decision on the reviewers, plugins, models, efforts and sessions of DEC-100 from the baseline, with the checks DEC-100 has due (reviewers without findings of their own, the trials of security-guidance and analyzer-check); the commit that records it deletes this row, or a STATUS pull request citing the numbers if they call for no change | cloud `/decision-draft`, then the owner | pull request #73; pull request #74 (the baseline); DEC-100 (4), (9) |
 | web-tooling | Tooling of DEC-104 in three pull requests: gates, CI and hooks, Claude Code tools | local, owner path | DEC-104; DEC-111 |
 | web-shell | `web/` set up with SCR-ADM-01, then the screens whose API exists | local, owner path | DEC-104; DEC-111; `docs/SCREENS.md`, *Screen list* |
 
