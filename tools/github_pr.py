@@ -8,8 +8,10 @@
 
 create opens the pull request of the current branch against main, or updates the one already open (title,
 body, and draft or ready as asked). auto-merge refuses when the pull request changes a file that only the owner
-merges (owner_paths in tools/pr_gates.py), or when main does not require every check in REQUIRED_CHECKS or lets
-someone bypass them, so that nothing merges unchecked. REQUIRED_CHECKS are job names, each equal to its job id:
+merges (owner_paths in tools/pr_gates.py, which judges web/package.json and the shadcn lock by content: the branch
+of the pull request and main are fetched here and compared from their merge-base, DEC-111 (4)), or when main does
+not require every check in REQUIRED_CHECKS or lets someone bypass them, so that nothing merges unchecked; it turns
+auto-merge off again when the head moved while it was being enabled. REQUIRED_CHECKS are job names, each equal to its job id:
 ci-ok aggregates every job of .github/workflows/pipeline.yml, and pr-gates and pr-title run in
 .github/workflows/gates.yml. checks prints the latest run of every check of the head commit, the annotations of the failed ones and the merge state.
 
@@ -23,7 +25,7 @@ a cloud session: reproduce a failed job with its commands in .github/workflows/.
 import argparse, json, os, re, subprocess, sys, time, urllib.error, urllib.parse, urllib.request
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from pr_gates import owner_paths  # noqa: E402
+from pr_gates import changed_files, owner_paths  # noqa: E402
 
 API = 'https://api.github.com'
 PROXY_TOKEN = 'proxy-injected'
@@ -105,14 +107,25 @@ class GitHub:
     def pull(self, number):
         return self.call('GET', f'/repos/{self.repo}/pulls/{number}')
 
-    def files(self, number):
-        names = []
-        for page in range(1, 31):
-            batch = self.call('GET', f'/repos/{self.repo}/pulls/{number}/files?per_page=100&page={page}')
-            names += [name for item in batch for name in (item['filename'], item.get('previous_filename')) if name]
-            if len(batch) < 100:
-                return names
-        raise GitHubError(f'#{number} changes more than 3000 files')
+
+def owned_files(pr):
+    """owner_paths of the pull request, read from its branch and main fetched from origin into this clone."""
+    head = pr['head']['sha']
+    try:
+        run('git', 'fetch', '--quiet', '--no-tags', 'origin', BASE)
+        main = run('git', 'rev-parse', 'FETCH_HEAD')
+        run('git', 'fetch', '--quiet', '--no-tags', 'origin', f'pull/{pr["number"]}/head')
+        fetched = run('git', 'rev-parse', 'FETCH_HEAD')
+        if fetched != head:
+            raise GitHubError(f'#{pr["number"]} moved to {fetched} while it was read: run auto-merge again')
+        merge_base = run('git', 'merge-base', main, head)
+    except (OSError, subprocess.CalledProcessError) as error:
+        raise GitHubError(f'cannot read #{pr["number"]} with git: {getattr(error, "stderr", "") or error}') from None
+    try:
+        return owner_paths(changed_files(merge_base, head), merge_base, head)
+    except SystemExit:
+        # pr_gates exits through fail() when git cannot read what it just fetched; its message is printed already.
+        raise GitHubError(f'cannot read #{pr["number"]} with git') from None
 
 
 def set_draft(gh, pr, draft):
@@ -188,7 +201,7 @@ def auto_merge(gh, number, off):
         raise GitHubError(f'#{number} is not an open pull request into {BASE}.')
     if pr['draft']:
         raise GitHubError(f'#{number} is a draft: make it ready first.')
-    owned = owner_paths(gh.files(number))
+    owned = owned_files(pr)
     if owned:
         raise OwnerMerges(f'Auto-merge not enabled: #{number} changes files the owner merges: {", ".join(owned)}')
     gaps = protection_gaps(gh)
@@ -203,7 +216,12 @@ def auto_merge(gh, number, off):
         gh.call('PUT', f'/repos/{gh.repo}/pulls/{number}/merge', {'merge_method': 'rebase', 'sha': pr['head']['sha']})
         print(f'#{number}: every requirement was met already, merged with rebase')
         return
-    state = gh.pull(number)['auto_merge']
+    after = gh.pull(number)
+    if after['head']['sha'] != pr['head']['sha']:
+        # A push between the check of the files and the enabling: that head was not judged.
+        set_auto_merge(gh, after, False)
+        raise GitHubError(f'#{number} moved while auto-merge was enabled; it is off again: run auto-merge again')
+    state = after['auto_merge']
     if not state or state.get('merge_method') != 'rebase':
         raise GitHubError(f'#{number}: auto-merge is not on with rebase: {state}')
     print(f'#{number}: auto-merge on (rebase), it merges when the required checks pass')
