@@ -44,7 +44,7 @@ Folders, file names and type names follow `../docs/ARCHITECTURE.md`, section *Fo
 
 ## Analyzer rules that often fail the build
 
-SonarAnalyzer rules that turned builds red in earlier features. After each edit of a `.cs` file, `.claude/hooks/analyzer-check.ps1` builds its project and reports them at once (trial of DEC-100); `/finish-feature` adds a line here for each new rule it meets.
+SonarAnalyzer rules that turned builds red in earlier features. After each edit of a `.cs` file, `.claude/hooks/analyzer-check.ps1` builds its project and reports them at once (DEC-100 (9), kept by DEC-112 (6)); `/finish-feature` adds a line here for each new rule it meets.
 
 - `S6667` — a log call inside a `catch` must pass the exception, so the stack trace is not lost. Pass it (`logger.LogWarning(ex, …)`); when the exception may hold personal data (R-SEC-11), keep what you need inside the `catch` and log after it.
 - `S3358` — no nested ternary operator: it hides branches. Use `if`/`else` or a `switch` expression.

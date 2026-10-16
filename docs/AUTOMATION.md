@@ -13,7 +13,8 @@ auto-merge.
 1. Take the first row of *Next* in `docs/STATUS.md` and start it in a local session: open VS Code on the
    repository, `git switch main`, `git pull`. A feature row (or another feature of `docs/blueprint/features.md`
    whose *Depends On* features are done) runs with `/implement-feature <Feature ID>` in Claude Code
-   (`--checkpoints` to also approve the plan, the failing tests and the diff, as in DEC-099). Any other row is asked
+   (`--checkpoints` to also approve the plan, the failing tests and the diff, as in DEC-099); when it stops after
+   the tests and the Postman folder, type `/clear`, then `/finish-feature <Feature ID>` (DEC-112 (4)). Any other row is asked
    of Claude in words, from its *Source*; when its *Who* says owner path, Claude pushes the branch and the owner opens
    and merges the pull request. Cloud sessions do not run features or fixes (DEC-100): they run only the two
    notification routines below, `/report-review`, `/decision-draft`, and the pull requests and comments of
@@ -41,7 +42,7 @@ auto-merge.
 
 | Step | Mechanism | Where it lives |
 |---|---|---|
-| Plan, tests, code, Postman folder, verification, commits, pull request, CI, test guide, report | `/implement-feature` → `/finish-feature`, with the `plan-reviewer`, `code-reviewer` and `report-reviewer` agents, `/code-review` and the skills `api-collection` and `api-run`; they stop only for Needs decision items and the owner's test (and at the three checkpoints with `--checkpoints`) | Repository |
+| Plan, tests, code, Postman folder, verification, commits, pull request, CI, test guide, report | `/implement-feature`, then `/clear` and `/finish-feature`, which reads `out/handoff-<ID>.md` (`/fix-defect` runs in one session), with the `plan-reviewer`, `code-reviewer` and `report-reviewer` agents, `/code-review` and the skills `api-collection` and `api-run`; they stop only for Needs decision items and the owner's test (and at the three checkpoints with `--checkpoints`) | Repository |
 | Merge | Auto-merge, enabled when the owner answers **Đạt**, once the required checks of `main` pass (`tools/github_pr.py`) | GitHub |
 | Notify the owner, log the numbers | Routines **ZenGear PR merged** (pull request merged) and **ZenGear PR needs decision** (pull request opened as a draft), on GitHub events | The owner's claude.ai account |
 | Turn a defect issue into a fix | Routine **ZenGear fix defects** — **disabled since 2026-10-02** (DEC-100); the owner runs `/fix-defect` locally | The owner's claude.ai account |
@@ -52,20 +53,22 @@ without one runs in an empty session). They run as cloud sessions on this reposi
 above apply to them; no SessionStart hook prepares them any more, since they only read. Their prompts below are the reference: change a prompt here and in the routine
 together.
 
-## Tools of local sessions (DEC-100)
+## Tools of local sessions (DEC-100, DEC-112)
 
 Claude Code on the owner's machine has these tools besides the repository's own commands, agents and skills. Plugins
 and MCP servers run third-party code on the machine: adding one changes `.claude/settings.json` or `.mcp.json`, which
-only the owner merges.
+only the owner merges. The repository's agents name their `model` and `effort` in their frontmatter (DEC-112 (3)):
+`plan-reviewer` and `code-reviewer` opus and high, `report-reviewer` sonnet and medium; a new agent names both too.
 
 | Tool | What it gives | Declared in |
 |---|---|---|
-| Plugins of the official marketplace `claude-plugins-official`: `csharp-lsp`, `pr-review-toolkit`, `code-review`, `feature-dev`, `commit-commands`, `security-guidance` | C# go-to-definition, references and compiler diagnostics (csharp-ls; it reports no Sonar rule); review agents and `/review-pr`; `/code-review`; agents `code-explorer` and `code-architect`, `/feature-dev` for a spike; `/commit` and `/clean_gone` for chores; security warnings while editing (on trial) | `enabledPlugins` of `.claude/settings.json` |
+| Plugins of the official marketplace `claude-plugins-official`: `csharp-lsp`, `feature-dev` | C# go-to-definition, references and compiler diagnostics (csharp-ls; it reports no Sonar rule); agents `code-explorer` and `code-architect`, `/feature-dev` for a spike. `pr-review-toolkit`, `code-review` and `commit-commands` are set to `false` (DEC-112 (2)); `/code-review` is the built-in command. `security-guidance` is off until web-shell starts, then on trial for 3 web features, whose reports give its warnings and its own findings | `enabledPlugins` of `.claude/settings.json` |
 | MCP server `postgres` (crystaldba postgres-mcp, image pinned by digest, unrestricted mode) | The schema and rows of the development database `zengear`; skill `db-inspect`. Read-only tools run without a prompt; `execute_sql` and `explain_query` always ask | `.mcp.json`, with `DATABASE_URI` from the user environment variable `ZENGEAR_MCP_DATABASE_URI` |
-| Hook `analyzer-check` (PostToolUse on Edit, Write and MultiEdit; trial for 2 features) | After each edit of a `.cs` file under `api/`, a build of that project alone (`--no-dependencies`, about 2 s on the owner's machine) whose Sonar and CA errors go back to Claude at once instead of at the end; kept when red analyzer builds decrease and it costs under 5 minutes per feature. `api/CLAUDE.md` lists the rules that often fail | `.claude/hooks/analyzer-check.ps1`, `hooks` of `.claude/settings.json` |
+| Hook `analyzer-check` (PostToolUse on Edit, Write and MultiEdit; kept by DEC-112 (6)) | After each edit of a `.cs` file under `api/`, a build of that project alone (`--no-dependencies`, about 2 s on the owner's machine) whose Sonar and CA errors go back to Claude at once instead of at the end. `api/CLAUDE.md` lists the rules that often fail | `.claude/hooks/analyzer-check.ps1`, `hooks` of `.claude/settings.json` |
 | MCP server `zengear` (Docker MCP Toolkit gateway, profile `zengear`): Postman, minimal tool set | Reading the workspace ZenGear (collections, environments, specs); every tool that writes asks, since the collections of the repository are the source | `.mcp.json`; the profile and the API key are per machine |
 
-`typescript-lsp` and `playwright` are enabled when the web starts. The marketplace cannot be pinned to a commit (a
+`typescript-lsp` and `playwright` are enabled when the web starts (DEC-111); `security-guidance` when web-shell starts
+(DEC-112 (2)). The marketplace cannot be pinned to a commit (a
 marketplace source takes only a branch or tag, and the repository has no tags): each machine turns off its
 auto-update (`/plugin` → **Marketplaces** → `claude-plugins-official` → **Disable auto-update**) and updates it by
 hand after reading what changed. Firebase has no MCP server: the auth tools of `firebase-tools mcp` call the real
@@ -122,15 +125,16 @@ per defect taken: time from opened to merged, commits, review rounds, Needs deci
 over-engineering and duplication and the folders touched per `feat` commit (`tools/structure_metrics.py`). Compare
 features with it before changing the workflow.
 
-For the Decision of the Next row `token-usage-dec` (DEC-100 (4), (9): reviewers, models, efforts), the report also
-carries the line `Token:` of `python3 tools/token_usage.py --branch <branch> --line`, read from this project's
+For the evaluation of DEC-112 (8) (reviewers, plugins, models, efforts and sessions; its trigger is a Waiting row of
+`docs/STATUS.md`), the report also carries the line `Token:` of `python3 tools/token_usage.py --branch <branch> --line`, read from this project's
 Claude Code transcripts on the owner's machine: the tokens of the main session and of the subagents, the output
 tokens (thinking is billed as output tokens, per Anthropic's extended-thinking documentation, so a change of effort
 shows there), the fresh input (input plus cache
 creation, the part not read from the cache), the model calls and the largest context of one call. The routine
 copies the total, the output and the fresh input to issue #24. The line is measured when the report is written: the
 report-reviewer rounds, the posting and the few calls made on `main` before `git switch -c` are not in it, and the
-runs on one branch add up (a resume after "Để sau", a `/fix-defect` on an open pull request). Without `--line` the
+runs on one branch add up (the two sessions of `/implement-feature` and `/finish-feature`, a resume after "Để sau",
+a `/fix-defect` on an open pull request). Without `--line` the
 script prints a table with a part per agent type (`agentType` of the subagent's meta file); that part is not copied
 to issue #24.
 

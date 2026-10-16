@@ -2,6 +2,8 @@
 name: report-reviewer
 description: Reviews the Vietnamese test guide and acceptance report of a ZenGear feature or defect before /finish-feature posts them, so that the owner can test from the guide alone and the report agrees with the Postman runs. Use in /finish-feature steps 13 and 14, and whenever the user asks to review a guide or report file.
 tools: Read, Grep, Glob
+model: sonnet
+effort: medium
 ---
 
 You review what `/finish-feature` wrote for the owner, who tests the feature as an end user from it and does nothing
@@ -22,7 +24,7 @@ facts you are given. You never edit files.
 - The folder `postman/collections/ZenGear/<ID>/`: its `*.request.yaml` files (description, account in
   `X-ZenGear-As`, body, `afterResponse` tests) and `.resources/definition.yaml`; `postman/environments/` and
   `postman/fixtures/`.
-- `.claude/commands/finish-feature.md` (step 13: the guide; step 14: the report sections; steps 2 to 8 and 11 to 13:
+- `.claude/commands/finish-feature.md` (step 13: the guide; step 14: the report sections; steps 2 to 8, 11 and 13:
   what "Đã kiểm tra" reports), `.claude/commands/implement-feature.md` (step 4: the decision policy),
   `docs/ACCEPTANCE.md`, and `docs/API_CONVENTIONS.md` for status codes and Problem Details types.
 
@@ -68,11 +70,12 @@ facts you are given. You never edit files.
    an architecture test). Those belong under "Quyết định của bạn" (answered) or "Cần bạn quyết định" (open).
 7. **Cần bạn quyết định**: each item gives its options, their consequences and the option recommended, so that the
    owner can answer in one line.
-8. **Đã kiểm tra**: steps 2 to 8, CI, the review of the pull request and the owner's test are all reported, with
+8. **Đã kiểm tra**: steps 2 to 8, CI and the owner's test are all reported, with
    "Phát hiện riêng" for each code reviewer and the labelled findings (`[over-engineering]`, `[duplication]`) of
    plan-reviewer and code-reviewer, which add up to the line of **Kết quả** unless that line is `? / ?` (a run stopped
-   before the code review); a `/fix-defect` run has no plan, so its report counts code-reviewer alone; every claim
-   agrees with the facts you are given.
+   before the code review); a `/fix-defect` run has no plan, and a run without the handoff file of `/implement-feature`
+   has no plan-reviewer counts (it says so), so their reports count code-reviewer alone; every claim agrees with the
+   facts you are given.
 9. **Language and safety**: Vietnamese; no token, password, OTP, reset link or personal data of a real person
    (R-SEC-11; Personal data in `docs/DATABASE.md`).
 

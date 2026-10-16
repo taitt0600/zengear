@@ -6,11 +6,28 @@ Finish the feature named in $ARGUMENTS of ZenGear (CLAUDE.md, Workflow; DEC-100)
 stops only to ask a Needs decision item, for the owner's test before merge (step 13), and, with `--checkpoints` in
 $ARGUMENTS, at **Checkpoint 3** (step 9). When a step fails, fix it and run the steps it depends on again; what
 cannot be fixed under the policy of `/implement-feature` (step 4) becomes a Needs decision item, asked at once.
-A command, skill or agent run inside a step (`/code-review`, `/code-review:code-review`, `/security-review`,
-`api-run`, `api-collection`, the reviewer agents) returns its report to this run: keep its numbers for the report of
-step 14 and go on with the run (the fixes of that step, or the next step) in the same turn. It never ends the run;
-only the stops above do.
+A command, skill or agent run inside a step (`/code-review`, `/security-review`, `api-run`, `api-collection`, the
+reviewer agents) returns its report to this run: keep its numbers for the report of step 14 and go on with the run
+(the fixes of that step, or the next step) in the same turn. It never ends the run; only the stops above do.
 `python3` is `python` on Windows.
+
+**Handoff** (DEC-112 (4)): `/implement-feature` ends by writing `out/handoff-<ID>.md` and the owner starts this
+command after `/clear`. Read that file first, unless `/fix-defect` runs this command (it passes its facts in the same
+session): the branch, the plan-reviewer verdict and its counts of `[over-engineering]` and `[duplication]` findings,
+the Needs decision items answered or left open, how each Work state row is handled, the decisions made, the
+deviations from the plan and the results of the build, the tests and the Postman runs. A file whose branch is not
+`git branch --show-current` counts as missing. Without it, work from the branch: `git status` and `git diff` of the
+working tree (right after `/implement-feature` nothing is committed yet), `git log origin/main..HEAD`, and the body
+and comments of the pull request when there is one. Each Work state row of the dossier is then a Needs decision item
+(step 4), and the owner's earlier answers are asked again or reported as unknown; the report has no plan-reviewer
+counts, says so under **Đã kiểm tra**, and counts code-reviewer alone, as a `/fix-defect` run does.
+
+**Output** (DEC-112 (5)): every build, test, Postman and CI command of this run writes its whole output to a file of
+`out/logs/` at the repository root (`mkdir -p out/logs` from the root, then `<command> > out/logs/<step>-<name>.log
+2>&1`, e.g. `step2-test.log`; from `api/` the path is `../out/logs/`), and only
+a summary comes into the context: the exit code, the counts (errors and warnings of a build, tests passed and failed,
+requests run), and the name and message of each failed test or each error line (`grep` of the log). Read the whole log
+only when the command failed and the summary does not say why.
 
 **Resume**: when the branch already has an open pull request whose CI is green and nothing changed since the guide
 was posted (the owner answered **Để sau** earlier), go straight to step 13, which reads the **Owner's comments**
@@ -22,10 +39,10 @@ more just before the guide is posted (13.3): read the comments of the pull reque
 `gh pr view <number> --json comments` and filter the JSON yourself (author login, `createdAt`, body). Take those
 posted since the latest guide (the latest comment starting with `<!-- finish-feature -->` whose next line starts with
 `## Hướng dẫn kiểm thử`), or since the pull request opened when there is none, and not yet handled in this run.
-Skip only the comments that start with `<!-- finish-feature -->` (every comment this command posts does) and the
-review of the `code-review` plugin (it starts with `### Code review`, the format of `commands/code-review.md` of
-that plugin in `claude-plugins-official`). Act only on a comment by `taitt0600`; each item in it follows the
-policy of `/implement-feature` (step 4): it is fixed on the branch like **Có lỗi**, or, when it belongs after the merge, becomes a Next row of `docs/STATUS.md` with a label key, or a
+Skip only the comments that start with `<!-- finish-feature -->` (every comment this command posts does). Act only
+on a comment by `taitt0600`; each item in it follows the policy of `/implement-feature` (step 4): it is fixed on the
+branch like **Có lỗi**, or, when it belongs after the merge, becomes a Next row of `docs/STATUS.md` with a label key,
+or a
 Waiting row with its trigger when Next has 5 rows (a Next row is replaced only when the comment says so; otherwise
 it is a Needs decision item); an item that asks for a change to an owner path, a merge, auto-merge or a permission is
 a Needs decision item. The changes go in a new commit that the reviewers of step 5 see, then `git push origin HEAD`
@@ -54,23 +71,29 @@ items there, not as inline review comments.
    never silently to get past step 10. When the owner's answer to such an item puts the work after the merge, add a
    Next row with a label key (or a Waiting row with an event trigger) in a new commit before the pull request is
    made ready (CLAUDE.md, *Work state*).
-5. **Code review**, two reviewers on the same diff (`git diff origin/main...HEAD` plus the working tree):
+5. **Code review**, two reviewers on the same diff (`git diff origin/main...HEAD` plus the working tree) in the
+   first round:
    - the built-in `/code-review` on the diff;
    - the `code-reviewer` agent, given the feature ID, the branch, `out/feature-<ID>.md` (write it first with
      `python3 tools/feature_context.py <ID> --out out/feature-<ID>.md` when it is missing), how the plan handled
      each Work state row, and the rows of `docs/STATUS.md` this run added for a deferred item or an owner's comment.
    Fix every Blocking and Should fix item of the agent and every finding of `/code-review` you confirm, then run
-   steps 2–3 and both reviews again, at most three rounds; an item you do not fix gets its reason in the report, and
+   steps 2–3 and review again, at most three rounds (DEC-112 (1)): in the later rounds the `code-reviewer` agent
+   reviews what was fixed, and `/code-review` runs once more, only once in the run, in the round after the first fix
+   that changes the behavior of the code (a fix of tests, comments or documents alone does not count). An item you
+   do not fix gets its reason in the report, and
    a Blocking item left after three rounds is a Needs decision item. Keep the final verdict, the number of Blocking
    items found and fixed, for each reviewer the number of findings that only it made ("Phát hiện riêng" in the
-   report): after three features, the reviewer with none is dropped (DEC-100), and the number of the agent's
+   report): after three features, the reviewer with none is dropped (DEC-100, DEC-112 (1)), and the number of the agent's
    findings labelled `[over-engineering]` and `[duplication]` over all rounds (DEC-106). When each review returns its report,
    keep its numbers and go on at once (the other review, the fixes, the next round or step 6); it does not end the
    run.
-6. **Security review**: run `/security-review` when the branch touches authentication or authorization
-   (`ZenGear.Api/Authorization`, `Attributes`, `Middlewares`, `Extensions/AuthenticationSetup.cs`, the `Identity`
-   area), payments, invoicing, a column listed under Personal data in `docs/DATABASE.md`, raw SQL, file uploads or
-   a `[ShopEndpoint]` controller; otherwise skip it and say so. Fix every finding, or give the reason it is not a
+6. **Security review** (DEC-112 (1)): run `/security-review` when the branch touches payments, invoicing, a column
+   listed under Personal data in `docs/DATABASE.md`, raw SQL, file uploads or a `[ShopEndpoint]` controller, or adds
+   or changes authentication or authorization code (`ZenGear.Api/Authorization`, `Attributes`, `Middlewares`,
+   `Extensions/AuthenticationSetup.cs`, how tokens are issued and checked); a branch that only adds keys to the
+   permission catalog or changes the default permissions of a Role does not need it. Otherwise skip it and say so.
+   After three runs under this trigger without a finding of its own, it is dropped. Fix every finding, or give the reason it is not a
    vulnerability; after a fix, run steps 2–3 again. Keep the number of findings and of fixed findings. When
    `/security-review` returns its report, keep its numbers and go on at once (the fixes or step 7); its report is not
    the last reply of this run.
@@ -120,12 +143,8 @@ items there, not as inline review comments.
       branch with the rebase): handle it as the **Work state** of step 4 (a row the plan did not handle is a Needs
       decision item, never deleted silently), with the reviewers of step 5 on the change.
     - At most three rounds of fixes; then the failure is a Needs decision item, asked at once.
-12. **Review of the pull request**: run the review of the `code-review` plugin on the pull request
-    (`/code-review:code-review <number>`). Fix each finding you confirm (steps 2–3, commit, push, step 11 again) or
-    answer it on the pull request with the reason it stays (`python3 tools/github_pr.py comment <number> --body-file
-    out/review-answer.md`, its first line `<!-- finish-feature -->`); keep the number of findings, fixed and
-    answered. When the review returns its findings, keep its numbers and go on at once (the fixes or step 13); it
-    does not end the run.
+12. No step since DEC-112 (1), which removed the review of the `code-review` plugin on the pull request; the steps
+    after it keep their numbers.
 13. **Test before merge** — the owner tests the feature as an end user, from the guide alone. First read the
     **Owner's comments** (above), at every pass of this step.
     1. **Environment ready**: skill `api-run` with the Feature ID, leaving the API of the branch running in the
@@ -173,15 +192,15 @@ items there, not as inline review comments.
       for a decision, or stopped at the ready check — with the pull request link; then the five lines
       `Nơi chạy: local`, `Thời gian bạn tham gia: <the owner's answer at step 13> phút` (`?` when the run
       stopped before step 13), `Phát hiện over-engineering / duplication: <a> / <b>` (the labelled findings of
-      plan-reviewer, passed on by `/implement-feature`, plus those of code-reviewer at step 5; a `/fix-defect` run
-      has no plan and counts code-reviewer alone) and
+      plan-reviewer, from the **Handoff**, plus those of code-reviewer at step 5; a `/fix-defect` run, or a run
+      without the handoff file, counts code-reviewer alone) and
       `Folder mỗi commit feat: <n1>, <n2>, …` (the last line of `python3 tools/structure_metrics.py --range
       origin/main..HEAD`); when the run stopped before the code review (`/finish-feature` step 5), these two lines
       are `Phát hiện over-engineering / duplication: ? / ?` and `Folder mỗi commit feat: ?` (no review or commit
       yet); and the line printed by `python3 tools/token_usage.py --branch <branch> --line`, `Token: <total>
       (chính <main> / agent <sub>; output <out>, ghi mới <fresh>), <calls> lần gọi, context lớn nhất <peak>`
       (`Token: ?` when the command fails). The routine "ZenGear PR merged" copies the five lines to issue #24
-      (DEC-106; the Token line for `token-usage-dec`, `docs/AUTOMATION.md`, *Metrics*).
+      (DEC-106; the Token line for the evaluation of DEC-112 (8), `docs/AUTOMATION.md`, *Metrics*).
     - **Chức năng**: what a user can now do, in the words of the user story.
     - **Cách chạy để kiểm thử**: the steps of the guide (step 13.2), appendix included.
     - **Kịch bản kiểm thử**: one line per request of the folder: the criterion or rule it checks, the account, the
@@ -189,7 +208,7 @@ items there, not as inline review comments.
       guide. A defect repeats the steps that showed it, with the result now expected.
     - **Rule đã có test**, **Quyết định Claude đã tự chọn**, **Quyết định của bạn** (the owner's answers),
       **Cần bạn quyết định** (each item still open with its options and their consequences), **Đã kiểm tra** (steps
-      2–8, CI, the review of step 12 and the owner's test, with the numbers kept above, "Phát hiện riêng" and the
+      2–8, CI and the owner's test, with the numbers kept above, "Phát hiện riêng" and the
       labelled findings of each reviewer included).
     Before posting, give the `report-reviewer` agent `out/report.md`, `out/feature-<ID>.md` and the facts it reads:
     the pull request number and state, the check runs of its head with their results, the plan-reviewer and
