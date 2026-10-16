@@ -122,6 +122,18 @@ per defect taken: time from opened to merged, commits, review rounds, Needs deci
 over-engineering and duplication and the folders touched per `feat` commit (`tools/structure_metrics.py`). Compare
 features with it before changing the workflow.
 
+For the Decision of the Next row `token-usage-dec` (DEC-100 (4), (9): reviewers, models, efforts), the report also
+carries the line `Token:` of `python3 tools/token_usage.py --branch <branch> --line`, read from this project's
+Claude Code transcripts on the owner's machine: the tokens of the main session and of the subagents, the output
+tokens (thinking is billed as output tokens, per Anthropic's extended-thinking documentation, so a change of effort
+shows there), the fresh input (input plus cache
+creation, the part not read from the cache), the model calls and the largest context of one call. The routine
+copies the total, the output and the fresh input to issue #24. The line is measured when the report is written: the
+report-reviewer rounds, the posting and the few calls made on `main` before `git switch -c` are not in it, and the
+runs on one branch add up (a resume after "Để sau", a `/fix-defect` on an open pull request). Without `--line` the
+script prints a table with a part per agent type (`agentType` of the subagent's meta file); that part is not copied
+to issue #24.
+
 Since DEC-110, when the owner asks what is next in a new session and says whether the answer was right, Claude adds
 one comment to issue #24 (`gh issue comment 24 --body "<line>"` locally, the GitHub tools in a cloud session):
 
@@ -187,10 +199,13 @@ nothing, and write every comment on GitHub in English.
 3. Add one comment to issue #24 with this line, taking the review rounds, the Needs decision items and the
    scenarios from the report ("Đã kiểm tra", "Cần bạn quyết định", "Kịch bản kiểm thử", one line per Postman
    request) and writing "?" for a number the report does not give:
-   PR #<n> | <Feature ID> | <feat or fix> | opened → merged: <hours>h<minutes> or draft | commits: <c> | reviews: plan <a> / code <b> / report <r> rounds | needs decision: <k> | scenarios: <s> | where: <local or cloud> | owner-minutes: <m> | over-engineering: <o> | duplication: <d> | folders per feat commit: <f>
+   PR #<n> | <Feature ID> | <feat or fix> | opened → merged: <hours>h<minutes> or draft | commits: <c> | reviews: plan <a> / code <b> / report <r> rounds | needs decision: <k> | scenarios: <s> | where: <local or cloud> | owner-minutes: <m> | over-engineering: <o> | duplication: <d> | folders per feat commit: <f> | tokens: <t> / output <u> / fresh <w>
    Take "where" from the line "Nơi chạy:", "owner-minutes" from the line "Thời gian bạn tham gia:", <o> and <d>
    from the line "Phát hiện over-engineering / duplication: <o> / <d>" and <f> from the line "Folder mỗi commit
-   feat:" of the report, writing "local" and "?" when a line is missing. "opened → merged" includes the time the pull request
+   feat:" of the report, writing "local" and "?" when a line is missing. Take <t>, <u> and <w> from the line
+   "Token:" by their labels, not by their position: <t> is the number right after "Token:", <u> the number after
+   "output" and <w> the number after "ghi mới"; write "?" for each one the line does not give, and for all three
+   when the line is missing or is "Token: ?". "opened → merged" includes the time the pull request
    waited for the owner's test.
 4. End the run with a Vietnamese message of at most four lines whose first line says what happened or what the
    owner must do:

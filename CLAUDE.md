@@ -9,7 +9,7 @@ Retail system for a PC and hardware store run as a Vietnamese household business
 | `api/` | .NET 10 backend: `ZenGear.Api` → `ZenGear.Services` → `ZenGear.Data`, tests, `db/` (schema specification), `seed/`, `openapi/` (generated) | `api/CLAUDE.md` |
 | `web/` | Next.js app: storefront, admin, POS | `web/CLAUDE.md` |
 | `docs/` | Specifications shared by both | — |
-| `tools/` | Blueprint export and patch, feature dossier, local environment check, MCP set-up (`tools/mcp/`), schema snapshot and comparison, structure metrics (DEC-106), PR gates, pull request steps; tests in `tools/tests/` | — |
+| `tools/` | Blueprint export and patch, feature dossier, local environment check, MCP set-up (`tools/mcp/`), schema snapshot and comparison, structure metrics (DEC-106), token usage of a run (`tools/token_usage.py`), PR gates, pull request steps; tests in `tools/tests/` | — |
 
 Decision: DEC-093 (monorepo), DEC-091 (3-Layer backend).
 
