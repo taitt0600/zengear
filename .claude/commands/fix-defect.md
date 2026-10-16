@@ -5,14 +5,17 @@ argument-hint: <Feature ID> <what is wrong, or #issue> [--checkpoints]
 Fix this defect of ZenGear (CLAUDE.md, Workflow; DEC-100): $ARGUMENTS
 
 It runs in Claude Code on the owner's machine only, and stops only to ask a Needs decision item (policy of
-`/implement-feature`, step 4), when no cause is found (step 4) and for the owner's test before merge
+`/implement-feature`, step 4), to wait for the owner to merge a package approval (its **Package approval**), when no
+cause is found (step 4) and for the owner's test before merge
 (`/finish-feature`, step 13). With `--checkpoints` in $ARGUMENTS it also stops at the checkpoint of step 3 and at
 Checkpoint 3 of `/finish-feature`. It runs in one session (DEC-112 (4)). Builds, tests and Postman runs write their
 output to `out/logs/` and bring only a summary into the context, as **Output** of `/finish-feature` says
 (DEC-112 (5)).
 `python3` is `python` on Windows.
 
-1. **Branch and ready check**: the ready check of `/implement-feature` (step 1) without its branch step, then:
+1. **Branch and ready check**: the ready check of `/implement-feature` (step 1) without its branch step, then (when
+   `out/paused-<ID>.md` names this command, switch to the branch it names and resume at item 4 of **Package
+   approval** of `/implement-feature`, step 4, instead):
    - when the pull request of the feature is still open (`gh pr list --search "<Feature ID> in:title" --state open`),
      work on its branch: `git fetch origin`, `git switch <its branch>`, `git pull --ff-only`;
    - otherwise `git fetch origin main` and `git switch -c fix/<id in lowercase>-<short name> origin/main`.

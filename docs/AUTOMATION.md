@@ -21,7 +21,10 @@ auto-merge.
    DEC-110 (4).
 2. Answer the **Needs decision** items when Claude asks them: all the items known after the plan in one question,
    a later one at once. An answer that changes a specification stops the run: `/decision-draft <what was decided>`
-   drafts the Decision for the workbook, and the owner opens that specification pull request.
+   drafts the Decision for the workbook, and the owner opens that specification pull request. A yes to a package
+   that an official installer adds (or an `@types` package of a listed one) gives a link to a pull request that only
+   adds it to `web/approved-packages.json` (DEC-111 (5)): open it from the link, merge it, then tell Claude, which
+   rebases the feature branch and goes on.
 3. **Test before merge**: once CI is green, Claude leaves the development environment ready (reset, API of the
    branch running) and posts a test guide of one page on the pull request. Run the feature's folder in the Postman
    app (`docs/ACCEPTANCE.md`), do its manual checks (at most three), then answer **Đạt** (auto-merge on),
@@ -42,7 +45,7 @@ auto-merge.
 
 | Step | Mechanism | Where it lives |
 |---|---|---|
-| Plan, tests, code, Postman folder, verification, commits, pull request, CI, test guide, report | `/implement-feature`, then `/clear` and `/finish-feature`, which reads `out/handoff-<ID>.md` (`/fix-defect` runs in one session), with the `plan-reviewer`, `code-reviewer` and `report-reviewer` agents, `/code-review` and the skills `api-collection` and `api-run`; they stop only for Needs decision items and the owner's test (and at the three checkpoints with `--checkpoints`) | Repository |
+| Plan, tests, code, Postman folder, verification, commits, pull request, CI, test guide, report | `/implement-feature`, then `/clear` and `/finish-feature`, which reads `out/handoff-<ID>.md` (`/fix-defect` runs in one session), with the `plan-reviewer`, `code-reviewer` and `report-reviewer` agents, `/code-review` and the skills `api-collection` and `api-run`; they stop only for Needs decision items, the merge of a package approval and the owner's test (and at the three checkpoints with `--checkpoints`) | Repository |
 | Merge | Auto-merge, enabled when the owner answers **Đạt**, once the required checks of `main` pass (`tools/github_pr.py`) | GitHub |
 | Notify the owner, log the numbers | Routines **ZenGear PR merged** (pull request merged) and **ZenGear PR needs decision** (pull request opened as a draft), on GitHub events | The owner's claude.ai account |
 | Turn a defect issue into a fix | Routine **ZenGear fix defects** — **disabled since 2026-10-02** (DEC-100); the owner runs `/fix-defect` locally | The owner's claude.ai account |

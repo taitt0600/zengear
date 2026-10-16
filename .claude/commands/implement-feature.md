@@ -5,7 +5,8 @@ argument-hint: <Feature ID, e.g. POS-01> [--checkpoints]
 Implement the feature named in $ARGUMENTS of ZenGear up to green tests and its Postman folder, and hand it to
 `/finish-feature`, which the owner starts after `/clear` (CLAUDE.md, Workflow; DEC-100; DEC-112 (4)). It runs in
 Claude Code on the owner's machine only, from the ready check to the handoff (step 8), without stopping, except to
-ask a **Needs decision** item (step 4).
+ask a **Needs decision** item (step 4) and to wait for the owner to merge a package approval (step 4, **Package
+approval**).
 Builds, tests and Postman runs write their output to `out/logs/` and bring only a summary into the context, as
 **Output** of `/finish-feature` says (DEC-112 (5)).
 `$ARGUMENTS` is the Feature ID, optionally followed by `--checkpoints`: then also stop at the three checkpoints of
@@ -15,7 +16,8 @@ DEC-099 marked **Checkpoint** below (two here, one in `/finish-feature`); withou
 1. **Ready check** — if one fails, stop and write only the report of `/finish-feature` (step 14), without a
    pull request:
    - `git fetch origin main` and `git switch -c feat/<id in lowercase> origin/main`. Never `main`. `git status`
-     shows no change.
+     shows no change. When `out/paused-<ID>.md` names this command, switch to the branch it names instead and
+     resume at item 4 of **Package approval** (step 4), from that file.
    - The feature is a row of `docs/blueprint/features.md`, and every Feature ID in its Depends On column is done
      (an Epic name there is not checked). A feature is done when a merged `feat` pull request ends its title with
      `(<ID>)`: `gh pr list --state merged --search "<ID> in:title" --json number,title` gives candidates only; keep
@@ -66,6 +68,36 @@ DEC-099 marked **Checkpoint** below (two here, one in `/finish-feature`); withou
      them under "Decisions made". The same
      applies wherever `CLAUDE.md`, `api/CLAUDE.md` or `web/CLAUDE.md` says to ask or to stop and ask, and whenever a
      hook denies a change.
+   - **Package approval** (DEC-111 (5)): a package that `web/approved-packages.json` does not list is a Needs
+     decision item. It is approved by a pull request of its own when an official installer of an approved package
+     adds it (`create-next-app` at the pinned version, `npm exec --no -- shadcn init` or `add` of an item of the
+     official registry, the install command in the documentation of an approved package), or when it is an
+     `@types/<x>` whose `<x>` is listed (DEC-111 (1)). When the owner answers yes:
+     1. `git worktree add -b build/approve-<id in lowercase> out/worktrees/approve-<id in lowercase> origin/main`;
+        there add each package to `web/approved-packages.json` with `DEC-111`, keeping the keys sorted, and commit
+        that file alone as `build(web): approve packages for <ID>` (no parentheses, so that neither the rule
+        coverage of the PR gates nor the routines take it for the feature), its body naming the packages, the Needs
+        decision item and the owner's answer, `Refs: <ID>, DEC-111`; `git push -u origin build/approve-<id>`.
+     2. Write the body of the pull request to `out/approve-<id>.md`, in English: the packages and which installer
+        adds them, the Needs decision item with the owner's answer, and "Tóm tắt cho chủ dự án" (`CLAUDE.md`,
+        Workflow). Give the owner the link
+        `https://github.com/taitt0600/zengear/compare/main...build/approve-<id>?quick_pull=1&title=<title>&body=<body>`,
+        both URL-encoded (documented query parameters of GitHub); when the link is long (browsers and GitHub cut
+        long URLs; a limit of about 8000 characters is assumed, not checked), give
+        `https://github.com/taitt0600/zengear/pull/new/build/approve-<id>` and the file to paste instead. Never open
+        that pull request: it is an owner path, and the owner opens and merges it.
+     3. Write `out/paused-<ID>.md` (the command that runs, its branch, the plan, the owner's answers, what is done so
+        far, the approval branch) and stop. Say that the run goes on when the owner says the pull request merged, and
+        that after a closed session the owner starts the same command again — `/implement-feature <ID>` (step 1),
+        `/finish-feature <ID>` (its **Resume**) or `/fix-defect <ID> …` (its step 1) — which switches to the branch
+        that file names and resumes at item 4.
+     4. When the owner says it merged: `git fetch origin main`; `git show origin/main:web/approved-packages.json`
+        lists the packages (otherwise say so and stop again); `git worktree remove out/worktrees/approve-<id>`,
+        `git branch -D build/approve-<id>`; on the feature branch `git rebase --autostash origin/main`; delete
+        `out/paused-<ID>.md` and go on where the run stopped.
+     Any other package (one that a Decision ruled out, such as a date library like `date-fns` for the calendar
+     component, DEC-104 (1), or one that no official installer adds) needs a Decision of its own: draft it with
+     `/decision-draft`, and the run stops as for an answer that changes a specification.
    - Ask a Needs decision item at once, with AskUserQuestion as in step 3, also when it appears later in the run.
      When the owner leaves an item open, build what does not depend on it and go on: the pull request is then a
      draft, and the report lists the item under "Cần bạn quyết định".
