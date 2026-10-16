@@ -69,7 +69,10 @@ REGISTRY = 'https://registry.npmjs.org/'
 # ASCII digits only: \d of a str pattern also matches other Unicode digits.
 EXACT = re.compile(r'(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)'
                    r'(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?(\+[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?')
-NPM_NAME = re.compile(r'(@[a-z0-9][a-z0-9._~-]*/)?[a-z0-9][a-z0-9._~-]*')
+# A name of a lockfile key: capital letters stay valid in legacy names (JSONStream, Base64), which npm still serves;
+# scopes are kept lowercase (assumed, not checked against npm). resolved still ties the name to its own tarball, and
+# lock_errors refuses keys that differ only in case, which would share a folder on Windows and macOS.
+NPM_NAME = re.compile(r'(@[a-z0-9][a-z0-9._~-]*/)?[A-Za-z0-9][A-Za-z0-9._~-]*')
 DECISION_ID = re.compile(r'DEC-[0-9]{3}')
 # npm installs from npm-shrinkwrap.json instead of package-lock.json when both exist.
 WEB_SHRINKWRAP = 'web/npm-shrinkwrap.json'
@@ -285,9 +288,12 @@ def lock_errors(lock, manifest):
         return [f'{WEB_LOCK} is not a lockfile with lockfileVersion 3 and a packages object']
     packages = lock['packages']
     workspaces = isinstance(manifest, dict) and 'workspaces' in manifest
-    errors = []
+    errors, seen = [], {}
     for key, entry in packages.items():
         reason = None if key == '' else lock_entry_error(key, entry, packages, workspaces)
+        if not reason and key.lower() in seen:
+            reason = f'differs only in case from {json.dumps(seen[key.lower()])}: one folder on Windows and macOS'
+        seen.setdefault(key.lower(), key)
         if reason:
             errors.append(f'{WEB_LOCK}: {json.dumps(key)} {reason}')
     return capped(WEB_LOCK, errors)
