@@ -75,7 +75,7 @@ repository's specifications and code. You never edit files.
     1. **Interactions**: what reads what the plan writes, and when. This covers:
        - the routines "ZenGear PR merged" and "ZenGear PR needs decision", which start on the GitHub event and
          read the pull request and its report at that moment;
-       - the hooks (guard-spec, analyzer-check, stop-check);
+       - the hooks (guard-spec, analyzer-check, eslint-check, stop-check);
        - GitHub settings (required checks; `pull_request_target` runs the workflow of `main`, not of the branch);
        - the jobs of `pipeline.yml` and `ci-ok`;
        - the Postman app;
