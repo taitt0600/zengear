@@ -51,7 +51,7 @@ $protectedPrefixes = @(
 
 $codePrefixes = @('.claude/', '.githooks/', '.github/workflows/', '.gitleaks.toml', '.mcp.json', 'tools/pr_gates.py',
     'tools/github_pr.py', 'tools/schema_snapshot.sql', 'tools/schema_compare.py', 'tools/shadcn_lock.py',
-    'api/tests/ZenGear.ArchitectureTests/', 'docs/ARCHITECTURE.md')
+    'tools/message_keys.py', 'api/tests/ZenGear.ArchitectureTests/', 'docs/ARCHITECTURE.md')
 $codeSuffixes = @('.csproj', '.props', '.targets')
 
 # File tools: compare the path relative to the repository root, with forward slashes, after resolving
@@ -88,13 +88,13 @@ if ($path) {
 # Running the workflow tools is not a write: those invocations are removed before the command is checked. A
 # shadcn_lock.py write with a folder argument stays, since it writes a lock into that folder.
 $command = [string]$payload.tool_input.command
-$command = $command -replace '(^|[;&|]\s*)python3?\s+(\.\.[\\/]+)?tools[\\/]+(pr_gates\.py\s+(check|coverage)|github_pr\.py\s+(create|ready|auto-merge|checks|comment)|schema_compare\.py|shadcn_lock\.py\s+(check|write(?=\s*($|[;&|\r\n]))))\b', '$1'
+$command = $command -replace '(^|[;&|]\s*)python3?\s+(\.\.[\\/]+)?tools[\\/]+(pr_gates\.py\s+(check|coverage)|github_pr\.py\s+(create|ready|auto-merge|checks|comment)|schema_compare\.py|message_keys\.py|shadcn_lock\.py\s+(check|write(?=\s*($|[;&|\r\n]))))\b', '$1'
 if ($command) {
     # tools/blueprint_apply.py writes the workbook without naming it on the command line: running it is a write to
     # the specification, which the owner does in their own terminal.
     $mentionsSpec = '(api[\\/]+db[\\/]|(^|[\s''"=])db[\\/]+zengear_|docs[\\/]+blueprint[\\/]|DATABASE\.md|product-domain-blueprint-MVP\.xlsx|(?<![\w-])blueprint_apply\b)'
     $canWrite = '(>(?!>?\s*(&|/dev/null\b|\$null\b))|\btee\b|\bsed\b[^|;&]*\s-i|\bperl\b[^|;&]*\s-i|(^|[;&|(]\s*|\b(do|then|else|xargs|sudo|exec|env)\s+)(cp|mv|rm|truncate|touch|dd|install|unzip|tar|py(?=\s))\b|\bgit\s+(checkout|restore|apply|mv|rm|reset|stash)\b|Out-File|Set-Content|Add-Content|Remove-Item|Move-Item|Copy-Item|New-Item|Rename-Item|\bpython\d*\b|\bnode\b|\bpwsh\b|\bpowershell\b)'
-    $mentionsTooling = '(\.claude[\\/]|\.githooks[\\/]|\.github[\\/]+workflows|\.gitleaks\.toml|\.mcp\.json|(?<![\w.-])(pr_gates\.py|github_pr\.py|schema_snapshot\.sql|schema_compare\.py|shadcn_lock\.py)|ZenGear\.ArchitectureTests[\\/]|ARCHITECTURE\.md)'
+    $mentionsTooling = '(\.claude[\\/]|\.githooks[\\/]|\.github[\\/]+workflows|\.gitleaks\.toml|\.mcp\.json|(?<![\w.-])(pr_gates\.py|github_pr\.py|schema_snapshot\.sql|schema_compare\.py|shadcn_lock\.py|message_keys\.py)|ZenGear\.ArchitectureTests[\\/]|ARCHITECTURE\.md)'
     $mentionsGenerated = 'web[\\/]+src[\\/]+(components[\\/]+ui([\\/]|\b)|\S*schema\.d\.ts)'
     $mentionsBuild = '\.(csproj|props|targets)\b'
     # The first target of each kind; asked in the order spec, tooling, generated, build once every part is judged.
