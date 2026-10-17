@@ -68,6 +68,8 @@ only the owner merges. The repository's agents name their `model` and `effort` i
 | Plugins of the official marketplace `claude-plugins-official`: `csharp-lsp`, `feature-dev` | C# go-to-definition, references and compiler diagnostics (csharp-ls; it reports no Sonar rule); agents `code-explorer` and `code-architect`, `/feature-dev` for a spike. `pr-review-toolkit`, `code-review` and `commit-commands` are set to `false` (DEC-112 (2)); `/code-review` is the built-in command. `security-guidance` is off until web-shell starts, then on trial for 3 web features, whose reports give its warnings and its own findings | `enabledPlugins` of `.claude/settings.json` |
 | MCP server `postgres` (crystaldba postgres-mcp, image pinned by digest, unrestricted mode) | The schema and rows of the development database `zengear`; skill `db-inspect`. Read-only tools run without a prompt; `execute_sql` and `explain_query` always ask | `.mcp.json`, with `DATABASE_URI` from the user environment variable `ZENGEAR_MCP_DATABASE_URI` |
 | Hook `analyzer-check` (PostToolUse on Edit, Write and MultiEdit; kept by DEC-112 (6)) | After each edit of a `.cs` file under `api/`, a build of that project alone (`--no-dependencies`, about 2 s on the owner's machine) whose Sonar and CA errors go back to Claude at once instead of at the end. `api/CLAUDE.md` lists the rules that often fail | `.claude/hooks/analyzer-check.ps1`, `hooks` of `.claude/settings.json` |
+| Hook `eslint-check` (PostToolUse on Edit, Write and MultiEdit; DEC-104 (11)) | After each edit of a `.ts` or `.tsx` file under `web/`, ESLint on that file alone with the local binary of `web/node_modules`, without `--fix`; its errors go back to Claude at once. Warnings, parse errors and a failure of ESLint itself are left to the CI job `web-test` and the LSP. Nothing runs before `npm ci` in `web/` | `.claude/hooks/eslint-check.ps1`, `hooks` of `.claude/settings.json` |
+| Hook `stop-check` (Stop) | Before a turn ends: when `api/` changed, the build of `api/ZenGear.slnx` and `ZenGear.ArchitectureTests`; when `web/` changed (once `web/node_modules` exists), `tsc --noEmit` there with the local binary (DEC-104 (11)). Each state is checked once, a failure goes back to Claude once and then only to the user; locked build output or no `tsc` in `web/node_modules` is only reported | `.claude/hooks/stop-check.ps1`, `hooks` of `.claude/settings.json` |
 | MCP server `zengear` (Docker MCP Toolkit gateway, profile `zengear`): Postman, minimal tool set | Reading the workspace ZenGear (collections, environments, specs); every tool that writes asks, since the collections of the repository are the source | `.mcp.json`; the profile and the API key are per machine |
 
 `typescript-lsp` and `frontend-design` are enabled by the third web-tooling pull request (DEC-111 (6), (7)); the
@@ -156,8 +158,12 @@ evaluated (DEC-110 (7)), Claude takes M3 and M4 from `git log -p origin/main -- 
 ## CI/CD pipeline (DEC-100 (8))
 
 Two workflows. `.github/workflows/pipeline.yml` runs on every pull request to `main`, every push to `main` and on
-demand: `changes` reads the changed paths; `secrets`, `tools-test`, `api-test` and `schema` run in parallel, each
-only when its paths changed (`api-test` and `schema` always on `main`); `acceptance` builds the API
+demand: `changes` reads the changed paths; `secrets`, `tools-test`, `api-test`, `schema` and `web-test` run in
+parallel, each only when its paths changed (`api-test` and `schema` always on `main`); `web-test` (when `web/`,
+`api/openapi/` or one of the two web checks of `tools/` changed) checks the hashes of the shadcn components and the
+keys of the message files, then, once `web/package.json` exists, runs `npm ci`, `npm run gen:api` compared with the
+committed `schema.d.ts`, then ESLint, Prettier, `tsc --noEmit`, Vitest and the build through `npm exec --no --`
+(DEC-104 (8)); `acceptance` builds the API
 image (layers cached in GitHub Actions) and the migration bundle, prepares the data, runs the whole Postman
 collection and, on `main`, pushes that image to GHCR; `ci-ok` aggregates them and is the required check. The weekly
 schedule runs only the full-history secret scan. `deploy-staging` (OIDC to Azure, bundle, slot `staging`, smoke) and
