@@ -71,6 +71,12 @@ CASES = [
     ({'command': 'python tools/shadcn_lock.py write .claude/hooks'}, 'deny', 'ask'),
     ({'command': 'cp /tmp/x.py tools/shadcn_lock.py'}, 'deny', 'ask'),
     ({'file_path': str(REPO / 'tools' / 'shadcn_lock.py')}, 'deny', 'ask'),
+    # The message-key check of web-test judges changes too; running it is not a write.
+    ({'command': 'python tools/message_keys.py'}, 'allow', 'allow'),
+    ({'command': 'python3 tools/message_keys.py web/messages'}, 'allow', 'allow'),
+    ({'command': 'cp /tmp/x.py tools/message_keys.py'}, 'deny', 'ask'),
+    ({'file_path': str(REPO / 'tools' / 'message_keys.py')}, 'deny', 'ask'),
+    ({'file_path': str(REPO / 'tools' / 'tests' / 'test_message_keys.py')}, 'allow', 'allow'),
     ({'file_path': str(REPO / 'web' / 'src' / 'lib' / 'api' / 'schema.d.ts')}, 'deny', 'ask'),
     ({'file_path': str(REPO / 'web' / 'src' / 'components' / 'ui' / 'button.tsx')}, 'deny', 'ask'),
     ({'file_path': str(REPO / 'web' / 'src' / 'components' / 'ui' / '.shadcn-lock.json')}, 'deny', 'ask'),
