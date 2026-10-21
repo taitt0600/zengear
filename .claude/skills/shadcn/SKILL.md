@@ -22,19 +22,18 @@ ZenGear rules, DEC-104 (5), DEC-111 (2), (5). Where this file or the files it li
   (radix).
 - Packages, before `add` (DEC-111 (5)): read the item's `dependencies`, and those of each item in its
   `registryDependencies`, with `npm exec --no -- shadcn view @shadcn/<item>` and compare them with
-  `web/approved-packages.json`. Not checked yet (it can be once web-shell has installed shadcn): that `view` prints
-  these fields, or that `npm exec --no -- shadcn add <item> --dry-run` (which writes nothing) lists the packages;
-  when neither does, say so in the report, and the check after `add` (workflow, step 7) is the only one: when it finds
-  a package the file does not list, undo the `add` (the files it wrote and its lock entries) before the approval
-  path. When all are
-  listed, add the item. When the official item needs a package the file does not list, it goes through the package
-  approval path of `/implement-feature`, step 4, before `add`. A package that a Decision ruled out (the date library
+  `web/approved-packages.json`. Both print them (measured with shadcn 4.22.1 in web-shell): `view` shows
+  `dependencies`, `devDependencies` and `registryDependencies`, and `npm exec --no -- shadcn add <item> --dry-run`
+  (which writes nothing) lists "Dependencies" and "Dev Dependencies" with their names. The check after `add`
+  (workflow, step 7) stays: when it finds a package the file does not list, undo the `add` (the files it wrote and
+  its lock entries) before the approval path. When all are listed, add the item. When the official item needs a
+  package the file does not list, it goes through the package approval path of `/implement-feature`, step 4, before
+  `add`. A package that a Decision ruled out (the date library
   of DEC-104 (1), such as `date-fns` for `Calendar`) or that no official installer adds (another registry, a URL, a
   GitHub item) needs a Decision of its own, drafted with `/decision-draft`.
 - The rest (wrappers in `web/src/components/app/` or `web/src/features/<area>/`, theming in
   `web/src/app/globals.css` and `web/components.json`, `lucide-react` icons, next-intl for every text) is in
-  `web/CLAUDE.md`. Where `web/CLAUDE.md` still says `npx shadcn@<pinned version>` (until web-shell rewrites it,
-  DEC-111), the command above wins.
+  `web/CLAUDE.md`.
 
 ## Source
 
@@ -57,7 +56,9 @@ Modified for ZenGear (2026-10-21):
   `init` flags that overwrite or scaffold, and the `add` rows `--overwrite`, `--all`, `--path`;
 - `customization.md`: removed presets and `apply`, the Tailwind v3 registration, the radius link to the design
   system and adding a variant to component source; added the note on dark mode;
-- links to files not copied removed.
+- links to files not copied removed;
+- after web-shell: the `init` section of `cli.md` says what web-shell did instead, and the package check before
+  `add` gives what `view` and `add --dry-run` print.
 
 ---
 

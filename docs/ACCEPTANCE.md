@@ -8,8 +8,8 @@ and the API run from the branch with the launch profile `http`. Each feature has
 acceptance criterion and rule.
 
 Requirements: Docker Desktop, the .NET SDK of `api/global.json`, PowerShell 7, Python 3, the Postman app v12 and the
-Postman CLI pinned to 1.69.0 (`npm install -g postman-cli@1.69.0`; `postman --version`). Every command below runs from
-the root of the repository.
+Postman CLI pinned to 1.69.0 (`npm install -g postman-cli@1.69.0`; `postman --version`), and for the web Node.js of
+`web/.nvmrc` with its own npm. Every command below runs from the root of the repository.
 
 ## Test a feature
 
@@ -21,7 +21,10 @@ on the pull request. Then:
 2. Make sure the branch of the pull request is the one checked out (`git switch <branch>`; Postman shows it).
 3. Choose the environment `dev`.
 4. On the folder of the feature (for example `STF-01`), **Run folder**: every test is green.
-5. Do the manual checks of the guide, at most three.
+5. For a feature with screens, start the web: `npm run dev` in `web/` (Node.js of `web/.nvmrc`; `npm ci` in `web/` first,
+   and again whenever `web/package-lock.json` changed),
+   then http://localhost:3000/admin.
+6. Do the manual checks of the guide, at most three.
 
 The same folder runs from the terminal: `postman collection run postman/collections/ZenGear -e
 postman/environments/dev.environment.yaml -i <Feature ID> --no-report-events` (skill `api-run`). It needs no Postman
@@ -46,6 +49,7 @@ not the local one of `api/docker-compose.yml` (it never touches another database
 
 | What | Address |
 |---|---|
+| Web (admin), `npm run dev` in `web/` | http://localhost:3000/admin |
 | API | http://localhost:5256 |
 | Scalar: API reference and requests | http://localhost:5256/scalar |
 | Firebase Emulator UI: accounts | http://localhost:4000/auth |
@@ -60,6 +64,8 @@ not the local one of `api/docker-compose.yml` (it never touches another database
 - **Sign-in in Postman**: a request names its account in the header `X-ZenGear-As`; the collection script looks the
   account up in the emulator and signs in with an unsigned custom token, so no password is stored or typed anywhere.
   This works only against the emulator.
+- **Sign-in on the web**: the Admin and the fixture accounts have the emulator password `dev-reset-only` that
+  `tools/dev_reset.ps1` gives them (a test value of this environment only; `ci-only` in CI).
 - **Fixtures**: state that no endpoint can reach yet comes from `postman/fixtures/<Feature ID>.sql`, with its emulator
   accounts in `postman/fixtures/accounts.txt`. STF-01: `manager.fixture@zengear.test`, a Store Manager holding
   `staff.create` with no pending password change, for the refusal of R-TX-11. STF-02: Store Manager also holds
@@ -76,6 +82,15 @@ not the local one of `api/docker-compose.yml` (it never touches another database
 
 A feature that needs accounts or data adds them as fixtures, or as requests of its folder, in the same pull request
 (skill `api-collection`).
+
+## Screen flows
+
+`npm run e2e` in `web/` runs the Playwright flows of `web/e2e/` against this environment: it starts `npm run dev` on
+http://localhost:3000 (or reuses a running one) and needs the API and the emulator above. Once per machine,
+`npm exec --no -- playwright install chromium` downloads the browser. The flows sign in with the password above
+(`E2E_PASSWORD`, default `dev-reset-only`) and create the staff accounts they need through the API and the emulator,
+with unique emails: each run leaves those accounts in the database `zengear` and in the emulator until the next
+`tools/dev_reset.ps1`. CI runs the same flows in the job `acceptance` on a production build.
 
 ## The acceptance compose (CI only)
 

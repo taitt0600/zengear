@@ -11,27 +11,19 @@ Configuration is read from `components.json`.
 
 ## Contents
 
-- Commands: init (once, at web-shell), add (dry-run), search, view, docs, info
+- Commands: add (dry-run), search, view, docs, info; `init` is not used (below)
 
 ---
 
 ## Commands
 
-### `init` — Initialize a project
+### `init` — not used
 
-Runs once, when web-shell sets up `web/` (an owner-path pull request), never during a feature; `--preset` is kept
-for that one run only. `--force` and `--reinstall` overwrite configuration or components and are not used.
-
-```bash
-npm exec --no -- shadcn init [options]
-```
-
-| Flag                    | Short | Description                                               | Default |
-| ----------------------- | ----- | --------------------------------------------------------- | ------- |
-| `--preset [name]`       | `-p`  | Preset configuration (named, code, or URL)                | —       |
-| `--yes`                 | `-y`  | Skip confirmation prompt                                  | `true`  |
-| `--cwd <cwd>`           | `-c`  | Working directory                                         | current |
-| `--silent`              | `-s`  | Mute output                                               | `false` |
+`web/` is set up. Web-shell did not run `init`: in shadcn 4.22.1 it offers only presets (the default `base-nova` is
+Base UI, not approved) and no `new-york` style. `web/components.json` was written by hand with style `new-york` (on
+Radix), then `npm exec --no -- shadcn add index <components> --yes` installed the registry style item `index`
+(the theme variables and the packages of DEC-111 (1)) with the components. `init` is not run again: its presets
+bring other styles, and `--force` and `--reinstall` overwrite configuration or components.
 
 ### `add` — Add components
 
