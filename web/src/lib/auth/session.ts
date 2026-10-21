@@ -1,8 +1,21 @@
 'use client'
 
 import type { QueryClient } from '@tanstack/react-query'
-import { signInWithEmailAndPassword, signOut } from 'firebase/auth'
+import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth'
+import { useEffect, useState } from 'react'
 import { firebaseAuth } from './firebase'
+
+export type AuthState = 'loading' | 'signed-in' | 'signed-out'
+
+/** The Firebase session of this browser, followed as it changes; `loading` until the SDK has read its storage. */
+export function useAuthState(): AuthState {
+  const [state, setState] = useState<AuthState>('loading')
+  useEffect(
+    () => onAuthStateChanged(firebaseAuth(), (user) => setState(user ? 'signed-in' : 'signed-out')),
+    [],
+  )
+  return state
+}
 
 /** Whether this browser holds a Firebase session, once the SDK has read its storage. */
 export async function hasSession(): Promise<boolean> {

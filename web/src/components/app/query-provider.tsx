@@ -1,8 +1,10 @@
 'use client'
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useState, type ReactNode } from 'react'
+import { reportApiError } from '@/lib/api/api-errors'
 import { ApiError } from '@/lib/api/problems'
+import { queryKeys } from '@/lib/api/query-keys'
 
 /** Retries a network error or a 5xx twice; a 4xx is the answer and is never retried. */
 export function shouldRetry(failureCount: number, error: unknown): boolean {
@@ -10,10 +12,21 @@ export function shouldRetry(failureCount: number, error: unknown): boolean {
   return failureCount < 2
 }
 
+export function createQueryClient(): QueryClient {
+  return new QueryClient({
+    // Every failed call goes to the admin layout's rules (401, 403); the layout reads GET /me's own result.
+    queryCache: new QueryCache({
+      onError: (error, query) => {
+        if (query.queryKey[0] !== queryKeys.me[0]) reportApiError(error)
+      },
+    }),
+    mutationCache: new MutationCache({ onError: (error) => reportApiError(error) }),
+    defaultOptions: { queries: { retry: shouldRetry } },
+  })
+}
+
 /** Server state lives in TanStack Query (web/CLAUDE.md); one client per browser session. */
 export function QueryProvider({ children }: { children: ReactNode }) {
-  const [client] = useState(
-    () => new QueryClient({ defaultOptions: { queries: { retry: shouldRetry } } }),
-  )
+  const [client] = useState(createQueryClient)
   return <QueryClientProvider client={client}>{children}</QueryClientProvider>
 }
