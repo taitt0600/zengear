@@ -44,6 +44,8 @@ reported as unchecked; a PowerShell script is never run, read its `ShouldProcess
   `docs/blueprint/` and `docs/DATABASE.md` yourself
 - For a table the diff touches that the dossier does not hold: `#### <table>` in `docs/DATABASE.md` (search, do
   not read the whole file)
+- For a diff under `web/` only: `web/CLAUDE.md`, `docs/FRONTEND.md` and `.claude/guidelines/web-interface-guidelines.md`
+  (Vercel's Web Interface Guidelines, copied at a pinned commit; DEC-104 (11), DEC-111 (6))
 - A change that is not a feature (tooling, CI, documents) has no dossier. Read instead the files it changes and the
   documents that describe them: `docs/AUTOMATION.md`, `docs/ACCEPTANCE.md`, the `CLAUDE.md` files and the Decisions
   it cites (`docs/blueprint/decisions.md`). Apply items 4, 7, 8 and 12 where they apply, and item 11 in
@@ -127,6 +129,18 @@ repeat those. Check what no test sees:
     4. Does every comment say why, not what (section 4 of the guide)?
     5. Is the code in its module, and does a new module have its line under *Modules* in the area's README?
     A finding of questions 1 to 3 starts with the label `[over-engineering]` (1 and 2) or `[duplication]` (3).
+13. **Web interface** (diffs under `web/` only): each changed screen or component follows
+    `.claude/guidelines/web-interface-guidelines.md`; a finding cites its rule (`MUST: …`).
+    - Skip `web/src/components/ui/` and the generated `web/src/**/schema.d.ts`: they change only through their
+      generators (DEC-104 (5), DEC-111 (7)); a problem in a shadcn component is fixed in a wrapper in
+      `web/src/components/app/` or `web/src/features/<area>/`, as `web/CLAUDE.md` says.
+    - Apply only the rules that the changed code shows. Process rules (verify on several screens, measure, profile,
+      track re-renders, response-time targets) are named together in one Note as unchecked, never as findings; a finding never asks to
+      install a tool or package outside `web/approved-packages.json`.
+    - Where the guidelines and the project differ, the project wins (`web/CLAUDE.md`, WCAG 2.2 AA of DEC-104 (7):
+      targets of 24 px, contrast by the WCAG 2.2 criteria).
+    - Severity: a broken MUST or NEVER is Should fix; it is Blocking when it also breaks a WCAG 2.2 AA success
+      criterion (DEC-104 (7), `docs/FRONTEND.md`) or a rule of `web/CLAUDE.md`. A broken SHOULD is a Note.
 
 ## Output
 
