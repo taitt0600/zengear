@@ -238,7 +238,9 @@ export function SignInForm() {
               )}
             />
             <Button type="submit" disabled={sending} aria-busy={sending}>
-              {sending && <LoaderCircleIcon data-icon="inline-start" className="motion-safe:animate-spin" />}
+              {sending && (
+                <LoaderCircleIcon data-icon="inline-start" className="motion-safe:animate-spin" />
+              )}
               {t('submit')}
             </Button>
           </FieldGroup>

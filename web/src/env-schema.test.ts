@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { DEVELOPMENT_DEFAULTS, parseEnv } from './env'
+import { DEVELOPMENT_DEFAULTS, parseEnv } from './env-schema'
 
 const production = {
   NEXT_PUBLIC_API_BASE_URL: 'https://api.zengear.vn',

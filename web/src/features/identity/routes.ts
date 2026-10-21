@@ -7,6 +7,15 @@ export const adminRoutes = {
   businessLocation: '/admin/settings/business-location',
 } as const
 
+/** The sign-in page, with the path to return to or the reason of a sign-out. */
+export function signInPath(query: { next?: string; reason?: string } = {}): string {
+  const search = new URLSearchParams()
+  if (query.next) search.set('next', query.next)
+  if (query.reason) search.set('reason', query.reason)
+  const text = search.toString()
+  return text ? `${adminRoutes.signIn}?${text}` : adminRoutes.signIn
+}
+
 /**
  * The `next` path of the sign-in page when it is safe to go to: an admin path of this site, not the sign-in page
  * itself. Anything else (another site, `//host`, a backslash) is ignored, so the parameter cannot redirect away.

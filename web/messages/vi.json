@@ -24,6 +24,28 @@
       "generic": "Không đăng nhập được. Vui lòng thử lại."
     }
   },
+  "admin": {
+    "skipToContent": "Bỏ qua đến nội dung chính",
+    "retry": "Thử lại",
+    "menu": {
+      "title": "Menu",
+      "open": "Mở menu",
+      "close": "Đóng menu",
+      "staff": "Nhân viên",
+      "settings": "Cài đặt",
+      "businessLocation": "Địa điểm kinh doanh"
+    },
+    "user": {
+      "account": "Tài khoản của tôi",
+      "signOut": "Đăng xuất"
+    },
+    "noPermission": "Bạn không có quyền xem trang này.",
+    "placeholder": "Màn hình này đang được xây dựng."
+  },
+  "changePassword": {
+    "title": "Đổi mật khẩu",
+    "placeholder": "Màn hình đổi mật khẩu sẽ có ở bản sau. Vui lòng liên hệ quản lý cửa hàng."
+  },
   "problems": {
     "unknown": "Đã có lỗi xảy ra. Vui lòng thử lại."
   }
