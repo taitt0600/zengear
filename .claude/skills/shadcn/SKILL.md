@@ -22,7 +22,11 @@ ZenGear rules, DEC-104 (5), DEC-111 (2), (5). Where this file or the files it li
   (radix).
 - Packages, before `add` (DEC-111 (5)): read the item's `dependencies`, and those of each item in its
   `registryDependencies`, with `npm exec --no -- shadcn view @shadcn/<item>` and compare them with
-  `web/approved-packages.json`. When all are
+  `web/approved-packages.json`. Not checked yet (it can be once web-shell has installed shadcn): that `view` prints
+  these fields, or that `npm exec --no -- shadcn add <item> --dry-run` (which writes nothing) lists the packages;
+  when neither does, say so in the report, and the check after `add` (workflow, step 7) is the only one: when it finds
+  a package the file does not list, undo the `add` (the files it wrote and its lock entries) before the approval
+  path. When all are
   listed, add the item. When the official item needs a package the file does not list, it goes through the package
   approval path of `/implement-feature`, step 4, before `add`. A package that a Decision ruled out (the date library
   of DEC-104 (1), such as `date-fns` for `Calendar`) or that no official installer adds (another registry, a URL, a
@@ -215,7 +219,7 @@ npm exec --no -- shadcn docs button dialog select
 2. **Check installed components first** — before running `add`, always check the `components` list from project context or list the `resolvedPaths.ui` directory. Don't import components that haven't been added, and don't re-add ones already installed.
 3. **Find components** — `npm exec --no -- shadcn search @shadcn -q "<query>"`.
 4. **Get docs and examples** — run `npm exec --no -- shadcn docs <component>` to get URLs, then fetch them. Use `npm exec --no -- shadcn view @shadcn/<item>` to browse registry items you haven't installed.
-5. **Check packages first** — `npm exec --no -- shadcn view @shadcn/<item>` lists its `dependencies` and `registryDependencies`; compare them with `web/approved-packages.json` and follow the project rules above before anything is added.
+5. **Check packages first** — read the item's `dependencies` and `registryDependencies` with `npm exec --no -- shadcn view @shadcn/<item>` (or `add <item> --dry-run`, as the project rules say); compare them with `web/approved-packages.json` and follow the project rules above before anything is added.
 6. **Install** — `npm exec --no -- shadcn add <item>`, then `python tools/shadcn_lock.py write` from the repository root. Updating an installed component is not part of a feature (project rules above).
 7. **Review added components** — After adding a component, **always read the added files** and check again the packages it installed against `web/approved-packages.json`. Never edit the added files: a problem in them goes in the report, and composition, imports and icons are fixed in your own code that uses them, following the [Critical Rules](#critical-rules).
 8. **Registry is the official one** — When the user asks for a block or component that `@shadcn` does not have, say so; do not pick another registry.
