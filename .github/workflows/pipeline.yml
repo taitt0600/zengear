@@ -203,6 +203,13 @@ jobs:
         working-directory: web
     env:
       NEXT_TELEMETRY_DISABLED: 1
+      # The build checks the public configuration (web/src/env-schema.ts): the values of the acceptance environment,
+      # none of them a secret, as in the step "Build the web" of acceptance.
+      NEXT_PUBLIC_API_BASE_URL: http://127.0.0.1:8180
+      NEXT_PUBLIC_FIREBASE_API_KEY: demo-api-key
+      NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: demo-zengear.firebaseapp.com
+      NEXT_PUBLIC_FIREBASE_PROJECT_ID: demo-zengear
+      NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST: 127.0.0.1:9099
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -248,9 +255,12 @@ jobs:
       - name: Format
         if: steps.web.outputs.exists == 'true'
         run: npm exec --no -- prettier --check .
+      # tsc needs the route types Next.js generates (LayoutProps, PageProps), which a fresh checkout lacks.
       - name: Typecheck
         if: steps.web.outputs.exists == 'true'
-        run: npm exec --no -- tsc --noEmit
+        run: |
+          npm exec --no -- next typegen
+          npm exec --no -- tsc --noEmit
       - name: Vitest
         if: steps.web.outputs.exists == 'true'
         run: npm exec --no -- vitest run
@@ -278,6 +288,8 @@ jobs:
       EFBUNDLE: ${{ github.workspace }}/out/efbundle
       IMAGE: ghcr.io/${{ github.repository_owner }}/zengear-api
       DOCKER_BUILD_RECORD_UPLOAD: false
+      # The screen flows of the web run when the web, the API or the collection changed (DEC-104 (8)).
+      WEB_FLOWS: ${{ needs.changes.outputs.web == 'true' || needs.changes.outputs.api == 'true' || needs.changes.outputs.postman == 'true' || needs.changes.outputs.workflow == 'true' }}
     steps:
       # No token left in .git/config: api/.dockerignore lets .git/config into the build context, and the code of the
       # pull request runs in this job, whose token can write packages.
@@ -417,7 +429,10 @@ jobs:
           echo "$body" | grep -q 'account-not-registered' \
             || { echo "::error::GET /api/v1/admin/me with an emulator token of an unknown user: $body"; exit 1; }
 
-      # Main only, after every test above passed: the image tested goes to GHCR, the bundle to the deploy jobs.
+      # Main only, after the API tests above passed: the image tested goes to GHCR, the bundle to the deploy jobs. Both
+      # leave before the screen flows below run the web's own npm packages and a browser from Playwright's CDN, so that
+      # code never runs between building and publishing them; the deploy jobs still wait for ci-ok, which fails when
+      # the flows fail.
       - name: Push the image to GHCR
         if: github.event_name == 'push'
         env:
@@ -436,6 +451,51 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
+      # The screen flows of web/e2e/ (Playwright, DEC-104 (7)) against this API image and the emulator, on the
+      # production build of the web served by next start at http://localhost:3000, the origin the API allows in
+      # Development. The accounts are the Admin and the fixtures above, with the CI-only emulator password; the
+      # browser comes from the CDN of Playwright, outside the lockfile check (DEC-111). No token is in the env.
+      # NEXT_PUBLIC_* as in the env of web-test, the acceptance environment's values.
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        if: env.WEB_FLOWS == 'true'
+        with:
+          node-version-file: web/.nvmrc
+          package-manager-cache: false
+      - name: Build the web
+        if: env.WEB_FLOWS == 'true'
+        working-directory: web
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+          NEXT_PUBLIC_API_BASE_URL: ${{ env.API }}
+          NEXT_PUBLIC_FIREBASE_API_KEY: demo-api-key
+          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: demo-zengear.firebaseapp.com
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID: demo-zengear
+          NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST: 127.0.0.1:9099
+        run: |
+          npm ci --no-audit --no-fund
+          npm exec --no -- playwright install --with-deps chromium
+          npm exec --no -- next build 2>&1 | tee "$RUNNER_TEMP/web-build.log"
+      - name: Screen flows
+        if: env.WEB_FLOWS == 'true'
+        working-directory: web
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+          E2E_API_BASE_URL: ${{ env.API }}
+          E2E_FIREBASE_AUTH_EMULATOR_HOST: 127.0.0.1:9099
+          E2E_PASSWORD: ci-only   # emulator accounts of this job only, as TEST_PASSWORD above
+        run: npm exec --no -- playwright test 2>&1 | tee "$RUNNER_TEMP/playwright.log"
+      # The report and the screenshots, for the owner's test guide (DEC-100 (3)) and for a failure.
+      - name: Upload the screen flows
+        if: always() && env.WEB_FLOWS == 'true'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: playwright-${{ github.sha }}
+          path: |
+            web/playwright-report
+            web/test-results
+          if-no-files-found: ignore
+          retention-days: 14
+
       # Job logs cannot be read from a cloud session: the end of each log becomes an annotation. The output of
       # bootstrap-admin is never in a file or a service log (its container is removed), so never in an annotation.
       - name: Logs as annotations
@@ -445,7 +505,7 @@ jobs:
             text=$(printf '%s' "$2" | sed -e 's/%/%25/g' -e 's/\r//g' | sed -e ':a;N;$!ba;s/\n/%0A/g')
             if [ -n "$text" ]; then echo "::error title=$1::$text"; fi
           }
-          for log in up init postman; do
+          for log in up init postman web-build playwright; do
             if [ -f "$RUNNER_TEMP/$log.log" ]; then
               annotate "$log log" "$(tail -n 60 "$RUNNER_TEMP/$log.log")"
             fi

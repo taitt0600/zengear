@@ -1,6 +1,6 @@
 # Stop hook: before Claude Code ends a turn that changed backend code, build the solution and run the
-# architecture tests (no Docker, under a minute); before it ends a turn that changed web/, run tsc --noEmit there
-# with the local binary (DEC-104 (11)). The full test suite stays in /finish-feature and CI.
+# architecture tests (no Docker, under a minute); before it ends a turn that changed web/, run next typegen and
+# tsc --noEmit there with the local binaries (DEC-104 (11)). The full test suite stays in /finish-feature and CI.
 # A guardrail, not a gate: CI is the gate. Each state of the backend and of the web is checked once.
 # Runs on PowerShell 7 (pwsh), on Windows and in cloud sessions, like guard-spec.ps1.
 
@@ -111,7 +111,7 @@ function Test-Web {
     $last = Read-Stamp $stamp
     if ($last -eq "pass $fingerprint") { return }
     if ($last -eq "fail $fingerprint") {
-        if ($payload.stop_hook_active) { $notes.Add('stop-check: tsc --noEmit still fails in web/; see the errors above.') }
+        if ($payload.stop_hook_active) { $notes.Add('stop-check: the typecheck of web/ still fails; see the errors above.') }
         return
     }
 
@@ -121,9 +121,16 @@ function Test-Web {
         return
     }
 
+    # tsc needs the route types Next.js generates (LayoutProps, PageProps), which a fresh checkout lacks.
+    $next = Join-Path $modules ('.bin/' + $(if ($IsWindows) { 'next.cmd' } else { 'next' }))
+
     $watch = [Diagnostics.Stopwatch]::StartNew()
     Push-Location (Join-Path $root 'web')
-    try { $run = Invoke-Tool $tsc @('--noEmit', '--pretty', 'false') } finally { Pop-Location }
+    try {
+        $typegen = if (Test-Path -LiteralPath $next -PathType Leaf) { Invoke-Tool $next @('typegen') }
+        if ($typegen -and -not $typegen.Passed) { $run = $typegen }
+        else { $run = Invoke-Tool $tsc @('--noEmit', '--pretty', 'false') }
+    } finally { Pop-Location }
     $watch.Stop()
     $result = if ($run.Passed) { 'pass' } else { 'fail' }
     Add-Content -Path (Join-Path $stateDir 'stop-check.log') -Value ("{0} {1}s {2}" -f (Get-Date -Format s), [int]$watch.Elapsed.TotalSeconds, $result)
@@ -132,7 +139,8 @@ function Test-Web {
 
     $errors = @($run.Text -split "`r?`n" | Where-Object { $_ -match ': error TS' } | Select-Object -Unique -First 20)
     if (-not $errors) { $errors = @($run.Text -split "`r?`n" | Where-Object { $_.Trim() } | Select-Object -Last 20) }
-    $reasons.Add("tsc --noEmit fails in web/. Fix it before finishing:`n" + ($errors -join "`n"))
+    $failed = if ($run -eq $typegen) { 'next typegen' } else { 'tsc --noEmit' }
+    $reasons.Add("$failed fails in web/. Fix it before finishing:`n" + ($errors -join "`n"))
 }
 
 Test-Backend

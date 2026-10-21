@@ -23,3 +23,20 @@ updates:
     open-pull-requests-limit: 0
     commit-message:
       prefix: build(api)
+
+  # The web packages (DEC-104 (4)): a version is proposed once it is 7 days old, and the owner approves each pull
+  # request (the exact versions of web/package.json; pr_gates checks every package against
+  # web/approved-packages.json). Minor and patch updates come in one pull request, each major one alone.
+  - package-ecosystem: npm
+    directory: /web
+    schedule:
+      interval: weekly
+      timezone: Asia/Ho_Chi_Minh
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: build(web)
+    groups:
+      web:
+        update-types: ['minor', 'patch']

@@ -1,7 +1,7 @@
-"""Tests of .claude/hooks/stop-check.ps1 in a throw-away git repository, with a fake dotnet and a fake tsc first on
-PATH: the backend part builds and runs the architecture tests as before, the web part runs tsc --noEmit in web/ with
-the local binary when web/ changed (DEC-104 (11), DEC-111 (7)), each state is checked once, and the findings of both
-parts come back in one answer. Skipped when pwsh or git is missing.
+"""Tests of .claude/hooks/stop-check.ps1 in a throw-away git repository, with a fake dotnet, tsc and next first on
+PATH: the backend part builds and runs the architecture tests as before, the web part runs next typegen, then
+tsc --noEmit, in web/ with the local binaries when web/ changed (DEC-104 (11), DEC-111 (7)), each state is checked
+once, and the findings of both parts come back in one answer. Skipped when pwsh or git is missing.
 Run from the repository root: python3 -m unittest discover -s tools/tests -v
 """
 import json
@@ -74,13 +74,14 @@ class StopCheckTests(unittest.TestCase):
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(text, encoding='utf-8')
 
-    def npm_ci(self, tsc=True):
+    def npm_ci(self, tsc=True, next=True):
         (self.root / 'web' / 'node_modules').mkdir(parents=True, exist_ok=True)
-        if tsc:
-            install(self.root / 'web' / 'node_modules' / '.bin', 'tsc', FAKE.format(name='tsc'))
+        for name, wanted in (('tsc', tsc), ('next', next)):
+            if wanted:
+                install(self.root / 'web' / 'node_modules' / '.bin', name, FAKE.format(name=name))
 
     def run_hook(self, stop_hook_active=False, dotnet_on_path=True, **outputs):
-        """outputs: dotnet=(text, exit code), tsc=(text, exit code). Returns the parsed answer, {} when silent."""
+        """outputs: dotnet=, tsc=, next=(text, exit code). Returns the parsed answer, {} when silent."""
         env = {**os.environ, 'CLAUDE_PROJECT_DIR': str(self.root), 'FAKE_LOG': str(self.log)}
         for name, (text, code) in outputs.items():
             env[f'FAKE_{name.upper()}_OUTPUT'], env[f'FAKE_{name.upper()}_EXIT'] = text, str(code)
@@ -163,6 +164,9 @@ class StopCheckTests(unittest.TestCase):
         self.npm_ci()
         self.write('web/src/b.tsx', 'export const b = 1\n')
         self.assertEqual(self.run_hook(), {})
+        [typegen] = self.calls('next')
+        self.assertEqual(typegen['args'], ['typegen'])
+        self.assertEqual(Path(typegen['cwd']).resolve(), self.root / 'web')
         [call] = self.calls('tsc')
         self.assertEqual(call['args'], ['--noEmit', '--pretty', 'false'])
         self.assertEqual(Path(call['cwd']).resolve(), self.root / 'web')
@@ -184,7 +188,29 @@ class StopCheckTests(unittest.TestCase):
         self.write('web/src/a.ts', "export const a: string = 1\n")
         self.run_hook(tsc=(TS_ERROR, 2))
         answer = self.run_hook(stop_hook_active=True, tsc=(TS_ERROR, 2))
-        self.assertEqual(answer, {'systemMessage': 'stop-check: tsc --noEmit still fails in web/; see the errors above.'})
+        self.assertEqual(answer, {'systemMessage': 'stop-check: the typecheck of web/ still fails; see the errors above.'})
+        self.assertEqual(len(self.calls('tsc')), 1)
+
+    def test_typegen_runs_before_tsc(self):
+        self.npm_ci()
+        self.write('web/src/a.ts', 'export const a = 2\n')
+        self.run_hook()
+        calls = [json.loads(line)['tool'] for line in self.log.read_text(encoding='utf-8').splitlines()]
+        self.assertEqual(calls, ['next', 'tsc'])
+
+    def test_typegen_failure_blocks_without_tsc(self):
+        self.npm_ci()
+        self.write('web/src/a.ts', 'export const a = 2\n')
+        answer = self.run_hook(next=('Error: Cannot find module ./src/env-schema\n', 1))
+        self.assertEqual(answer['decision'], 'block')
+        self.assertIn('next typegen fails in web/', answer['reason'])
+        self.assertIn('Cannot find module', answer['reason'])
+        self.assertEqual(self.calls('tsc'), [])
+
+    def test_web_without_next_runs_tsc_alone(self):
+        self.npm_ci(next=False)
+        self.write('web/src/a.ts', 'export const a = 2\n')
+        self.assertEqual(self.run_hook(), {})
         self.assertEqual(len(self.calls('tsc')), 1)
 
     def test_web_without_tsc_is_reported(self):
