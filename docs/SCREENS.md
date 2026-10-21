@@ -37,20 +37,27 @@ only the shape of the input (required, length, format) with the limits below, wh
 
 | ID | Screen | Route | Part | Feature | Permission | Blocked by |
 |---|---|---|---|---|---|---|
-| SCR-ADM-01 | Admin layout and menu | `/admin` (layout) | Admin | AUT-04 | signed-in staff | Web shell |
-| SCR-AUT-01 | Staff sign-in | `/admin/sign-in` | Admin | AUT-01 | — | Web shell |
-| SCR-AUT-02 | Required password change | `/admin/change-password` | Admin | STF-03 | signed-in staff | Web shell |
-| SCR-ACC-01 | My account | `/admin/account` | Admin | STF-03 | signed-in staff | Web shell |
-| SCR-STF-01 | Staff list | `/admin/staff` | Admin | STF-05 | `staff.read` | Web shell (role filter: gap 2) |
-| SCR-STF-02 | New staff account | `/admin/staff/new` | Admin | STF-01 | `staff.create` | Web shell, gap 2 |
-| SCR-STF-03 | Staff account | `/admin/staff/[id]` | Admin | STF-01, STF-02 | `staff.read`; actions `staff.disable` | Web shell |
-| SCR-LOC-01 | Business location | `/admin/settings/business-location` | Admin | LOC-01 | `business_location.update` | Web shell, gap 3 |
+| SCR-ADM-01 | Admin layout and menu | `/admin` (layout) | Admin | AUT-04 | signed-in staff | |
+| SCR-AUT-01 | Staff sign-in | `/admin/sign-in` | Admin | AUT-01 | — | |
+| SCR-AUT-02 | Required password change | `/admin/change-password` | Admin | STF-03 | signed-in staff | |
+| SCR-ACC-01 | My account | `/admin/account` | Admin | STF-03 | signed-in staff | |
+| SCR-STF-01 | Staff list | `/admin/staff` | Admin | STF-05 | `staff.read` | |
+| SCR-STF-02 | New staff account | `/admin/staff/new` | Admin | STF-01 | `staff.create` | gap 2, date picker: Decision (DEC-111) |
+| SCR-STF-03 | Staff account | `/admin/staff/[id]` | Admin | STF-01, STF-02 | `staff.read`; actions `staff.disable` | date picker: Decision (DEC-111) |
+| SCR-LOC-01 | Business location | `/admin/settings/business-location` | Admin | LOC-01 | `business_location.update` | gap 3, date picker: Decision (DEC-111) |
 
 The order of DEC-111 (7), which split the one tooling pull request of DEC-104: the API pull request for the web (gaps 1
 and 4) comes before or beside the three tooling pull requests T1 (package gate), T2 (CI and hooks) and T3 (Claude Code
-tools), which the owner opens and merges; the web shell (`web/` set up with SCR-ADM-01) comes after T1 and T2. Until
-the web shell, no screen is built, even with its API ready. Every admin screen sits inside SCR-ADM-01. The POS and
+tools), which the owner opens and merges; the web shell (`web/` set up with SCR-ADM-01) came after T1 and T2, and no
+screen was built before it. Every admin screen sits inside SCR-ADM-01. The POS and
 the storefront have no screen yet: their features (catalog, stock, orders) have no API.
+
+The web shell is built (SCR-ADM-01 and SCR-AUT-01): a screen whose *Blocked by* cell is empty can be built with its
+feature. Until then its route opens a short placeholder page, "Màn hình này đang được xây dựng." inside the layout
+(SCR-STF-01, SCR-ACC-01, SCR-LOC-01), or, for SCR-AUT-02 shown alone, "Màn hình đổi mật khẩu sẽ có ở bản sau. Vui lòng
+liên hệ quản lý cửa hàng." with "Đăng xuất", so no menu link leads to a 404; the feature replaces it. The first screen
+that needs a date picker opens the Decision of DEC-111 on `date-fns` or another way, since DEC-104 (1) adds no date
+library.
 
 ---
 
@@ -66,7 +73,11 @@ Every admin screen except the sign-in page sits in this layout.
   `?next=`. When `GET /api/v1/admin/me` says `mustChangePassword: true`, every admin route goes to SCR-AUT-02. When it says
   `isStaff: false`, the user is signed out with "Tài khoản này không phải tài khoản nhân viên."
 - **No-permission page** (403): "Bạn không có quyền xem trang này." and a link back to the first menu entry the user
-  can open.
+  can open (other than this page), or "Tài khoản của tôi" when there is none. A page also shows it at once when the
+  user lacks the permission of its endpoints; a 403 `permission-denied` shows it until the path changes.
+- **Other texts**: the skip link "Bỏ qua đến nội dung chính"; on narrow screens the menu opens with "Mở menu" and
+  closes with "Đóng menu"; the menu's name is "Menu"; when GET `/me` fails otherwise, "Đã có lỗi xảy ra. Vui lòng thử
+  lại." with "Thử lại" and "Đăng xuất". The header shows "ZenGear" instead of the store name until gap 6 is closed.
 
 ## SCR-AUT-01 Staff sign-in
 
@@ -91,6 +102,13 @@ Staff sign in with their company email and password (UC-001).
 
 No "forgot password" link in Phase 1: a staff member whose password is lost asks the Admin (UC-001 has no reset
 flow).
+
+Texts of the page that the table does not quote: the heading "Đăng nhập nhân viên"; the show/hide button "Hiện mật
+khẩu" (one label, its state is `aria-pressed`); "Vui lòng nhập email công ty.", "Email không hợp lệ.", "Vui lòng nhập
+mật khẩu."; a network failure of Firebase or of GET `/me`: "Không kết nối được máy chủ. Vui lòng kiểm tra mạng và thử
+lại."; any other failure, including an API that refuses GET `/me` right after Firebase accepted the password (the user
+is then signed out): "Không đăng nhập được. Vui lòng thử lại."; Firebase `auth/user-disabled` shows the text of
+`/problems/account-disabled`.
 
 ## SCR-AUT-02 Required password change
 
@@ -280,3 +298,7 @@ A closed gap keeps its number, since other lines refer to it.
    `GET /api/v1/admin/staff`.
 5. **Changing a staff member's email.** No endpoint changes it, while UC-007 (2a) and R-USR-04 say the Admin does it in the
    staff management of STF-01, whose feature row has no such criterion; SCR-ACC-01 only points the staff member to the Admin. Needs a feature or a Decision when the Admin must do it.
+6. **Store name for every staff member.** SCR-ADM-01 shows the store name in the header, but `GET
+   /api/v1/admin/business-locations` needs `business_location.update` and no endpoint every signed-in staff member may
+   read returns it; the header shows "ZenGear" (message `app.name`) until then. Needs a feature or a Decision (an
+   anonymous `GET /api/v1/shop/business-locations` exists, but admin pages call admin endpoints, `docs/FRONTEND.md`).

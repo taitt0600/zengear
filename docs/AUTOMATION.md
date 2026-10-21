@@ -87,8 +87,8 @@ Set-up, once per machine:
 
 1. `dotnet tool install --global csharp-ls` (or `update`); Docker Desktop with the MCP Toolkit (`docker mcp --help`
    lists `profile` and `gateway`); `%UserProfile%\.wslconfig` with `memory=6GB` under `[wsl2]` (half the RAM on a
-   machine under 12 GB), then `wsl --shutdown`. For `typescript-lsp`: Node.js and npm (until web-shell writes
-   `web/.nvmrc`, any current LTS), then `npm install -g typescript-language-server typescript`; until the binary is
+   machine under 12 GB), then `wsl --shutdown`. For `typescript-lsp`: Node.js and npm (the version of
+   `web/.nvmrc`), then `npm install -g typescript-language-server typescript`; until the binary is
    on the `PATH`, the plugin cannot start its server and Claude Code reports that error (its wording is unchecked).
 2. The development database set up (`api/CLAUDE.md`, *Local database*): without the database `zengear` the
    PostgreSQL server waits 30 s for it and Claude Code reports a timeout.
