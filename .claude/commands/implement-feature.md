@@ -124,6 +124,8 @@ DEC-099 marked **Checkpoint** below (two here, one in `/finish-feature`); withou
    plan-reviewer verdict and its counts of `[over-engineering]` and `[duplication]` findings, the Needs decision
    items with the owner's answers (and those left open), how the plan handled each Work state row (step 3), the
    decisions made, the deviations from the approved plan, the results of the build, the tests and the Postman runs,
-   and whether `--checkpoints` was given. Then stop: tell the owner to type `/clear`, then `/finish-feature <ID>`
+   whether `--checkpoints` was given, and, while the trial of the plugin `security-guidance` runs (item (3) of the
+   Waiting row of `docs/STATUS.md` on DEC-112), its warnings and review findings so far, each with whether it was
+   acted on. Then stop: tell the owner to type `/clear`, then `/finish-feature <ID>`
    (with `--checkpoints` when it was given), which verifies, commits, opens the pull request, follows CI, has the
    owner test the feature before merge and reports. End with the section "Tóm tắt cho chủ dự án".
