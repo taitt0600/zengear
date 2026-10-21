@@ -56,7 +56,7 @@ without one runs in an empty session). They run as cloud sessions on this reposi
 above apply to them; no SessionStart hook prepares them any more, since they only read. Their prompts below are the reference: change a prompt here and in the routine
 together.
 
-## Tools of local sessions (DEC-100, DEC-112)
+## Tools of local sessions (DEC-100, DEC-111, DEC-112)
 
 Claude Code on the owner's machine has these tools besides the repository's own commands, agents and skills. Plugins
 and MCP servers run third-party code on the machine: adding one changes `.claude/settings.json` or `.mcp.json`, which
@@ -65,16 +65,18 @@ only the owner merges. The repository's agents name their `model` and `effort` i
 
 | Tool | What it gives | Declared in |
 |---|---|---|
-| Plugins of the official marketplace `claude-plugins-official`: `csharp-lsp`, `feature-dev` | C# go-to-definition, references and compiler diagnostics (csharp-ls; it reports no Sonar rule); agents `code-explorer` and `code-architect`, `/feature-dev` for a spike. `pr-review-toolkit`, `code-review` and `commit-commands` are set to `false` (DEC-112 (2)); `/code-review` is the built-in command. `security-guidance` is off until web-shell starts, then on trial for 3 web features, whose reports give its warnings and its own findings | `enabledPlugins` of `.claude/settings.json` |
+| Plugins of the official marketplace `claude-plugins-official`: `csharp-lsp`, `feature-dev`, `typescript-lsp`, `frontend-design` | C# go-to-definition, references and compiler diagnostics (csharp-ls; it reports no Sonar rule); agents `code-explorer` and `code-architect`, `/feature-dev` for a spike; TypeScript and JavaScript go-to-definition, references and diagnostics (typescript-language-server); `frontend-design`, a skill of design guidance for the storefront only (DEC-104 (11)), not for the admin or the POS: only this rule limits it, since the skill triggers from its own description, and its screenshots come from Playwright tests, never from a browser Claude opens (DEC-111). `pr-review-toolkit`, `code-review` and `commit-commands` are set to `false` (DEC-112 (2)); `/code-review` is the built-in command. `playwright` is set to `false` (DEC-111 (6), (d): its MCP server runs `npx @playwright/mcp@latest`, unpinned). `security-guidance` is off until web-shell starts, then on trial for 3 web features, whose reports give its warnings and its own findings | `enabledPlugins` of `.claude/settings.json`; reviewed at the marketplace commit named by the commit that enabled each |
+| Skill `shadcn` | The official shadcn/ui skill (components, composition, forms, styling, the CLI), with the project rules on top: the CLI only as `npm exec --no -- shadcn` from `web/`, `web/src/components/ui/` only through `add` then `tools/shadcn_lock.py write`, no `--overwrite` during a feature, the official registry only, packages checked before `add` (DEC-104 (5), DEC-111 (2), (5)) | `.claude/skills/shadcn/`, copied from `shadcn-ui/ui` at a pinned commit (MIT), its source and changes in `SKILL.md` |
+| Web Interface Guidelines (Vercel) | Rules for accessible, fast interfaces, which `code-reviewer` applies to diffs under `web/` only (item 13 of its checklist); the project wins where they differ (WCAG 2.2 AA) | `.claude/guidelines/web-interface-guidelines.md`, copied at a pinned commit (MIT); an update copies a newer commit after reading it |
 | MCP server `postgres` (crystaldba postgres-mcp, image pinned by digest, unrestricted mode) | The schema and rows of the development database `zengear`; skill `db-inspect`. Read-only tools run without a prompt; `execute_sql` and `explain_query` always ask | `.mcp.json`, with `DATABASE_URI` from the user environment variable `ZENGEAR_MCP_DATABASE_URI` |
 | Hook `analyzer-check` (PostToolUse on Edit, Write and MultiEdit; kept by DEC-112 (6)) | After each edit of a `.cs` file under `api/`, a build of that project alone (`--no-dependencies`, about 2 s on the owner's machine) whose Sonar and CA errors go back to Claude at once instead of at the end. `api/CLAUDE.md` lists the rules that often fail | `.claude/hooks/analyzer-check.ps1`, `hooks` of `.claude/settings.json` |
 | Hook `eslint-check` (PostToolUse on Edit, Write and MultiEdit; DEC-104 (11)) | After each edit of a `.ts` or `.tsx` file under `web/`, ESLint on that file alone with the local binary of `web/node_modules`, without `--fix`; its errors go back to Claude at once. Warnings, parse errors and a failure of ESLint itself are left to the CI job `web-test` and the LSP. Nothing runs before `npm ci` in `web/` | `.claude/hooks/eslint-check.ps1`, `hooks` of `.claude/settings.json` |
 | Hook `stop-check` (Stop) | Before a turn ends: when `api/` changed, the build of `api/ZenGear.slnx` and `ZenGear.ArchitectureTests`; when `web/` changed (once `web/node_modules` exists), `tsc --noEmit` there with the local binary (DEC-104 (11)). Each state is checked once, a failure goes back to Claude once and then only to the user; locked build output or no `tsc` in `web/node_modules` is only reported | `.claude/hooks/stop-check.ps1`, `hooks` of `.claude/settings.json` |
 | MCP server `zengear` (Docker MCP Toolkit gateway, profile `zengear`): Postman, minimal tool set | Reading the workspace ZenGear (collections, environments, specs); every tool that writes asks, since the collections of the repository are the source | `.mcp.json`; the profile and the API key are per machine |
 
-`typescript-lsp` and `frontend-design` are enabled by the third web-tooling pull request (DEC-111 (6), (7)); the
-`playwright` plugin is not enabled (DEC-111 (6)); `security-guidance` comes back when web-shell starts (DEC-112 (2)).
-The marketplace cannot be pinned to a commit (a
+`typescript-lsp` and `frontend-design` are on since the third web-tooling pull request (DEC-111 (6), (7)), and
+`playwright` stays off; `security-guidance` comes back when web-shell starts (DEC-112 (2)). The marketplace cannot be
+pinned to a commit (a
 marketplace source takes only a branch or tag, and the repository has no tags): each machine turns off its
 auto-update (`/plugin` → **Marketplaces** → `claude-plugins-official` → **Disable auto-update**) and updates it by
 hand after reading what changed. Firebase has no MCP server: the auth tools of `firebase-tools mcp` call the real
@@ -86,7 +88,9 @@ Set-up, once per machine:
 
 1. `dotnet tool install --global csharp-ls` (or `update`); Docker Desktop with the MCP Toolkit (`docker mcp --help`
    lists `profile` and `gateway`); `%UserProfile%\.wslconfig` with `memory=6GB` under `[wsl2]` (half the RAM on a
-   machine under 12 GB), then `wsl --shutdown`.
+   machine under 12 GB), then `wsl --shutdown`. For `typescript-lsp`: Node.js and npm (until web-shell writes
+   `web/.nvmrc`, any current LTS), then `npm install -g typescript-language-server typescript`; until the binary is
+   on the `PATH`, the plugin cannot start its server and Claude Code reports that error (its wording is unchecked).
 2. The development database set up (`api/CLAUDE.md`, *Local database*): without the database `zengear` the
    PostgreSQL server waits 30 s for it and Claude Code reports a timeout.
 3. `pwsh -NoProfile -File tools/mcp/setup.ps1` (`-WhatIf` first to see what it does). It creates the profile
