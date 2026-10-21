@@ -80,7 +80,7 @@ npm with `web/package-lock.json` committed; `web/.npmrc` sets `save-exact`, `eng
 
 ## Tests and checks
 
-Vitest with Testing Library (jsdom; Vite compiles TSX itself, so no React plugin) for the Zod schemas, the mapping of Problem Details onto forms and messages, and the hooks; Playwright for the screen flows, run in the CI job `acceptance` against the API image and the Firebase Auth Emulator, with screenshots for the owner's test guide (DEC-100). ESLint (`eslint-config-next`), Prettier and `tsc --noEmit` run locally (ESLint on each edited file and `tsc` at the end of a Claude Code turn, through the hooks of DEC-104) and in the CI job `web-test` that the DEC-104 tooling adds, with the build, `npm run gen:api` compared with the committed `schema.d.ts`, the hashes of `components/ui/` and the keys of the message files. Business rules are tested in the API (`pr_gates` coverage counts API tests only).
+Vitest with Testing Library (jsdom; Vite compiles TSX itself, so no React plugin) for the Zod schemas, the mapping of Problem Details onto forms and messages, and the hooks; Playwright for the screen flows, run in the CI job `acceptance` against the API image and the Firebase Auth Emulator, with screenshots for the owner's test guide (DEC-100). ESLint (`eslint-config-next`), Prettier and `next typegen` + `tsc --noEmit` run locally (ESLint on each edited file and the typecheck at the end of a Claude Code turn, through the hooks of DEC-104) and in the CI job `web-test`, with the build, `npm run gen:api` compared with the committed `schema.d.ts`, the hashes of `components/ui/` and the keys of the message files. Business rules are tested in the API (`pr_gates` coverage counts API tests only).
 
 ## Screens
 
