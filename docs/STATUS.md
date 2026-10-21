@@ -7,8 +7,7 @@ flight, what is done and how this file changes: `CLAUDE.md`, *Work state*.
 
 | Key | Item | Who | Source |
 |---|---|---|---|
-| web-tooling | Tooling of DEC-104 in three pull requests: gates, CI and hooks, Claude Code tools | local, owner path | DEC-104; DEC-111 |
-| web-shell | `web/` set up with SCR-ADM-01, then the screens whose API exists | local, owner path | DEC-104; DEC-111; DEC-112 (2); `docs/SCREENS.md`, *Screen list* |
+| web-shell | `web/` set up with SCR-ADM-01, then the screens whose API exists | local, owner path | DEC-104; DEC-111; DEC-112 (2); `docs/SCREENS.md`, *Screen list*; pull request #80, *Unchecked until web-shell* |
 
 ## Waiting for a trigger
 
