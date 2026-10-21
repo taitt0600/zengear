@@ -71,7 +71,7 @@ only the owner merges. The repository's agents name their `model` and `effort` i
 | MCP server `postgres` (crystaldba postgres-mcp, image pinned by digest, unrestricted mode) | The schema and rows of the development database `zengear`; skill `db-inspect`. Read-only tools run without a prompt; `execute_sql` and `explain_query` always ask | `.mcp.json`, with `DATABASE_URI` from the user environment variable `ZENGEAR_MCP_DATABASE_URI` |
 | Hook `analyzer-check` (PostToolUse on Edit, Write and MultiEdit; kept by DEC-112 (6)) | After each edit of a `.cs` file under `api/`, a build of that project alone (`--no-dependencies`, about 2 s on the owner's machine) whose Sonar and CA errors go back to Claude at once instead of at the end. `api/CLAUDE.md` lists the rules that often fail | `.claude/hooks/analyzer-check.ps1`, `hooks` of `.claude/settings.json` |
 | Hook `eslint-check` (PostToolUse on Edit, Write and MultiEdit; DEC-104 (11)) | After each edit of a `.ts` or `.tsx` file under `web/`, ESLint on that file alone with the local binary of `web/node_modules`, without `--fix`; its errors go back to Claude at once. Warnings, parse errors and a failure of ESLint itself are left to the CI job `web-test` and the LSP. Nothing runs before `npm ci` in `web/` | `.claude/hooks/eslint-check.ps1`, `hooks` of `.claude/settings.json` |
-| Hook `stop-check` (Stop) | Before a turn ends: when `api/` changed, the build of `api/ZenGear.slnx` and `ZenGear.ArchitectureTests`; when `web/` changed (once `web/node_modules` exists), `tsc --noEmit` there with the local binary (DEC-104 (11)). Each state is checked once, a failure goes back to Claude once and then only to the user; locked build output or no `tsc` in `web/node_modules` is only reported | `.claude/hooks/stop-check.ps1`, `hooks` of `.claude/settings.json` |
+| Hook `stop-check` (Stop) | Before a turn ends: when `api/` changed, the build of `api/ZenGear.slnx` and `ZenGear.ArchitectureTests`; when `web/` changed (once `web/node_modules` exists), `next typegen` (the route types a fresh checkout lacks) and `tsc --noEmit` there with the local binaries (DEC-104 (11)). Each state is checked once, a failure goes back to Claude once and then only to the user; locked build output or no `tsc` in `web/node_modules` is only reported | `.claude/hooks/stop-check.ps1`, `hooks` of `.claude/settings.json` |
 | MCP server `zengear` (Docker MCP Toolkit gateway, profile `zengear`): Postman, minimal tool set | Reading the workspace ZenGear (collections, environments, specs); every tool that writes asks, since the collections of the repository are the source | `.mcp.json`; the profile and the API key are per machine |
 
 `typescript-lsp` and `frontend-design` are on since the third web-tooling pull request (DEC-111 (6), (7)), and
@@ -166,11 +166,14 @@ demand: `changes` reads the changed paths; `secrets`, `tools-test`, `api-test`, 
 parallel, each only when its paths changed (`api-test` and `schema` always on `main`); `web-test` (when `web/`,
 `api/openapi/` or one of the two web checks of `tools/` changed) checks the hashes of the shadcn components and the
 keys of the message files, then, once `web/package.json` exists, runs `npm ci`, `npm run gen:api` compared with the
-committed `schema.d.ts`, then ESLint, Prettier, `tsc --noEmit`, Vitest and the build through `npm exec --no --`
-(DEC-104 (8)); `acceptance` builds the API
-image (layers cached in GitHub Actions) and the migration bundle, prepares the data, runs the whole Postman
-collection and, on `main`, pushes that image to GHCR; `ci-ok` aggregates them and is the required check. The weekly
-schedule runs only the full-history secret scan. `deploy-staging` (OIDC to Azure, bundle, slot `staging`, smoke) and
+committed `schema.d.ts`, then ESLint, Prettier, `next typegen` and `tsc --noEmit`, Vitest and the build through
+`npm exec --no --`, with the public `NEXT_PUBLIC_*` values of the acceptance environment (DEC-104 (8)); `acceptance`
+builds the API image (layers cached in GitHub Actions) and the migration bundle, prepares the data, runs the whole
+Postman collection, on `main` pushes that image to GHCR and uploads the bundle, and then, when `web/`, `api/` or
+`postman/` changed, builds the web and runs the Playwright flows of `web/e2e/` against that API and the emulator
+(artifact `playwright-<sha>`: report and screenshots, 14 days); the web's npm packages and the browser from
+Playwright's CDN run only after the image and the bundle are published; `ci-ok` aggregates them and is the required
+check. The weekly schedule runs only the full-history secret scan. `deploy-staging` (OIDC to Azure, bundle, slot `staging`, smoke) and
 `deploy-production` (swap after the environment's approval; rollback is swapping again) are written but run only
 when the repository variable `DEPLOY_ENABLED` is `true`, once the Azure resources exist.
 `.github/workflows/gates.yml` (`pull_request_target`, code of `main` only) runs `pr-gates` and `pr-title`.
