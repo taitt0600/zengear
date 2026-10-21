@@ -1,0 +1,6 @@
+# Generated: by npm run gen:api, by the shadcn CLI (hashed in .shadcn-lock.json) and by npm.
+src/lib/api/schema.d.ts
+src/components/ui/
+package-lock.json
+# Markdown keeps its own wrapping (web/CLAUDE.md).
+*.md
