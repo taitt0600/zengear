@@ -1,6 +1,7 @@
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useId } from 'react'
 import { cn } from '@/lib/utils'
 import { visibleMenu, type MenuEntry } from './admin-menu'
 
@@ -14,6 +15,8 @@ export function AdminNav({
 }) {
   const t = useTranslations('admin.menu')
   const pathname = usePathname()
+  // The menu renders twice on narrow screens (aside and sheet): ids must stay unique.
+  const id = useId()
 
   const link = (entry: MenuEntry) => {
     const current = pathname === entry.href || pathname.startsWith(`${entry.href}/`)
@@ -41,12 +44,12 @@ export function AdminNav({
           'entries' in item ? (
             <li key={item.key} className="mt-3 flex flex-col gap-1">
               <span
-                id={`menu-${item.key}`}
+                id={`${id}-${item.key}`}
                 className="px-3 text-xs font-medium text-muted-foreground"
               >
                 {t(item.key)}
               </span>
-              <ul aria-labelledby={`menu-${item.key}`} className="flex flex-col gap-1">
+              <ul aria-labelledby={`${id}-${item.key}`} className="flex flex-col gap-1">
                 {item.entries.map(link)}
               </ul>
             </li>
