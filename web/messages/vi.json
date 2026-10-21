@@ -1,0 +1,30 @@
+{
+  "app": {
+    "name": "ZenGear",
+    "titleTemplate": "%s · ZenGear"
+  },
+  "signIn": {
+    "title": "Đăng nhập nhân viên",
+    "email": "Email công ty",
+    "password": "Mật khẩu",
+    "showPassword": "Hiện mật khẩu",
+    "submit": "Đăng nhập",
+    "validation": {
+      "emailRequired": "Vui lòng nhập email công ty.",
+      "emailInvalid": "Email không hợp lệ.",
+      "passwordRequired": "Vui lòng nhập mật khẩu."
+    },
+    "errors": {
+      "wrongCredentials": "Email hoặc mật khẩu không đúng.",
+      "tooManyAttempts": "Bạn đã thử quá nhiều lần. Vui lòng thử lại sau.",
+      "accountDisabled": "Tài khoản đã bị khóa. Vui lòng liên hệ quản lý cửa hàng.",
+      "accountNotRegistered": "Tài khoản này chưa được đăng ký trong hệ thống.",
+      "notStaff": "Tài khoản này không phải tài khoản nhân viên.",
+      "network": "Không kết nối được máy chủ. Vui lòng kiểm tra mạng và thử lại.",
+      "generic": "Không đăng nhập được. Vui lòng thử lại."
+    }
+  },
+  "problems": {
+    "unknown": "Đã có lỗi xảy ra. Vui lòng thử lại."
+  }
+}

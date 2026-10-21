@@ -21,9 +21,8 @@ next-env.d.ts
 # debug
 npm-debug.log*
 
-# env files: only the public development values are committed (docs/FRONTEND.md, Environment variables)
+# env files (the development values are the defaults of src/env.ts)
 .env*
-!.env.development
 
 # vercel
 .vercel
