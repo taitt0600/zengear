@@ -34,8 +34,9 @@ facts you are given. You never edit files.
 
 1. **Length and language**: Vietnamese, one page at most (about 40 lines).
 2. **Các bước**: when the API changed, the steps work on the development environment as `docs/ACCEPTANCE.md`
-   describes it, in this order: Postman on the repository folder, the branch of the pull request, environment
-   `dev`, run folder `<ID>`, every test green; when it did not, the guide has no Postman step. The environment is
+   describes it, in this order: Postman on the repository folder, a check that it shows the branch of the pull
+   request (already checked out), environment `dev`, run folder `<ID>`, every test green; when it did not, the
+   guide has no Postman step. The environment is
    said to be running already; the appendix "Nếu môi trường chưa chạy" gives `git switch`, `tools/dev_reset.ps1`
    and the API start, and `npm ci` then `npm run dev` in `web/` when the branch changes `web/`.
 3. **Collection**: the folder `<ID>` exists; every acceptance criterion has a request, every rule has at least one
@@ -71,8 +72,8 @@ facts you are given. You never edit files.
 4. **Kịch bản kiểm thử**: when the API changed, one line per request of the folder, and the results it states are
    the results of the Postman runs you are given; every acceptance criterion and every rule (one refusal at least) is
    covered. When the branch changes `web/`, a sub-list **Luồng màn hình (Playwright)** with one line per flow, whose
-   results are those of the flows you are given; a report without Postman lines (a web-only run) says that the rules
-   of the feature are covered by its earlier pull request.
+   results are those of the flows you are given; a report without Postman lines (a web-only run, or a fix of a
+   screen) says that the rules of the feature are covered by its earlier pull request.
 5. **Rule đã có test**: every rule of the dossier.
 6. **Quyết định Claude đã tự chọn**: no choice that the decision policy gives to the owner (money, prices, tax,
    invoices or accounting, a legal duty, personal data, the permissions the seed grants to roles, a column or stored
