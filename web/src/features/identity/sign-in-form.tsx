@@ -23,48 +23,22 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { hasSession, signInWithPassword, signOutAndClear } from '@/lib/auth/session'
 import { meQuery } from './me'
 import {
-  firebaseCode,
+  firebaseError,
   meOutcome,
   SIGN_OUT_REASONS,
   type MeOutcome,
+  type PasswordSignInError,
   type SignOutReason,
 } from './me-outcome'
-import { adminRoutes, safeNext } from './routes'
+import { adminRoutes, PASSWORD_CHANGED, safeNext } from './routes'
 
 /** The answers of SCR-AUT-01 (docs/SCREENS.md), as keys of `signIn.errors`. */
-export type SignInError =
-  | 'wrongCredentials'
-  | 'tooManyAttempts'
-  | 'accountDisabled'
-  | 'accountNotRegistered'
-  | 'notStaff'
-  | 'network'
-  | 'generic'
+export type SignInError = PasswordSignInError | 'accountNotRegistered' | 'notStaff'
 
 const REASON_ERRORS: Record<SignOutReason, SignInError> = {
   'account-disabled': 'accountDisabled',
   'account-not-registered': 'accountNotRegistered',
   'not-staff': 'notStaff',
-}
-
-// Never which of the two was wrong (SCR-AUT-01).
-const WRONG_CREDENTIALS = new Set([
-  'auth/invalid-credential',
-  'auth/invalid-login-credentials',
-  'auth/wrong-password',
-  'auth/user-not-found',
-  'auth/invalid-email',
-])
-
-/** The answer of a failed Firebase sign-in, from its error code. */
-export function firebaseError(error: unknown): SignInError {
-  const code = firebaseCode(error) ?? ''
-  if (WRONG_CREDENTIALS.has(code)) return 'wrongCredentials'
-  if (code === 'auth/too-many-requests') return 'tooManyAttempts'
-  // ZenGear never disables the Firebase account itself (R-SEC-04 revokes its sessions), but the console can.
-  if (code === 'auth/user-disabled') return 'accountDisabled'
-  if (code === 'auth/network-request-failed') return 'network'
-  return 'generic'
 }
 
 function reasonError(reason: string | null): SignInError | null {
@@ -79,6 +53,10 @@ export function SignInForm() {
   const params = useSearchParams()
   const queryClient = useQueryClient()
   const [error, setError] = useState<SignInError | null>(() => reasonError(params.get('reason')))
+  // Shown until the next sign-in attempt.
+  const [passwordChanged, setPasswordChanged] = useState(
+    () => params.get('reason') === PASSWORD_CHANGED,
+  )
   const [showPassword, setShowPassword] = useState(false)
   // Until the SDK has read its session, and from the moment the user is signed in until the next page opens: the
   // button stays disabled, so a second click sends nothing.
@@ -159,6 +137,7 @@ export function SignInForm() {
 
   async function onSubmit(values: z.output<typeof schema>) {
     setError(null)
+    setPasswordChanged(false)
     try {
       await signInWithPassword(values.email, values.password)
     } catch (failure) {
@@ -185,6 +164,11 @@ export function SignInForm() {
       <CardContent>
         <form noValidate onSubmit={form.handleSubmit(onSubmit)}>
           <FieldGroup>
+            {passwordChanged && (
+              <Alert role="status">
+                <AlertDescription>{t('passwordChanged')}</AlertDescription>
+              </Alert>
+            )}
             {error && (
               <Alert variant="destructive">
                 <AlertDescription>{t(`errors.${error}`)}</AlertDescription>

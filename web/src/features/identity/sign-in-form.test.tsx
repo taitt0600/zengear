@@ -284,4 +284,16 @@ describe('the reason of a sign-out', () => {
 
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
+
+  it('after a password change, says so as a notice, not as an error, until the next sign-in', async () => {
+    renderForm('reason=password-changed')
+
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'Đã đổi mật khẩu. Vui lòng đăng nhập lại bằng mật khẩu mới.',
+    )
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+
+    await signIn()
+    await waitFor(() => expect(screen.queryByRole('status')).not.toBeInTheDocument())
+  })
 })

@@ -23,7 +23,7 @@ export function NoPermission({ onLeave }: { onLeave?: () => void }) {
       <Link
         href={entry?.href ?? adminRoutes.account}
         onClick={onLeave}
-        className="text-sm font-medium underline underline-offset-4"
+        className="inline-flex min-h-6 items-center text-sm font-medium underline underline-offset-4"
       >
         {entry ? t(`menu.${entry.key}`) : t('user.account')}
       </Link>

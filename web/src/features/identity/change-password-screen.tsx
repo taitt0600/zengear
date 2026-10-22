@@ -5,12 +5,14 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
+import { ChangePasswordForm } from './change-password-form'
+import { PASSWORD_CHANGED } from './routes'
 import { useStaffSession } from './staff-session'
 
 /**
- * SCR-AUT-02 until STF-03 builds it: shown alone while mustChangePassword is true, it says the screen comes later and
- * offers "Đăng xuất", the one other action of SCR-AUT-02. A staff member without a pending change goes to their
- * landing page.
+ * SCR-AUT-02 Required password change: shown alone, without the menu, while mustChangePassword is true (R-USR-03).
+ * After the change the user is signed out and signs in again with the new password (DEC-094); "Đăng xuất" is the one
+ * other action. A staff member without a pending change goes to their landing page.
  */
 export function ChangePasswordScreen() {
   const t = useTranslations()
@@ -25,14 +27,17 @@ export function ChangePasswordScreen() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {session.status === 'loading' && <Skeleton className="h-10 w-full" />}
+          {session.status === 'loading' && <Skeleton className="h-40 w-full" />}
           {session.status === 'error' && (
             <Alert variant="destructive">
               <AlertDescription>{t('problems.unknown')}</AlertDescription>
             </Alert>
           )}
           {session.status === 'ready' && (
-            <p className="text-sm text-muted-foreground">{t('changePassword.placeholder')}</p>
+            <ChangePasswordForm
+              email={session.me.email}
+              onChanged={() => session.signOut(PASSWORD_CHANGED)}
+            />
           )}
         </CardContent>
         <CardFooter className="justify-end gap-2">

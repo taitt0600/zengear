@@ -1,7 +1,13 @@
 'use client'
 
 import type { QueryClient } from '@tanstack/react-query'
-import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth'
+import {
+  EmailAuthProvider,
+  onAuthStateChanged,
+  reauthenticateWithCredential,
+  signInWithEmailAndPassword,
+  signOut,
+} from 'firebase/auth'
 import { useEffect, useState } from 'react'
 import { firebaseAuth } from './firebase'
 
@@ -33,6 +39,18 @@ export async function currentIdToken(): Promise<string | null> {
 
 export async function signInWithPassword(email: string, password: string): Promise<void> {
   await signInWithEmailAndPassword(firebaseAuth(), email, password)
+}
+
+/**
+ * Signs the current user in again with their password, for the API's 403 recent-login-required: it changes a
+ * password only within 5 minutes of a sign-in (DEC-094). Firebase errors are thrown as they come.
+ */
+export async function reauthenticate(password: string): Promise<void> {
+  const user = firebaseAuth().currentUser
+  if (!user?.email) throw new Error('No signed-in user with an email')
+  // The SDK swaps in the tokens of the answer (Firebase 13, UserCredentialImpl._forOperation), so the next call
+  // already carries the new auth_time.
+  await reauthenticateWithCredential(user, EmailAuthProvider.credential(user.email, password))
 }
 
 /** Signs out of Firebase and drops every cached answer of the API, so the next user sees none of it. */

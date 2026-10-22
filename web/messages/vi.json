@@ -22,7 +22,8 @@
       "notStaff": "Tài khoản này không phải tài khoản nhân viên.",
       "network": "Không kết nối được máy chủ. Vui lòng kiểm tra mạng và thử lại.",
       "generic": "Không đăng nhập được. Vui lòng thử lại."
-    }
+    },
+    "passwordChanged": "Đã đổi mật khẩu. Vui lòng đăng nhập lại bằng mật khẩu mới."
   },
   "admin": {
     "skipToContent": "Bỏ qua đến nội dung chính",
@@ -40,13 +41,48 @@
       "signOut": "Đăng xuất"
     },
     "noPermission": "Bạn không có quyền xem trang này.",
-    "placeholder": "Màn hình này đang được xây dựng."
+    "placeholder": "Màn hình này đang được xây dựng.",
+    "stale": "Dữ liệu đã được người khác thay đổi. Đang tải lại.",
+    "notifications": "Thông báo"
   },
   "changePassword": {
     "title": "Đổi mật khẩu",
-    "placeholder": "Màn hình đổi mật khẩu sẽ có ở bản sau. Vui lòng liên hệ quản lý cửa hàng."
+    "newPassword": "Mật khẩu mới",
+    "confirmation": "Nhập lại mật khẩu mới",
+    "help": "Tối thiểu 12 ký tự. Không dùng mật khẩu mặc định, mật khẩu phổ biến hay chữ zengear.",
+    "submit": "Đổi mật khẩu",
+    "cancel": "Hủy",
+    "validation": {
+      "required": "Vui lòng nhập mật khẩu mới.",
+      "length": "Mật khẩu mới dài từ 12 đến 128 ký tự.",
+      "mismatch": "Mật khẩu nhập lại không khớp.",
+      "refused": "Không dùng được mật khẩu này. Vui lòng chọn mật khẩu khác."
+    },
+    "reauth": {
+      "title": "Vui lòng nhập lại mật khẩu hiện tại để tiếp tục",
+      "description": "Lần đăng nhập gần nhất đã quá 5 phút, nên cần xác nhận lại trước khi đổi mật khẩu.",
+      "password": "Mật khẩu hiện tại",
+      "submit": "Tiếp tục",
+      "required": "Vui lòng nhập mật khẩu hiện tại.",
+      "wrongPassword": "Mật khẩu hiện tại không đúng."
+    }
+  },
+  "account": {
+    "name": "Tên hiển thị",
+    "email": "Email",
+    "emailNote": "Email là tên đăng nhập. Liên hệ quản trị viên khi cần đổi.",
+    "save": "Lưu",
+    "saved": "Đã lưu.",
+    "changePassword": "Đổi mật khẩu",
+    "changePasswordNote": "Sau khi đổi, bạn và mọi thiết bị đã đăng nhập phải đăng nhập lại bằng mật khẩu mới.",
+    "validation": {
+      "nameRequired": "Vui lòng nhập tên hiển thị.",
+      "nameTooLong": "Tên hiển thị tối đa 100 ký tự.",
+      "nameRefused": "Tên hiển thị không hợp lệ."
+    }
   },
   "problems": {
-    "unknown": "Đã có lỗi xảy ra. Vui lòng thử lại."
+    "unknown": "Đã có lỗi xảy ra. Vui lòng thử lại.",
+    "staff-account-required": "Chỉ tài khoản nhân viên mới đổi mật khẩu tại đây."
   }
 }

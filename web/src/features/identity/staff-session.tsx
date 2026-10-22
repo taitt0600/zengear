@@ -8,17 +8,20 @@ import { ApiError, problemName } from '@/lib/api/problems'
 import { signOutAndClear, useAuthState } from '@/lib/auth/session'
 import { meQuery, type CurrentUser } from './me'
 import { meOutcome, sessionOutcome, type MeOutcome } from './me-outcome'
-import { adminRoutes, signInPath } from './routes'
+import { adminRoutes, signInPath, type PASSWORD_CHANGED } from './routes'
+
+/** Signs out to the sign-in page; after a password change, with its notice there. */
+export type SignOut = (reason?: typeof PASSWORD_CHANGED) => Promise<void>
 
 export type StaffSession =
   | { status: 'loading' }
-  | { status: 'error'; retry: () => void; signOut: () => Promise<void> }
+  | { status: 'error'; retry: () => void; signOut: SignOut }
   | {
       status: 'ready'
       me: CurrentUser
       forbidden: boolean
       clearForbidden: () => void
-      signOut: () => Promise<void>
+      signOut: SignOut
     }
 
 /**
@@ -128,7 +131,12 @@ export function useStaffSession(mode: 'shell' | 'change-password'): StaffSession
     [follow],
   )
 
-  const signOut = useCallback(() => leaveOrFail(adminRoutes.signIn, true), [leaveOrFail])
+  // Through leave(), which marks the page as left before Firebase signs out: the signed-out effect above then
+  // adds no ?next= redirect of its own.
+  const signOut = useCallback<SignOut>(
+    (reason) => leaveOrFail(reason ? signInPath({ reason }) : adminRoutes.signIn, true),
+    [leaveOrFail],
+  )
 
   if (failed || outcome?.kind === 'error') {
     const retry = () => {
@@ -151,13 +159,22 @@ export function useStaffSession(mode: 'shell' | 'change-password'): StaffSession
   return { status: 'loading' }
 }
 
-const CurrentUserContext = createContext<CurrentUser | null>(null)
+const CurrentUserContext = createContext<{ me: CurrentUser; signOut: SignOut } | null>(null)
 
 export const CurrentUserProvider = CurrentUserContext.Provider
 
+function useStaffContext() {
+  const context = useContext(CurrentUserContext)
+  if (!context) throw new Error('The staff session is used outside the admin layout')
+  return context
+}
+
 /** The signed-in staff member, inside the admin layout. */
 export function useCurrentUser(): CurrentUser {
-  const me = useContext(CurrentUserContext)
-  if (!me) throw new Error('useCurrentUser is used outside the admin layout')
-  return me
+  return useStaffContext().me
+}
+
+/** The sign-out of the admin layout, for a page inside it. */
+export function useStaffSignOut(): SignOut {
+  return useStaffContext().signOut
 }
