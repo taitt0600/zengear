@@ -13,18 +13,22 @@ Postman CLI pinned to 1.69.0 (`npm install -g postman-cli@1.69.0`; `postman --ve
 
 ## Test a feature
 
-`/finish-feature` leaves the environment ready (reset, API of the branch running) and posts a test guide of one page
-on the pull request. Then:
+`/finish-feature` leaves the environment ready (reset, API of the branch running and, for a branch that changes `web/`,
+the web with `npm run dev`) and posts a test guide of one page on the pull request. Before that it has run the
+Postman collection and, for a branch that changes `web/`, the Playwright flows of `web/e2e/` (below, *Screen flows*),
+which CI runs again. Then:
 
-1. Open the Postman app on the repository folder (once per machine: **Files** → **Open folder** → the repository,
-   then **Local View**: the app reads `postman/` directly and follows the branch checked out in the folder).
-2. Make sure the branch of the pull request is the one checked out (`git switch <branch>`; Postman shows it).
-3. Choose the environment `dev`.
-4. On the folder of the feature (for example `STF-01`), **Run folder**: every test is green.
-5. For a feature with screens, start the web: `npm run dev` in `web/` (Node.js of `web/.nvmrc`; `npm ci` in `web/` first,
-   and again whenever `web/package-lock.json` changed),
-   then http://localhost:3000/admin.
-6. Do the manual checks of the guide, at most three.
+1. Make sure the branch of the pull request is the one checked out (`git switch <branch>`).
+2. When the API changed (the branch changes `api/` or `postman/`): open the Postman app on the repository folder
+   (once per machine: **Files** → **Open folder** → the repository, then **Local View**: the app reads `postman/`
+   directly and follows the branch checked out in the folder, which it shows), choose the environment `dev`, and on
+   the folder of the feature (for example `STF-01`) **Run folder**: every test is green. A web-only pull request
+   (the screens of a feature already done, `/implement-feature` step 1) has no Postman step.
+3. When the branch changes `web/`: open the screens of the guide at http://localhost:3000 (the admin under `/admin`)
+   and sign in with the account it names (*Accounts*, below); its screenshots show the expected result. When the
+   web is not running: `npm run dev` in `web/` (Node.js of `web/.nvmrc`; `npm ci` in `web/` first, and again
+   whenever `web/package-lock.json` changed).
+4. Do the manual checks of the guide, at most three in all, screens included.
 
 The same folder runs from the terminal: `postman collection run postman/collections/ZenGear -e
 postman/environments/dev.environment.yaml -i <Feature ID> --no-report-events` (skill `api-run`). It needs no Postman
@@ -90,7 +94,9 @@ http://localhost:3000 (or reuses a running one) and needs the API and the emulat
 `npm exec --no -- playwright install chromium` downloads the browser. The flows sign in with the password above
 (`E2E_PASSWORD`, default `dev-reset-only`) and create the staff accounts they need through the API and the emulator,
 with unique emails: each run leaves those accounts in the database `zengear` and in the emulator until the next
-`tools/dev_reset.ps1`. CI runs the same flows in the job `acceptance` on a production build.
+`tools/dev_reset.ps1`. `/finish-feature` runs them (step 7) after the whole Postman collection when the branch
+changes `web/`, and the reset of its test before merge removes those accounts. CI runs the same flows in the job
+`acceptance` on a production build.
 
 ## The acceptance compose (CI only)
 

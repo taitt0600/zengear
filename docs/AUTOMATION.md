@@ -14,7 +14,10 @@ auto-merge.
    repository, `git switch main`, `git pull`. A feature row (or another feature of `docs/blueprint/features.md`
    whose *Depends On* features are done) runs with `/implement-feature <Feature ID>` in Claude Code
    (`--checkpoints` to also approve the plan, the failing tests and the diff, as in DEC-099); when it stops after
-   the tests and the Postman folder, type `/clear`, then `/finish-feature <Feature ID>` (DEC-112 (4)). Any other row is asked
+   the tests and the Postman folder, type `/clear`, then `/finish-feature <Feature ID>` (DEC-112 (4)). A feature
+   already done whose screens `docs/SCREENS.md` no longer blocks runs `/implement-feature <Feature ID>` again: a
+   web-only run that builds only those screens, on `feat/<id>-web`, titled `feat(web): … (<Feature ID>)`
+   (`/implement-feature`, step 1). Any other row is asked
    of Claude in words, from its *Source*; when its *Who* says owner path, Claude pushes the branch and the owner opens
    and merges the pull request. Cloud sessions do not run features or fixes (DEC-100): they run only the two
    notification routines below, `/report-review`, `/decision-draft`, and the pull requests and comments of
@@ -26,8 +29,10 @@ auto-merge.
    adds it to `web/approved-packages.json` (DEC-111 (5)): open it from the link, merge it, then tell Claude, which
    rebases the feature branch and goes on.
 3. **Test before merge**: once CI is green, Claude leaves the development environment ready (reset, API of the
-   branch running) and posts a test guide of one page on the pull request. Run the feature's folder in the Postman
-   app (`docs/ACCEPTANCE.md`), do its manual checks (at most three), then answer **Đạt** (auto-merge on),
+   branch running, and the web with `npm run dev` when the branch changes `web/`) and posts a test guide of one page
+   on the pull request. Run the feature's folder in the Postman app when the API changed, open the screens of the
+   guide at http://localhost:3000 when the web changed (`docs/ACCEPTANCE.md`), do its manual checks (at most three
+   in all), then answer **Đạt** (auto-merge on),
    **Có lỗi** (describe each defect; Claude fixes it on the same branch and sends the guide again) or **Để sau**
    (a later `/finish-feature <Feature ID>` resumes at the test), with the minutes you spent.
 4. A defect found after the merge: an issue with the form **Acceptance defect** (label `defect`), one defect per
@@ -45,7 +50,7 @@ auto-merge.
 
 | Step | Mechanism | Where it lives |
 |---|---|---|
-| Plan, tests, code, Postman folder, verification, commits, pull request, CI, test guide, report | `/implement-feature`, then `/clear` and `/finish-feature`, which reads `out/handoff-<ID>.md` (`/fix-defect` runs in one session), with the `plan-reviewer`, `code-reviewer` and `report-reviewer` agents, `/code-review` and the skills `api-collection` and `api-run`; they stop only for Needs decision items, the merge of a package approval and the owner's test (and at the three checkpoints with `--checkpoints`) | Repository |
+| Plan, tests, code, Postman folder, verification, commits, pull request, CI, test guide, report | `/implement-feature`, then `/clear` and `/finish-feature`, which reads `out/handoff-<ID>.md` (`/fix-defect` runs in one session); for a branch that changes `web/` (or the OpenAPI contract) they also run the web checks (`npm run gen:api`, `lint`, `format`, `typecheck`, `test`, `build`) and, in `/finish-feature`, the Playwright flows of `web/e2e/`; with the `plan-reviewer`, `code-reviewer` and `report-reviewer` agents, `/code-review` and the skills `api-collection` and `api-run`; they stop only for Needs decision items, the merge of a package approval and the owner's test (and at the three checkpoints with `--checkpoints`) | Repository |
 | Merge | Auto-merge, enabled when the owner answers **Đạt**, once the required checks of `main` pass (`tools/github_pr.py`) | GitHub |
 | Notify the owner, log the numbers | Routines **ZenGear PR merged** (pull request merged) and **ZenGear PR needs decision** (pull request opened as a draft), on GitHub events | The owner's claude.ai account |
 | Turn a defect issue into a fix | Routine **ZenGear fix defects** — **disabled since 2026-10-02** (DEC-100); the owner runs `/fix-defect` locally | The owner's claude.ai account |
@@ -235,6 +240,12 @@ nothing, and write every comment on GitHub in English.
    - merged without a report: "<Feature ID>: PR #<n> đã merge nhưng chưa có báo cáo nghiệm thu, cần xem phiên đã
      chạy".
 ```
+
+A web-only pull request (`/implement-feature`, step 1) matches the title filter too, so its feature gets a second line
+in issue #24. Its report lists the Playwright flows in a sub-list "Luồng màn hình (Playwright)" of
+"Kịch bản kiểm thử", apart from the Postman lines the prompt counts, so its "scenarios" count only Postman requests
+(none when the API did not change). Unchecked: that the routine reads the sub-list that way; item (4) of the Waiting
+row of `docs/STATUS.md` on DEC-112 checks it on the issue #24 lines of the first pull requests with a web.
 
 ### ZenGear fix defects (disabled since 2026-10-02)
 
