@@ -46,9 +46,14 @@ describe('config.matcher', () => {
     expect(matches(url)).toBe(false)
   })
 
-  it('skips the prefetches of /admin and /pos', () => {
+  it('skips the router prefetches of /admin and /pos', () => {
     expect(matches('/admin/staff', { 'next-router-prefetch': '1' })).toBe(false)
-    expect(matches('/pos', { purpose: 'prefetch' })).toBe(false)
+    expect(matches('/pos', { 'next-router-prefetch': '1' })).toBe(false)
+  })
+
+  it('runs on a browser prefetch of the document, which the browser may show as the page', () => {
+    expect(matches('/admin/staff', { purpose: 'prefetch' })).toBe(true)
+    expect(matches('/pos', { 'sec-purpose': 'prefetch' })).toBe(true)
   })
 
   it('still redirects a prefetch of the home page', () => {
