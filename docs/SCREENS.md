@@ -83,6 +83,8 @@ Every admin screen except the sign-in page sits in this layout.
 - **Other texts**: the skip link "Bỏ qua đến nội dung chính"; on narrow screens the menu opens with "Mở menu" and
   closes with "Đóng menu"; the menu's name is "Menu"; when GET `/me` fails otherwise, "Đã có lỗi xảy ra. Vui lòng thử
   lại." with "Thử lại" and "Đăng xuất". The header shows "ZenGear" instead of the store name until gap 6 is closed.
+- **Not found**: an `/admin` URL that matches no screen shows "Không tìm thấy trang này." inside the layout, with the
+  link "Về trang chính" (`/admin`, the landing page); signed out, it goes to SCR-AUT-01 like any admin route.
 - **Toasts** ("Đã lưu." and the problems no field shows) sit in a region named "Thông báo".
 
 ## SCR-AUT-01 Staff sign-in
