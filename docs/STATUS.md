@@ -7,8 +7,8 @@ flight, what is done and how this file changes: `CLAUDE.md`, *Work state*.
 
 | Key | Item | Who | Source |
 |---|---|---|---|
-| STF-03 | SCR-AUT-02 and SCR-ACC-01; a catch-all `notFound()` route under the admin layout, so that an unknown `/admin` URL renders with the nonce (DEC-113 (3)) | local | `docs/SCREENS.md`, SCR-AUT-02, SCR-ACC-01; pull request #85, *Differences from DEC-113* |
 | STF-05 | SCR-STF-01, without the role filter (gap 2) | local | `docs/SCREENS.md`, SCR-STF-01, gap 2; DEC-105 |
+| dec-api-errors | Decision: the language of the `errors` messages of a 400 (the API in Vietnamese, a code per reason, or the web's own texts as SCR-AUT-02 and SCR-ACC-01 do), before the next form screen that shows them (SCR-STF-03) | local | `docs/SCREENS.md`, Conventions, *Errors*; the web-only pull request of STF-03, *Owner's decisions* |
 | STF-02 | Decision on the date picker (`date-fns` or another way, DEC-111; it also unblocks SCR-STF-02 and SCR-LOC-01), then SCR-STF-03 | local | `docs/SCREENS.md`, SCR-STF-03; DEC-111; DEC-104 (1) |
 
 ## Waiting for a trigger
