@@ -13,9 +13,10 @@ output to `out/logs/` and bring only a summary into the context, as **Output** o
 (DEC-112 (5)).
 `python3` is `python` on Windows.
 
-1. **Branch and ready check**: the ready check of `/implement-feature` (step 1) without its branch step, then (when
-   `out/paused-<ID>.md` names this command, switch to the branch it names and resume at item 4 of **Package
-   approval** of `/implement-feature`, step 4, instead):
+1. **Branch and ready check**: first, when `out/paused-<ID>.md` names this command, switch to the branch it names
+   and resume at item 4 of **Package approval** of `/implement-feature`, step 4, instead of what follows.
+   Otherwise the ready check of `/implement-feature` (step 1) without its branch item and without its test of the
+   feature itself (a defect is usually on a merged feature; the web-only run is not for this command), then:
    - when the pull request of the feature is still open (`gh pr list --search "<Feature ID> in:title" --state open`),
      work on its branch: `git fetch origin`, `git switch <its branch>`, `git pull --ff-only`;
    - otherwise `git fetch origin main` and `git switch -c fix/<id in lowercase>-<short name> origin/main`.

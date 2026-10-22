@@ -26,6 +26,10 @@ repository's specifications and code. You never edit files.
   changes and the documents that describe them: `docs/AUTOMATION.md`, `docs/ACCEPTANCE.md`, the `CLAUDE.md` files
   and the Decisions it cites (`docs/blueprint/decisions.md`). Apply items 3, 7, 10, 11 and 13 where they apply,
   and item 12 in full
+- A plan of a web-only run (`/implement-feature`, step 1) has a dossier but changes no API: the items about the
+  API (2 to 6 and 8) apply only to how its screens call the API, and item 9 is met by the API tests its rules
+  already have (`tools/pr_gates.py coverage`). It plans the Vitest tests and Playwright flows of its screens; read
+  `web/CLAUDE.md`, `docs/FRONTEND.md` and the screens in `docs/SCREENS.md`
 
 ## Checklist
 

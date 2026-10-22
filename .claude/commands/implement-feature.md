@@ -15,18 +15,33 @@ DEC-099 marked **Checkpoint** below (two here, one in `/finish-feature`); withou
 
 1. **Ready check** — if one fails, stop and write only the report of `/finish-feature` (step 14), without a
    pull request:
-   - `git fetch origin main` and `git switch -c feat/<id in lowercase> origin/main`. Never `main`. `git status`
-     shows no change. When `out/paused-<ID>.md` names this command, switch to the branch it names instead and
-     resume at item 4 of **Package approval** (step 4), from that file.
+   - When `out/paused-<ID>.md` names this command, switch to the branch it names and resume at item 4 of
+     **Package approval** (step 4), from that file, instead of the items below.
+   - `git status` shows no change; `git fetch origin main` and `git switch --detach origin/main`, so that the
+     items below read the current `main` (never another feature's branch, where the last run left the session).
    - The feature is a row of `docs/blueprint/features.md`, and every Feature ID in its Depends On column is done
      (an Epic name there is not checked). A feature is done when a merged `feat` pull request ends its title with
      `(<ID>)`: `gh pr list --state merged --search "<ID> in:title" --json number,title` gives candidates only; keep
      the titles that match `^feat(\([^)]*\))?!?:.*\(<ID>\)$`. And `python3 tools/pr_gates.py coverage <ID>` exits 0,
      which is necessary, not sufficient (DEC-110 (1)).
+   - The feature itself, by the same test: a done feature stops here, unless `docs/SCREENS.md` describes a screen
+     of it whose cell in the column *Blocked by* is empty and that `web/` does not have yet (its route has no page,
+     or still opens one of the placeholders that the paragraph under the screen list of `docs/SCREENS.md` names).
+     Then the run is a **web-only run**: the plan, the tests and the code cover only those screens, and steps 5 and
+     6 are skipped; it changes no API, migration or Postman folder (a screen that needs one is a Needs decision
+     item, step 4); its branch is `feat/<id in lowercase>-web` and its pull request title
+     `feat(web): <subject> (<ID>)`.
    - `dotnet --version` is the SDK of `api/global.json`, `dotnet tool restore` succeeds, `docker info` answers
      (the integration tests start PostgreSQL with Testcontainers), `pwsh -v` answers (without PowerShell 7 the
-     hooks of `.claude/settings.json` do not run, and nothing guards the specification) and `postman --version`
-     answers (the Postman CLI, `docs/ACCEPTANCE.md`).
+     hooks of `.claude/settings.json` do not run, and nothing guards the specification), `postman --version`
+     answers (the Postman CLI, `docs/ACCEPTANCE.md`) and `node --version` is within the `engines` range of
+     `web/package.json` (which `npm ci` enforces; a change of the API contract runs the web checks, step 5).
+   - Last, the branch: `git switch -c <name> origin/main`, where `<name>` is `feat/<id in lowercase>` (`-web`
+     added for a web-only run), never `main`. Take the first of `<name>`, `<name>-2`, … for which
+     `gh pr list --state merged --head <name> --json number` returns nothing (an earlier run of the same feature may
+     have merged under it, and `tools/token_usage.py --branch` would count both runs in one Token line).
+     When the chosen name exists already (`git branch --list <name>`), stop: it is work in flight (CLAUDE.md,
+     *Work state*). A ready check that stops leaves HEAD detached at `origin/main`; the next run starts there too.
 2. **Read** the feature dossier: `python3 tools/feature_context.py <ID> --out out/feature-<ID>.md` (skill
    `feature-context`), then `out/feature-<ID>.md`. It holds the row of the feature in `docs/blueprint/features.md`,
    its rows of `docs/STATUS.md` (section *Work state*: a Next row keyed by its ID, a Waiting row triggered
@@ -39,9 +54,10 @@ DEC-099 marked **Checkpoint** below (two here, one in `/finish-feature`); withou
 3. **Plan**: endpoints (per `docs/API_CONVENTIONS.md`), service methods, entity methods, migrations if any, one or
    more tests per rule, the Postman scenarios (one per acceptance criterion, a refusal per rule), how each row of
    the dossier's *Work state* section is handled (done in this pull request, or a Needs decision item of step 4)
-   and the open questions sorted by the policy of step 4. Give the plan and the path `out/feature-<ID>.md` to the
-   `plan-reviewer` agent and fix every Blocking and Should fix item; repeat until it answers READY, at most three
-   rounds. A Blocking item left after three rounds becomes a Needs decision item. Keep the final verdict and the
+   and the open questions sorted by the policy of step 4. A web-only run plans the screens, their components, the
+   Vitest tests and the Playwright flows instead of endpoints, methods, migrations and Postman scenarios. Give the
+   plan and the path `out/feature-<ID>.md` to the `plan-reviewer` agent and fix every Blocking and Should fix
+   item; repeat until it answers READY, at most three rounds. A Blocking item left after three rounds becomes a Needs decision item. Keep the final verdict and the
    number of its findings labelled `[over-engineering]` and `[duplication]`, over all rounds, for the report.
    - **Needs decision items**, once plan-reviewer answers READY: ask every item known so far at once,
      with AskUserQuestion. One call takes at most 4 questions, so more items go in consecutive calls at the same
@@ -50,8 +66,9 @@ DEC-099 marked **Checkpoint** below (two here, one in `/finish-feature`); withou
      answer that changes a specification stops the run: draft the Decision with `/decision-draft` and write the
      report of `/finish-feature` (step 14) without a pull request.
    - **Checkpoint 1** (`--checkpoints` only): show the owner the plan (endpoints, service and entity methods,
-     migrations, tests per rule, Postman scenarios), the plan-reviewer verdict and the decisions you made; go on
-     when the owner approves, after the changes they ask for.
+     migrations, tests per rule, Postman scenarios; for a web-only run the screens, components, Vitest tests and
+     Playwright flows), the plan-reviewer verdict and the decisions you made; go on when the owner approves, after
+     the changes they ask for.
 4. **Decision policy** for every question the specification does not answer:
    - Decide it yourself, and list the choice under "Decisions made" in the report, when it is reversible, stays
      inside the code and agrees with the documents: names of private members, how a service is split within the
@@ -110,7 +127,8 @@ DEC-099 marked **Checkpoint** below (two here, one in `/finish-feature`); withou
    - Code in the owning area folders of `ZenGear.Data`, `ZenGear.Services`, `ZenGear.Api`; never write another
      area's tables directly.
    - From `api/`: `dotnet build ZenGear.slnx`, `dotnet test ZenGear.slnx`, the migration drift check; fix until
-     green. The build refreshes `api/openapi/ZenGear.Api.json`.
+     green. The build refreshes `api/openapi/ZenGear.Api.json`; when it changed, also run the web checks of
+     `/finish-feature` (step 2), since the CI job `web-test` fails on a stale `web/src/lib/api/schema.d.ts`.
 6. **Postman folder**: skill `api-collection` with the Feature ID writes the folder of the feature in `postman/`
    (one request per acceptance criterion, a refusal per rule, tests on status, Problem Details `type` and fields,
    values unique to the run, dev-only fixtures for a state the API cannot reach yet) and runs it twice with skill
@@ -118,13 +136,18 @@ DEC-099 marked **Checkpoint** below (two here, one in `/finish-feature`); withou
 7. **Web**, following `web/CLAUDE.md` — only for the screens of this feature that `docs/SCREENS.md` describes and
    whose cell in the column *Blocked by* of its screen list is empty. The report names every other screen of the
    feature as not built, with what blocks it; a feature with no screen built is tested through the API:
-   - From `web/`: `npm run gen:api`, then pages and components in the matching `features/<area>`.
-   - `npm run lint` and `npm run build`.
-8. **Handoff**, once steps 5–7 are green: write `out/handoff-<ID>.md` (ignored by git) with the branch, the
-   plan-reviewer verdict and its counts of `[over-engineering]` and `[duplication]` findings, the Needs decision
-   items with the owner's answers (and those left open), how the plan handled each Work state row (step 3), the
-   decisions made, the deviations from the approved plan, the results of the build, the tests and the Postman runs,
-   whether `--checkpoints` was given, and, while the trial of the plugin `security-guidance` runs (item (3) of the
+   - From `web/`: `npm run gen:api`; tests first, seen failing: Vitest (Zod schemas, the mapping of Problem Details
+     onto the form, hooks; DEC-104 (7)); then pages and components in the matching `features/<area>`, and the
+     Playwright flows of the screens in `web/e2e/`. In a web-only run, which skips step 5, **Checkpoint 2** comes
+     here (`--checkpoints` only): the failing Vitest tests, each with the reason it fails.
+   - The web checks of `/finish-feature` (step 2), under its **Output** rule. The flows run in `/finish-feature`
+     (step 7), with the API, the emulator and the web running.
+8. **Handoff**, once the steps of 5–7 that ran are green: write `out/handoff-<ID>.md` (ignored by git) with the
+   branch, whether the run is web-only (and then its pull request title), the plan-reviewer verdict and its counts
+   of `[over-engineering]` and `[duplication]` findings, the Needs decision items with the owner's answers (and
+   those left open), how the plan handled each Work state row (step 3), the decisions made, the deviations from the
+   approved plan, the results of the build, the tests, the Postman runs and each web check, whether `--checkpoints`
+   was given, and, while the trial of the plugin `security-guidance` runs (item (3) of the
    Waiting row of `docs/STATUS.md` on DEC-112), its warnings and review findings so far, each with whether it was
    acted on. Then stop: tell the owner to type `/clear`, then `/finish-feature <ID>`
    (with `--checkpoints` when it was given), which verifies, commits, opens the pull request, follows CI, has the
