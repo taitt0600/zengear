@@ -29,6 +29,30 @@ export function firebaseCode(error: unknown): string | undefined {
   return typeof error.code === 'string' && error.code.startsWith('auth/') ? error.code : undefined
 }
 
+/** A failed Firebase sign-in with a password (SCR-AUT-01, and the sign-in again of DEC-094), as message keys. */
+export type PasswordSignInError =
+  'wrongCredentials' | 'tooManyAttempts' | 'accountDisabled' | 'network' | 'generic'
+
+// Never which of the two was wrong (SCR-AUT-01).
+const WRONG_CREDENTIALS = new Set([
+  'auth/invalid-credential',
+  'auth/invalid-login-credentials',
+  'auth/wrong-password',
+  'auth/user-not-found',
+  'auth/invalid-email',
+])
+
+/** The answer of a failed Firebase sign-in with a password, from its error code. */
+export function firebaseError(error: unknown): PasswordSignInError {
+  const code = firebaseCode(error) ?? ''
+  if (WRONG_CREDENTIALS.has(code)) return 'wrongCredentials'
+  if (code === 'auth/too-many-requests') return 'tooManyAttempts'
+  // ZenGear never disables the Firebase account itself (R-SEC-04 revokes its sessions), but the console can.
+  if (code === 'auth/user-disabled') return 'accountDisabled'
+  if (code === 'auth/network-request-failed') return 'network'
+  return 'generic'
+}
+
 // The ID token cannot be refreshed: the session ended, revoked by a password change (DEC-094) or a disable (R-SEC-04).
 const SESSION_ENDED = new Set([
   'auth/user-token-expired',

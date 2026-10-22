@@ -27,8 +27,11 @@ vi.mock('@/lib/auth/session', () => ({
   signOutAndClear: session.signOutAndClear,
 }))
 
-const api = vi.hoisted(() => ({ me: vi.fn() }))
-vi.mock('./me', () => ({ meQuery: { queryKey: ['me'], queryFn: () => api.me() } }))
+const api = vi.hoisted(() => ({ me: vi.fn(), changeMyPassword: vi.fn() }))
+vi.mock('./me', () => ({
+  meQuery: { queryKey: ['me'], queryFn: () => api.me() },
+  changeMyPassword: api.changeMyPassword,
+}))
 
 const admin: CurrentUser = {
   id: '0199a0f3-0000-7000-8000-000000000001',
@@ -314,17 +317,31 @@ describe('RequirePermission', () => {
 })
 
 describe('ChangePasswordScreen', () => {
-  it('stays while the password change is pending, with "Đăng xuất"', async () => {
+  it('shows the form while the password change is pending, with "Đăng xuất"', async () => {
     api.me.mockResolvedValue({ ...consultant, mustChangePassword: true })
     renderWithProviders(<ChangePasswordScreen />)
 
-    expect(
-      await screen.findByText(
-        'Màn hình đổi mật khẩu sẽ có ở bản sau. Vui lòng liên hệ quản lý cửa hàng.',
-      ),
-    ).toBeInTheDocument()
+    expect(await screen.findByLabelText('Mật khẩu mới')).toBeInTheDocument()
+    expect(screen.getByLabelText('Nhập lại mật khẩu mới')).toBeInTheDocument()
     await userEvent.setup().click(screen.getByRole('button', { name: 'Đăng xuất' }))
     await waitFor(() => expect(navigation.replace).toHaveBeenCalledWith('/admin/sign-in'))
+  })
+
+  it('signs out after the change, with the notice of the sign-in page', async () => {
+    api.me.mockResolvedValue({ ...consultant, mustChangePassword: true })
+    api.changeMyPassword.mockResolvedValue(undefined)
+    renderWithProviders(<ChangePasswordScreen />)
+    const user = userEvent.setup()
+
+    await user.type(await screen.findByLabelText('Mật khẩu mới'), 'mot mat khau moi dai')
+    await user.type(screen.getByLabelText('Nhập lại mật khẩu mới'), 'mot mat khau moi dai')
+    await user.click(screen.getByRole('button', { name: 'Đổi mật khẩu' }))
+
+    await waitFor(() =>
+      expect(navigation.replace).toHaveBeenCalledWith('/admin/sign-in?reason=password-changed'),
+    )
+    expect(session.signOutAndClear).toHaveBeenCalledOnce()
+    expect(api.changeMyPassword).toHaveBeenCalledExactlyOnceWith('mot mat khau moi dai')
   })
 
   it('sends a staff member without a pending change to the landing page', async () => {

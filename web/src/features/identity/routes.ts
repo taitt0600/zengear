@@ -7,6 +7,12 @@ export const adminRoutes = {
   businessLocation: '/admin/settings/business-location',
 } as const
 
+/**
+ * The reason of the sign-out after a password change (DEC-094 revokes every session). Not one of the
+ * SIGN_OUT_REASONS of me-outcome.ts: the sign-in page shows it as a notice after a success, not as an error.
+ */
+export const PASSWORD_CHANGED = 'password-changed'
+
 /** The sign-in page, with the path to return to or the reason of a sign-out. */
 export function signInPath(query: { next?: string; reason?: string } = {}): string {
   const search = new URLSearchParams()

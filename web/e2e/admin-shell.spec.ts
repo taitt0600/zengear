@@ -1,36 +1,10 @@
 import { expect, test, type Page } from '@playwright/test'
-import {
-  accounts,
-  changePassword,
-  disableStaff,
-  newSalesConsultant,
-  PASSWORD,
-} from './support/backend'
+import { accounts, disableStaff, newSalesConsultant, PASSWORD } from './support/backend'
+import { failOnCspViolations, signIn } from './support/pages'
 
-// SCR-AUT-01 and SCR-ADM-01 (docs/SCREENS.md) against the API, the Firebase Auth Emulator and the web.
+// SCR-AUT-01, SCR-AUT-02 and SCR-ADM-01 (docs/SCREENS.md) against the API, the Firebase Auth Emulator and the web.
 
-async function signIn(page: Page, email: string, password: string) {
-  const button = page.getByRole('button', { name: 'Đăng nhập' })
-  await expect(button).toBeEnabled()
-  await page.getByLabel('Email công ty').fill(email)
-  await page.getByLabel('Mật khẩu', { exact: true }).fill(password)
-  await button.click()
-}
-
-// Every flow fails on a CSP violation: the CSP lets the pages reach the API and the emulator and run the scripts of
-// Next.js (DEC-104 (10), DEC-113 (6)).
-let blocked: string[] = []
-test.beforeEach(({ page }) => {
-  blocked = []
-  page.on('console', (message) => {
-    if (message.type() === 'error' && /Content Security Policy/i.test(message.text())) {
-      blocked.push(message.text())
-    }
-  })
-})
-test.afterEach(() => {
-  expect(blocked).toEqual([])
-})
+failOnCspViolations()
 
 const menu = (page: Page) => page.getByRole('navigation', { name: 'Menu' })
 // Inside the page: Next.js also renders an empty role="alert" element that announces route changes.
@@ -67,12 +41,39 @@ test('a new staff member changes the password first, then sees no entry without 
   await page.goto('/admin/sign-in')
   await signIn(page, staff.email, initial)
   await expect(page).toHaveURL('/admin/change-password')
-  await expect(page.getByText('Màn hình đổi mật khẩu sẽ có ở bản sau.')).toBeVisible()
 
-  // SCR-AUT-02 comes with STF-03: the change goes through the API, which revokes every session (DEC-094).
-  await changePassword(staff.email, initial, changed)
-  await page.getByRole('button', { name: 'Đăng xuất' }).click()
-  await expect(page).toHaveURL('/admin/sign-in')
+  // SCR-AUT-02: the web checks the length and the repeat; the API checks the rest of R-USR-11.
+  const newPassword = page.getByLabel('Mật khẩu mới', { exact: true })
+  const confirmation = page.getByLabel('Nhập lại mật khẩu mới')
+  const submit = page.getByRole('button', { name: 'Đổi mật khẩu' })
+  await newPassword.fill('ngan')
+  await confirmation.fill('ngan')
+  await submit.click()
+  await expect(page.getByText('Mật khẩu mới dài từ 12 đến 128 ký tự.')).toBeVisible()
+
+  await newPassword.fill(changed)
+  await confirmation.fill(`${changed}x`)
+  await submit.click()
+  await expect(page.getByText('Mật khẩu nhập lại không khớp.')).toBeVisible()
+
+  const refused = `Mat-khau-ZenGear-${Date.now()}`
+  await newPassword.fill(refused)
+  await confirmation.fill(refused)
+  await submit.click()
+  await expect(
+    page.getByText('Không dùng được mật khẩu này. Vui lòng chọn mật khẩu khác.'),
+  ).toBeVisible()
+  await expect(newPassword).toHaveValue(refused)
+  await page.screenshot({ path: test.info().outputPath('change-password.png'), fullPage: true })
+
+  // The API changes it and revokes every session (DEC-094): the user signs in again.
+  await newPassword.fill(changed)
+  await confirmation.fill(changed)
+  await submit.click()
+  await expect(page).toHaveURL('/admin/sign-in?reason=password-changed')
+  await expect(
+    page.getByText('Đã đổi mật khẩu. Vui lòng đăng nhập lại bằng mật khẩu mới.'),
+  ).toBeVisible()
 
   await signIn(page, staff.email, changed)
   await expect(page).toHaveURL('/admin/account')

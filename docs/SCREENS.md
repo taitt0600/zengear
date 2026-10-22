@@ -17,7 +17,10 @@ only the shape of the input (required, length, format) with the limits below, wh
 - **Access**: a staff screen needs a signed-in staff account; the permission of each screen is the one its endpoints
   require. Menus and buttons the user's permissions do not allow are hidden (`permissions` of `GET /api/v1/admin/me`,
   the user's own permission keys; never a role name), and the API still answers 403.
-- **Errors**: a 400 validation problem puts each message of `errors` under its form field and keeps what was typed;
+- **Errors**: a 400 validation problem puts a message under each form field that `errors` names and keeps what was
+  typed; the message is the web's own Vietnamese text of that field, since the API writes the messages of `errors`
+  in English and with no code per reason (the owner's answer in the web-only pull request of STF-03; the rule for
+  later forms waits for the Decision of the Next row `dec-api-errors` of `docs/STATUS.md`);
   any other problem shows the message of its `type` (table of each screen) in a toast, or `detail` when the type has
   no message; `ruleId` is never shown. 401 signs the user out to the sign-in page; 403
   `/problems/permission-denied` shows the no-permission page; 403 `/problems/recent-login-required` asks for the
@@ -27,6 +30,9 @@ only the shape of the input (required, length, format) with the limits below, wh
   SCR-AUT-01.
 - **Edits with an ETag** (`If-Match`): the form keeps the `ETag` of the loaded resource; 412 says "Dữ liệu đã được
   người khác thay đổi. Đang tải lại." and reloads the form.
+- **Leaving a form**: an admin edit form does not warn before the user leaves it with changes not saved (a menu
+  link, a reload, closing the tab); the changes are lost. Chosen in the web-only pull request of STF-03 for every
+  admin form alike (SCR-LOC-01 has no warning either), instead of one screen with a warning.
 - **States**: loading shows skeleton rows or fields, never an empty screen; an empty list says why it is empty; a
   button that sends a request is disabled until the answer comes, so a double click sends one request.
 - **Dates** `yyyy-MM-dd` from the API are shown `dd/MM/yyyy`; timestamps are shown in Asia/Ho_Chi_Minh.
@@ -54,8 +60,7 @@ the storefront have no screen yet: their features (catalog, stock, orders) have 
 
 The web shell is built (SCR-ADM-01 and SCR-AUT-01): a screen whose *Blocked by* cell is empty can be built with its
 feature. Until then its route opens a short placeholder page, "Màn hình này đang được xây dựng." inside the layout
-(SCR-STF-01, SCR-ACC-01, SCR-LOC-01), or, for SCR-AUT-02 shown alone, "Màn hình đổi mật khẩu sẽ có ở bản sau. Vui lòng
-liên hệ quản lý cửa hàng." with "Đăng xuất", so no menu link leads to a 404; the feature replaces it. The first screen
+(SCR-STF-01, SCR-LOC-01), so no menu link leads to a 404; the feature replaces it. The first screen
 that needs a date picker opens the Decision of DEC-111 on `date-fns` or another way, since DEC-104 (1) adds no date
 library.
 
@@ -78,6 +83,7 @@ Every admin screen except the sign-in page sits in this layout.
 - **Other texts**: the skip link "Bỏ qua đến nội dung chính"; on narrow screens the menu opens with "Mở menu" and
   closes with "Đóng menu"; the menu's name is "Menu"; when GET `/me` fails otherwise, "Đã có lỗi xảy ra. Vui lòng thử
   lại." with "Thử lại" and "Đăng xuất". The header shows "ZenGear" instead of the store name until gap 6 is closed.
+- **Toasts** ("Đã lưu." and the problems no field shows) sit in a region named "Thông báo".
 
 ## SCR-AUT-01 Staff sign-in
 
@@ -129,11 +135,20 @@ The web does not check the blocklist or the default password: the API does (R-US
 
 | Answer | Shown |
 |---|---|
-| 400 with `errors.newPassword` | The message under the field (too short, default password, blocklist, contains zengear) |
+| 400 with `errors.newPassword` | "Không dùng được mật khẩu này. Vui lòng chọn mật khẩu khác." under the field, below the help text that names the policies (the default password, the blocklist or zengear; the web has checked the length) |
 | 403 `/problems/recent-login-required` | A dialog "Vui lòng nhập lại mật khẩu hiện tại để tiếp tục": re-authenticates with Firebase, then sends the change again once |
 | 409 `/problems/staff-account-required` | "Chỉ tài khoản nhân viên mới đổi mật khẩu tại đây." |
 
 "Đăng xuất" is the only other action on this screen.
+
+Texts of the page that the table does not quote: "Vui lòng nhập mật khẩu mới.", "Mật khẩu mới dài từ 12 đến 128 ký
+tự." and "Mật khẩu nhập lại không khớp." (checked by the web); the dialog of 403 `/problems/recent-login-required`
+has the description "Lần đăng nhập gần nhất đã quá 5 phút, nên cần xác nhận lại trước khi đổi mật khẩu.", the field
+"Mật khẩu hiện tại" ("Vui lòng nhập mật khẩu hiện tại." when empty), "Tiếp tục" and "Hủy"; Firebase's answers there
+are "Mật khẩu hiện tại không đúng." for a wrong password and the texts of SCR-AUT-01 for the others; a second 403
+after signing in again shows "Đã có lỗi xảy ra. Vui lòng thử lại."; a network failure "Không kết nối được máy chủ.
+Vui lòng kiểm tra mạng và thử lại." The sign-in page shows the message of step 2 as a notice, not as an error,
+until the next sign-in attempt.
 
 ## SCR-ACC-01 My account
 
@@ -152,8 +167,14 @@ Loaded from `GET /api/v1/admin/me` (keep its `ETag`).
 
 | Answer | Shown |
 |---|---|
-| 400 with `errors.name` | The message under the field |
-| 412 | Reload, as in *Conventions* |
+| 400 with `errors.name` | "Tên hiển thị không hợp lệ." under the field |
+| 412 or 428 | Reload, as in *Conventions* |
+
+The form keeps the `ETag` of the values it shows: a refetch of `GET /me` in the background (the window regains
+focus) changes neither the field nor that version; the form loads again after 200, 412 and 428. Texts of the page
+that the table does not quote: the title "Tài khoản của tôi"; "Vui lòng nhập tên hiển thị." and "Tên hiển thị tối
+đa 100 ký tự." (checked by the web, counted in UTF-16 units as the API counts them); the dialog "Đổi mật khẩu" with
+the description "Sau khi đổi, bạn và mọi thiết bị đã đăng nhập phải đăng nhập lại bằng mật khẩu mới." and "Hủy".
 
 ## SCR-STF-01 Staff list
 

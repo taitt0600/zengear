@@ -3,7 +3,7 @@
 import { MenuIcon, XIcon } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
-import { useState, type ReactNode } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import {
@@ -25,6 +25,13 @@ export function AdminShell({ children }: { children: ReactNode }) {
   const t = useTranslations()
   const session = useStaffSession('shell')
   const [menuOpen, setMenuOpen] = useState(false)
+  // One context value per user and sign-out, so that the pages reading it re-render only when one of them changes.
+  const readyMe = session.status === 'ready' ? session.me : null
+  const signOut = session.status === 'loading' ? null : session.signOut
+  const current = useMemo(
+    () => (readyMe && signOut ? { me: readyMe, signOut } : null),
+    [readyMe, signOut],
+  )
 
   if (session.status === 'loading') return <AdminShellSkeleton />
   if (session.status === 'error') {
@@ -45,9 +52,11 @@ export function AdminShell({ children }: { children: ReactNode }) {
     )
   }
 
-  const { me } = session
+  // Never null here, since the session is ready: the check only narrows the type.
+  if (!current) return <AdminShellSkeleton />
+  const { me } = current
   return (
-    <CurrentUserProvider value={me}>
+    <CurrentUserProvider value={current}>
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-md focus:bg-background focus:px-3 focus:py-2 focus:shadow"

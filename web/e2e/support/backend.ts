@@ -82,6 +82,22 @@ export async function changePassword(email: string, current: string, next: strin
   })
 }
 
+/** Renames an account as its owner (PATCH /me with the ETag of GET /me), as another tab or device would. */
+export async function renameMe(email: string, password: string, name: string) {
+  const headers = { Authorization: `Bearer ${await idToken(email, password)}` }
+  const me = await fetch(`${API}/api/v1/admin/me`, { headers })
+  const etag = me.headers.get('etag')
+  if (!me.ok || !etag) throw new Error(`GET /api/v1/admin/me: ${me.status} ${await me.text()}`)
+  const response = await fetch(`${API}/api/v1/admin/me`, {
+    method: 'PATCH',
+    headers: { ...headers, 'Content-Type': 'application/json', 'If-Match': etag },
+    body: JSON.stringify({ name }),
+  })
+  if (!response.ok) {
+    throw new Error(`PATCH /api/v1/admin/me: ${response.status} ${await response.text()}`)
+  }
+}
+
 /** Disables a staff account as the Admin (STF-02), with today as the last working day. */
 export async function disableStaff(id: string) {
   const admin = await idToken(accounts.admin, PASSWORD)
