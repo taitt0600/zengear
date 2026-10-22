@@ -36,6 +36,24 @@ test('every load of an admin page carries one CSP with a new nonce, which its sc
   expect(nonces[0]).not.toBe(nonces[1])
 })
 
+test('an unknown admin URL is the 404 of the admin layout, whose scripts carry the nonce', async ({
+  request,
+}) => {
+  // DEC-114 (2): the catch-all of the admin layout renders it at the request instead of the prerendered 404. Its
+  // status is 200: the layout renders its pages in the browser only, so the server never meets the notFound().
+  const response = await request.get('/admin/khong-ton-tai', { maxRedirects: 0 })
+  expect(response.status()).toBe(200)
+  const csp = cspHeaders(response.headersArray())
+  expect(csp).toHaveLength(1)
+  const nonce = nonceOf(csp[0])!
+  expect(nonce).toBeTruthy()
+  const scripts = (await response.text()).match(/<script\b[^>]*>/g) ?? []
+  expect(scripts.length).toBeGreaterThan(0)
+  for (const script of scripts) {
+    expect(script).toContain(`nonce="${nonce}"`)
+  }
+})
+
 test('only /admin and /pos leave the static CSP, router prefetches aside', async ({ request }) => {
   for (const path of ['/admin', '/admin/staff', '/pos']) {
     const csp = cspHeaders((await request.get(path, { maxRedirects: 0 })).headersArray())

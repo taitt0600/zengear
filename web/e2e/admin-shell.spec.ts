@@ -118,3 +118,16 @@ test('a customer account is not a staff account', async ({ page }) => {
   await expect(alert(page)).toHaveText('Tài khoản này không phải tài khoản nhân viên.')
   await expect(page).toHaveURL('/admin/sign-in')
 })
+
+test('an unknown admin page shows the 404 inside the layout', async ({ page }) => {
+  await page.goto('/admin/sign-in')
+  await signIn(page, accounts.admin, PASSWORD)
+  await expect(page).toHaveURL('/admin/staff')
+
+  await page.goto('/admin/khong-ton-tai')
+  await expect(page.getByRole('heading', { name: 'Không tìm thấy trang này.' })).toBeVisible()
+  await expect(page).toHaveTitle(/^Không tìm thấy trang này\./)
+  await expect(menu(page).getByRole('link', { name: 'Nhân viên' })).toBeVisible()
+  await page.getByRole('link', { name: 'Về trang chính' }).click()
+  await expect(page).toHaveURL('/admin/staff')
+})

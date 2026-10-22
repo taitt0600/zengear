@@ -43,7 +43,9 @@
     "noPermission": "Bạn không có quyền xem trang này.",
     "placeholder": "Màn hình này đang được xây dựng.",
     "stale": "Dữ liệu đã được người khác thay đổi. Đang tải lại.",
-    "notifications": "Thông báo"
+    "notifications": "Thông báo",
+    "notFound": "Không tìm thấy trang này.",
+    "home": "Về trang chính"
   },
   "changePassword": {
     "title": "Đổi mật khẩu",
