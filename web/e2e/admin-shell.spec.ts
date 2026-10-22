@@ -17,19 +17,26 @@ async function signIn(page: Page, email: string, password: string) {
   await button.click()
 }
 
-const menu = (page: Page) => page.getByRole('navigation', { name: 'Menu' })
-// Inside the page: Next.js also renders an empty role="alert" element that announces route changes.
-const alert = (page: Page) => page.getByRole('main').getByRole('alert')
-
-test('the Admin signs in and sees every menu entry', async ({ page }) => {
-  // The security headers let the page reach the API and the emulator (DEC-104 (10)).
-  const blocked: string[] = []
+// Every flow fails on a CSP violation: the CSP lets the pages reach the API and the emulator and run the scripts of
+// Next.js (DEC-104 (10), DEC-113 (6)).
+let blocked: string[] = []
+test.beforeEach(({ page }) => {
+  blocked = []
   page.on('console', (message) => {
     if (message.type() === 'error' && /Content Security Policy/i.test(message.text())) {
       blocked.push(message.text())
     }
   })
+})
+test.afterEach(() => {
+  expect(blocked).toEqual([])
+})
 
+const menu = (page: Page) => page.getByRole('navigation', { name: 'Menu' })
+// Inside the page: Next.js also renders an empty role="alert" element that announces route changes.
+const alert = (page: Page) => page.getByRole('main').getByRole('alert')
+
+test('the Admin signs in and sees every menu entry', async ({ page }) => {
   await page.goto('/admin/sign-in')
   await signIn(page, accounts.admin, PASSWORD)
 
@@ -38,7 +45,6 @@ test('the Admin signs in and sees every menu entry', async ({ page }) => {
   await expect(menu(page).getByRole('link', { name: 'Địa điểm kinh doanh' })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Chủ cửa hàng' })).toBeVisible()
   await page.screenshot({ path: test.info().outputPath('admin-layout.png'), fullPage: true })
-  expect(blocked).toEqual([])
 })
 
 test('the Store Manager does not see the settings', async ({ page }) => {
