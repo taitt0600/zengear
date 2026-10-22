@@ -21,24 +21,20 @@ export function proxy(request: NextRequest) {
   return response
 }
 
-// Literal values only: Next.js reads the matcher when it builds. Prefetches of /admin and /pos are skipped, as the
-// Next.js CSP guide recommends; the page they lead to gets its own nonce.
+// Literal values only: Next.js reads the matcher when it builds. The router prefetches of /admin and /pos are skipped
+// (fetched RSC payloads, never a document; the page they lead to gets its own nonce). A browser prefetch of the
+// document (Purpose or Sec-Purpose: prefetch) is not, unlike the Next.js CSP guide: the browser may show it as the
+// page, so it carries the CSP with a nonce (owner's decision on the security review of this change).
 export const config = {
   matcher: [
     '/',
     {
       source: '/admin/:path*',
-      missing: [
-        { type: 'header', key: 'next-router-prefetch' },
-        { type: 'header', key: 'purpose', value: 'prefetch' },
-      ],
+      missing: [{ type: 'header', key: 'next-router-prefetch' }],
     },
     {
       source: '/pos/:path*',
-      missing: [
-        { type: 'header', key: 'next-router-prefetch' },
-        { type: 'header', key: 'purpose', value: 'prefetch' },
-      ],
+      missing: [{ type: 'header', key: 'next-router-prefetch' }],
     },
   ],
 }
