@@ -4,7 +4,7 @@ The screens of the web app (`web/`), per feature: route, who opens it, what it s
 how each answer of the API is shown. Structure, stack and conventions are in `docs/FRONTEND.md`; this file says
 *what* each screen does, `docs/FRONTEND.md` says *how* screens are built. `/implement-feature` builds the web part of
 a feature only when this file describes its screens (step 7), and only once the screen's row below says nothing
-blocks it.
+blocks it; for a feature already done, it runs again as a web-only run that builds only those screens (step 1).
 
 A screen is written here before its feature is built on the web, from the API that exists: every field names the
 property of the OpenAPI contract (`api/openapi/ZenGear.Api.json`) it shows or sends. The API decides; the web checks
