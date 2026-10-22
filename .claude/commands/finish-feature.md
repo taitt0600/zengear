@@ -77,9 +77,12 @@ step 11 when the pull request is open.
    nothing is committed yet). "The branch changes `web/`" means one of them is under `web/`; "the API changed",
    that one is under `api/` or `postman/`.
    **Web checks**, after that build, when the branch changes `web/` or `api/openapi/` (the `web/` and
-   `api/openapi/` paths of the filter of the CI job `web-test`), from `web/`: `npm ci`
-   (the first time in the run), `npm run gen:api` (its `src/lib/api/schema.d.ts` belongs to the commit that changes
-   the API), `npm run lint`, `npm run format`, `npm run typecheck`, `npm run test` and `npm run build`, the last
+   `api/openapi/` paths of the filter of the CI job `web-test`), from `web/`: `npm ci` (the first time in the run;
+   it deletes `web/node_modules`, which a running `next dev` is expected to keep locked on Windows (not yet seen
+   here), so first stop a dev server
+   this session started and ask the owner to stop theirs, as skill `api-run` does for the API), `npm run gen:api`
+   (its `src/lib/api/schema.d.ts` belongs to the commit that changes the API), `npm run lint`, `npm run format`,
+   `npm run typecheck`, `npm run test` and `npm run build`, the last
    with the five `NEXT_PUBLIC_*` values of `DEVELOPMENT_DEFAULTS` in `web/src/env-schema.ts` set for that command
    only (`web/CLAUDE.md`, *Commands*), each under **Output** (`out/logs/step2-web-<script>.log`). Keep the result of
    each for the report.
@@ -128,7 +131,7 @@ step 11 when the pull request is open.
    collection, for regressions). A failed test is a failed step: fix the code (or the request, when the request is
    wrong against the specification) and run steps 2–3 and this step again. Keep the requests run, the tests passed and
    failed of both runs.
-   **Screen flows**, when the branch changes `web/`: run the whole collection telling `api-run` to leave the API
+   **Screen flows**, when the branch changes `web/`: the whole-collection run above is told to leave the API
    running (the flows need it on port 5256 and the emulator); then
    `npm run e2e` from `web/` (Playwright starts `npm run dev` on `http://localhost:3000`, or reuses one that answers;
    once per machine `npm exec --no -- playwright install chromium`), under **Output** (`out/logs/step7-e2e.log`);
@@ -160,7 +163,8 @@ step 11 when the pull request is open.
     - Write the body to `out/pr-body.md` (ignored by git), in English: summary, rules covered, decisions made (yours,
       and the owner's answers), a section "Needs decision" with each item still open, its options and the recommended
       one first, how it was verified (steps 2–8, the plan and code-reviewer verdicts with the Blocking items found and
-      fixed, the security review findings or why it was skipped, the Postman runs). The body ends with the section "Tóm tắt cho chủ dự án" in Vietnamese
+      fixed, the security review findings or why it was skipped, the Postman runs, and the web checks and the flows
+      when the branch changes `web/`). The body ends with the section "Tóm tắt cho chủ dự án" in Vietnamese
       (`CLAUDE.md`, Workflow); its part "Bạn cần quyết định" points to the section "Needs decision" instead of
       repeating it, since the routine "ZenGear PR needs decision" reads that section.
     - `python3 tools/github_pr.py create --title "<title>" --body-file out/pr-body.md`: ready, or with `--draft` only
@@ -193,8 +197,8 @@ step 11 when the pull request is open.
     2. **Guide** `out/test-guide-<ID>.md`, in Vietnamese, one page at most; its first line is
        `<!-- finish-feature -->` and its second `## Hướng dẫn kiểm thử <ID>`:
        - **Các bước** (the environment is already running), when the API changed (**Changed areas**, step 2):
-         open Postman on the repository folder; switch
-         to the branch `<branch>`; choose environment `dev`; run the folder `<ID>` (Run folder); every test is
+         open Postman on the repository folder; check that it shows the branch `<branch>` (13.1 left it checked
+         out); choose environment `dev`; run the folder `<ID>` (Run folder); every test is
          green. A branch that changes neither has no Postman step.
        - When the branch changes `web/`: the screens to open at `http://localhost:3000`, the account to sign in with
          (its password only by reference to `docs/ACCEPTANCE.md`, *Accounts*, never written in the guide), and for

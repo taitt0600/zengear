@@ -2,7 +2,8 @@
 description: Implement one blueprint feature (rules → tests → code → Postman folder), then hand it to /finish-feature in a new session
 argument-hint: <Feature ID, e.g. POS-01> [--checkpoints]
 ---
-Implement the feature named in $ARGUMENTS of ZenGear up to green tests and its Postman folder, and hand it to
+Implement the feature named in $ARGUMENTS of ZenGear up to green tests and its Postman folder (only its screens in
+a web-only run, step 1), and hand it to
 `/finish-feature`, which the owner starts after `/clear` (CLAUDE.md, Workflow; DEC-100; DEC-112 (4)). It runs in
 Claude Code on the owner's machine only, from the ready check to the handoff (step 8), without stopping, except to
 ask a **Needs decision** item (step 4) and to wait for the owner to merge a package approval (step 4, **Package
@@ -40,8 +41,9 @@ DEC-099 marked **Checkpoint** below (two here, one in `/finish-feature`); withou
      added for a web-only run), never `main`. Take the first of `<name>`, `<name>-2`, … for which
      `gh pr list --state merged --head <name> --json number` returns nothing (an earlier run of the same feature may
      have merged under it, and `tools/token_usage.py --branch` would count both runs in one Token line).
-     When the chosen name exists already (`git branch --list <name>`), stop: it is work in flight (CLAUDE.md,
-     *Work state*). A ready check that stops leaves HEAD detached at `origin/main`; the next run starts there too.
+     When the chosen name exists already (`git branch --list <name>`, `git ls-remote --heads origin <name>`), stop:
+     it is work in flight (CLAUDE.md, *Work state*). A ready check that stops leaves HEAD detached at
+     `origin/main`; the next run starts there too.
 2. **Read** the feature dossier: `python3 tools/feature_context.py <ID> --out out/feature-<ID>.md` (skill
    `feature-context`), then `out/feature-<ID>.md`. It holds the row of the feature in `docs/blueprint/features.md`,
    its rows of `docs/STATUS.md` (section *Work state*: a Next row keyed by its ID, a Waiting row triggered
@@ -57,7 +59,8 @@ DEC-099 marked **Checkpoint** below (two here, one in `/finish-feature`); withou
    and the open questions sorted by the policy of step 4. A web-only run plans the screens, their components, the
    Vitest tests and the Playwright flows instead of endpoints, methods, migrations and Postman scenarios. Give the
    plan and the path `out/feature-<ID>.md` to the `plan-reviewer` agent and fix every Blocking and Should fix
-   item; repeat until it answers READY, at most three rounds. A Blocking item left after three rounds becomes a Needs decision item. Keep the final verdict and the
+   item; repeat until it answers READY, at most three rounds. A Blocking item left after three rounds becomes a
+   Needs decision item. Keep the final verdict and the
    number of its findings labelled `[over-engineering]` and `[duplication]`, over all rounds, for the report.
    - **Needs decision items**, once plan-reviewer answers READY: ask every item known so far at once,
      with AskUserQuestion. One call takes at most 4 questions, so more items go in consecutive calls at the same
@@ -136,7 +139,9 @@ DEC-099 marked **Checkpoint** below (two here, one in `/finish-feature`); withou
 7. **Web**, following `web/CLAUDE.md` — only for the screens of this feature that `docs/SCREENS.md` describes and
    whose cell in the column *Blocked by* of its screen list is empty. The report names every other screen of the
    feature as not built, with what blocks it; a feature with no screen built is tested through the API:
-   - From `web/`: `npm run gen:api`; tests first, seen failing: Vitest (Zod schemas, the mapping of Problem Details
+   - From `web/`: `npm ci` as `/finish-feature` step 2 says, unless step 5 ran it (the branch is new; it counts as
+     the first `npm ci` of the web checks), `npm run gen:api`;
+     tests first, seen failing: Vitest (Zod schemas, the mapping of Problem Details
      onto the form, hooks; DEC-104 (7)); then pages and components in the matching `features/<area>`, and the
      Playwright flows of the screens in `web/e2e/`. In a web-only run, which skips step 5, **Checkpoint 2** comes
      here (`--checkpoints` only): the failing Vitest tests, each with the reason it fails.
