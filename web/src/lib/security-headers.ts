@@ -9,16 +9,26 @@ const FIREBASE_ORIGINS = [
   'https://firebasestorage.googleapis.com',
 ]
 
-export function contentSecurityPolicy(env: Env, development: boolean): string {
+// The static CSP of next.config.ts without a nonce, and the CSP of /admin and /pos with the nonce that src/proxy.ts
+// makes for each request (DEC-113 (2)): one function, so that the two differ only in script-src.
+export function contentSecurityPolicy(env: Env, development: boolean, nonce?: string): string {
   const connect = ["'self'", new URL(env.NEXT_PUBLIC_API_BASE_URL).origin, ...FIREBASE_ORIGINS]
   if (env.NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST) {
     connect.push(`http://${env.NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST}`)
   }
+  // Next.js puts the nonce on its own scripts, and 'strict-dynamic' lets them load the others. Static pages carry no
+  // nonce, so they need 'unsafe-inline' for the inline scripts of Next.js until the storefront Decision. React needs
+  // 'unsafe-eval' in development only.
+  const scripts = nonce
+    ? ["'self'", `'nonce-${nonce}'`, "'strict-dynamic'"]
+    : ["'self'", "'unsafe-inline'"]
+  if (development) {
+    scripts.push("'unsafe-eval'")
+  }
   return [
     "default-src 'self'",
-    // Static pages carry no nonce, so Next.js needs 'unsafe-inline' for its inline scripts (owner's answer 3; a
-    // Decision on a nonce for /admin and /pos comes before STF-03); React needs 'unsafe-eval' in development only.
-    `script-src 'self' 'unsafe-inline'${development ? " 'unsafe-eval'" : ''}`,
+    `script-src ${scripts.join(' ')}`,
+    // Radix sets style attributes, which a nonce does not cover.
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob:",
     "font-src 'self'",
@@ -31,9 +41,9 @@ export function contentSecurityPolicy(env: Env, development: boolean): string {
   ].join('; ')
 }
 
-export function securityHeaders(env: Env, development: boolean): { key: string; value: string }[] {
+// The headers of every path besides the CSP, which next.config.ts or src/proxy.ts sets (DEC-113 (4)).
+export function securityHeaders(): { key: string; value: string }[] {
   return [
-    { key: 'Content-Security-Policy', value: contentSecurityPolicy(env, development) },
     // Without includeSubDomains until the production domain is chosen.
     { key: 'Strict-Transport-Security', value: 'max-age=63072000' },
     { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
