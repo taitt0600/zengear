@@ -7,7 +7,7 @@ flight, what is done and how this file changes: `CLAUDE.md`, *Work state*.
 
 | Key | Item | Who | Source |
 |---|---|---|---|
-| csp-nonce | Decision: a nonce in the CSP of `/admin` and `/pos` through `src/proxy.ts` (changes DEC-104 (10) and the rule of `proxy.ts`) | local | DEC-104 (10); `docs/FRONTEND.md`, *Security headers*; pull request #82, *Owner's decisions* 3 |
+| dec-113 | Apply DEC-113 in one owner-path pull request before STF-03: the CSP with a nonce for `/admin` and `/pos` | local, owner path | DEC-113 |
 | dec-web-run | Decision (`/decision-draft`) that aligns with the commands: DEC-100 (1) (one branch per feature; a web-only run adds `feat/<id>-web`, then `-2`, … when a name has merged), DEC-100 (3) (the guide: the Postman folder only when the API changed, three manual checks in all, screens included), DEC-110 (1) (a done feature gets a second `feat` pull request and issue #24 line), and DEC-100 (8) with `pipeline.yml` (no `web-preview` or `package` job; required checks named after the job ids) | local | pull request #83, *Differences from accepted Decisions* and *Decisions made*; `.claude/commands/implement-feature.md`, step 1; `.claude/commands/finish-feature.md`, step 13 |
 | STF-03 | SCR-AUT-02 and SCR-ACC-01 | local | `docs/SCREENS.md`, SCR-AUT-02, SCR-ACC-01 |
 | STF-05 | SCR-STF-01, without the role filter (gap 2) | local | `docs/SCREENS.md`, SCR-STF-01, gap 2; DEC-105 |
