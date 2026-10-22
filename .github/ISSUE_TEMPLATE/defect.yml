@@ -1,5 +1,5 @@
 name: Acceptance defect
-description: One defect found in acceptance testing. The routine "ZenGear fix defects" takes it and runs /fix-defect.
+description: "One defect found in acceptance testing. The owner fixes it in a local session with /fix-defect <Feature ID> #<issue>."
 title: "<Feature ID>: "
 labels: [defect]
 body:
