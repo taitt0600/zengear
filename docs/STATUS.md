@@ -7,7 +7,6 @@ flight, what is done and how this file changes: `CLAUDE.md`, *Work state*.
 
 | Key | Item | Who | Source |
 |---|---|---|---|
-| dec-113-prefetch | Decision (`/decision-draft`) that aligns DEC-113 (1) with `src/proxy.ts`: it skips only the router prefetches (`next-router-prefetch`), and a browser prefetch of the document (`purpose` or `sec-purpose: prefetch`) gets the CSP with a nonce | local | pull request #85, *Differences from DEC-113*; `web/src/proxy.ts` |
 | dec-web-run | Decision (`/decision-draft`) that aligns with the commands: DEC-100 (1) (one branch per feature; a web-only run adds `feat/<id>-web`, then `-2`, … when a name has merged), DEC-100 (3) (the guide: the Postman folder only when the API changed, three manual checks in all, screens included), DEC-110 (1) (a done feature gets a second `feat` pull request and issue #24 line), and DEC-100 (8) with `pipeline.yml` (no `web-preview` or `package` job; required checks named after the job ids) | local | pull request #83, *Differences from accepted Decisions* and *Decisions made*; `.claude/commands/implement-feature.md`, step 1; `.claude/commands/finish-feature.md`, step 13 |
 | STF-03 | SCR-AUT-02 and SCR-ACC-01; a catch-all `notFound()` route under the admin layout, so that an unknown `/admin` URL renders with the nonce (DEC-113 (3)) | local | `docs/SCREENS.md`, SCR-AUT-02, SCR-ACC-01; pull request #85, *Differences from DEC-113* |
 | STF-05 | SCR-STF-01, without the role filter (gap 2) | local | `docs/SCREENS.md`, SCR-STF-01, gap 2; DEC-105 |
