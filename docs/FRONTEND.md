@@ -20,7 +20,7 @@ web/src/
 ├─ lib/format/             VND money, dates in Asia/Ho_Chi_Minh (Intl only)
 ├─ i18n/                   next-intl request config
 ├─ env-schema.ts, env.ts   the NEXT_PUBLIC_* schema (Zod) and its checked values
-└─ proxy.ts                fixed route redirects only (convenience, never authorization): / → /admin until the storefront
+└─ proxy.ts                fixed route redirects (/ → /admin until the storefront) and the CSP with a nonce of /admin and /pos; never the session, never authorization
 web/messages/vi.json       every text the user sees, by key (en.json later, storefront only)
 web/e2e/                   Playwright screen flows against the API and the Firebase Auth Emulator
 ```
@@ -30,7 +30,7 @@ web/e2e/                   Playwright screen flows against the API and the Fireb
 ## Rendering
 
 - Storefront catalog and product pages are rendered on the server so search engines see them; they call only shop endpoints (`/api/v1/shop/`).
-- Admin and POS pages are client components behind sign-in; they call endpoints with the Firebase ID token.
+- Admin and POS pages are client components behind sign-in; they call endpoints with the Firebase ID token. The root layout of `/admin` (and of `/pos` when it comes) awaits `connection()` (`next/server`), so every page of `/admin` and `/pos` renders on the server at each request and gets the nonce of its CSP (DEC-113 (3)): they are not cached by a CDN and cannot be exported statically, so the web runs on `next start` or a platform with a server (Vercel).
 - `url_redirects` (old slugs, 301) are resolved by the API; the storefront follows what the API returns.
 
 ## Data from the API
@@ -58,11 +58,16 @@ Every text the user sees goes through next-intl (without locale routing): `t('ke
 
 ## Authentication
 
-Firebase Authentication in the browser (Phase 1): staff sign in to admin and POS; customers sign in on the storefront (Phase 2). The SDK keeps the session (its default persistence); there is no session cookie. Admin and POS pages are client components behind sign-in: the client layout of each part sends a visitor without a Firebase session to the sign-in page (the session lives in browser storage, which `proxy.ts` on the server cannot see). `proxy.ts` only makes fixed route redirects; neither is authorization, and the API still answers 401 and 403. The client only sends the ID token; the user's permission keys (never role names, R-SEC-03) come from the API (`permissions` of `GET /api/v1/admin/me`) and are used only to hide menus and buttons — the API still enforces them. A password change revokes every refresh token (DEC-094): the web signs the user in again. In development the client connects to the Firebase Auth Emulator.
+Firebase Authentication in the browser (Phase 1): staff sign in to admin and POS; customers sign in on the storefront (Phase 2). The SDK keeps the session (its default persistence); there is no session cookie. Admin and POS pages are client components behind sign-in: the client layout of each part sends a visitor without a Firebase session to the sign-in page (the session lives in browser storage, which `proxy.ts` on the server cannot see). `proxy.ts` makes fixed route redirects and sets the CSP of `/admin` and `/pos`, and never reads the session; neither is authorization, and the API still answers 401 and 403. The client only sends the ID token; the user's permission keys (never role names, R-SEC-03) come from the API (`permissions` of `GET /api/v1/admin/me`) and are used only to hide menus and buttons — the API still enforces them. A password change revokes every refresh token (DEC-094): the web signs the user in again. In development the client connects to the Firebase Auth Emulator.
 
 ## Security headers
 
-`next.config` sets on every response (`src/lib/security-headers.ts`): a `Content-Security-Policy` that allows only this site, the API and the domains of Firebase Authentication and Storage (and the emulator when it is configured), with `frame-ancestors 'none'`; `Strict-Transport-Security` (without `includeSubDomains` until the production domain is chosen); `Referrer-Policy: strict-origin-when-cross-origin`; `X-Content-Type-Options: nosniff`. Static pages carry no nonce, so `script-src` holds `'unsafe-inline'` (and `'unsafe-eval'` in development only); a Decision on a nonce for `/admin` and `/pos` comes before the next admin screen (`docs/STATUS.md`). The ID token lives in the browser storage of the Firebase SDK, so the CSP is the main guard against script injection.
+`src/lib/security-headers.ts` builds the headers and both CSPs (DEC-104 (10), DEC-113). `next.config` sets on every response `Strict-Transport-Security` (without `includeSubDomains` until the production domain is chosen), `Referrer-Policy: strict-origin-when-cross-origin` and `X-Content-Type-Options: nosniff`. Each document response carries one `Content-Security-Policy`, which allows only this site, the API and the domains of Firebase Authentication and Storage (and the emulator when it is configured), with `frame-ancestors 'none'`; the two CSPs differ only in `script-src`:
+
+- `/admin` and `/pos`: `src/proxy.ts` makes a new nonce for each request (`crypto.randomUUID()` in base64) and sets the same CSP on the request, where Next.js reads the nonce and puts it on its framework scripts, page bundles and inline scripts, and on the response. `script-src` is `'self' 'nonce-…' 'strict-dynamic'` (and `'unsafe-eval'` in development only), with no `'unsafe-inline'`, so an injected inline script does not run. The pages render at each request (*Rendering*). The router's prefetches (`next-router-prefetch`) skip the proxy and carry no CSP: they are RSC payloads, never shown as a page; a browser prefetch of a document does not, since the browser may show it as the page. A URL there that matches no page gets the 404 that Next.js prerenders, whose scripts carry no nonce and are blocked: its text still shows. A third-party script added later is loaded by a script that has the nonce (`'strict-dynamic'`) or by `<Script nonce>`, with the nonce parsed from the `content-security-policy` request header (`headers()` of `next/headers`); there is no `x-nonce` header.
+- Every other path (the storefront later): `next.config` sets a static CSP, whose `script-src` holds `'unsafe-inline'` (and `'unsafe-eval'` in development only), since static pages carry no nonce; the storefront deploy Decision settles it (`docs/STATUS.md`). The `headers()` source leaves out `/admin` and `/pos` case-sensitively, as the proxy matcher does, so `/ADMIN` keeps the static CSP.
+
+`style-src` keeps `'self' 'unsafe-inline'` on both: Radix sets style attributes, which a nonce does not cover. The ID token lives in the browser storage of the Firebase SDK, so the CSP is the main guard against script injection.
 
 ## Environment variables
 
