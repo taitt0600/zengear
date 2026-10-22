@@ -14,16 +14,18 @@ facts you are given. You never edit files.
 ## Read
 
 - The file you are given and the facts that come with the request: the pull request number and state, the check runs
-  of its head with their results, the plan-reviewer and code-reviewer verdicts, whether the security review ran, the
-  Postman runs (requests run, tests passed and failed, for the folder and for the whole collection) and, for a
-  report, the owner's answer to the test (Đạt, Có lỗi or Để sau, and the minutes).
+  of its head with their results, the areas the branch changes among `api/`, `postman/`, `web/` and `api/openapi/`,
+  the plan-reviewer and code-reviewer verdicts, whether the security review ran, the Postman runs (requests run,
+  tests passed and failed, for the folder and for the whole collection), the web checks and the Playwright flows
+  (passed and failed) when there are any, and, for a report, the owner's answer to the test (Đạt, Có lỗi or Để sau,
+  and the minutes). "The API changed" below means that the branch changes `api/` or `postman/`.
 - The feature dossier `out/feature-<ID>.md`: acceptance criteria, rules (implementation rules included), use cases,
   decisions, and the feature's rows of `docs/STATUS.md` (section *Work state*).
 - The guide and the report start with the line `<!-- finish-feature -->`, which marks the comments `/finish-feature`
   posts; it is expected, not a finding.
 - The folder `postman/collections/ZenGear/<ID>/`: its `*.request.yaml` files (description, account in
   `X-ZenGear-As`, body, `afterResponse` tests) and `.resources/definition.yaml`; `postman/environments/` and
-  `postman/fixtures/`.
+  `postman/fixtures/`. When the branch changes `web/`, also the flows of `web/e2e/`.
 - `.claude/commands/finish-feature.md` (step 13: the guide; step 14: the report sections; steps 2 to 8, 11 and 13:
   what "Đã kiểm tra" reports), `.claude/commands/implement-feature.md` (step 4: the decision policy),
   `docs/ACCEPTANCE.md`, and `docs/API_CONVENTIONS.md` for status codes and Problem Details types.
@@ -31,17 +33,22 @@ facts you are given. You never edit files.
 ## Checklist — test guide
 
 1. **Length and language**: Vietnamese, one page at most (about 40 lines).
-2. **Các bước**: the steps work on the development environment as `docs/ACCEPTANCE.md` describes it, in this order:
-   Postman on the repository folder, the branch of the pull request, environment `dev`, run folder `<ID>`, every
-   test green. The environment is said to be running already; the appendix "Nếu môi trường chưa chạy" gives
-   `git switch`, `tools/dev_reset.ps1` and the API start.
+2. **Các bước**: when the API changed, the steps work on the development environment as `docs/ACCEPTANCE.md`
+   describes it, in this order: Postman on the repository folder, the branch of the pull request, environment
+   `dev`, run folder `<ID>`, every test green; when it did not, the guide has no Postman step. The environment is
+   said to be running already; the appendix "Nếu môi trường chưa chạy" gives `git switch`, `tools/dev_reset.ps1`
+   and the API start, and `npm ci` then `npm run dev` in `web/` when the branch changes `web/`.
 3. **Collection**: the folder `<ID>` exists; every acceptance criterion has a request, every rule has at least one
    refusal request; each of them has tests on the status code, on the Problem Details `type` (and `ruleId` when the
    API gives one) of a refusal, and on the fields the criterion names; values are unique to the run; no secret, token
    or password in a request, an environment or a fixture.
-4. **Kiểm tra tay**: at most three, each something the collection cannot check, with what to do, what to look at and
-   the expected result.
-5. **Web**: when the feature has screens, each screen with a Playwright screenshot of the expected result.
+4. **Kiểm tra tay**: at most three in total, screens included, each something the collection and the flows cannot
+   check, with what to do, what to look at and the expected result.
+5. **Web**: when the branch changes `web/`, the screens to open at `http://localhost:3000`, the account to sign in
+   with (its password only by reference to `docs/ACCEPTANCE.md`, *Accounts*), and each screen with a Playwright
+   screenshot of the expected result, given by its path under `web/test-results/` and the link of the CI run of the
+   head commit, whose artifact `playwright-*` of the job `acceptance` holds it (a comment cannot embed a local
+   image).
 6. **Defect**: a guide about a defect gives the steps that showed it, with the result now expected.
 7. **Owner's time**: no step the environment or Claude has already done; the steps are few and in order.
 8. **Commands run as written**: every command of the guide and its appendix exists in the repository and runs as
@@ -61,8 +68,11 @@ facts you are given. You never edit files.
    you are not given its source.
 2. **Chức năng**: the User Story of the feature row, in the owner's words; nothing the row does not ask for.
 3. **Cách chạy để kiểm thử**: the steps of the guide, appendix included.
-4. **Kịch bản kiểm thử**: one line per request of the folder, and the results it states are the results of the
-   Postman runs you are given; every acceptance criterion and every rule (one refusal at least) is covered.
+4. **Kịch bản kiểm thử**: when the API changed, one line per request of the folder, and the results it states are
+   the results of the Postman runs you are given; every acceptance criterion and every rule (one refusal at least) is
+   covered. When the branch changes `web/`, a sub-list **Luồng màn hình (Playwright)** with one line per flow, whose
+   results are those of the flows you are given; a report without Postman lines (a web-only run) says that the rules
+   of the feature are covered by its earlier pull request.
 5. **Rule đã có test**: every rule of the dossier.
 6. **Quyết định Claude đã tự chọn**: no choice that the decision policy gives to the owner (money, prices, tax,
    invoices or accounting, a legal duty, personal data, the permissions the seed grants to roles, a column or stored
@@ -70,7 +80,8 @@ facts you are given. You never edit files.
    an architecture test). Those belong under "Quyết định của bạn" (answered) or "Cần bạn quyết định" (open).
 7. **Cần bạn quyết định**: each item gives its options, their consequences and the option recommended, so that the
    owner can answer in one line.
-8. **Đã kiểm tra**: steps 2 to 8, CI and the owner's test are all reported, with
+8. **Đã kiểm tra**: steps 2 to 8 (with the web checks and the flows when the branch changes `web/`), CI and the
+   owner's test are all reported, with
    "Phát hiện riêng" for each code reviewer and the labelled findings (`[over-engineering]`, `[duplication]`) of
    plan-reviewer and code-reviewer, which add up to the line of **Kết quả** unless that line is `? / ?` (a run stopped
    before the code review); a `/fix-defect` run has no plan, and a run without the handoff file of `/implement-feature`
