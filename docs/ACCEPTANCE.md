@@ -18,7 +18,8 @@ the web with `npm run dev`) and posts a test guide of one page on the pull reque
 Postman collection and, for a branch that changes `web/`, the Playwright flows of `web/e2e/` (below, *Screen flows*),
 which CI runs again. Then:
 
-1. Make sure the branch of the pull request is the one checked out (`git switch <branch>`).
+1. The branch of the pull request is already checked out (`/finish-feature` leaves it so; otherwise the guide's
+   appendix gives `git switch <branch>`).
 2. When the API changed (the branch changes `api/` or `postman/`): open the Postman app on the repository folder
    (once per machine: **Files** → **Open folder** → the repository, then **Local View**: the app reads `postman/`
    directly and follows the branch checked out in the folder, which it shows), choose the environment `dev`, and on
