@@ -6,7 +6,7 @@
 | Web App | React | 19.3.1 | Thư viện giao diện của Next.js (DEC-104) | Phase 1 |
 | Web App | TypeScript | 5.9.3 | Ngôn ngữ | Phase 1 |
 | Web App | Tailwind CSS | 4.3.3 | Styling | Phase 1 |
-| Web App | shadcn/ui | — | UI components; components/ui giữ nguyên bản, chỉ chỉnh theming bằng CSS variable, kiểm bằng hash (DEC-104) | Phase 1 |
+| Web App | shadcn/ui | — | UI components theo mô hình open code: components/ui là code của dự án, sửa trực tiếp nhưng giữ thiết kế gốc, chữ qua file chuỗi, cập nhật bằng add --diff; block chính thức làm khuôn; calendar dùng date-fns (DEC-116) | Phase 1 |
 | Web App | Zustand | — | Client state | Phase 1 |
 | Web App | TanStack Query | — | Server state | Phase 1 |
 | Web App | React Hook Form + Zod | — | Form và validation | Phase 1 |
@@ -54,7 +54,8 @@
 | Dev Tooling | Docker | image postgres:18 | Container local, khớp version Azure Database for PostgreSQL | Phase 1 |
 | Dev Tooling | Claude Code | — | Plugin từ marketplace claude-plugins-official (csharp-lsp, feature-dev, typescript-lsp, frontend-design; security-guidance dùng thử) và MCP qua Docker MCP Toolkit (PostgreSQL, Postman) chỉ với dữ liệu dev (DEC-100, DEC-111, DEC-112) | Phase 1 |
 | Dev Tooling | Node.js + npm | 24.22.0 (npm 11.19.1) | Runtime và package manager của web; package-lock.json commit, CI chạy npm ci; Dependabot cooldown 7 ngày (DEC-104) | Phase 1 |
+| Dev Tooling | Claude Design | — | Bản vẽ màn hình chủ dự án duyệt trước khi code; design system dựng từ codebase (DEC-119) | Phase 1 |
 | Source & Docs | Git + GitHub | — | Quản lý mã nguồn; một repository cho api, web và docs (DEC-093) | Phase 1 |
-| Source & Docs | GitHub Actions | — | Một pipeline (pipeline.yml), tên job trùng id: changes chọn job theo path; secrets, tools-test, api-test, schema, web-test (kiểm lock shadcn và key của file chuỗi, rồi npm ci, gen:api so với schema.d.ts, ESLint, Prettier, tsc, Vitest, build), acceptance (build image và migration bundle một lần, chạy toàn bộ collection Postman trên image đó, trên main đẩy image lên GHCR, rồi chạy các luồng Playwright của web), ci-ok; gates.yml: pr-gates, pr-title; required checks ci-ok, pr-gates, pr-title; push main deploy staging rồi production (DEC-093, DEC-100, DEC-101, DEC-104) | Phase 1 |
+| Source & Docs | GitHub Actions | — | Một pipeline (pipeline.yml), tên job trùng id: changes chọn job theo path; secrets, tools-test, api-test, schema, web-test (kiểm key của file chuỗi, rồi npm ci, gen:api so với schema.d.ts, ESLint, Prettier, tsc, Vitest, build), acceptance (build image và migration bundle một lần, chạy toàn bộ collection Postman trên image đó, trên main đẩy image lên GHCR, rồi chạy các luồng Playwright của web), ci-ok; gates.yml: pr-gates, pr-title; required checks ci-ok, pr-gates, pr-title; push main deploy staging rồi production (DEC-093, DEC-100, DEC-101, DEC-104) | Phase 1 |
 | Source & Docs | GitHub Container Registry | — | Lưu image API build một lần trong pipeline để deploy staging và production (DEC-100) | Phase 1 |
 | Source & Docs | dbdocs.io | — | Tài liệu ERD sinh từ khối DBML trong DATABASE.md | Phase 1 |
