@@ -7,8 +7,9 @@ flight, what is done and how this file changes: `CLAUDE.md`, *Work state*.
 
 | Key | Item | Who | Source |
 |---|---|---|---|
-| STF-05 | SCR-STF-01, without the role filter (gap 2) | local | `docs/SCREENS.md`, SCR-STF-01, gap 2; DEC-105 |
-| dec-api-errors | Decision: the language of the `errors` messages of a 400 (the API in Vietnamese, a code per reason, or the web's own texts as SCR-AUT-02 and SCR-ACC-01 do), before the next form screen that shows them (SCR-STF-03) | local | `docs/SCREENS.md`, Conventions, *Errors*; the web-only pull request of STF-03, *Owner's decisions* |
+| STF-05 | (1) SCR-STF-01, without the role filter (gap 2); (2) in its own commit, the Should fix item 2 of the review of commit 9bc508a: every place that says the server never meets or renders the `notFound()` of the admin catch-all (`web/src/app/(admin)/admin/(shell)/[...missing]/page.tsx`, two comments; `docs/FRONTEND.md`, the 404 sentence; `web/e2e/admin-csp.spec.ts`, the comment of the 404 test) says instead that the server's HTML render never reaches it, and `web/e2e/admin-csp.spec.ts` asserts the 404 title in the HTML it reads | local | (1) `docs/SCREENS.md`, SCR-STF-01, gap 2; DEC-105; (2) pull request #87, comment 6355457647 (the review of commit 9bc508a) |
+| dec-api-errors | Decision: the language of the `errors` messages of a 400 (the API in Vietnamese, a code per reason, or the web's own texts as SCR-AUT-02 and SCR-ACC-01 do), before the next form screen that shows them (SCR-STF-03) | local | `docs/SCREENS.md`, Conventions, *Errors*; pull request #87, *Owner's decisions* |
+| dec-114-404 | Decision, drafted with `dec-api-errors`: DEC-114 (2) adds that an unknown `/admin` URL answers HTTP 200, since the admin shell renders its pages in the browser only; the nonce holds, and a `notFound()` under the shell keeps status 200 and the page's own title | local | pull request #87, *Deviations* and comment 6355457647 (Should fix item 1); `docs/FRONTEND.md`, the 404 sentence |
 | STF-02 | Decision on the date picker (`date-fns` or another way, DEC-111; it also unblocks SCR-STF-02 and SCR-LOC-01), then SCR-STF-03 | local | `docs/SCREENS.md`, SCR-STF-03; DEC-111; DEC-104 (1) |
 
 ## Waiting for a trigger
