@@ -59,9 +59,13 @@ describe('text in JSX', () => {
   })
 
   it.each([
-    ['the generated shadcn components', 'src/components/ui/sample.tsx'],
-    ['tests', 'src/sample.test.tsx'],
-  ])('does not check %s', async (_, filePath) => {
-    expect(await ruleIds(component('<p>Xin chào</p>'), filePath)).toEqual([])
+    ['a child', '<span className="sr-only">Close</span>', 'react/jsx-no-literals'],
+    ['an aria-label', '<button aria-label="Close" />', 'no-restricted-syntax'],
+  ])('refuses %s in the shadcn components (DEC-116 (2))', async (_, jsx, ruleId) => {
+    expect(await ruleIds(component(jsx), 'src/components/ui/sample.tsx')).toContain(ruleId)
+  })
+
+  it('does not check tests', async () => {
+    expect(await ruleIds(component('<p>Xin chào</p>'), 'src/sample.test.tsx')).toEqual([])
   })
 })
