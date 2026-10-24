@@ -75,7 +75,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
               <MenuIcon aria-hidden />
             </Button>
           </SheetTrigger>
-          {/* The generated close button has an English label: this one comes from the message file. */}
+          {/* The header below has its own close button, so the sheet's corner one is off. */}
           <SheetContent side="left" showCloseButton={false} className="w-64">
             <SheetHeader className="flex-row items-center justify-between">
               <SheetTitle>{t('admin.menu.title')}</SheetTitle>

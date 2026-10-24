@@ -187,7 +187,7 @@ function ChangePasswordDialog({ email }: { email: string | null | undefined }) {
           {t('account.changePassword')}
         </Button>
       </DialogTrigger>
-      {/* The generated close button has an English label: the form's "Hủy" comes from the message file. Taller
+      {/* The form's own "Hủy" closes the dialog, so the corner close button is off. Taller
           than a short screen, the dialog scrolls inside instead of losing its top and its buttons. */}
       <DialogContent
         showCloseButton={false}

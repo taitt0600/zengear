@@ -86,5 +86,8 @@
   "problems": {
     "unknown": "Đã có lỗi xảy ra. Vui lòng thử lại.",
     "staff-account-required": "Chỉ tài khoản nhân viên mới đổi mật khẩu tại đây."
+  },
+  "ui": {
+    "close": "Đóng"
   }
 }

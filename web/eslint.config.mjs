@@ -28,11 +28,11 @@ const TEXT_SELECTORS = [
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
-  // Every text the user sees goes through next-intl (web/CLAUDE.md, DEC-104 (6)). The generated shadcn components
-  // are left as written (DEC-104 (5)), and tests write the texts they expect.
+  // Every text the user sees goes through next-intl, in the shadcn components too (web/CLAUDE.md, DEC-104 (6),
+  // DEC-116 (2)); tests write the texts they expect.
   {
     files: ['src/**/*.tsx'],
-    ignores: ['src/components/ui/**', 'src/**/*.test.tsx'],
+    ignores: ['src/**/*.test.tsx'],
     rules: {
       'react/jsx-no-literals': ['error', { noStrings: true, ignoreProps: true }],
       'no-restricted-syntax': [

@@ -43,7 +43,7 @@ export function ReauthDialog({
   const t = useTranslations('changePassword')
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      {/* The generated close button has an English label: "Hủy" below comes from the message file. Taller than a
+      {/* "Hủy" below closes the dialog, so the corner close button is off. Taller than a
           short screen, the dialog scrolls inside instead of losing its top and its buttons. */}
       <DialogContent
         showCloseButton={false}
