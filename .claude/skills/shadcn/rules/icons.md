@@ -1,7 +1,8 @@
 # Icons
 
 Copied from shadcn-ui/ui at commit `ba1503c64472b82256d9de95e2e62c5901a38e8b` (MIT, see `../LICENSE.md`), unchanged
-but for this line. ZenGear's `iconLibrary` is `lucide`: named imports from `lucide-react` (`web/CLAUDE.md`).
+but for this line. ZenGear's `iconLibrary` is `lucide`: named imports from `lucide-react` (`web/CLAUDE.md`); a block
+that imports another icon set is switched to lucide after its `add` (DEC-116 (3)).
 
 **Always use the project's configured `iconLibrary` for imports.** Check the `iconLibrary` field from project context: `lucide` → `lucide-react`, `tabler` → `@tabler/icons-react`, etc. Never assume `lucide-react`.
 

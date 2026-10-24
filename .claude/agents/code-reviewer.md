@@ -131,9 +131,20 @@ repeat those. Check what no test sees:
     A finding of questions 1 to 3 starts with the label `[over-engineering]` (1 and 2) or `[duplication]` (3).
 13. **Web interface** (diffs under `web/` only): each changed screen or component follows
     `.claude/guidelines/web-interface-guidelines.md`; a finding cites its rule (`MUST: …`).
-    - Skip `web/src/components/ui/` and the generated `web/src/**/schema.d.ts`: they change only through their
-      generators (DEC-104 (5), DEC-111 (7)); a problem in a shadcn component is fixed in a wrapper in
-      `web/src/components/app/` or `web/src/features/<area>/`, as `web/CLAUDE.md` says.
+    - Skip the generated `web/src/**/schema.d.ts`: it changes only through `npm run gen:api` (DEC-111 (7)).
+      Review `web/src/components/ui/` like other web code (DEC-116 (8)), and check there:
+      - the design is kept (DEC-116 (1)): an existing component keeps the classes that set its look (colour,
+        spacing, radius, font size, shadow) unless the change fixes accessibility, and a new variant uses the tokens
+        of the theme;
+      - in a branch with a `shadcn add`, the first commit of the item holds only what `add` wrote (its files,
+        `web/src/app/globals.css` when it added CSS variables, `web/package.json` and the lockfile; an unapproved
+        icon library of a block removed with `npm uninstall`, as the shadcn skill says) and the edits come in later
+        commits (DEC-116 (1)); the files of a block are moved out of `app/` without its sample page, data
+        and texts, and its icons are `lucide-react` (DEC-116 (3));
+      - every text a user or a screen reader reads in the item's source is `t(key)` of the namespace `ui`, and a
+        text the item's package shows (the labels of sonner, the navigation labels and month names of
+        react-day-picker, the default texts of cmdk and vaul) is set through the package's prop or locale from
+        `web/messages/vi.json`, which ESLint cannot see (DEC-116 (2)).
     - Apply only the rules that the changed code shows. Process rules (verify on several screens, measure, profile,
       track re-renders, response-time targets) are named together in one Note as unchecked, never as findings; a finding never asks to
       install a tool or package outside `web/approved-packages.json`.

@@ -52,10 +52,12 @@ output to `out/logs/` and bring only a summary into the context, as **Output** o
    the report.
 5. **Fix** the code, the smallest change that makes the tests pass without weakening another test, then
    `dotnet build ZenGear.slnx`, `dotnet test ZenGear.slnx` and the drift check from `api/`, then the web checks of
-   `/finish-feature` (step 2) when they apply.
+   `/finish-feature` (step 2) when they apply. A `shadcn add` for the fix is committed alone, before any file it
+   wrote is edited, as `/implement-feature` step 7 says (DEC-116 (1)).
 6. **Finish** with `/finish-feature` for this feature (and `--checkpoints` when it was given), in this session and
    without reading a handoff file (pass it the facts of steps 2–5), with these differences:
-   - On a new `fix/` branch: one commit `fix(<scope>): <subject>` with `Refs:` (and `Closes #<issue>`); pull request
+   - On a new `fix/` branch: one commit `fix(<scope>): <subject>` with `Refs:` (and `Closes #<issue>`), after the
+     commit of a `shadcn add` of step 5 when there is one; pull request
      title `fix(<scope>): <subject> (<Feature ID>)`.
    - On the open branch of the feature: the commit is typed by what it changes (`fix` is only for a bug already on
      `main`), pushed to the existing pull request, which `/finish-feature` follows from step 11.
