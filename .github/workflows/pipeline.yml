@@ -70,8 +70,8 @@ jobs:
           set_output postman '^postman/'
           set_output tools '^(tools/|\.claude/hooks/|\.githooks/|api/global\.json$)'
           set_output docs '^docs/'
-          # The web types come from the OpenAPI contract; web-test also runs the two web checks of tools/.
-          set_output web '^(web/|api/openapi/|tools/shadcn_lock\.py$|tools/message_keys\.py$)'
+          # The web types come from the OpenAPI contract; web-test also runs the web check of tools/.
+          set_output web '^(web/|api/openapi/|tools/message_keys\.py$)'
 
   # Secret scan with gitleaks (.gitleaks.toml): the commits of every pull request and push to main, and the whole
   # history every week and on demand. Free for repositories of a personal account.
@@ -189,8 +189,8 @@ jobs:
   # The web app (DEC-104 (8), DEC-111 (7)): the API types regenerated and compared with the committed file, lint,
   # format, typecheck, Vitest and the build. Every npm tool runs from web/node_modules through npm exec --no, which
   # fails instead of downloading a package; gen:api is the one npm script, as DEC-104 (8) names it, and the scripts
-  # of web/package.json are an owner path (DEC-111 (4)). Until the web shell creates web/package.json only the two
-  # checks of tools/ run, and the job passes.
+  # of web/package.json are an owner path (DEC-111 (4)). The check of tools/ runs first and needs no web file; the
+  # npm steps run only when web/package.json exists.
   web-test:
     name: web-test
     needs: changes
@@ -214,10 +214,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      # Both pass with no web file, so they run before the web shell too.
-      - name: The shadcn components match their lock
-        working-directory: .
-        run: python3 tools/shadcn_lock.py check
+      # Plain Python on the message files: it runs before npm ci and passes with no web file.
       - name: The message files hold the same keys
         working-directory: .
         run: python3 tools/message_keys.py

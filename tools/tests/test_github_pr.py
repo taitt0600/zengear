@@ -23,7 +23,8 @@ sys.path.insert(0, str(REPO / 'tools'))
 import github_pr  # noqa: E402
 from github_pr import REQUIRED_CHECKS  # noqa: E402
 
-LOCK = 'web/src/components/ui/.shadcn-lock.json'
+MANIFEST = 'web/package.json'
+APPROVED = {'next': 'DEC-104', 'left-pad': 'DEC-104'}
 
 # The name of a job: "name:" indented by four spaces under "jobs:" (the workflows are indented by two spaces).
 JOB_NAME = re.compile(r'^    name: *(?P<quote>[\'"]?)(?P<name>.+?)(?P=quote) *$', re.MULTILINE)
@@ -75,7 +76,8 @@ class OwnedFilesTests(unittest.TestCase):
                      ['config', 'user.email', 'taitt.dev@gmail.com'], ['config', 'commit.gpgsign', 'false'],
                      ['config', 'core.hooksPath', '/dev/null'], ['remote', 'add', 'origin', str(self.dir / 'origin.git')]):
             self.git(*args)
-        self.base = self.commit({LOCK: json.dumps({'button.tsx': 'a' * 64}), 'tools/a.py': 'x = 1\n'})
+        self.base = self.commit({MANIFEST: json.dumps({'dependencies': {'next': '16.0.0'}}),
+                                 'web/approved-packages.json': json.dumps(APPROVED), 'tools/a.py': 'x = 1\n'})
         self.git('push', '-q', 'origin', 'main')
         self.cwd = os.getcwd()
         os.chdir(self.work)
@@ -100,13 +102,13 @@ class OwnedFilesTests(unittest.TestCase):
         self.git('push', '-q', '--force', 'origin', f'{head}:refs/pull/1/head')
         return {'number': 1, 'head': {'sha': head}}
 
-    def test_a_new_lock_entry_is_not_an_owner_path(self):
-        head = self.commit({LOCK: json.dumps({'button.tsx': 'a' * 64, 'card.tsx': 'b' * 64})})
+    def test_an_approved_package_at_an_exact_version_is_not_an_owner_path(self):
+        head = self.commit({MANIFEST: json.dumps({'dependencies': {'next': '16.0.0', 'left-pad': '1.3.0'}})})
         self.assertEqual(github_pr.owned_files(self.pull_request(head)), [])
 
-    def test_a_changed_hash_is_an_owner_path(self):
-        head = self.commit({LOCK: json.dumps({'button.tsx': 'c' * 64})})
-        self.assertEqual(github_pr.owned_files(self.pull_request(head)), [LOCK])
+    def test_a_new_script_is_an_owner_path(self):
+        head = self.commit({MANIFEST: json.dumps({'dependencies': {'next': '16.0.0'}, 'scripts': {'build': 'x'}})})
+        self.assertEqual(github_pr.owned_files(self.pull_request(head)), [MANIFEST])
 
     def test_a_rename_lists_the_old_path(self):
         (self.work / 'docs').mkdir()
