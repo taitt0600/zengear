@@ -56,21 +56,15 @@ CASES = [
     # Build files: left to the CI gates when unattended, asked when attended.
     ({'command': 'echo x > api/src/ZenGear.Api/ZenGear.Api.csproj'}, 'allow', 'ask'),
     ({'command': 'dotnet add api/src/ZenGear.Api package Foo'}, 'allow', 'ask'),
-    # Generated web files (DEC-111 (7)): edited by hand they are asked, their generators and reads run.
-    ({'command': 'cp /tmp/b.tsx web/src/components/ui/button.tsx'}, 'deny', 'ask'),
+    # The generated schema.d.ts (DEC-111 (7), DEC-116 (5)): edited by hand it is asked, its generator and reads run;
+    # web/src/components/ui/ is code of the app (DEC-116 (1)).
+    ({'command': 'cp /tmp/b.tsx web/src/components/ui/button.tsx'}, 'allow', 'allow'),
     ({'command': 'cd web && rm src/lib/api/schema.d.ts'}, 'deny', 'ask'),
-    ({'command': 'cd web/src/components/ui && sed -i s/a/b/ button.tsx'}, 'deny', 'ask'),
-    ({'command': 'echo {} > web/src/components/ui/.shadcn-lock.json'}, 'deny', 'ask'),
+    ({'command': 'cd web/src/components/ui && sed -i s/a/b/ button.tsx'}, 'allow', 'allow'),
+    ({'command': 'cd web/src && sed -i s/a/b/ components/ui/sheet.tsx lib/api/schema.d.ts'}, 'deny', 'ask'),
     ({'command': 'cat web/src/lib/api/schema.d.ts | head'}, 'allow', 'allow'),
     ({'command': 'cd web && npm run gen:api'}, 'allow', 'allow'),
     ({'command': 'cd web && npm exec --no -- shadcn add button'}, 'allow', 'allow'),
-    ({'command': 'python tools/shadcn_lock.py write'}, 'allow', 'allow'),
-    ({'command': 'python3 tools/shadcn_lock.py check web/src/components/ui'}, 'allow', 'allow'),
-    ({'command': 'npm exec --no -- shadcn add card && python tools/shadcn_lock.py write'}, 'allow', 'allow'),
-    # A write with a folder writes a lock there; the script itself is guarded tooling.
-    ({'command': 'python tools/shadcn_lock.py write .claude/hooks'}, 'deny', 'ask'),
-    ({'command': 'cp /tmp/x.py tools/shadcn_lock.py'}, 'deny', 'ask'),
-    ({'file_path': str(REPO / 'tools' / 'shadcn_lock.py')}, 'deny', 'ask'),
     # The message-key check of web-test judges changes too; running it is not a write.
     ({'command': 'python tools/message_keys.py'}, 'allow', 'allow'),
     ({'command': 'python3 tools/message_keys.py web/messages'}, 'allow', 'allow'),
@@ -78,8 +72,7 @@ CASES = [
     ({'file_path': str(REPO / 'tools' / 'message_keys.py')}, 'deny', 'ask'),
     ({'file_path': str(REPO / 'tools' / 'tests' / 'test_message_keys.py')}, 'allow', 'allow'),
     ({'file_path': str(REPO / 'web' / 'src' / 'lib' / 'api' / 'schema.d.ts')}, 'deny', 'ask'),
-    ({'file_path': str(REPO / 'web' / 'src' / 'components' / 'ui' / 'button.tsx')}, 'deny', 'ask'),
-    ({'file_path': str(REPO / 'web' / 'src' / 'components' / 'ui' / '.shadcn-lock.json')}, 'deny', 'ask'),
+    ({'file_path': str(REPO / 'web' / 'src' / 'components' / 'ui' / 'button.tsx')}, 'allow', 'allow'),
     ({'file_path': str(REPO / 'web' / 'src' / 'components' / 'app' / 'page-header.tsx')}, 'allow', 'allow'),
     ({'file_path': str(REPO / 'web' / 'src' / 'features' / 'catalog' / 'schema.ts')}, 'allow', 'allow'),
     ({'file_path': str(REPO / 'web' / 'approved-packages.json')}, 'allow', 'allow'),

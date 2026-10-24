@@ -2,7 +2,7 @@
 an accepted decision, and otherwise the error says which decision the gates could not read; a feat pull request
 fails while docs/STATUS.md names its feature (gate 6), and the reader of those rows matches whole cells only; the web
 packages pass only when approved, exact and resolved to their own tarball (gate 7, DEC-111 (3)), each refusal on
-its own; web/package.json and the shadcn lock are owner paths by content (DEC-111 (4)).
+its own; web/package.json is an owner path by content (DEC-111 (4)).
 
 Run from the repository root: python3 -m unittest discover -s tools/tests -v
 """
@@ -452,17 +452,6 @@ class OwnerContentTests(unittest.TestCase):
                 self.assertFalse(self.manifest(after))
         self.assertFalse(self.manifest(MANIFEST, before=self.gates.MISSING))
 
-    def test_the_shadcn_lock(self):
-        lock = self.gates.routine_lock_change
-        before = {'button.tsx': 'a' * 64}
-        self.assertTrue(lock(before, {**before, 'card.tsx': 'b' * 64}))
-        self.assertTrue(lock(self.gates.MISSING, before))
-        self.assertFalse(lock(before, {'button.tsx': 'c' * 64}))
-        self.assertFalse(lock(before, {'card.tsx': 'b' * 64}))
-        self.assertFalse(lock(before, self.gates.MISSING))
-        self.assertFalse(lock(before, ['button.tsx']))
-        self.assertFalse(lock(before, {'button.tsx': 1}))
-
 
 class WebGateTests(GitRepositoryTestCase):
     """Gate 7 and the owner paths through check, on git objects."""
@@ -509,19 +498,14 @@ class WebGateTests(GitRepositoryTestCase):
         self.assertEqual(printed.getvalue(), '::error::a%25b%0D%0A::warning::c\n')
 
     def test_owner_paths_by_content(self):
-        self.check({'web/package.json': MANIFEST, 'web/package-lock.json': LOCK,
-                    'web/src/components/ui/.shadcn-lock.json': {'button.tsx': 'a' * 64}})
+        self.check({'web/package.json': MANIFEST, 'web/package-lock.json': LOCK})
         self.base = self.git('rev-parse', 'HEAD')
         added = with_section('dependencies', {**MANIFEST['dependencies'], 'left-pad': '1.3.0'})
         added_lock = lockfile({**LOCK['packages'], 'node_modules/left-pad': entry('left-pad', '1.3.0')})
         cases = [
             ({'web/package.json': added, 'web/package-lock.json': added_lock}, []),
             ({'web/package.json': {**MANIFEST, 'scripts': {'build': 'x'}}}, ['web/package.json']),
-            ({'web/src/components/ui/.shadcn-lock.json': {'button.tsx': 'a' * 64, 'card.tsx': 'b' * 64}}, []),
-            ({'web/src/components/ui/.shadcn-lock.json': {'button.tsx': 'c' * 64}},
-             ['web/src/components/ui/.shadcn-lock.json']),
-            ({'web/src/components/ui/.shadcn-lock.json': None}, ['web/src/components/ui/.shadcn-lock.json']),
-            ({'web/src/components/ui/.shadcn-lock.json': '{'}, ['web/src/components/ui/.shadcn-lock.json']),
+            ({'web/package.json': None}, ['web/package.json']),
         ]
         for files, owned in cases:
             with self.subTest(files=sorted(files), owned=owned):

@@ -8,7 +8,7 @@
 
 create opens the pull request of the current branch against main, or updates the one already open (title,
 body, and draft or ready as asked). auto-merge refuses when the pull request changes a file that only the owner
-merges (owner_paths in tools/pr_gates.py, which judges web/package.json and the shadcn lock by content: the branch
+merges (owner_paths in tools/pr_gates.py, which judges web/package.json by content: the branch
 of the pull request and main are fetched here and compared from their merge-base, DEC-111 (4)), or when main does
 not require every check in REQUIRED_CHECKS or lets someone bypass them, so that nothing merges unchecked; it turns
 auto-merge off again when the head moved while it was being enabled. REQUIRED_CHECKS are job names, each equal to its job id:

@@ -34,14 +34,9 @@ check reads the pull request from git objects only: nothing of the pull request 
 coverage reads the working tree, new files included (used by /implement-feature and /finish-feature).
 owner_paths lists the changed files that only the owner merges (tools/github_pr.py refuses auto-merge for them): by
 name, and by content between the merge-base and the head for web/package.json (owner merged unless it only adds
-approved packages or changes the exact version of one, DEC-111 (4)) and web/src/components/ui/.shadcn-lock.json
-(owner merged when a hash changes, an entry goes or the file is deleted; a new entry is not). tools/shadcn_lock.py,
-whose reader of that lock is imported here, is part of the gates."""
-import json, os, re, subprocess, sys
+approved packages or changes the exact version of one, DEC-111 (4))."""
+import json, re, subprocess, sys
 import xml.etree.ElementTree as ET
-
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from shadcn_lock import lock_entries  # noqa: E402
 
 SPEC_PATHS = ('api/db/', 'docs/blueprint/', 'docs/DATABASE.md', 'docs/product-domain-blueprint-MVP.xlsx')
 BUILD_SUFFIXES = ('.csproj', '.props', '.targets')
@@ -49,7 +44,7 @@ BUILD_SUFFIXES = ('.csproj', '.props', '.targets')
 OWNER_PATHS = SPEC_PATHS + ('.claude/', '.githooks/', '.github/', '.gitleaks.toml', '.mcp.json', '.config/', 'tools/',
                             'docs/ARCHITECTURE.md', 'api/tests/ZenGear.ArchitectureTests/', 'api/global.json',
                             'api/.config/', 'api/.editorconfig', 'nuget.config', 'NuGet.Config',
-                            # The web build files of DEC-104 (3); web/package.json and the shadcn lock go by content.
+                            # The web build files of DEC-104 (3); web/package.json goes by content.
                             'web/approved-packages.json', 'web/npm-shrinkwrap.json', 'web/tsconfig.json',
                             'web/components.json', 'web/.npmrc',
                             'web/.nvmrc', 'web/next.config.', 'web/eslint.config.', 'web/postcss.config.',
@@ -63,7 +58,6 @@ STATUS = 'docs/STATUS.md'
 WEB_MANIFEST = 'web/package.json'
 WEB_LOCK = 'web/package-lock.json'
 APPROVED = 'web/approved-packages.json'
-SHADCN_LOCK = 'web/src/components/ui/.shadcn-lock.json'
 SECTIONS = ('dependencies', 'devDependencies', 'optionalDependencies', 'peerDependencies')
 REGISTRY = 'https://registry.npmjs.org/'
 # ASCII digits only: \d of a str pattern also matches other Unicode digits.
@@ -340,23 +334,10 @@ def routine_manifest_change(before, after, approved):
     return True
 
 
-def routine_lock_change(before, after):
-    """True when web/src/components/ui/.shadcn-lock.json only gains entries (DEC-111 (4))."""
-    if after is MISSING:
-        return False
+def routine_manifest(base, head):
     try:
-        old = {} if before is MISSING else lock_entries(before)
-        new = lock_entries(after)
-    except ValueError:
-        return False
-    return all(new.get(name) == digest for name, digest in old.items())
-
-
-def routine_change(path, base, head):
-    try:
-        if path == WEB_MANIFEST:
-            return routine_manifest_change(read_json(base, path), read_json(head, path), read_json(head, APPROVED))
-        return routine_lock_change(read_json(base, path), read_json(head, path))
+        return routine_manifest_change(read_json(base, WEB_MANIFEST), read_json(head, WEB_MANIFEST),
+                                       read_json(head, APPROVED))
     except Unreadable:
         return False
 
@@ -364,7 +345,7 @@ def routine_change(path, base, head):
 def owner_paths(changed, base, head):
     """The changed files only the owner merges; base is the merge-base of the pull request and head its head."""
     return sorted(p for p in changed if p.startswith(OWNER_PATHS) or p.endswith(OWNER_SUFFIXES)
-                  or (p in (WEB_MANIFEST, SHADCN_LOCK) and not routine_change(p, base, head)))
+                  or (p == WEB_MANIFEST and not routine_manifest(base, head)))
 
 
 def changed_files(base, head):
