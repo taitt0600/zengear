@@ -7,7 +7,6 @@ flight, what is done and how this file changes: `CLAUDE.md`, *Work state*.
 
 | Key | Item | Who | Source |
 |---|---|---|---|
-| tools | The owner-path pull request of DEC-116 and DEC-120 (2) (their Consequences list the files) | local | DEC-116; DEC-120 |
 | api-errors | The pull request of DEC-117 (its Consequences) | local | DEC-117 |
 | web-structure | The owner-path pull request (A) of DEC-118 | local | DEC-118 |
 | design-flow | The owner-path pull request of DEC-119, then the design system of ZenGear in Claude Design | local | DEC-119 |

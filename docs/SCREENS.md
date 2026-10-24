@@ -48,9 +48,9 @@ only the shape of the input (required, length, format) with the limits below, wh
 | SCR-AUT-02 | Required password change | `/admin/change-password` | Admin | STF-03 | signed-in staff | |
 | SCR-ACC-01 | My account | `/admin/account` | Admin | STF-03 | signed-in staff | |
 | SCR-STF-01 | Staff list | `/admin/staff` | Admin | STF-05 | `staff.read` | |
-| SCR-STF-02 | New staff account | `/admin/staff/new` | Admin | STF-01 | `staff.create` | gap 2, date picker: Decision (DEC-111) |
-| SCR-STF-03 | Staff account | `/admin/staff/[id]` | Admin | STF-01, STF-02 | `staff.read`; actions `staff.disable` | date picker: Decision (DEC-111) |
-| SCR-LOC-01 | Business location | `/admin/settings/business-location` | Admin | LOC-01 | `business_location.update` | gap 3, date picker: Decision (DEC-111) |
+| SCR-STF-02 | New staff account | `/admin/staff/new` | Admin | STF-01 | `staff.create` | gap 2, design (DEC-119) |
+| SCR-STF-03 | Staff account | `/admin/staff/[id]` | Admin | STF-01, STF-02 | `staff.read`; actions `staff.disable` | design (DEC-119) |
+| SCR-LOC-01 | Business location | `/admin/settings/business-location` | Admin | LOC-01 | `business_location.update` | gap 3, design (DEC-119) |
 
 The order of DEC-111 (7), which split the one tooling pull request of DEC-104: the API pull request for the web (gaps 1
 and 4) comes before or beside the three tooling pull requests T1 (package gate), T2 (CI and hooks) and T3 (Claude Code
@@ -60,9 +60,8 @@ the storefront have no screen yet: their features (catalog, stock, orders) have 
 
 The web shell is built (SCR-ADM-01 and SCR-AUT-01): a screen whose *Blocked by* cell is empty can be built with its
 feature. Until then its route opens a short placeholder page, "Màn hình này đang được xây dựng." inside the layout
-(SCR-STF-01, SCR-LOC-01), so no menu link leads to a 404; the feature replaces it. The first screen
-that needs a date picker opens the Decision of DEC-111 on `date-fns` or another way, since DEC-104 (1) adds no date
-library.
+(SCR-STF-01, SCR-LOC-01), so no menu link leads to a 404; the feature replaces it. A date picker uses the shadcn
+calendar with date-fns (DEC-116 (6)).
 
 ---
 
