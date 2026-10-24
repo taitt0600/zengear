@@ -20,6 +20,9 @@ DEC-099 marked **Checkpoint** below (two here, one in `/finish-feature`); withou
      **Package approval** (step 4), from that file, instead of the items below.
    - `git status` shows no change; `git fetch origin main` and `git switch --detach origin/main`, so that the
      items below read the current `main` (never another feature's branch, where the last run left the session).
+   - `pwsh -NoProfile -File tools/git_tidy.ps1 -Apply` (DEC-120 (2)): it prunes, then deletes the local branches
+     whose pull request merged (after the detach above, the branch of the last run is no longer the current one).
+     Report the branches it deleted and kept and its exit code; a failure of it is reported, never a reason to stop.
    - The feature is a row of `docs/blueprint/features.md`, and every Feature ID in its Depends On column is done
      (an Epic name there is not checked). A feature is done when a merged `feat` pull request ends its title with
      `(<ID>)`: `gh pr list --state merged --search "<ID> in:title" --json number,title` gives candidates only; keep
@@ -113,8 +116,9 @@ DEC-099 marked **Checkpoint** below (two here, one in `/finish-feature`); withou
         that file names and resumes at item 4.
      4. When the owner says it merged: `git fetch origin main`; `git show origin/main:web/approved-packages.json`
         lists the packages (otherwise say so and stop again); `git worktree remove out/worktrees/approve-<id>`,
-        `git branch -D build/approve-<id>`; on the feature branch `git rebase --autostash origin/main`; delete
-        `out/paused-<ID>.md` and go on where the run stopped.
+        `git branch -D build/approve-<id>`, each skipped when `tools/git_tidy.ps1` already removed it; on the
+        feature branch `git rebase --autostash origin/main`; delete `out/paused-<ID>.md` and go on where the run
+        stopped.
      Any other package (one that no official installer adds) needs a Decision of its own: draft it with
      `/decision-draft`, and the run stops as for an answer that changes a specification. The icon library of an
      official block that `web/approved-packages.json` does not list (`@tabler/icons-react` of `dashboard-01`) is

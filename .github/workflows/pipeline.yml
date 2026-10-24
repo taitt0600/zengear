@@ -102,7 +102,8 @@ jobs:
         with:
           global-json-file: api/global.json
       # pwsh and python3 come with ubuntu-latest. The dossier test reads the real specification, the guard test
-      # runs .claude/hooks/guard-spec.ps1, the env_doctor test reads user-secrets through dotnet, and the export
+      # runs .claude/hooks/guard-spec.ps1, the git_tidy test runs tools/git_tidy.ps1 with a fake gh in a throw-away
+      # clone, the env_doctor test reads user-secrets through dotnet, and the export
       # test (the workbook against docs/blueprint/) needs openpyxl, pinned, in a venv because the Python of the
       # runner is externally managed (PEP 668).
       - run: |
@@ -536,8 +537,8 @@ jobs:
   # (PostgreSQL, Redis, Firebase), backups, and how App Service pulls the GHCR image; and the environments staging and
   # production exist in Settings → Environments. This repository is private, where (GitHub docs, "Managing
   # environments for deployment" and "Deployments and environments") environment secrets and deployment branches need
-  # GitHub Pro or higher, while required reviewers (the approval of production) need GitHub Enterprise: on Pro the
-  # approval may have to be a manual workflow_dispatch of deploy-production instead. Until then each TODO step fails,
+  # GitHub Pro or higher, while required reviewers (the approval of production) need GitHub Enterprise: DEC-120 (1)
+  # makes a pushed v* tag the approval of production instead (see deploy-production). Until then each TODO step fails,
   # so that turning DEPLOY_ENABLED on cannot deploy half of it.
   # !cancelled() instead of the default success(): a job skipped by changes must not skip the deploy.
   deploy-staging:
@@ -606,6 +607,10 @@ jobs:
 
   # Swaps the staging slot into production after the approval of the environment production. Rollback: run the same
   # swap again (App Service docs, "Roll back a swap").
+  # DEC-120 (1), in the pull request that turns deploy on: this job runs on a pushed annotated tag vX.Y.Z (the approval,
+  # instead of the environment's reviewers), puts the :sha image of the tagged commit in the staging slot (or checks
+  # that the slot runs it) and swaps; a ruleset lets only the owner create v* tags; rollback swaps back or deploys the
+  # previous tag; the pipeline also runs for release/** (hotfixes); a GitHub Release holds the notes.
   deploy-production:
     name: deploy-production
     needs: deploy-staging

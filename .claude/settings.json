@@ -37,6 +37,7 @@
       "Bash(python -m unittest discover -s tools/tests*)",
       "Bash(pwsh -NoProfile -File tools/env_doctor.ps1*)",
       "Bash(pwsh -NoProfile -File tools/dev_reset.ps1*)",
+      "Bash(pwsh -NoProfile -File tools/git_tidy.ps1*)",
       "Bash(docker compose -f api/docker-compose.yml config --quiet)",
       "Bash(env EFBUNDLE=./efbundle docker compose -f api/acceptance/compose.yml config --quiet)",
       "Bash(actionlint)",
