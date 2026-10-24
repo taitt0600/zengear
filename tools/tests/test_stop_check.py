@@ -13,6 +13,9 @@ import tempfile
 import unittest
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from fakes import install  # noqa: E402
+
 REPO = Path(__file__).resolve().parents[2]
 HOOK = Path(os.environ.get('STOP_CHECK_SCRIPT', REPO / '.claude' / 'hooks' / 'stop-check.ps1'))
 GIT = shutil.which('git')
@@ -31,19 +34,6 @@ sys.exit(int(os.environ.get(f'FAKE_{{name.upper()}}_EXIT', '0')))
 CS_ERROR = r'D:\r\api\src\A.cs(3,1): error CS1002: ; expected [D:\r\api\src\A.csproj]'
 LOCKED = r'D:\r\api\src\A.csproj : error MSB3027: Could not copy "x.dll". The file is locked by: "ZenGear.Api"'
 TS_ERROR = "src/a.ts(1,7): error TS2322: Type 'number' is not assignable to type 'string'."
-
-
-def install(bin_dir, name, script=None, target=None):
-    """<name> in bin_dir for Windows (<name>.cmd) and POSIX: a fake run by this Python, or a wrapper of target."""
-    bin_dir.mkdir(parents=True, exist_ok=True)
-    if script is not None:
-        (bin_dir / f'fake_{name}.py').write_text(script, encoding='utf-8')
-        windows, posix = f'"{sys.executable}" "%~dp0fake_{name}.py"', f'"{sys.executable}" "$(dirname "$0")/fake_{name}.py"'
-    else:
-        windows = posix = f'"{target}"'
-    (bin_dir / f'{name}.cmd').write_text(f'@{windows} %*\r\n', encoding='utf-8')
-    (bin_dir / name).write_text(f'#!/bin/sh\nexec {posix} "$@"\n', encoding='utf-8')
-    (bin_dir / name).chmod(0o755)
 
 
 @unittest.skipUnless(PWSH and GIT, 'pwsh and git are needed')

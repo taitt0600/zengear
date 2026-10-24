@@ -13,6 +13,9 @@ import tempfile
 import unittest
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from fakes import install  # noqa: E402
+
 REPO = Path(__file__).resolve().parents[2]
 HOOK = Path(os.environ.get('ESLINT_CHECK_SCRIPT', REPO / '.claude' / 'hooks' / 'eslint-check.ps1'))
 
@@ -23,16 +26,6 @@ with open(os.environ['FAKE_ESLINT_LOG'], 'a', encoding='utf-8') as log:
 sys.stdout.write(os.environ.get('FAKE_ESLINT_OUTPUT', '[]'))
 sys.exit(int(os.environ.get('FAKE_ESLINT_EXIT', '0')))
 '''
-
-
-def install_fake(bin_dir, name, script):
-    """A fake <name> in bin_dir, for Windows (<name>.cmd) and POSIX, that runs script with this Python."""
-    bin_dir.mkdir(parents=True, exist_ok=True)
-    (bin_dir / f'fake_{name}.py').write_text(script, encoding='utf-8')
-    (bin_dir / f'{name}.cmd').write_text(f'@"{sys.executable}" "%~dp0fake_{name}.py" %*\r\n', encoding='utf-8')
-    posix = bin_dir / name
-    posix.write_text(f'#!/bin/sh\nexec "{sys.executable}" "$(dirname "$0")/fake_{name}.py" "$@"\n', encoding='utf-8')
-    posix.chmod(0o755)
 
 
 def results(*messages, more=()):
@@ -53,7 +46,7 @@ class EslintCheckTests(unittest.TestCase):
         self.root = Path(tempfile.mkdtemp()).resolve()
         self.web = self.root / 'web'
         self.log = self.root / 'eslint.log'
-        install_fake(self.web / 'node_modules' / '.bin', 'eslint', FAKE)
+        install(self.web / 'node_modules' / '.bin', 'eslint', FAKE)
 
     def tearDown(self):
         shutil.rmtree(self.root, ignore_errors=True)
