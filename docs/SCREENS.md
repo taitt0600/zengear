@@ -61,7 +61,8 @@ the storefront have no screen yet: their features (catalog, stock, orders) have 
 The web shell is built (SCR-ADM-01 and SCR-AUT-01): a screen whose *Blocked by* cell is empty can be built with its
 feature. Until then its route opens a short placeholder page, "Màn hình này đang được xây dựng." inside the layout
 (SCR-STF-01, SCR-LOC-01), so no menu link leads to a 404; the feature replaces it. A date picker uses the shadcn
-calendar with date-fns (DEC-116 (6)).
+calendar with date-fns (DEC-116 (6)). A cell "design (DEC-119)" holds its screen until the pull request of DEC-119
+makes the ready check of `/implement-feature` require an approved design; that pull request empties those cells.
 
 ---
 
