@@ -19,7 +19,8 @@ the Needs decision items answered or left open, how each Work state row is handl
 deviations from the plan, whether the run is web-only (then the pull request title it names) and the results of the
 build, the tests, the Postman runs and the web checks. A file whose branch is not
 `git branch --show-current` counts as missing. Without it, work from the branch: `git status` and `git diff` of the
-working tree (right after `/implement-feature` nothing is committed yet), `git log origin/main..HEAD`, and the body
+working tree (right after `/implement-feature` the branch holds at most the commits of a `shadcn add`),
+`git log origin/main..HEAD`, and the body
 and comments of the pull request when there is one. Each Work state row of the dossier is then a Needs decision item
 (step 4), and the owner's earlier answers are asked again or reported as unknown; the report has no plan-reviewer
 counts, says so under **Đã kiểm tra**, and counts code-reviewer alone, as a `/fix-defect` run does.
@@ -74,8 +75,8 @@ step 11 when the pull request is open.
    is not run here: the `schema` job of CI runs it.
    **Changed areas**, used by this step and steps 7, 13 and 14: the paths of `git diff --name-only
    origin/main...HEAD` and of `git status --porcelain --untracked-files=all` (right after `/implement-feature`
-   nothing is committed yet). "The branch changes `web/`" means one of them is under `web/`; "the API changed",
-   that one is under `api/` or `postman/`.
+   the branch holds at most the commits of a `shadcn add`). "The branch changes `web/`" means one of them is under
+   `web/`; "the API changed", that one is under `api/` or `postman/`.
    **Web checks**, after that build, when the branch changes `web/` or `api/openapi/` (the `web/` and
    `api/openapi/` paths of the filter of the CI job `web-test`), from `web/`: `npm ci` (the first time in the run;
    it deletes `web/node_modules`, which a running `next dev` is expected to keep locked on Windows (not yet seen
@@ -154,7 +155,9 @@ step 11 when the pull request is open.
    for the rows of `docs/STATUS.md` deleted at step 4, alone in its commit with `Refs: <ID>, DEC-110`; `test(api)`
    or `docs` for the rest — each with
    a body and a `Refs:` footer, plus `Closes #<issue>` for issues it resolves, and no `Co-Authored-By` or
-   `Claude-Session` trailer. Never `--no-verify`, never amend a pushed commit.
+   `Claude-Session` trailer. Never `--no-verify`, never amend a pushed commit. The commits of a `shadcn add` that
+   `/implement-feature` or `/fix-defect` made stay as they are, separate and before the edits of their files; an
+   `add` made in this command is committed the same way at once (`/implement-feature` step 7, DEC-116 (1)).
 10. **Pull request**:
     - `python3 tools/pr_gates.py check origin/main HEAD "<title>"` runs the PR gates as CI will; fix what it reports.
       When it reports files the owner merges, push the branch but do not open the pull request: the report gives the

@@ -34,19 +34,24 @@ npm exec --no -- shadcn add [components...] [options]
 ```
 
 Accepts component names of the official registry (`button`, `@shadcn/button`). Registry-prefixed names of other
-registries, GitHub item addresses, URLs and local paths need a Decision first (project rules).
+registries, GitHub item addresses, URLs and local paths need a Decision first (project rules, DEC-116 (7)).
 
 | Flag            | Short | Description                                                                                                          | Default |
 | --------------- | ----- | -------------------------------------------------------------------------------------------------------------------- | ------- |
 | `--yes`         | `-y`  | Skip confirmation prompt                                                                                             | `false` |
+| `--overwrite`   | `-o`  | Overwrite existing files                                                                                             | `false` |
 | `--cwd <cwd>`   | `-c`  | Working directory                                                                                                    | current |
 | `--silent`      | `-s`  | Mute output                                                                                                          | `false` |
 | `--dry-run`     |       | Preview all changes without writing files                                                                            | `false` |
 | `--diff [path]` |       | Show diffs. Without a path, shows the first 5 files. With a path, shows that file only (implies `--dry-run`)         | —       |
 | `--view [path]` |       | Show file contents. Without a path, shows the first 5 files. With a path, shows that file only (implies `--dry-run`) | —       |
 
-`--overwrite`, `--all` and `--path` are not used: an update of a component is a `chore` pull request of its own,
-and components go only to the path of `web/components.json`.
+Updating an installed component (DEC-116 (4)) is a `chore(web)` pull request of its own, never part of a feature
+(project rules of `SKILL.md`): `git diff` from the commit of the file's `add` shows what changed locally,
+`add <item> --diff <file>` shows what changed in the registry, and `add <item> --overwrite`, which overwrites every
+file that `add <item> --dry-run` lists (registry dependencies included), is used only when none of them was edited;
+otherwise the registry's changes are applied by hand, keeping the local ones (`SKILL.md`, *Updating Components*).
+`--all` and `--path` are not used: components go only to the path of `web/components.json`.
 
 #### Dry-Run Mode
 

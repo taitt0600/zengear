@@ -115,9 +115,11 @@ DEC-099 marked **Checkpoint** below (two here, one in `/finish-feature`); withou
         lists the packages (otherwise say so and stop again); `git worktree remove out/worktrees/approve-<id>`,
         `git branch -D build/approve-<id>`; on the feature branch `git rebase --autostash origin/main`; delete
         `out/paused-<ID>.md` and go on where the run stopped.
-     Any other package (one that a Decision ruled out, such as a date library like `date-fns` for the calendar
-     component, DEC-104 (1), or one that no official installer adds) needs a Decision of its own: draft it with
-     `/decision-draft`, and the run stops as for an answer that changes a specification.
+     Any other package (one that no official installer adds) needs a Decision of its own: draft it with
+     `/decision-draft`, and the run stops as for an answer that changes a specification. The icon library of an
+     official block that `web/approved-packages.json` does not list (`@tabler/icons-react` of `dashboard-01`) is
+     neither: it is not approved, and step 7 removes it after the `add` and switches the icons to lucide
+     (DEC-116 (3), skill `shadcn`).
    - Ask a Needs decision item at once, with AskUserQuestion as in step 3, also when it appears later in the run.
      When the owner leaves an item open, build what does not depend on it and go on: the pull request is then a
      draft, and the report lists the item under "Cần bạn quyết định".
@@ -143,7 +145,22 @@ DEC-099 marked **Checkpoint** below (two here, one in `/finish-feature`); withou
      the first `npm ci` of the web checks), `npm run gen:api`;
      tests first, seen failing: Vitest (Zod schemas, the mapping of Problem Details
      onto the form, hooks; DEC-104 (7)); then pages and components in the matching `features/<area>`, and the
-     Playwright flows of the screens in `web/e2e/`. In a web-only run, which skips step 5, **Checkpoint 2** comes
+     Playwright flows of the screens in `web/e2e/`.
+     **A `shadcn add`** (skill `shadcn`) runs before any file it may update is edited, `web/src/app/globals.css`
+     included, and is committed alone before any file it wrote is edited (DEC-116 (1)):
+     1. Its packages: each package it added to `web/package.json` is listed in `web/approved-packages.json`. If not,
+        undo the add (delete the files it created; `git restore` the files it updated, `web/package.json` and
+        `web/package-lock.json`; `npm ci` from `web/`) and take the package approval path (step 4); but the unlisted
+        icon library of a block is removed with `npm uninstall <package>` from `web/` (skill `shadcn`).
+     2. From the repository root: `git config user.name taitt0600`, `git config user.email taitt.dev@gmail.com`
+        and `git config core.hooksPath .githooks`, as `/finish-feature` step 9 does; `git add --` exactly the files
+        `add` lists as created or updated (it prints them relative to `web/`), `web/src/app/globals.css` when it
+        reports CSS variables, and `web/package.json` and `web/package-lock.json` when they changed; never
+        `git add -A` or `.` (the tree holds the tests and code not committed yet); check
+        `git diff --cached --name-only`.
+     3. Commit `feat(web): add the shadcn <items> as generated` with a body and `Refs: <ID>, DEC-116` plus the
+        Decision that approved each package it adds (a commit that adds a package names an accepted Decision,
+        `CLAUDE.md`, Workflow). The edits of those files come in later commits. In a web-only run, which skips step 5, **Checkpoint 2** comes
      here (`--checkpoints` only): the failing Vitest tests, each with the reason it fails.
    - The web checks of `/finish-feature` (step 2), under its **Output** rule. The flows run in `/finish-feature`
      (step 7), with the API, the emulator and the web running.

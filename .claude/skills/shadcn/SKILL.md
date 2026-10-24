@@ -8,32 +8,64 @@ user-invocable: false
 
 ## Project rules (override everything below)
 
-ZenGear rules, DEC-104 (5), DEC-111 (2), (5). Where this file or the files it links say otherwise, these win.
+ZenGear rules, DEC-116, DEC-111 (2), (5). Where this file or the files it links say otherwise, these win.
 
 - Run the CLI only as `npm exec --no -- shadcn <command>` from `web/` (the version pinned in `web/package.json`;
   `--no` fails instead of downloading). Never `npx shadcn@latest`, `pnpm dlx` or `bunx`.
-- `web/src/components/ui/` is written only by `npm exec --no -- shadcn add <item>` run from `web/`, then
-  `python tools/shadcn_lock.py write` (`python3` off Windows) from the repository root. Never edit a file there by
-  hand, not even to fix an import, an icon or a variant: a problem goes in the report, and a new variant or behaviour
-  is a wrapper (see `web/CLAUDE.md`).
-- No `--overwrite` and no `apply` while doing a feature: an update of a component is a `chore` pull request of its
-  own that the owner merges. `--dry-run`, `--diff` and `--view` change nothing and may be used.
-- Only items of the official registry (`@shadcn`, the default), in the style and base of `web/components.json`
-  (radix).
-- Packages, before `add` (DEC-111 (5)): read the item's `dependencies`, and those of each item in its
+- `web/src/components/ui/` is code of the app, as shadcn means it (open code, DEC-116 (1)): add an item with
+  `npm exec --no -- shadcn add <item>` from `web/`, then edit it like other web code, also in a feature pull request
+  (texts through the message files, a new or changed variant, an accessibility fix, an import, an icon). In a pull
+  request with an `add`, the first commit holds only what `add` wrote and every edit comes in a later commit, so
+  that git keeps the registry's version (`/implement-feature`, step 7, says how to commit it).
+- Keep shadcn's design: never change the classes that set the look of an existing component (colour, spacing,
+  radius, font size, shadow) except to fix accessibility. The look changes through the CSS variables of
+  `web/src/app/globals.css` and `web/components.json`, and a new variant uses the tokens of the theme. A component
+  in `web/src/components/app/` or `web/src/features/<area>/` is for composing several components, never needed to
+  change one.
+- Every item of the official registry (`@shadcn`, the default) in the base and style of `web/components.json`
+  (radix, new-york) may be used, also one that writes English (sidebar, sheet, dialog, pagination, carousel,
+  breadcrumb, calendar, command, spinner). In the pull request of its `add`, every text a user reads or a screen
+  reader reads in the item's source goes through `t(key)` of the namespace `ui` (ESLint refuses a literal there),
+  and a text the item's package shows (the labels of sonner, the navigation labels and month names of
+  react-day-picker, the default texts of cmdk and vaul) is set through the package's prop or locale, from the
+  message files: ESLint cannot see it, `code-reviewer` checks it (DEC-116 (2)). No item that needs `@base-ui/react`
+  (the Base UI base) or `@shadcn/react` (the chat items).
+- Blocks of `@shadcn` (`sidebar-*`, `login-*`, `signup-*`, `dashboard-01`, …) are templates (DEC-116 (3)): after
+  `add`, their files are code of the app, moved to `web/src/features/<area>/` (DEC-118 moves it to
+  `features/<area>/<module>/`) or `web/src/components/app/`; the sample page written to `app/`, the sample data and
+  the sample texts are deleted; icons are `lucide-react` (the `iconLibrary` of `components.json`), and a block that
+  imports another icon set is switched to lucide. A block is never updated again from the registry.
+- Updating an installed component, only when a fix or a feature of the registry is needed (Dependabot's update of
+  the CLI updates no component): a `chore(web)` pull request of its own, never part of a feature, not an owner path,
+  opened by a local session, reviewed by `plan-reviewer` and `code-reviewer` like every change, without auto-merge;
+  the owner opens the screens that use the component, then merges (DEC-116 (4)). How:
+  [Updating Components](#updating-components). Never `--all`, `--path` or `apply`. `--dry-run`, `--diff` and
+  `--view` change nothing and may be used at any time.
+- Only the official registry: a third-party registry (`registries` of `components.json`, a URL, a GitHub address)
+  needs a Decision of its own, one per registry (DEC-116 (7)).
+- Packages, before `add` (DEC-111 (5), DEC-116 (6)): read the item's `dependencies`, and those of each item in its
   `registryDependencies`, with `npm exec --no -- shadcn view @shadcn/<item>` and compare them with
   `web/approved-packages.json`. Both print them (measured with shadcn 4.22.1 in web-shell): `view` shows
   `dependencies`, `devDependencies` and `registryDependencies`, and `npm exec --no -- shadcn add <item> --dry-run`
-  (which writes nothing) lists "Dependencies" and "Dev Dependencies" with their names. The check after `add`
-  (workflow, step 7) stays: when it finds a package the file does not list, undo the `add` (the files it wrote and
-  its lock entries) before the approval path. When all are listed, add the item. When the official item needs a
-  package the file does not list, it goes through the package approval path of `/implement-feature`, step 4, before
-  `add`. A package that a Decision ruled out (the date library
-  of DEC-104 (1), such as `date-fns` for `Calendar`) or that no official installer adds (another registry, a URL, a
-  GitHub item) needs a Decision of its own, drafted with `/decision-draft`.
-- The rest (wrappers in `web/src/components/app/` or `web/src/features/<area>/`, theming in
-  `web/src/app/globals.css` and `web/components.json`, `lucide-react` icons, next-intl for every text) is in
-  `web/CLAUDE.md`.
+  (which writes nothing) lists "Dependencies" and "Dev Dependencies" with their names. When all are listed, add the
+  item. When the official item needs a package the file does not list, it goes through the package approval path of
+  `/implement-feature`, step 4, before `add`; a package that no official installer adds (another registry, a URL, a
+  GitHub item) needs a Decision of its own, drafted with `/decision-draft`. The check after `add` (workflow,
+  step 6) stays, before the commit of the `add`: when it finds a package the file does not list, undo the `add` (the
+  files it wrote and its changes to `web/package.json` and `web/package-lock.json`) before the approval path.
+  - A block whose only unlisted package is its icon library (`dashboard-01` lists `@tabler/icons-react`, measured
+    with shadcn 4.22.1 and `add --dry-run` on 2026-10-24; it is not approved) is added, then
+    `npm uninstall <that package>` runs from `web/` before the first commit: that commit holds the item's files
+    exactly as `add` wrote them, and `web/package.json` and the lockfile without the package; the next commit
+    switches the icons to lucide (DEC-116 (1), (3); the owner's answer of 2026-10-24 in the pull request that
+    applied DEC-116).
+  - `date-fns`, `react-resizable-panels`, `@dnd-kit/core`, `@dnd-kit/modifiers`, `@dnd-kit/sortable` and
+    `@dnd-kit/utilities` are approved by name (DEC-116 (6)) and installed only when a screen uses an item that needs
+    them. `date-fns` serves only the calendar and the date pickers (choosing, reading and showing the date in the
+    picker, with the locale `vi` of `date-fns/locale`); a date shown anywhere else stays `Intl.DateTimeFormat` in
+    Asia/Ho_Chi_Minh, and the time zones of date-fns are not used.
+- The rest (theming in `web/src/app/globals.css` and `web/components.json`, `lucide-react` icons, next-intl for
+  every text) is in `web/CLAUDE.md`.
 
 ## Source
 
@@ -49,16 +81,20 @@ Modified for ZenGear (2026-10-21):
 - removed the dynamic context injection (an exclamation mark before a code span, which ran `shadcn info` through
   npx each time the skill loaded), replaced by the plain instruction under *Project Context*;
 - added the two sections above; every `npx shadcn@latest` became `npm exec --no -- shadcn`;
-- `SKILL.md`: removed presets and `apply`, community and GitHub registries, design systems, chat components, the
-  base-ui variants, the smart merge of local changes and editing component source; the workflow checks packages
-  before `add`; added the notes on packages under *Component Selection*;
+- `SKILL.md`: removed presets and `apply`, community and GitHub registries, design systems, chat components and the
+  base-ui variants; the workflow checks packages before `add`; added the notes on packages under *Component
+  Selection*;
 - `cli.md`: removed `apply`, `build`, templates, monorepo, presets beyond the one-time `init` of web-shell, the
-  `init` flags that overwrite or scaffold, and the `add` rows `--overwrite`, `--all`, `--path`;
-- `customization.md`: removed presets and `apply`, the Tailwind v3 registration, the radius link to the design
-  system and adding a variant to component source; added the note on dark mode;
+  `init` flags that overwrite or scaffold, and the `add` rows `--all`, `--path`;
+- `customization.md`: removed presets and `apply`, the Tailwind v3 registration and the radius link to the design
+  system; added the note on dark mode;
 - links to files not copied removed;
 - after web-shell: the `init` section of `cli.md` says what web-shell did instead, and the package check before
-  `add` gives what `view` and `add --dry-run` print.
+  `add` gives what `view` and `add --dry-run` print;
+- DEC-116 (2026-10-24): the project rules rewritten; restored from the source commit the merge of local changes
+  (*Updating Components*, adapted to the update pull request of DEC-116 (4)), editing component source, adding a
+  variant to component source, the *Review added components* step, the `--overwrite` row of `cli.md` and the
+  update preview of `customization.md`.
 
 ---
 
@@ -183,8 +219,7 @@ These are the most common patterns that differentiate correct shadcn/ui code. Fo
 | Menus                      | `DropdownMenu`, `ContextMenu`, `Menubar`                                                            |
 | Tooltips/info              | `Tooltip`, `HoverCard`, `Popover`                                                                   |
 
-Before adding a component, check its packages as the project rules say: `Calendar`, for example, needs a date
-library that DEC-104 (1) rules out, so it needs a Decision of its own.
+Before adding a component, check its packages as the project rules say.
 
 ## Key Fields
 
@@ -219,18 +254,27 @@ npm exec --no -- shadcn docs button dialog select
 1. **Get project context** — run `npm exec --no -- shadcn info` from `web/`.
 2. **Check installed components first** — before running `add`, always check the `components` list from project context or list the `resolvedPaths.ui` directory. Don't import components that haven't been added, and don't re-add ones already installed.
 3. **Find components** — `npm exec --no -- shadcn search @shadcn -q "<query>"`.
-4. **Get docs and examples** — run `npm exec --no -- shadcn docs <component>` to get URLs, then fetch them. Use `npm exec --no -- shadcn view @shadcn/<item>` to browse registry items you haven't installed.
+4. **Get docs and examples** — run `npm exec --no -- shadcn docs <component>` to get URLs, then fetch them. Use `npm exec --no -- shadcn view @shadcn/<item>` to browse registry items you haven't installed. To preview changes to installed components, use `npm exec --no -- shadcn add --diff`.
 5. **Check packages first** — read the item's `dependencies` and `registryDependencies` with `npm exec --no -- shadcn view @shadcn/<item>` (or `add <item> --dry-run`, as the project rules say); compare them with `web/approved-packages.json` and follow the project rules above before anything is added.
-6. **Install** — `npm exec --no -- shadcn add <item>`, then `python tools/shadcn_lock.py write` from the repository root. Updating an installed component is not part of a feature (project rules above).
-7. **Review added components** — After adding a component, **always read the added files** and check again the packages it installed against `web/approved-packages.json`. Never edit the added files: a problem in them goes in the report, and composition, imports and icons are fixed in your own code that uses them, following the [Critical Rules](#critical-rules).
+6. **Install or update** — `npm exec --no -- shadcn add <item>`; check again the packages it installed against `web/approved-packages.json` (project rules above), then commit what it wrote, `web/src/app/globals.css` included when it reports CSS variables, before editing any of it (`/implement-feature`, step 7, says how). Updating an installed component is a pull request of its own: use `--dry-run` and `--diff` to preview changes first (see [Updating Components](#updating-components) below).
+7. **Review added components** — After adding a component or block, **always read the added files and verify they are correct**. Check for missing sub-components (e.g. `SelectItem` without `SelectGroup`), missing imports, incorrect composition, or violations of the [Critical Rules](#critical-rules). Also replace any icon imports with the project's `iconLibrary` from the project context (`lucide`: if a block uses `@tabler/icons-react`, swap the imports and icon names for `lucide-react` ones), and move every text a user or a screen reader reads to the message files (project rules above). Fix all issues, in commits after the one of the `add`, before moving on.
 8. **Registry is the official one** — When the user asks for a block or component that `@shadcn` does not have, say so; do not pick another registry.
 
-## Checking Upstream Changes
+## Updating Components
 
-To see how an installed component differs from the registry without changing anything, use
-`npm exec --no -- shadcn add <component> --dry-run` and `--diff <file>`. The update itself is a `chore` pull
-request of its own, never part of a feature. **NEVER fetch a component's source from GitHub manually to compare
-or install it — always use the CLI.** The documentation and example URLs that `docs` prints may be fetched to read.
+When a component needs a fix or a feature of the registry while keeping its local changes (its own `chore(web)`
+pull request, project rules above), use `--dry-run` and `--diff` to merge them. **NEVER fetch raw files from GitHub
+manually — always use the CLI.** The documentation and example URLs that `docs` prints may be fetched to read.
+
+1. Run `npm exec --no -- shadcn add <component> --dry-run` to see all files that would be affected.
+2. For each file, find its local changes: `git log --diff-filter=A --format=%H -- <file>` gives the commit of its
+   `add`, and `git diff <that commit> HEAD -- <file>` shows what changed since.
+3. For each file, run `npm exec --no -- shadcn add <component> --diff <file>` to see what changed upstream vs local.
+4. Decide based on the diffs:
+   - None of the files that step 1 lists (registry dependencies included) has local changes →
+     `npm exec --no -- shadcn add <component> --overwrite`, which overwrites every one of them.
+   - A file has local changes → read the local file, analyze the diff, and apply the upstream updates by hand while
+     preserving the local modifications; never `--overwrite` then.
 
 ## Quick Reference
 
@@ -240,7 +284,7 @@ Run from `web/`:
 # Add components.
 npm exec --no -- shadcn add button card dialog
 
-# Preview changes before adding.
+# Preview changes before adding/updating.
 npm exec --no -- shadcn add button --dry-run
 npm exec --no -- shadcn add button --diff button.tsx
 
@@ -262,4 +306,4 @@ npm exec --no -- shadcn view @shadcn/button
 - [rules/icons.md](./rules/icons.md) — data-icon, icon sizing, passing icons as objects
 - [rules/styling.md](./rules/styling.md) — Semantic colors, variants, className, spacing, size, truncate, dark mode, cn(), z-index
 - [cli.md](./cli.md) — Commands and flags
-- [customization.md](./customization.md) — Theming, CSS variables, wrapper components
+- [customization.md](./customization.md) — Theming, CSS variables, extending components

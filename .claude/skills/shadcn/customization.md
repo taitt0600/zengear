@@ -2,7 +2,8 @@
 
 Copied from shadcn-ui/ui at commit `ba1503c64472b82256d9de95e2e62c5901a38e8b` (MIT, see `LICENSE.md`) and modified
 for ZenGear: the project rules at the top of `SKILL.md` win over this file. Theming happens only in
-`web/src/app/globals.css` and `web/components.json`; component source is never edited.
+`web/src/app/globals.css` and `web/components.json`; component source keeps the classes that set its look, except
+to fix accessibility (DEC-116 (1)).
 
 Components reference semantic CSS variable tokens. Change the variables to change every component.
 
@@ -129,10 +130,19 @@ Prefer these approaches in order:
 <Card className="mx-auto max-w-md">...</Card>
 ```
 
-### 3. Wrapper components
+### 3. Add a new variant
 
-A new variant or behaviour is never added to the component source in `web/src/components/ui/`. Compose shadcn/ui
-primitives into a higher-level component in `web/src/components/app/` or `web/src/features/<area>/`:
+Edit the component source to add a variant via `cva`, with the tokens of the theme (DEC-116 (1)):
+
+```tsx
+// components/ui/button.tsx
+warning: "bg-warning text-warning-foreground hover:bg-warning/90",
+```
+
+### 4. Wrapper components
+
+Compose shadcn/ui primitives into higher-level components, in `web/src/components/app/` or
+`web/src/features/<area>/`:
 
 ```tsx
 export function ConfirmDialog({ title, description, onConfirm, children }) {
@@ -158,11 +168,16 @@ export function ConfirmDialog({ title, description, onConfirm, children }) {
 
 ## Checking for Updates
 
-To preview exactly what would change, without changing anything, use `--dry-run` and `--diff`:
+```bash
+npm exec --no -- shadcn add button --diff
+```
+
+To preview exactly what would change before updating, use `--dry-run` and `--diff`:
 
 ```bash
 npm exec --no -- shadcn add button --dry-run        # see all affected files
 npm exec --no -- shadcn add button --diff button.tsx # see the diff for a specific file
 ```
 
-The update itself is a `chore` pull request of its own (see `SKILL.md`, *Checking Upstream Changes*).
+See [Updating Components in SKILL.md](./SKILL.md#updating-components) for the full smart merge workflow; the update
+is a `chore(web)` pull request of its own.
