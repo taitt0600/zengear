@@ -88,7 +88,8 @@ Each area of `ZenGear.Services` has a `README.md`: its purpose, its modules, its
 ```
 ZenGear.Api/
 ├─ Controllers/<Area>/   one controller per service, named after it, in the area of that service
-├─ ExceptionHandling/    IExceptionHandler implementations and the Problem Details they write
+├─ ExceptionHandling/    IExceptionHandler implementations, the Problem Details they write and their texts
+├─ Resources/            flat: the .resx texts of the problems, one file per supported language (DEC-117)
 ├─ Middlewares/          request pipeline middleware
 ├─ Extensions/           *Setup classes called by Program.cs, extension methods (also for functions on HTTP types)
 ├─ Attributes/           authorization and endpoint attributes

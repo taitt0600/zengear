@@ -40,6 +40,7 @@ if (!BuildTimeDocumentGeneration.IsActive)
     builder.Services.AddHostedService<PermissionSyncJob>();
     builder.Services.AddHostedService<AccessBumpRetryJob>();
 }
+builder.Services.AddZenGearLocalization();
 builder.Services.AddZenGearProblemDetails();
 builder.Services.AddFirebaseJwtBearer(builder.Environment);
 builder.Services.AddZenGearCors();
@@ -62,6 +63,7 @@ if (BootstrapAdminCommand.IsRequested(args))
     return await BootstrapAdminCommand.RunAsync(app.Services, args, Console.Out, CancellationToken.None);
 }
 
+app.UseZenGearLocalization();
 app.UseExceptionHandler();
 app.UseStatusCodePages();
 app.UseSerilogRequestLogging();
