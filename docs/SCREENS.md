@@ -88,7 +88,7 @@ Every admin screen except the sign-in page sits in this layout.
   name until gap 6 is closed.
 - **Not found**: an `/admin` URL that matches no screen shows "Không tìm thấy trang này." inside the layout, with the
   link "Về trang chính" (`/admin`, the landing page); signed out, it goes to SCR-AUT-01 like any admin route.
-- **Toasts** ("Đã lưu." and the problems no field shows) sit in a region named "Thông báo".
+- **Toasts** ("Đã lưu." and the problems that *Errors* above sends to a toast) sit in a region named "Thông báo".
 
 ## SCR-AUT-01 Staff sign-in
 
