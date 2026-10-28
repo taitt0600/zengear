@@ -56,14 +56,15 @@ test('a new staff member changes the password first, then sees no entry without 
   await submit.click()
   await expect(page.getByText('Mật khẩu nhập lại không khớp.')).toBeVisible()
 
-  const refused = `Mat-khau-ZenGear-${Date.now()}`
-  await newPassword.fill(refused)
-  await confirmation.fill(refused)
+  // A common password of the API's list (R-USR-11): the field shows the API's text (DEC-117 (4)).
+  const common = 'matkhaumoi1234'
+  await newPassword.fill(common)
+  await confirmation.fill(common)
   await submit.click()
   await expect(
-    page.getByText('Không dùng được mật khẩu này. Vui lòng chọn mật khẩu khác.'),
+    page.getByText('Mật khẩu này quá phổ biến. Vui lòng chọn mật khẩu khác.'),
   ).toBeVisible()
-  await expect(newPassword).toHaveValue(refused)
+  await expect(newPassword).toHaveValue(common)
   await page.screenshot({ path: test.info().outputPath('change-password.png'), fullPage: true })
 
   // The API changes it and revokes every session (DEC-094): the user signs in again.

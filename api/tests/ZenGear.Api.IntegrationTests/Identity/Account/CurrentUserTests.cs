@@ -107,7 +107,7 @@ public class CurrentUserTests : IntegrationTestBase
 
         var response = await RenameAsync("uid-staff-2", new { name = "Second" }, etag);
 
-        response.StatusCode.ShouldBe(HttpStatusCode.PreconditionFailed);
+        await response.ShouldBeProblemAsync(HttpStatusCode.PreconditionFailed, "/problems/precondition-failed", ruleId: null);
         (await UserRowAsync(staffId)).Name.ShouldBe("First");
     }
 
@@ -132,7 +132,7 @@ public class CurrentUserTests : IntegrationTestBase
 
         var response = await RenameAsync("uid-staff-2", new { name = "Trần Thị Bình" }, ifMatch);
 
-        response.StatusCode.ShouldBe(HttpStatusCode.PreconditionFailed);
+        await response.ShouldBeProblemAsync(HttpStatusCode.PreconditionFailed, "/problems/precondition-failed", ruleId: null);
         (await UserRowAsync(staffId)).Name.ShouldBe("Nguyễn Văn A");
     }
 
@@ -155,8 +155,20 @@ public class CurrentUserTests : IntegrationTestBase
 
         var response = await RenameAsync("uid-staff-2", new { name }, await ETagAsync("uid-staff-2"));
 
-        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
-        (await JsonAsync(response)).GetProperty("errors").TryGetProperty("name", out _).ShouldBeTrue();
+        await response.ShouldBeProblemAsync(HttpStatusCode.BadRequest, ProblemAssertions.ValidationType, ruleId: null,
+            ExpectedError.At("#/name", "NAME_REQUIRED"));
+    }
+
+    [Test]
+    public async Task R_USR_04_name_over_100_characters_is_400_with_the_limit_in_the_text()
+    {
+        await TestUsers.InsertAsync("uid-staff-2");
+
+        var response = await RenameAsync("uid-staff-2", new { name = new string('a', 101) }, await ETagAsync("uid-staff-2"));
+
+        var problem = await response.ShouldBeProblemAsync(HttpStatusCode.BadRequest, ProblemAssertions.ValidationType, ruleId: null,
+            ExpectedError.At("#/name", "NAME_TOO_LONG"));
+        problem.ErrorDetail(ExpectedError.At("#/name", "NAME_TOO_LONG")).ShouldBe("Tên tối đa 100 ký tự.");
     }
 
     [Test]
@@ -284,18 +296,19 @@ public class CurrentUserTests : IntegrationTestBase
 
     // ---- R-USR-11: the policy, checked before Firebase ----
 
-    [TestCase("elevenchars")]
-    [TestCase("")]
-    [TestCase(FakeAuthProvider.DefaultPassword)]
-    [TestCase("PASSWORD1234")]
-    [TestCase("MyZenGearShop!2026")]
-    public async Task R_USR_11_weak_password_is_400_and_changes_nothing(string password)
+    [TestCase("elevenchars", "PASSWORD_LENGTH_OUT_OF_RANGE")]
+    [TestCase("", "PASSWORD_LENGTH_OUT_OF_RANGE")]
+    [TestCase(FakeAuthProvider.DefaultPassword, "PASSWORD_IS_DEFAULT")]
+    [TestCase("PASSWORD1234", "PASSWORD_TOO_COMMON")]
+    [TestCase("MyZenGearShop!2026", "PASSWORD_CONTAINS_ZENGEAR")]
+    public async Task R_USR_11_weak_password_is_400_and_changes_nothing(string password, string code)
     {
         var response = await ChangePasswordAsync(Token(StaffUid), password);
 
-        await response.ShouldBeProblemAsync(HttpStatusCode.BadRequest, "https://tools.ietf.org/html/rfc9110#section-15.5.1", "R-USR-11");
+        var problem = await response.ShouldBeProblemAsync(HttpStatusCode.BadRequest, ProblemAssertions.ValidationType, "R-USR-11",
+            ExpectedError.At("#/newPassword", code));
+        problem.GetProperty("errors").GetArrayLength().ShouldBe(1);
         var text = await response.Content.ReadAsStringAsync();
-        JsonDocument.Parse(text).RootElement.GetProperty("errors").GetProperty("newPassword").GetArrayLength().ShouldBeGreaterThan(0);
         if (password.Length > 0)
         {
             text.ShouldNotContain(password);
@@ -305,11 +318,22 @@ public class CurrentUserTests : IntegrationTestBase
     }
 
     [Test]
+    public async Task R_USR_11_a_short_password_gets_the_limits_in_the_text()
+    {
+        var problem = await (await ChangePasswordAsync(Token(StaffUid), "elevenchars")).ShouldBeProblemAsync(HttpStatusCode.BadRequest,
+            ProblemAssertions.ValidationType, "R-USR-11", ExpectedError.At("#/newPassword", "PASSWORD_LENGTH_OUT_OF_RANGE"));
+
+        problem.ErrorDetail(ExpectedError.At("#/newPassword", "PASSWORD_LENGTH_OUT_OF_RANGE"))
+            .ShouldBe("Mật khẩu mới dài từ 12 đến 128 ký tự.");
+    }
+
+    [Test]
     public async Task R_USR_11_a_missing_new_password_is_400_with_the_rule()
     {
         var response = await SendAsync(HttpMethod.Post, ChangePasswordPath, Token(StaffUid), new { });
 
-        await response.ShouldBeProblemAsync(HttpStatusCode.BadRequest, "https://tools.ietf.org/html/rfc9110#section-15.5.1", "R-USR-11");
+        await response.ShouldBeProblemAsync(HttpStatusCode.BadRequest, ProblemAssertions.ValidationType, "R-USR-11",
+            ExpectedError.At("#/newPassword", "PASSWORD_REQUIRED"));
         await ShouldHaveChangedNothingAsync();
     }
 

@@ -54,7 +54,27 @@
             "content": {
               "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ValidationProblem"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "errors": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "code": {
+                                "$ref": "#/components/schemas/BusinessLocationsListErrorCode"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
                 }
               }
             }
@@ -215,7 +235,27 @@
             "content": {
               "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ValidationProblem"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "errors": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "code": {
+                                "$ref": "#/components/schemas/BusinessLocationsUpdateErrorCode"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
                 }
               }
             }
@@ -322,7 +362,27 @@
             "content": {
               "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ValidationProblem"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "errors": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "code": {
+                                "$ref": "#/components/schemas/BusinessLocationShopListErrorCode"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
                 }
               }
             }
@@ -433,7 +493,27 @@
             "content": {
               "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ValidationProblem"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "errors": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "code": {
+                                "$ref": "#/components/schemas/MeUpdateErrorCode"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
                 }
               }
             }
@@ -515,7 +595,27 @@
             "content": {
               "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ValidationProblem"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "errors": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "code": {
+                                "$ref": "#/components/schemas/MeChangePasswordErrorCode"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
                 }
               }
             }
@@ -594,7 +694,27 @@
             "content": {
               "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ValidationProblem"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "errors": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "code": {
+                                "$ref": "#/components/schemas/StaffCreateErrorCode"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
                 }
               }
             }
@@ -624,7 +744,27 @@
             "content": {
               "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ValidationProblem"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "errors": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "code": {
+                                "$ref": "#/components/schemas/StaffCreateConflictCode"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
                 }
               }
             }
@@ -718,7 +858,27 @@
             "content": {
               "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ValidationProblem"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "errors": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "code": {
+                                "$ref": "#/components/schemas/StaffListErrorCode"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
                 }
               }
             }
@@ -878,7 +1038,27 @@
             "content": {
               "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ValidationProblem"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "errors": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "code": {
+                                "$ref": "#/components/schemas/StaffStatusDisableErrorCode"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
                 }
               }
             }
@@ -918,7 +1098,27 @@
             "content": {
               "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ValidationProblem"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "errors": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "code": {
+                                "$ref": "#/components/schemas/StaffStatusDisableConflictCode"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
                 }
               }
             }
@@ -1065,7 +1265,27 @@
             "content": {
               "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ValidationProblem"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "errors": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "code": {
+                                "$ref": "#/components/schemas/BrandListErrorCode"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
                 }
               }
             }
@@ -1140,7 +1360,27 @@
             "content": {
               "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ValidationProblem"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "errors": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "code": {
+                                "$ref": "#/components/schemas/BrandCreateErrorCode"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
                 }
               }
             }
@@ -1170,7 +1410,27 @@
             "content": {
               "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ValidationProblem"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "errors": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "code": {
+                                "$ref": "#/components/schemas/BrandCreateConflictCode"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
                 }
               }
             }
@@ -1311,7 +1571,27 @@
             "content": {
               "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ValidationProblem"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "errors": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "code": {
+                                "$ref": "#/components/schemas/BrandUpdateErrorCode"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
                 }
               }
             }
@@ -1351,7 +1631,27 @@
             "content": {
               "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ValidationProblem"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "errors": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "code": {
+                                "$ref": "#/components/schemas/BrandUpdateConflictCode"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
                 }
               }
             }
@@ -1447,7 +1747,27 @@
             "content": {
               "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ValidationProblem"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "errors": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "code": {
+                                "$ref": "#/components/schemas/ProductSeriesListErrorCode"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
                 }
               }
             }
@@ -1522,7 +1842,27 @@
             "content": {
               "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ValidationProblem"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "errors": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "code": {
+                                "$ref": "#/components/schemas/ProductSeriesCreateErrorCode"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
                 }
               }
             }
@@ -1552,7 +1892,27 @@
             "content": {
               "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ValidationProblem"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "errors": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "code": {
+                                "$ref": "#/components/schemas/ProductSeriesCreateConflictCode"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
                 }
               }
             }
@@ -1693,7 +2053,27 @@
             "content": {
               "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ValidationProblem"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "errors": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "code": {
+                                "$ref": "#/components/schemas/ProductSeriesUpdateErrorCode"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
                 }
               }
             }
@@ -1733,7 +2113,27 @@
             "content": {
               "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ValidationProblem"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "errors": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "code": {
+                                "$ref": "#/components/schemas/ProductSeriesUpdateConflictCode"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
                 }
               }
             }
@@ -1764,6 +2164,24 @@
   },
   "components": {
     "schemas": {
+      "BrandCreateConflictCode": {
+        "enum": [
+          "BRAND_ALREADY_EXISTS"
+        ],
+        "type": "string"
+      },
+      "BrandCreateErrorCode": {
+        "enum": [
+          "BODY_INVALID",
+          "BODY_REQUIRED",
+          "NAME_REQUIRED",
+          "NAME_TOO_LONG",
+          "NAME_WITHOUT_LETTER_OR_DIGIT",
+          "VALUE_INVALID",
+          "VALUE_REQUIRED"
+        ],
+        "type": "string"
+      },
       "BrandCreateRequest": {
         "required": [
           "name"
@@ -1771,7 +2189,10 @@
         "type": "object",
         "properties": {
           "name": {
-            "type": "string"
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -1799,6 +2220,36 @@
           }
         }
       },
+      "BrandListErrorCode": {
+        "enum": [
+          "BODY_INVALID",
+          "BODY_REQUIRED",
+          "PAGE_OUT_OF_RANGE",
+          "PAGE_SIZE_OUT_OF_RANGE",
+          "VALUE_INVALID",
+          "VALUE_REQUIRED"
+        ],
+        "type": "string"
+      },
+      "BrandUpdateConflictCode": {
+        "enum": [
+          "BRAND_ALREADY_EXISTS"
+        ],
+        "type": "string"
+      },
+      "BrandUpdateErrorCode": {
+        "enum": [
+          "BODY_INVALID",
+          "BODY_REQUIRED",
+          "IS_ACTIVE_REQUIRED",
+          "NAME_REQUIRED",
+          "NAME_TOO_LONG",
+          "NAME_WITHOUT_LETTER_OR_DIGIT",
+          "VALUE_INVALID",
+          "VALUE_REQUIRED"
+        ],
+        "type": "string"
+      },
       "BrandUpdateRequest": {
         "required": [
           "name",
@@ -1807,7 +2258,10 @@
         "type": "object",
         "properties": {
           "name": {
-            "type": "string"
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "isActive": {
             "type": [
@@ -1952,6 +2406,66 @@
             }
           }
         }
+      },
+      "BusinessLocationShopListErrorCode": {
+        "enum": [
+          "BODY_INVALID",
+          "BODY_REQUIRED",
+          "PAGE_OUT_OF_RANGE",
+          "PAGE_SIZE_OUT_OF_RANGE",
+          "VALUE_INVALID",
+          "VALUE_REQUIRED"
+        ],
+        "type": "string"
+      },
+      "BusinessLocationsListErrorCode": {
+        "enum": [
+          "BODY_INVALID",
+          "BODY_REQUIRED",
+          "PAGE_OUT_OF_RANGE",
+          "PAGE_SIZE_OUT_OF_RANGE",
+          "VALUE_INVALID",
+          "VALUE_REQUIRED"
+        ],
+        "type": "string"
+      },
+      "BusinessLocationsUpdateErrorCode": {
+        "enum": [
+          "ADDRESS_DETAIL_REQUIRED",
+          "ADDRESS_DETAIL_TOO_LONG",
+          "BODY_INVALID",
+          "BODY_REQUIRED",
+          "CLOSED_REQUIRED",
+          "CLOSE_TIME_INVALID",
+          "DATE_REQUIRED",
+          "DAY_OUT_OF_RANGE",
+          "DAY_REQUIRED",
+          "EMAIL_INVALID",
+          "EMAIL_TOO_LONG",
+          "NAME_REQUIRED",
+          "NAME_TOO_LONG",
+          "OPEN_TIME_INVALID",
+          "PERIODS_OVERLAP",
+          "PERIODS_PER_DAY_TOO_MANY",
+          "PERIOD_OPENS_AFTER_CLOSING",
+          "PERIOD_REQUIRED",
+          "PHONE_INVALID",
+          "PHONE_REQUIRED",
+          "PROVINCE_ID_INVALID",
+          "PROVINCE_ID_REQUIRED",
+          "PROVINCE_NOT_IN_USE",
+          "REGULAR_HOURS_EMPTY",
+          "REGULAR_HOURS_REQUIRED",
+          "SPECIAL_HOURS_CLOSED_DATE_WITH_HOURS",
+          "SPECIAL_HOURS_TOO_MANY",
+          "VALUE_INVALID",
+          "VALUE_REQUIRED",
+          "WARD_ID_INVALID",
+          "WARD_ID_REQUIRED",
+          "WARD_NOT_IN_PROVINCE",
+          "WARD_NOT_IN_USE"
+        ],
+        "type": "string"
       },
       "BusinessLocationUpdateRequest": {
         "required": [
@@ -2112,6 +2626,31 @@
             }
           }
         }
+      },
+      "MeChangePasswordErrorCode": {
+        "enum": [
+          "BODY_INVALID",
+          "BODY_REQUIRED",
+          "PASSWORD_CONTAINS_ZENGEAR",
+          "PASSWORD_IS_DEFAULT",
+          "PASSWORD_LENGTH_OUT_OF_RANGE",
+          "PASSWORD_REQUIRED",
+          "PASSWORD_TOO_COMMON",
+          "VALUE_INVALID",
+          "VALUE_REQUIRED"
+        ],
+        "type": "string"
+      },
+      "MeUpdateErrorCode": {
+        "enum": [
+          "BODY_INVALID",
+          "BODY_REQUIRED",
+          "NAME_REQUIRED",
+          "NAME_TOO_LONG",
+          "VALUE_INVALID",
+          "VALUE_REQUIRED"
+        ],
+        "type": "string"
       },
       "OpeningPeriodDto": {
         "required": [
@@ -2382,6 +2921,48 @@
           }
         }
       },
+      "ProblemError": {
+        "required": [
+          "code",
+          "detail"
+        ],
+        "type": "object",
+        "properties": {
+          "pointer": {
+            "type": "string"
+          },
+          "parameter": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "detail": {
+            "type": "string"
+          }
+        }
+      },
+      "ProductSeriesCreateConflictCode": {
+        "enum": [
+          "BRAND_RETIRED",
+          "PRODUCT_SERIES_ALREADY_EXISTS"
+        ],
+        "type": "string"
+      },
+      "ProductSeriesCreateErrorCode": {
+        "enum": [
+          "BODY_INVALID",
+          "BODY_REQUIRED",
+          "BRAND_ID_REQUIRED",
+          "BRAND_NOT_FOUND",
+          "NAME_REQUIRED",
+          "NAME_TOO_LONG",
+          "NAME_WITHOUT_LETTER_OR_DIGIT",
+          "VALUE_INVALID",
+          "VALUE_REQUIRED"
+        ],
+        "type": "string"
+      },
       "ProductSeriesCreateRequest": {
         "required": [
           "name",
@@ -2390,7 +2971,10 @@
         "type": "object",
         "properties": {
           "name": {
-            "type": "string"
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "brandId": {
             "type": [
@@ -2430,6 +3014,39 @@
           }
         }
       },
+      "ProductSeriesListErrorCode": {
+        "enum": [
+          "BODY_INVALID",
+          "BODY_REQUIRED",
+          "PAGE_OUT_OF_RANGE",
+          "PAGE_SIZE_OUT_OF_RANGE",
+          "VALUE_INVALID",
+          "VALUE_REQUIRED"
+        ],
+        "type": "string"
+      },
+      "ProductSeriesUpdateConflictCode": {
+        "enum": [
+          "BRAND_RETIRED",
+          "PRODUCT_SERIES_ALREADY_EXISTS"
+        ],
+        "type": "string"
+      },
+      "ProductSeriesUpdateErrorCode": {
+        "enum": [
+          "BODY_INVALID",
+          "BODY_REQUIRED",
+          "BRAND_ID_REQUIRED",
+          "BRAND_NOT_FOUND",
+          "IS_ACTIVE_REQUIRED",
+          "NAME_REQUIRED",
+          "NAME_TOO_LONG",
+          "NAME_WITHOUT_LETTER_OR_DIGIT",
+          "VALUE_INVALID",
+          "VALUE_REQUIRED"
+        ],
+        "type": "string"
+      },
       "ProductSeriesUpdateRequest": {
         "required": [
           "name",
@@ -2439,7 +3056,10 @@
         "type": "object",
         "properties": {
           "name": {
-            "type": "string"
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "brandId": {
             "type": [
@@ -2577,6 +3197,40 @@
           }
         }
       },
+      "StaffCreateConflictCode": {
+        "enum": [
+          "ADMIN_ROLE_NOT_ASSIGNABLE",
+          "AUTH_ACCOUNT_EXISTS",
+          "EMAIL_ALREADY_REGISTERED",
+          "EMPLOYEE_CODE_TAKEN",
+          "ROLE_NOT_FOR_STAFF",
+          "ROLE_REQUIRED"
+        ],
+        "type": "string"
+      },
+      "StaffCreateErrorCode": {
+        "enum": [
+          "BODY_INVALID",
+          "BODY_REQUIRED",
+          "EMAIL_INVALID",
+          "EMAIL_REQUIRED",
+          "EMAIL_TOO_LONG",
+          "EMPLOYEE_CODE_REQUIRED",
+          "EMPLOYEE_CODE_TOO_LONG",
+          "EMPLOYEE_CODE_UNTRIMMED",
+          "JOINED_DATE_REQUIRED",
+          "NAME_REQUIRED",
+          "NAME_TOO_LONG",
+          "ROLE_IDS_REQUIRED",
+          "ROLE_IDS_TOO_MANY",
+          "ROLE_ID_EMPTY",
+          "ROLE_NOT_FOUND",
+          "VALUE_INVALID",
+          "VALUE_REQUIRED",
+          "WORK_PHONE_INVALID"
+        ],
+        "type": "string"
+      },
       "StaffCreateRequest": {
         "required": [
           "email",
@@ -2589,13 +3243,22 @@
         "type": "object",
         "properties": {
           "email": {
-            "type": "string"
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "name": {
-            "type": "string"
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "employeeCode": {
-            "type": "string"
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "joinedDate": {
             "type": "string",
@@ -2608,7 +3271,10 @@
             ]
           },
           "roleIds": {
-            "type": "array",
+            "type": [
+              "null",
+              "array"
+            ],
             "items": {
               "type": "string",
               "format": "uuid"
@@ -2699,6 +3365,19 @@
           }
         }
       },
+      "StaffListErrorCode": {
+        "enum": [
+          "BODY_INVALID",
+          "BODY_REQUIRED",
+          "PAGE_OUT_OF_RANGE",
+          "PAGE_SIZE_OUT_OF_RANGE",
+          "SORT_INVALID",
+          "STATUS_INVALID",
+          "VALUE_INVALID",
+          "VALUE_REQUIRED"
+        ],
+        "type": "string"
+      },
       "StaffListItemDto": {
         "required": [
           "id",
@@ -2772,6 +3451,22 @@
           }
         }
       },
+      "StaffStatusDisableConflictCode": {
+        "enum": [
+          "LEFT_DATE_BEFORE_JOINED_DATE",
+          "LEFT_DATE_IN_FUTURE"
+        ],
+        "type": "string"
+      },
+      "StaffStatusDisableErrorCode": {
+        "enum": [
+          "BODY_INVALID",
+          "BODY_REQUIRED",
+          "VALUE_INVALID",
+          "VALUE_REQUIRED"
+        ],
+        "type": "string"
+      },
       "UserStatus": {
         "enum": [
           "ACTIVE",
@@ -2779,7 +3474,7 @@
           "ANONYMIZED"
         ]
       },
-      "ValidationProblemDetails": {
+      "ValidationProblem": {
         "type": "object",
         "properties": {
           "type": {
@@ -2816,12 +3511,9 @@
             ]
           },
           "errors": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProblemError"
             }
           },
           "ruleId": {

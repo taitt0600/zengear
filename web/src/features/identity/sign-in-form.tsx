@@ -20,6 +20,7 @@ import {
   InputGroupInput,
 } from '@/components/ui/input-group'
 import { Skeleton } from '@/components/ui/skeleton'
+import { ApiError, isNetworkError } from '@/lib/api/problems'
 import { hasSession, signInWithPassword, signOutAndClear } from '@/lib/auth/session'
 import { meQuery } from './me'
 import {
@@ -27,32 +28,35 @@ import {
   meOutcome,
   SIGN_OUT_REASONS,
   type MeOutcome,
-  type PasswordSignInError,
   type SignOutReason,
 } from './me-outcome'
+import { useProblemText } from './problem-toast'
 import { adminRoutes, PASSWORD_CHANGED, safeNext } from './routes'
+import { takeSignOutReason } from './sign-out-reason'
 
-/** The answers of SCR-AUT-01 (docs/SCREENS.md), as keys of `signIn.errors`. */
-export type SignInError = PasswordSignInError | 'accountNotRegistered' | 'notStaff'
-
-const REASON_ERRORS: Record<SignOutReason, SignInError> = {
+/** The reasons of a sign-out that the web words itself, as keys of `signIn.errors` (SCR-AUT-01). */
+const REASON_ERRORS = {
   'account-disabled': 'accountDisabled',
-  'account-not-registered': 'accountNotRegistered',
   'not-staff': 'notStaff',
-}
+} as const satisfies Record<SignOutReason, string>
 
-function reasonError(reason: string | null): SignInError | null {
-  const known = SIGN_OUT_REASONS.find((value) => value === reason)
-  return known ? REASON_ERRORS[known] : null
+function reasonOf(reason: string | null): SignOutReason | undefined {
+  return SIGN_OUT_REASONS.find((value) => value === reason)
 }
 
 /** SCR-AUT-01: staff sign in with their company email and password (UC-001, AUT-01). */
 export function SignInForm() {
   const t = useTranslations('signIn')
+  const tRoot = useTranslations()
+  const problemText = useProblemText()
   const router = useRouter()
   const params = useSearchParams()
   const queryClient = useQueryClient()
-  const [error, setError] = useState<SignInError | null>(() => reasonError(params.get('reason')))
+  // The text of the alert: the web's own or the API's (DEC-117 (4)).
+  const [error, setError] = useState<string | null>(() => {
+    const reason = reasonOf(params.get('reason'))
+    return reason ? t(`errors.${REASON_ERRORS[reason]}`) : null
+  })
   // Shown until the next sign-in attempt.
   const [passwordChanged, setPasswordChanged] = useState(
     () => params.get('reason') === PASSWORD_CHANGED,
@@ -83,10 +87,12 @@ export function SignInForm() {
   // Step 2 of SCR-AUT-01: GET /api/v1/admin/me decides where a signed-in user goes. Returns whether the page changes.
   async function continueSignedIn(): Promise<boolean> {
     let outcome: MeOutcome
+    let failure: unknown
     try {
       outcome = meOutcome({ me: await queryClient.query(meQuery) })
-    } catch (failure) {
-      outcome = meOutcome({ error: failure })
+    } catch (caught) {
+      failure = caught
+      outcome = meOutcome({ error: caught })
     }
     switch (outcome.kind) {
       case 'staff':
@@ -97,13 +103,20 @@ export function SignInForm() {
         return true
       case 'sign-out':
         await signOutAndClear(queryClient)
-        setError(REASON_ERRORS[outcome.reason])
+        setError(t(`errors.${REASON_ERRORS[outcome.reason]}`))
         return false
+      case 'account-refused':
       case 'sign-in-again':
       case 'error':
-        // Signed in to Firebase but refused or unreachable at the API: never leave a half signed-in session.
+        // Signed in to Firebase but refused or unreachable at the API: never leave a half signed-in session. The
+        // API's text when it answered (or the web's when it did not); a Firebase failure of the token says it in
+        // the sign-in's own words.
         await signOutAndClear(queryClient)
-        setError(outcome.kind === 'error' && outcome.network ? 'network' : 'generic')
+        setError(
+          failure instanceof ApiError || isNetworkError(failure)
+            ? problemText(failure)
+            : t('errors.generic'),
+        )
         return false
     }
   }
@@ -114,6 +127,9 @@ export function SignInForm() {
     hasSession()
       .then(async (signedIn) => {
         if (!active) return
+        // The reason of a sign-out the admin layout made for a problem of the API: its text, shown once.
+        const reason = takeSignOutReason()
+        if (reason) setError(reason)
         setLeaving(signedIn)
         setSessionRead(true)
         if (signedIn) {
@@ -126,7 +142,7 @@ export function SignInForm() {
         if (!active) return
         setLeaving(false)
         setSessionRead(true)
-        setError('generic')
+        setError(t('errors.generic'))
       })
     return () => {
       active = false
@@ -141,14 +157,14 @@ export function SignInForm() {
     try {
       await signInWithPassword(values.email, values.password)
     } catch (failure) {
-      setError(firebaseError(failure))
+      setError(tRoot(firebaseError(failure)))
       return
     }
     try {
       setLeaving(await continueSignedIn())
     } catch {
       // Only the sign-out after a refusal can fail here; the user can try again.
-      setError('generic')
+      setError(t('errors.generic'))
     }
   }
 
@@ -171,7 +187,7 @@ export function SignInForm() {
             )}
             {error && (
               <Alert variant="destructive">
-                <AlertDescription>{t(`errors.${error}`)}</AlertDescription>
+                <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
             <Controller

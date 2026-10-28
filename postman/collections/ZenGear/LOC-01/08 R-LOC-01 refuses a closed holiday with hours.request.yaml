@@ -1,7 +1,8 @@
 $kind: http-request
 description: |-
   R-LOC-01: a holiday entry replaces the weekly hours of its date, either closed or with its own hours, never both: a
-  closed date that also has hours is refused with 400 and ruleId R-LOC-01; 09 shows nothing changed.
+  closed date that also has hours is refused with 400, ruleId R-LOC-01 and the code
+  SPECIAL_HOURS_CLOSED_DATE_WITH_HOURS on the pointer #/specialHours; 09 shows nothing changed.
 method: PUT
 url: '{{baseUrl}}/api/v1/admin/business-locations/{{businessLocationId}}'
 order: 8000
@@ -32,7 +33,11 @@ scripts:
     language: text/javascript
     code: |-
       pm.test('status 400', () => pm.response.to.have.status(400));
-      pm.test('problem type 400', () =>
-        pm.expect(pm.response.json().type).to.eql('https://tools.ietf.org/html/rfc9110#section-15.5.1'));
-      pm.test('ruleId R-LOC-01', () => pm.expect(pm.response.json().ruleId).to.eql('R-LOC-01'));
-      pm.test('error on specialHours', () => pm.expect(pm.response.json().errors).to.have.property('specialHours'));
+      const problem = pm.response.json();
+      pm.test('problem type /problems/validation', () => pm.expect(problem.type).to.eql('/problems/validation'));
+      pm.test('ruleId R-LOC-01', () => pm.expect(problem.ruleId).to.eql('R-LOC-01'));
+      pm.test('error SPECIAL_HOURS_CLOSED_DATE_WITH_HOURS on #/specialHours', () => {
+        pm.expect(problem.errors).to.be.an('array');
+        pm.expect(problem.errors.map((e) => `${e.pointer} ${e.code}`))
+          .to.include('#/specialHours SPECIAL_HOURS_CLOSED_DATE_WITH_HOURS');
+      });

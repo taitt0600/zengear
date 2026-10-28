@@ -1,22 +1,23 @@
-import { ApiError, problemName } from '@/lib/api/problems'
+import { ApiError, hasProblemType } from '@/lib/api/problems'
 import type { CurrentUser } from './me'
 import { adminRoutes } from './routes'
 
-/** Why a user is signed out; each reason has its text on the sign-in page (docs/SCREENS.md, SCR-AUT-01, SCR-ADM-01). */
-export type SignOutReason = 'account-disabled' | 'account-not-registered' | 'not-staff'
+/**
+ * Why a user is signed out when no problem of the API says it, each with its text on the sign-in page (docs/SCREENS.md,
+ * SCR-AUT-01, SCR-ADM-01): Firebase disabled the account, or GET /me answered 200 with isStaff false.
+ */
+export type SignOutReason = 'account-disabled' | 'not-staff'
 
-export const SIGN_OUT_REASONS: readonly SignOutReason[] = [
-  'account-disabled',
-  'account-not-registered',
-  'not-staff',
-]
+export const SIGN_OUT_REASONS: readonly SignOutReason[] = ['account-disabled', 'not-staff']
 
 export type MeOutcome =
   | { kind: 'staff'; landing: string }
   | { kind: 'change-password' }
   | { kind: 'sign-out'; reason: SignOutReason }
+  // 403 account-disabled or account-not-registered: signed out, with the API's detail on the sign-in page (DEC-117 (4)).
+  | { kind: 'account-refused'; error: ApiError }
   | { kind: 'sign-in-again' }
-  | { kind: 'error'; network: boolean }
+  | { kind: 'error' }
 
 /** The first page of a staff member: the staff list when they may open it, otherwise their account (SCR-AUT-01). */
 export function landingPath(permissions: readonly string[]): string {
@@ -31,7 +32,11 @@ export function firebaseCode(error: unknown): string | undefined {
 
 /** A failed Firebase sign-in with a password (SCR-AUT-01, and the sign-in again of DEC-094), as message keys. */
 export type PasswordSignInError =
-  'wrongCredentials' | 'tooManyAttempts' | 'accountDisabled' | 'network' | 'generic'
+  | 'signIn.errors.wrongCredentials'
+  | 'signIn.errors.tooManyAttempts'
+  | 'signIn.errors.accountDisabled'
+  | 'signIn.errors.generic'
+  | 'problems.network'
 
 // Never which of the two was wrong (SCR-AUT-01).
 const WRONG_CREDENTIALS = new Set([
@@ -45,12 +50,12 @@ const WRONG_CREDENTIALS = new Set([
 /** The answer of a failed Firebase sign-in with a password, from its error code. */
 export function firebaseError(error: unknown): PasswordSignInError {
   const code = firebaseCode(error) ?? ''
-  if (WRONG_CREDENTIALS.has(code)) return 'wrongCredentials'
-  if (code === 'auth/too-many-requests') return 'tooManyAttempts'
+  if (WRONG_CREDENTIALS.has(code)) return 'signIn.errors.wrongCredentials'
+  if (code === 'auth/too-many-requests') return 'signIn.errors.tooManyAttempts'
   // ZenGear never disables the Firebase account itself (R-SEC-04 revokes its sessions), but the console can.
-  if (code === 'auth/user-disabled') return 'accountDisabled'
-  if (code === 'auth/network-request-failed') return 'network'
-  return 'generic'
+  if (code === 'auth/user-disabled') return 'signIn.errors.accountDisabled'
+  if (code === 'auth/network-request-failed') return 'problems.network'
+  return 'signIn.errors.generic'
 }
 
 // The ID token cannot be refreshed: the session ended, revoked by a password change (DEC-094) or a disable (R-SEC-04).
@@ -59,11 +64,6 @@ const SESSION_ENDED = new Set([
   'auth/invalid-user-token',
   'auth/user-not-found',
 ])
-
-/** Whether an error means the API or Firebase could not be reached. */
-export function isNetworkError(error: unknown): boolean {
-  return error instanceof TypeError || firebaseCode(error) === 'auth/network-request-failed'
-}
 
 /**
  * What a signed-in user's API answer means for the session (docs/SCREENS.md, Conventions for every screen): the one
@@ -78,22 +78,20 @@ export function sessionOutcome(error: unknown): MeOutcome | undefined {
   if (!(error instanceof ApiError)) return undefined
   if (error.status === 401) return { kind: 'sign-in-again' }
   if (error.status !== 403) return undefined
-  switch (problemName(error.problem)) {
-    case 'account-disabled':
-      return { kind: 'sign-out', reason: 'account-disabled' }
-    case 'account-not-registered':
-      return { kind: 'sign-out', reason: 'account-not-registered' }
-    case 'password-change-required':
-      return { kind: 'change-password' }
-    default:
-      return undefined
+  if (
+    hasProblemType(error.problem, 'account-disabled') ||
+    hasProblemType(error.problem, 'account-not-registered')
+  ) {
+    return { kind: 'account-refused', error }
   }
+  if (hasProblemType(error.problem, 'password-change-required')) return { kind: 'change-password' }
+  return undefined
 }
 
 /** The outcome of GET /api/v1/admin/me for a user signed in to Firebase (SCR-AUT-01 step 2, SCR-ADM-01 guard). */
 export function meOutcome(result: { me: CurrentUser } | { error: unknown }): MeOutcome {
   if ('error' in result) {
-    return sessionOutcome(result.error) ?? { kind: 'error', network: isNetworkError(result.error) }
+    return sessionOutcome(result.error) ?? { kind: 'error' }
   }
   const { me } = result
   if (!me.isStaff) return { kind: 'sign-out', reason: 'not-staff' }

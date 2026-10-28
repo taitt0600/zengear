@@ -73,11 +73,30 @@ public class CurrentUserPasswordChangeRequestValidatorTests
         var result = Validator().Validate(new CurrentUserPasswordChangeRequest(password));
 
         result.Errors.ShouldNotBeEmpty();
-        result.Errors.ShouldAllBe(e => e.ErrorCode == "R-USR-11" && e.PropertyName == nameof(CurrentUserPasswordChangeRequest.NewPassword));
+        result.Errors.ShouldAllBe(e => Equals(e.CustomState, CurrentUserPasswordChangeRequestValidator.RuleId)
+            && e.PropertyName == nameof(CurrentUserPasswordChangeRequest.NewPassword));
         if (!string.IsNullOrEmpty(password))
         {
             result.Errors.ShouldAllBe(e => !e.ErrorMessage.Contains(password));
         }
+    }
+
+    [TestCase(null, CurrentUserPasswordChangeRequestValidator.PasswordRequired)]
+    [TestCase("short-pass1", CurrentUserPasswordChangeRequestValidator.PasswordLengthOutOfRange)]
+    [TestCase(DefaultPassword, CurrentUserPasswordChangeRequestValidator.PasswordIsDefault)]
+    [TestCase("password1234", CurrentUserPasswordChangeRequestValidator.PasswordTooCommon)]
+    [TestCase("MyZenGearShop!2026", CurrentUserPasswordChangeRequestValidator.PasswordContainsZenGear)]
+    public void R_USR_11_each_check_has_its_own_code(string? password, string code) =>
+        Validator().Validate(new CurrentUserPasswordChangeRequest(password)).Errors
+            .ShouldHaveSingleItem().ErrorCode.ShouldBe(code);
+
+    [Test]
+    public void R_USR_11_the_length_check_gives_its_limits_to_the_text()
+    {
+        var failure = Validator().Validate(new CurrentUserPasswordChangeRequest("short-pass1")).Errors.ShouldHaveSingleItem();
+
+        failure.FormattedMessagePlaceholderValues["MinLength"].ShouldBe(CurrentUserPasswordChangeRequestValidator.MinLength);
+        failure.FormattedMessagePlaceholderValues["MaxLength"].ShouldBe(CurrentUserPasswordChangeRequestValidator.MaxLength);
     }
 
     /// <summary>"tra-sua-tran-chau-" repeated and cut: on no blocklist.</summary>

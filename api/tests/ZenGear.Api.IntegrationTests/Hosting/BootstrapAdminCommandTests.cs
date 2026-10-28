@@ -4,6 +4,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.FileProviders;
 using Npgsql;
 using Shouldly;
+using ZenGear.Api.ExceptionHandling;
 using ZenGear.Api.Extensions;
 using ZenGear.Api.Hosting;
 using ZenGear.Api.IntegrationTests.Infrastructure;
@@ -52,7 +53,7 @@ public class BootstrapAdminCommandTests : IntegrationTestBase
         var (exitCode, output) = await RunAsync("bootstrap-admin", "--email", Email, "--name", "Owner");
 
         exitCode.ShouldBe(BootstrapAdminCommand.Refused);
-        output.ShouldContain("An Admin already exists");
+        output.ShouldContain("Đã có quản trị viên; không thay đổi gì. Quản trị viên tạo các tài khoản khác.");
         (await CountAsync("SELECT count(*) FROM users")).ShouldBe(1);
         Auth.Accounts.ShouldBeEmpty();
     }
@@ -84,15 +85,16 @@ public class BootstrapAdminCommandTests : IntegrationTestBase
         Auth.Accounts.ShouldBeEmpty();
     }
 
-    [TestCase("owner@localhost", "Owner")]
-    [TestCase(Email, "   ")]
-    public async Task An_invalid_email_or_name_is_a_usage_error_before_any_change(string email, string name)
+    [TestCase("owner@localhost", "Owner", "Email không hợp lệ.")]
+    [TestCase(Email, "   ", "Vui lòng nhập tên.")]
+    public async Task An_invalid_email_or_name_is_a_usage_error_before_any_change(string email, string name, string text)
     {
         await TestRoles.InsertAsync("Admin", isSystemRole: true);
 
-        var (exitCode, _) = await RunAsync("bootstrap-admin", "--email", email, "--name", name);
+        var (exitCode, output) = await RunAsync("bootstrap-admin", "--email", email, "--name", name);
 
         exitCode.ShouldBe(BootstrapAdminCommand.UsageError);
+        output.ShouldContain(text);
         Auth.Accounts.ShouldBeEmpty();
         (await CountAsync("SELECT count(*) FROM users")).ShouldBe(0);
     }
@@ -103,7 +105,7 @@ public class BootstrapAdminCommandTests : IntegrationTestBase
         var (exitCode, output) = await RunAsync("bootstrap-admin", "--email", Email, "--name", "Owner");
 
         exitCode.ShouldBe(BootstrapAdminCommand.Refused);
-        output.ShouldContain("seed");
+        output.ShouldContain("Chưa có vai trò Admin: hãy chạy api/db/zengear_08_roles.sql và api/seed trước.");
         Auth.Accounts.ShouldBeEmpty();
     }
 
@@ -131,9 +133,12 @@ public class BootstrapAdminCommandTests : IntegrationTestBase
                 ["Firebase:UseEmulator"] = "true",
             })
             .Build();
+        // The problem texts, as Program registers them: the command writes its refusals with them.
         var services = new ServiceCollection()
             .AddSingleton<IConfiguration>(configuration)
-            .AddLogging();
+            .AddLogging()
+            .AddZenGearLocalization()
+            .AddSingleton<ProblemTexts>();
         services.AddFirebaseJwtBearer(new ProductionEnvironment());
         await using var provider = services.BuildServiceProvider();
         await using var output = new StringWriter();

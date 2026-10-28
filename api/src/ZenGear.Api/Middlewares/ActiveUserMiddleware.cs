@@ -43,8 +43,7 @@ public sealed class ActiveUserMiddleware(RequestDelegate next)
         if (!access.IsActive)
         {
             securityLog.LoginRejected(access.Id, "ACCOUNT_DISABLED", ip, userAgent);
-            await ForbiddenProblem.WriteAsync(context, problemDetails, "account-disabled", "Account disabled",
-                "This account is not active.", "R-SEC-04");
+            await ForbiddenProblem.WriteAsync(context, problemDetails, "account-disabled", "R-SEC-04");
             return;
         }
 
@@ -65,8 +64,7 @@ public sealed class ActiveUserMiddleware(RequestDelegate next)
             && endpoint?.Metadata.GetMetadata<AllowWhilePasswordChangeRequiredAttribute>() is null
             && endpoint?.Metadata.GetMetadata<IAllowAnonymous>() is null)
         {
-            await ForbiddenProblem.WriteAsync(context, problemDetails, "password-change-required", "Password change required",
-                "Change your password before using other functions.", "R-USR-03");
+            await ForbiddenProblem.WriteAsync(context, problemDetails, "password-change-required", "R-USR-03");
             return;
         }
 

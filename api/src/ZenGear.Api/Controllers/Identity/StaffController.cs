@@ -2,6 +2,7 @@ using System.ComponentModel;
 using Microsoft.AspNetCore.Mvc;
 using ZenGear.Api.Attributes;
 using ZenGear.Api.Constants;
+using ZenGear.Api.ExceptionHandling;
 using ZenGear.Services.Common.Models;
 using ZenGear.Services.Identity.Permissions;
 using ZenGear.Services.Identity.StaffAccounts;
@@ -23,10 +24,16 @@ public sealed class StaffController(StaffService staff) : ControllerBase
     [HttpPost]
     [RequirePermission(PermissionKeys.StaffCreate)]
     [ProducesResponseType<StaffDto>(StatusCodes.Status201Created, "application/json")]
-    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest, "application/problem+json")]
+    [ProducesResponseType<ValidationProblem>(StatusCodes.Status400BadRequest, "application/problem+json")]
+    [ErrorCodes(StatusCodes.Status400BadRequest, "EMAIL_REQUIRED", "EMAIL_TOO_LONG", "EMAIL_INVALID", "NAME_REQUIRED",
+        "NAME_TOO_LONG", "EMPLOYEE_CODE_REQUIRED", "EMPLOYEE_CODE_UNTRIMMED", "EMPLOYEE_CODE_TOO_LONG",
+        "JOINED_DATE_REQUIRED", "WORK_PHONE_INVALID", "ROLE_IDS_REQUIRED", "ROLE_IDS_TOO_MANY", "ROLE_ID_EMPTY",
+        "ROLE_NOT_FOUND")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized, "application/problem+json")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden, "application/problem+json")]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict, "application/problem+json")]
+    [ProducesResponseType<ValidationProblem>(StatusCodes.Status409Conflict, "application/problem+json")]
+    [ErrorCodes(StatusCodes.Status409Conflict, "EMAIL_ALREADY_REGISTERED", "AUTH_ACCOUNT_EXISTS",
+        "EMPLOYEE_CODE_TAKEN", "ROLE_REQUIRED", "ROLE_NOT_FOR_STAFF", "ADMIN_ROLE_NOT_ASSIGNABLE")]
     public async Task<ActionResult<StaffDto>> Create(StaffCreateRequest request, CancellationToken cancellationToken)
     {
         var created = await staff.CreateAsync(request, User.GetUserId(), cancellationToken);
@@ -43,7 +50,9 @@ public sealed class StaffController(StaffService staff) : ControllerBase
     [RequirePermission(PermissionKeys.StaffRead)]
     [BadRequestRule(StaffListRequestValidator.RuleId)]
     [ProducesResponseType<PagedDto<StaffListItemDto>>(StatusCodes.Status200OK, "application/json")]
-    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest, "application/problem+json")]
+    [ProducesResponseType<ValidationProblem>(StatusCodes.Status400BadRequest, "application/problem+json")]
+    [ErrorCodes(StatusCodes.Status400BadRequest, "STATUS_INVALID", "SORT_INVALID", "PAGE_OUT_OF_RANGE",
+        "PAGE_SIZE_OUT_OF_RANGE")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized, "application/problem+json")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden, "application/problem+json")]
     public Task<PagedDto<StaffListItemDto>> List(

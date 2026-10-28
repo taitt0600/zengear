@@ -20,8 +20,8 @@ scripts:
     language: text/javascript
     code: |-
       pm.test('status 412', () => pm.response.to.have.status(412));
-      pm.test('problem type 412', () =>
-        pm.expect(pm.response.json().type).to.eql('https://tools.ietf.org/html/rfc9110#section-15.5.13'));
+      pm.test('problem type /problems/precondition-failed', () =>
+        pm.expect(pm.response.json().type).to.eql('/problems/precondition-failed'));
       pm.sendRequest({
         url: `${pm.variables.get('baseUrl')}/api/v1/admin/me`,
         method: 'GET',

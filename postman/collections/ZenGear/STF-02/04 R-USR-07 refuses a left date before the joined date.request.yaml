@@ -20,3 +20,8 @@ scripts:
       pm.test('status 409', () => pm.response.to.have.status(409));
       pm.test('problem type /problems/left-date-before-joined-date', () => pm.expect(pm.response.json().type).to.eql('/problems/left-date-before-joined-date'));
       pm.test('ruleId R-USR-07', () => pm.expect(pm.response.json().ruleId).to.eql('R-USR-07'));
+      pm.test('error LEFT_DATE_BEFORE_JOINED_DATE on #/leftDate', () => {
+        const errors = pm.response.json().errors;
+        pm.expect(errors).to.be.an('array').with.lengthOf(1);
+        pm.expect(errors[0]).to.include({ pointer: '#/leftDate', code: 'LEFT_DATE_BEFORE_JOINED_DATE' });
+      });

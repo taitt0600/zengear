@@ -13,6 +13,9 @@ scripts:
     code: |-
       pm.test('status 400', () => pm.response.to.have.status(400));
       const problem = pm.response.json();
-      pm.test('validation problem', () => pm.expect(problem.type).to.eql('https://tools.ietf.org/html/rfc9110#section-15.5.1'));
+      pm.test('problem type /problems/validation', () => pm.expect(problem.type).to.eql('/problems/validation'));
       pm.test('ruleId R-USR-13', () => pm.expect(problem.ruleId).to.eql('R-USR-13'));
-      pm.test('error on status', () => pm.expect(problem.errors).to.have.property('status'));
+      pm.test('error STATUS_INVALID on parameter status', () => {
+        pm.expect(problem.errors).to.be.an('array');
+        pm.expect(problem.errors.map((e) => `${e.parameter} ${e.code}`)).to.include('status STATUS_INVALID');
+      });

@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text;
 using System.Text.Json;
 using Npgsql;
 using Shouldly;
@@ -16,8 +17,10 @@ public class BrandTests : IntegrationTestBase
     private const string CashierUid = "uid-cashier";
     private const string ReaderUid = "uid-reader";
     private const string CreatorUid = "uid-creator";
-    private const string ValidationType = "https://tools.ietf.org/html/rfc9110#section-15.5.1";
+    private const string ValidationType = ProblemAssertions.ValidationType;
     private const string AlreadyExists = "/problems/brand-already-exists";
+
+    private static readonly ExpectedError NameTaken = ExpectedError.At("#/name", "BRAND_ALREADY_EXISTS");
 
     private static readonly DateTimeOffset Now = new(2027, 2, 5, 3, 0, 0, TimeSpan.Zero);
 
@@ -79,7 +82,7 @@ public class BrandTests : IntegrationTestBase
 
         var response = await CreateAsync(second);
 
-        await response.ShouldBeProblemAsync(HttpStatusCode.Conflict, AlreadyExists, null);
+        await response.ShouldBeProblemAsync(HttpStatusCode.Conflict, AlreadyExists, null, NameTaken);
         (await CountAsync()).ShouldBe(1);
     }
 
@@ -90,7 +93,7 @@ public class BrandTests : IntegrationTestBase
         (await UpdateAsync(wd, await ETagAsync(wd), new BrandUpdate("Western Digital", true))).StatusCode.ShouldBe(HttpStatusCode.OK);
 
         // The renamed brand still holds the slug wd: the seed finds it by that slug at the next deploy.
-        await (await CreateAsync("WD")).ShouldBeProblemAsync(HttpStatusCode.Conflict, AlreadyExists, null);
+        await (await CreateAsync("WD")).ShouldBeProblemAsync(HttpStatusCode.Conflict, AlreadyExists, null, NameTaken);
     }
 
     [Test]
@@ -99,20 +102,66 @@ public class BrandTests : IntegrationTestBase
         var wd = await CreatedIdAsync("WD");
         (await UpdateAsync(wd, await ETagAsync(wd), new BrandUpdate("Western Digital", true))).StatusCode.ShouldBe(HttpStatusCode.OK);
 
-        await (await CreateAsync("Western-Digital")).ShouldBeProblemAsync(HttpStatusCode.Conflict, AlreadyExists, null);
+        await (await CreateAsync("Western-Digital")).ShouldBeProblemAsync(HttpStatusCode.Conflict, AlreadyExists, null, NameTaken);
     }
 
-    [TestCase("")]
-    [TestCase("   ")]
-    [TestCase("!!!")]
-    [TestCase("联想")]
-    public async Task Create_refuses_invalid_input(string name)
+    [TestCase("", "NAME_REQUIRED")]
+    [TestCase("   ", "NAME_REQUIRED")]
+    [TestCase("!!!", "NAME_WITHOUT_LETTER_OR_DIGIT")]
+    [TestCase("联想", "NAME_WITHOUT_LETTER_OR_DIGIT")]
+    public async Task Create_refuses_invalid_input(string name, string code)
     {
         var response = await CreateAsync(name);
 
-        await response.ShouldBeProblemAsync(HttpStatusCode.BadRequest, ValidationType, null);
-        (await JsonAsync(response)).GetProperty("errors").TryGetProperty("name", out _).ShouldBeTrue();
+        var problem = await response.ShouldBeProblemAsync(HttpStatusCode.BadRequest, ValidationType, null, ExpectedError.At("#/name", code));
+        problem.GetProperty("errors").GetArrayLength().ShouldBe(1);
         (await CountAsync()).ShouldBe(0);
+    }
+
+    [Test]
+    public async Task Create_refuses_a_name_over_100_characters_with_the_limit_in_the_text()
+    {
+        var response = await CreateAsync(new string('a', 101));
+
+        var problem = await response.ShouldBeProblemAsync(HttpStatusCode.BadRequest, ValidationType, null,
+            ExpectedError.At("#/name", "NAME_TOO_LONG"));
+        problem.ErrorDetail(ExpectedError.At("#/name", "NAME_TOO_LONG")).ShouldBe("Tên tối đa 100 ký tự.");
+        (await CountAsync()).ShouldBe(0);
+    }
+
+    /// <summary>A missing or null name reaches the validator (the request property is nullable), not model binding.</summary>
+    [Test]
+    public async Task Create_without_a_name_is_NAME_REQUIRED()
+    {
+        await (await SendAsync(HttpMethod.Post, "/api/v1/admin/brands", ManagerUid, new { }))
+            .ShouldBeProblemAsync(HttpStatusCode.BadRequest, ValidationType, null, ExpectedError.At("#/name", "NAME_REQUIRED"));
+        await (await SendAsync(HttpMethod.Post, "/api/v1/admin/brands", ManagerUid, new { name = (string?)null }))
+            .ShouldBeProblemAsync(HttpStatusCode.BadRequest, ValidationType, null, ExpectedError.At("#/name", "NAME_REQUIRED"));
+        (await CountAsync()).ShouldBe(0);
+    }
+
+    [Test]
+    public async Task Create_with_a_broken_json_body_is_BODY_INVALID()
+    {
+        var request = Request(HttpMethod.Post, "/api/v1/admin/brands", ManagerUid, body: null);
+        request.Content = new StringContent("{\"name\": \"ASUS\"", Encoding.UTF8, "application/json");
+
+        var problem = await (await Client.SendAsync(request)).ShouldBeProblemAsync(HttpStatusCode.BadRequest, ValidationType, null);
+
+        problem.ErrorCodes().ShouldBe(["BODY_INVALID"]);
+        problem.GetProperty("errors")[0].GetProperty("pointer").GetString()!.ShouldStartWith("#");
+        problem.GetRawText().ShouldNotContain("ASUS");
+        (await CountAsync()).ShouldBe(0);
+    }
+
+    [Test]
+    public async Task Create_without_a_body_is_BODY_REQUIRED()
+    {
+        var request = Request(HttpMethod.Post, "/api/v1/admin/brands", ManagerUid, body: null);
+        request.Content = new StringContent("", Encoding.UTF8, "application/json");
+
+        await (await Client.SendAsync(request)).ShouldBeProblemAsync(HttpStatusCode.BadRequest, ValidationType, null,
+            ExpectedError.At("#", "BODY_REQUIRED"));
     }
 
     [Test]
@@ -123,7 +172,7 @@ public class BrandTests : IntegrationTestBase
         responses.Count(r => r.StatusCode == HttpStatusCode.Created).ShouldBe(1);
         foreach (var refused in responses.Where(r => r.StatusCode != HttpStatusCode.Created))
         {
-            await refused.ShouldBeProblemAsync(HttpStatusCode.Conflict, AlreadyExists, null);
+            await refused.ShouldBeProblemAsync(HttpStatusCode.Conflict, AlreadyExists, null, NameTaken);
         }
 
         (await CountAsync()).ShouldBe(1);
@@ -172,7 +221,7 @@ public class BrandTests : IntegrationTestBase
 
         var response = await SendAsync(HttpMethod.Delete, $"/api/v1/admin/brands/{asus}", ManagerUid);
 
-        response.StatusCode.ShouldBe(HttpStatusCode.MethodNotAllowed);
+        await response.ShouldBeProblemAsync(HttpStatusCode.MethodNotAllowed, "/problems/method-not-allowed", null);
         (await CountAsync()).ShouldBe(1);
     }
 
@@ -217,20 +266,19 @@ public class BrandTests : IntegrationTestBase
 
         var response = await UpdateAsync(hp, await ETagAsync(hp), new BrandUpdate("DELL", true));
 
-        await response.ShouldBeProblemAsync(HttpStatusCode.Conflict, AlreadyExists, null);
+        await response.ShouldBeProblemAsync(HttpStatusCode.Conflict, AlreadyExists, null, NameTaken);
         (await RowAsync(hp)).Name.ShouldBe("HP");
     }
 
-    [TestCase("")]
-    [TestCase("!!!")]
-    public async Task Update_refuses_invalid_input(string name)
+    [TestCase("", "NAME_REQUIRED")]
+    [TestCase("!!!", "NAME_WITHOUT_LETTER_OR_DIGIT")]
+    public async Task Update_refuses_invalid_input(string name, string code)
     {
         var asus = await CreatedIdAsync("ASUS");
 
         var response = await UpdateAsync(asus, await ETagAsync(asus), new BrandUpdate(name, true));
 
-        await response.ShouldBeProblemAsync(HttpStatusCode.BadRequest, ValidationType, null);
-        (await JsonAsync(response)).GetProperty("errors").TryGetProperty("name", out _).ShouldBeTrue();
+        await response.ShouldBeProblemAsync(HttpStatusCode.BadRequest, ValidationType, null, ExpectedError.At("#/name", code));
         (await RowAsync(asus)).Name.ShouldBe("ASUS");
     }
 
@@ -243,8 +291,8 @@ public class BrandTests : IntegrationTestBase
 
         var response = await Client.SendAsync(request);
 
-        await response.ShouldBeProblemAsync(HttpStatusCode.BadRequest, ValidationType, null);
-        (await JsonAsync(response)).GetProperty("errors").TryGetProperty("isActive", out _).ShouldBeTrue();
+        await response.ShouldBeProblemAsync(HttpStatusCode.BadRequest, ValidationType, null,
+            ExpectedError.At("#/isActive", "IS_ACTIVE_REQUIRED"));
         (await RowAsync(asus)).ShouldBe(new BrandRow("ASUS", "asus", true, _managerId, _managerId));
     }
 
@@ -267,18 +315,19 @@ public class BrandTests : IntegrationTestBase
 
         var response = await UpdateAsync(asus, stale, new BrandUpdate("ASUS TUF", true));
 
-        response.StatusCode.ShouldBe(HttpStatusCode.PreconditionFailed);
+        await response.ShouldBeProblemAsync(HttpStatusCode.PreconditionFailed, "/problems/precondition-failed", null);
         (await RowAsync(asus)).Name.ShouldBe("ASUS ROG");
     }
 
     [Test]
     public async Task Update_unknown_brand_is_404() =>
-        (await UpdateAsync(Guid.CreateVersion7(), "*", new BrandUpdate("ASUS", true))).StatusCode.ShouldBe(HttpStatusCode.NotFound);
+        await (await UpdateAsync(Guid.CreateVersion7(), "*", new BrandUpdate("ASUS", true)))
+            .ShouldBeProblemAsync(HttpStatusCode.NotFound, "/problems/not-found", null);
 
     [Test]
     public async Task Get_unknown_brand_is_404() =>
-        (await SendAsync(HttpMethod.Get, $"/api/v1/admin/brands/{Guid.CreateVersion7()}", ManagerUid))
-            .StatusCode.ShouldBe(HttpStatusCode.NotFound);
+        await (await SendAsync(HttpMethod.Get, $"/api/v1/admin/brands/{Guid.CreateVersion7()}", ManagerUid))
+            .ShouldBeProblemAsync(HttpStatusCode.NotFound, "/problems/not-found", null);
 
     [Test]
     public async Task Get_returns_the_brand_with_its_etag()
@@ -309,10 +358,11 @@ public class BrandTests : IntegrationTestBase
         second.GetProperty("items").EnumerateArray().Select(b => b.GetProperty("name").GetString()).ShouldBe(["Zotac"]);
     }
 
-    [TestCase("page=0")]
-    [TestCase("pageSize=101")]
-    public async Task List_refuses_a_page_out_of_range(string query) =>
-        (await SendAsync(HttpMethod.Get, $"/api/v1/admin/brands?{query}", ManagerUid)).StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+    [TestCase("page=0", "page", "PAGE_OUT_OF_RANGE")]
+    [TestCase("pageSize=101", "pageSize", "PAGE_SIZE_OUT_OF_RANGE")]
+    public async Task List_refuses_a_page_out_of_range(string query, string parameter, string code) =>
+        await (await SendAsync(HttpMethod.Get, $"/api/v1/admin/brands?{query}", ManagerUid))
+            .ShouldBeProblemAsync(HttpStatusCode.BadRequest, ValidationType, null, ExpectedError.OnParameter(parameter, code));
 
     [TestCase("GET", "/api/v1/admin/brands")]
     [TestCase("GET", "/api/v1/admin/brands/{0}")]

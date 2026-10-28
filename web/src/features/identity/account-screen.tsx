@@ -8,6 +8,7 @@ import { useId, useMemo, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import type { z } from 'zod'
+import { FormProblems, NO_FORM_PROBLEMS } from '@/components/app/form-problems'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -58,6 +59,8 @@ function AccountForm({ loaded }: { loaded: LoadedCurrentUser }) {
   const queryClient = useQueryClient()
   const showProblem = useProblemToast()
   const [etag, setEtag] = useState(loaded.etag)
+  // The texts of a 400 that no field shows, until the next save.
+  const [problems, setProblems] = useState(NO_FORM_PROBLEMS)
   const save = useMutation({ mutationFn: (name: string) => updateMe(name, etag ?? '') })
 
   const schema = useMemo(
@@ -91,6 +94,7 @@ function AccountForm({ loaded }: { loaded: LoadedCurrentUser }) {
 
   async function onSubmit({ name }: z.output<typeof schema>) {
     let saved: LoadedCurrentUser
+    setProblems(NO_FORM_PROBLEMS)
     try {
       saved = await save.mutateAsync(name)
     } catch (error) {
@@ -107,18 +111,16 @@ function AccountForm({ loaded }: { loaded: LoadedCurrentUser }) {
     // 401 and the session problems: the admin layout follows them (staff-session.tsx).
     if (sessionOutcome(error)) return
     if (error instanceof ApiError) {
-      // The API's messages are English: the field shows the web's own text (owner's answer, docs/SCREENS.md).
-      if (error.status === 400 && fieldErrors(error.problem).name) {
-        form.setError(
-          'name',
-          { message: t('account.validation.nameRefused') },
-          { shouldFocus: true },
-        )
+      // The API's texts (DEC-117 (4)): under the field, and those no field shows at the top of the form.
+      if (error.status === 400 && error.problem?.errors?.length) {
+        const { byField, other } = fieldErrors(error.problem, ['name'])
+        if (byField.name) form.setError('name', { message: byField.name }, { shouldFocus: true })
+        setProblems({ texts: other, focus: !byField.name })
         return
       }
-      // 428 means the version was missing: reloading gets one, as for a 412.
+      // 428 means the version was missing: reloading gets one, as for a 412. The toast shows the API's text.
       if (error.status === 412 || error.status === 428) {
-        toast.error(t('admin.stale'))
+        showProblem(error)
         await reload()
         return
       }
@@ -130,6 +132,7 @@ function AccountForm({ loaded }: { loaded: LoadedCurrentUser }) {
   return (
     <form noValidate onSubmit={form.handleSubmit(onSubmit)}>
       <FieldGroup>
+        <FormProblems problems={problems} />
         <Controller
           name="name"
           control={form.control}

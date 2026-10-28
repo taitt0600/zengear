@@ -87,6 +87,43 @@ public class BusinessLocationHoursTests
     }
 
     [Test]
+    public void R_LOC_01_the_weekly_hours_problem_is_a_code()
+    {
+        BusinessLocation.RegularHoursProblem(Weekly).ShouldBeNull();
+        BusinessLocation.RegularHoursProblem([]).ShouldBe(BusinessLocation.RegularHoursEmpty);
+        BusinessLocation.RegularHoursProblem([new(8, new(8, 0), new(12, 0))]).ShouldBe(BusinessLocation.DayOutOfRange);
+        BusinessLocation.RegularHoursProblem([new(2, new(18, 0), new(8, 0))]).ShouldBe(BusinessLocation.PeriodOpensAfterClosing);
+        BusinessLocation.RegularHoursProblem([new(1, new(8, 0), new(12, 0)), new(1, new(11, 0), new(14, 0))])
+            .ShouldBe(BusinessLocation.PeriodsOverlap);
+        BusinessLocation.RegularHoursProblem(
+        [
+            new(3, new(6, 0), new(7, 0)), new(3, new(8, 0), new(9, 0)), new(3, new(10, 0), new(11, 0)),
+            new(3, new(12, 0), new(13, 0)),
+        ]).ShouldBe(BusinessLocation.PeriodsPerDayTooMany);
+    }
+
+    [Test]
+    public void R_LOC_01_the_holiday_hours_problem_is_a_code()
+    {
+        BusinessLocation.SpecialHoursProblem(null).ShouldBeNull();
+        BusinessLocation.SpecialHoursProblem([new(Monday, true, null, null), new(Monday, false, new(8, 0), new(12, 0))])
+            .ShouldBe(BusinessLocation.ClosedDateWithHours);
+        BusinessLocation.SpecialHoursProblem([new(Monday, true, new(8, 0), new(12, 0))]).ShouldBe(BusinessLocation.ClosedDateWithHours);
+        BusinessLocation.SpecialHoursProblem([new(Monday, false, null, null)]).ShouldBe(BusinessLocation.OpenTimeInvalid);
+        BusinessLocation.SpecialHoursProblem([new(Monday, false, new(8, 0), new(12, 0)), new(Monday, false, new(9, 0), new(10, 0))])
+            .ShouldBe(BusinessLocation.PeriodsOverlap);
+    }
+
+    [Test]
+    public void R_LOC_01_check_hours_names_the_code_and_the_list()
+    {
+        var exception = Should.Throw<ArgumentException>(() => BusinessLocation.CheckHours([], null));
+
+        exception.ParamName.ShouldBe("regularHours");
+        exception.Message.ShouldStartWith(BusinessLocation.RegularHoursEmpty);
+    }
+
+    [Test]
     public void R_LOC_01_business_location_cannot_be_created_by_code()
     {
         // Phase 1 has exactly the one location of the go-live seed: no public constructor, no factory (no add).

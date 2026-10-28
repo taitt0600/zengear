@@ -1,7 +1,7 @@
 $kind: http-request
 description: |-
-  R-USR-13: a `roleId` that is not a uuid is refused by model binding, still naming the rule; the message does not
-  repeat the value sent.
+  R-USR-13: a `roleId` that is not a uuid is refused by model binding, still naming the rule, with the code
+  VALUE_INVALID on the parameter roleId; the problem does not repeat the value sent.
 method: GET
 url: '{{baseUrl}}/api/v1/admin/staff?roleId=abc'
 order: 14000
@@ -14,10 +14,12 @@ scripts:
     code: |-
       pm.test('status 400', () => pm.response.to.have.status(400));
       const problem = pm.response.json();
-      pm.test('validation problem', () => pm.expect(problem.type).to.eql('https://tools.ietf.org/html/rfc9110#section-15.5.1'));
+      pm.test('problem type /problems/validation', () => pm.expect(problem.type).to.eql('/problems/validation'));
       pm.test('ruleId R-USR-13', () => pm.expect(problem.ruleId).to.eql('R-USR-13'));
-      pm.test('error on roleId', () => pm.expect(problem.errors).to.have.property('roleId'));
-      pm.test('the message names no value sent', () => {
-        pm.expect(problem.errors.roleId).to.eql(['The value is not valid.']);
-        pm.expect(JSON.stringify(problem)).to.not.include('abc');
+      pm.test('error VALUE_INVALID on parameter roleId', () => {
+        pm.expect(problem.errors).to.be.an('array');
+        pm.expect(problem.errors.map((e) => `${e.parameter} ${e.code}`)).to.include('roleId VALUE_INVALID');
       });
+      // traceId is hexadecimal and may hold 'abc' by chance; it is not a text of the problem.
+      pm.test('the problem names no value sent', () =>
+        pm.expect(JSON.stringify({ ...problem, traceId: undefined })).to.not.include('abc'));

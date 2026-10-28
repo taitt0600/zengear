@@ -73,7 +73,8 @@ public class StaffStatusTests : IntegrationTestBase
     {
         var response = await DisableAsync(AdminUid, _staffId, new { leftDate = "2026-09-30" });
 
-        await response.ShouldBeProblemAsync(HttpStatusCode.Conflict, "/problems/left-date-before-joined-date", "R-USR-07");
+        await response.ShouldBeProblemAsync(HttpStatusCode.Conflict, "/problems/left-date-before-joined-date", "R-USR-07",
+            ExpectedError.At("#/leftDate", "LEFT_DATE_BEFORE_JOINED_DATE"));
         (await RowAsync(_staffId)).ShouldBe(new StatusRow("ACTIVE", null, null));
         Auth.Revoked.ShouldBeEmpty();
     }
@@ -250,7 +251,8 @@ public class StaffStatusTests : IntegrationTestBase
     {
         var response = await DisableAsync(AdminUid, _staffId, new { leftDate = "2026-12-01" });
 
-        await response.ShouldBeProblemAsync(HttpStatusCode.Conflict, "/problems/left-date-in-future", "R-USR-07");
+        await response.ShouldBeProblemAsync(HttpStatusCode.Conflict, "/problems/left-date-in-future", "R-USR-07",
+            ExpectedError.At("#/leftDate", "LEFT_DATE_IN_FUTURE"));
         (await RowAsync(_staffId)).ShouldBe(new StatusRow("ACTIVE", null, null));
         Auth.Revoked.ShouldBeEmpty();
     }

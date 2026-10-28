@@ -37,8 +37,11 @@ const staff: CurrentUser = {
 }
 
 const firebaseError = (code: string) => Object.assign(new Error(code), { code })
-const problem = (status: number, name: string) =>
-  new ApiError(status, { type: `/problems/${name}`, status })
+const problem = (status: number, name: string, detail?: string) =>
+  new ApiError(status, { type: `/problems/${name}`, status, detail })
+const DISABLED = 'Tài khoản đã bị khóa. Vui lòng liên hệ quản lý cửa hàng.'
+const NETWORK = 'Không kết nối được máy chủ. Vui lòng kiểm tra mạng và thử lại.'
+const GENERIC = 'Không đăng nhập được. Vui lòng thử lại.'
 
 function renderForm(search = '') {
   navigation.search = new URLSearchParams(search)
@@ -64,6 +67,7 @@ async function signIn(email = 'nhanvien@zengear.test', password = 'mat-khau-cua-
 
 beforeEach(() => {
   vi.resetAllMocks()
+  window.sessionStorage.clear()
   session.hasSession.mockResolvedValue(false)
   session.signInWithPassword.mockResolvedValue(undefined)
   session.signOutAndClear.mockResolvedValue(undefined)
@@ -123,12 +127,9 @@ describe('answers of Firebase', () => {
     ['auth/wrong-password', 'Email hoặc mật khẩu không đúng.'],
     ['auth/user-not-found', 'Email hoặc mật khẩu không đúng.'],
     ['auth/too-many-requests', 'Bạn đã thử quá nhiều lần. Vui lòng thử lại sau.'],
-    ['auth/user-disabled', 'Tài khoản đã bị khóa. Vui lòng liên hệ quản lý cửa hàng.'],
-    [
-      'auth/network-request-failed',
-      'Không kết nối được máy chủ. Vui lòng kiểm tra mạng và thử lại.',
-    ],
-    ['auth/internal-error', 'Không đăng nhập được. Vui lòng thử lại.'],
+    ['auth/user-disabled', DISABLED],
+    ['auth/network-request-failed', NETWORK],
+    ['auth/internal-error', GENERIC],
   ])('%s shows its message', async (code, text) => {
     session.signInWithPassword.mockRejectedValue(firebaseError(code))
     renderForm()
@@ -142,23 +143,21 @@ describe('answers of Firebase', () => {
 
 describe('answers of GET /api/v1/admin/me', () => {
   it.each([
-    [
-      '403 account-disabled',
-      problem(403, 'account-disabled'),
-      'Tài khoản đã bị khóa. Vui lòng liên hệ quản lý cửa hàng.',
-    ],
+    ['403 account-disabled', problem(403, 'account-disabled', DISABLED), DISABLED],
     [
       '403 account-not-registered',
-      problem(403, 'account-not-registered'),
+      problem(403, 'account-not-registered', 'Tài khoản này chưa được đăng ký trong hệ thống.'),
       'Tài khoản này chưa được đăng ký trong hệ thống.',
     ],
-    ['401', new ApiError(401), 'Không đăng nhập được. Vui lòng thử lại.'],
-    ['500', new ApiError(500), 'Không đăng nhập được. Vui lòng thử lại.'],
     [
-      'a network error',
-      new TypeError('Failed to fetch'),
-      'Không kết nối được máy chủ. Vui lòng kiểm tra mạng và thử lại.',
+      '401',
+      problem(401, 'unauthenticated', 'Vui lòng đăng nhập để tiếp tục.'),
+      'Vui lòng đăng nhập để tiếp tục.',
     ],
+    ['500 (no detail)', problem(500, 'internal-error'), 'Đã có lỗi xảy ra. Vui lòng thử lại.'],
+    ['an unreadable answer', new ApiError(502), 'Đã có lỗi xảy ra. Vui lòng thử lại.'],
+    ['a network error', new TypeError('Failed to fetch'), NETWORK],
+    ['a token Firebase cannot refresh', firebaseError('auth/user-token-expired'), GENERIC],
   ])('%s shows its message and signs out', async (_, error, text) => {
     api.me.mockRejectedValue(error)
     renderForm()
@@ -270,8 +269,7 @@ describe('where a staff member goes', () => {
 
 describe('the reason of a sign-out', () => {
   it.each([
-    ['account-disabled', 'Tài khoản đã bị khóa. Vui lòng liên hệ quản lý cửa hàng.'],
-    ['account-not-registered', 'Tài khoản này chưa được đăng ký trong hệ thống.'],
+    ['account-disabled', DISABLED],
     ['not-staff', 'Tài khoản này không phải tài khoản nhân viên.'],
   ])('%s shows its message', async (reason, text) => {
     renderForm(`reason=${reason}`)
@@ -279,9 +277,27 @@ describe('the reason of a sign-out', () => {
     expect(screen.getByRole('alert')).toHaveTextContent(text)
   })
 
-  it('ignores an unknown reason', () => {
-    renderForm('reason=%3Cscript%3E')
+  it.each(['%3Cscript%3E', 'account-not-registered'])('ignores the reason %s', (reason) => {
+    renderForm(`reason=${reason}`)
 
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+
+  it("shows once the API's text that the admin layout kept", async () => {
+    window.sessionStorage.setItem(
+      'zengear.signOutReason',
+      'Tài khoản này chưa được đăng ký trong hệ thống.',
+    )
+    const { unmount } = renderForm()
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Tài khoản này chưa được đăng ký trong hệ thống.',
+    )
+    expect(window.sessionStorage.getItem('zengear.signOutReason')).toBeNull()
+
+    unmount()
+    renderForm()
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Đăng nhập' })).toBeEnabled())
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
 

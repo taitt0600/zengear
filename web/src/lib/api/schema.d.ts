@@ -38,7 +38,11 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/problem+json": components["schemas"]["ValidationProblemDetails"];
+                        "application/problem+json": components["schemas"]["ValidationProblem"] & {
+                            errors?: {
+                                code?: components["schemas"]["BusinessLocationsListErrorCode"];
+                            }[];
+                        };
                     };
                 };
                 /** @description Unauthorized */
@@ -163,7 +167,11 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/problem+json": components["schemas"]["ValidationProblemDetails"];
+                        "application/problem+json": components["schemas"]["ValidationProblem"] & {
+                            errors?: {
+                                code?: components["schemas"]["BusinessLocationsUpdateErrorCode"];
+                            }[];
+                        };
                     };
                 };
                 /** @description Unauthorized */
@@ -254,7 +262,11 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/problem+json": components["schemas"]["ValidationProblemDetails"];
+                        "application/problem+json": components["schemas"]["ValidationProblem"] & {
+                            errors?: {
+                                code?: components["schemas"]["BusinessLocationShopListErrorCode"];
+                            }[];
+                        };
                     };
                 };
             };
@@ -353,7 +365,11 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/problem+json": components["schemas"]["ValidationProblemDetails"];
+                        "application/problem+json": components["schemas"]["ValidationProblem"] & {
+                            errors?: {
+                                code?: components["schemas"]["MeUpdateErrorCode"];
+                            }[];
+                        };
                     };
                 };
                 /** @description Unauthorized */
@@ -433,7 +449,11 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/problem+json": components["schemas"]["ValidationProblemDetails"];
+                        "application/problem+json": components["schemas"]["ValidationProblem"] & {
+                            errors?: {
+                                code?: components["schemas"]["MeChangePasswordErrorCode"];
+                            }[];
+                        };
                     };
                 };
                 /** @description Unauthorized */
@@ -513,7 +533,11 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/problem+json": components["schemas"]["ValidationProblemDetails"];
+                        "application/problem+json": components["schemas"]["ValidationProblem"] & {
+                            errors?: {
+                                code?: components["schemas"]["StaffListErrorCode"];
+                            }[];
+                        };
                     };
                 };
                 /** @description Unauthorized */
@@ -567,7 +591,11 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/problem+json": components["schemas"]["ValidationProblemDetails"];
+                        "application/problem+json": components["schemas"]["ValidationProblem"] & {
+                            errors?: {
+                                code?: components["schemas"]["StaffCreateErrorCode"];
+                            }[];
+                        };
                     };
                 };
                 /** @description Unauthorized */
@@ -594,7 +622,11 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                        "application/problem+json": components["schemas"]["ValidationProblem"] & {
+                            errors?: {
+                                code?: components["schemas"]["StaffCreateConflictCode"];
+                            }[];
+                        };
                     };
                 };
             };
@@ -710,7 +742,11 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/problem+json": components["schemas"]["ValidationProblemDetails"];
+                        "application/problem+json": components["schemas"]["ValidationProblem"] & {
+                            errors?: {
+                                code?: components["schemas"]["StaffStatusDisableErrorCode"];
+                            }[];
+                        };
                     };
                 };
                 /** @description Unauthorized */
@@ -746,7 +782,11 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                        "application/problem+json": components["schemas"]["ValidationProblem"] & {
+                            errors?: {
+                                code?: components["schemas"]["StaffStatusDisableConflictCode"];
+                            }[];
+                        };
                     };
                 };
                 /** @description Internal Server Error */
@@ -877,7 +917,11 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/problem+json": components["schemas"]["ValidationProblemDetails"];
+                        "application/problem+json": components["schemas"]["ValidationProblem"] & {
+                            errors?: {
+                                code?: components["schemas"]["BrandListErrorCode"];
+                            }[];
+                        };
                     };
                 };
                 /** @description Unauthorized */
@@ -933,7 +977,11 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/problem+json": components["schemas"]["ValidationProblemDetails"];
+                        "application/problem+json": components["schemas"]["ValidationProblem"] & {
+                            errors?: {
+                                code?: components["schemas"]["BrandCreateErrorCode"];
+                            }[];
+                        };
                     };
                 };
                 /** @description Unauthorized */
@@ -960,7 +1008,11 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                        "application/problem+json": components["schemas"]["ValidationProblem"] & {
+                            errors?: {
+                                code?: components["schemas"]["BrandCreateConflictCode"];
+                            }[];
+                        };
                     };
                 };
             };
@@ -1065,7 +1117,11 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/problem+json": components["schemas"]["ValidationProblemDetails"];
+                        "application/problem+json": components["schemas"]["ValidationProblem"] & {
+                            errors?: {
+                                code?: components["schemas"]["BrandUpdateErrorCode"];
+                            }[];
+                        };
                     };
                 };
                 /** @description Unauthorized */
@@ -1101,7 +1157,11 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                        "application/problem+json": components["schemas"]["ValidationProblem"] & {
+                            errors?: {
+                                code?: components["schemas"]["BrandUpdateConflictCode"];
+                            }[];
+                        };
                     };
                 };
                 /** @description Precondition Failed */
@@ -1171,7 +1231,11 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/problem+json": components["schemas"]["ValidationProblemDetails"];
+                        "application/problem+json": components["schemas"]["ValidationProblem"] & {
+                            errors?: {
+                                code?: components["schemas"]["ProductSeriesListErrorCode"];
+                            }[];
+                        };
                     };
                 };
                 /** @description Unauthorized */
@@ -1227,7 +1291,11 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/problem+json": components["schemas"]["ValidationProblemDetails"];
+                        "application/problem+json": components["schemas"]["ValidationProblem"] & {
+                            errors?: {
+                                code?: components["schemas"]["ProductSeriesCreateErrorCode"];
+                            }[];
+                        };
                     };
                 };
                 /** @description Unauthorized */
@@ -1254,7 +1322,11 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                        "application/problem+json": components["schemas"]["ValidationProblem"] & {
+                            errors?: {
+                                code?: components["schemas"]["ProductSeriesCreateConflictCode"];
+                            }[];
+                        };
                     };
                 };
             };
@@ -1359,7 +1431,11 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/problem+json": components["schemas"]["ValidationProblemDetails"];
+                        "application/problem+json": components["schemas"]["ValidationProblem"] & {
+                            errors?: {
+                                code?: components["schemas"]["ProductSeriesUpdateErrorCode"];
+                            }[];
+                        };
                     };
                 };
                 /** @description Unauthorized */
@@ -1395,7 +1471,11 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                        "application/problem+json": components["schemas"]["ValidationProblem"] & {
+                            errors?: {
+                                code?: components["schemas"]["ProductSeriesUpdateConflictCode"];
+                            }[];
+                        };
                     };
                 };
                 /** @description Precondition Failed */
@@ -1429,8 +1509,12 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** @enum {string} */
+        BrandCreateConflictCode: "BRAND_ALREADY_EXISTS";
+        /** @enum {string} */
+        BrandCreateErrorCode: "BODY_INVALID" | "BODY_REQUIRED" | "NAME_REQUIRED" | "NAME_TOO_LONG" | "NAME_WITHOUT_LETTER_OR_DIGIT" | "VALUE_INVALID" | "VALUE_REQUIRED";
         BrandCreateRequest: {
-            name: string;
+            name: null | string;
         };
         BrandDto: {
             /** Format: uuid */
@@ -1439,8 +1523,14 @@ export interface components {
             slug: string;
             isActive: boolean;
         };
+        /** @enum {string} */
+        BrandListErrorCode: "BODY_INVALID" | "BODY_REQUIRED" | "PAGE_OUT_OF_RANGE" | "PAGE_SIZE_OUT_OF_RANGE" | "VALUE_INVALID" | "VALUE_REQUIRED";
+        /** @enum {string} */
+        BrandUpdateConflictCode: "BRAND_ALREADY_EXISTS";
+        /** @enum {string} */
+        BrandUpdateErrorCode: "BODY_INVALID" | "BODY_REQUIRED" | "IS_ACTIVE_REQUIRED" | "NAME_REQUIRED" | "NAME_TOO_LONG" | "NAME_WITHOUT_LETTER_OR_DIGIT" | "VALUE_INVALID" | "VALUE_REQUIRED";
         BrandUpdateRequest: {
-            name: string;
+            name: null | string;
             isActive: null | boolean;
         };
         BusinessLocationDto: {
@@ -1474,6 +1564,12 @@ export interface components {
             specialHours: components["schemas"]["SpecialHoursPeriodDto"][];
             weekHours: components["schemas"]["DayHoursDto"][];
         };
+        /** @enum {string} */
+        BusinessLocationShopListErrorCode: "BODY_INVALID" | "BODY_REQUIRED" | "PAGE_OUT_OF_RANGE" | "PAGE_SIZE_OUT_OF_RANGE" | "VALUE_INVALID" | "VALUE_REQUIRED";
+        /** @enum {string} */
+        BusinessLocationsListErrorCode: "BODY_INVALID" | "BODY_REQUIRED" | "PAGE_OUT_OF_RANGE" | "PAGE_SIZE_OUT_OF_RANGE" | "VALUE_INVALID" | "VALUE_REQUIRED";
+        /** @enum {string} */
+        BusinessLocationsUpdateErrorCode: "ADDRESS_DETAIL_REQUIRED" | "ADDRESS_DETAIL_TOO_LONG" | "BODY_INVALID" | "BODY_REQUIRED" | "CLOSED_REQUIRED" | "CLOSE_TIME_INVALID" | "DATE_REQUIRED" | "DAY_OUT_OF_RANGE" | "DAY_REQUIRED" | "EMAIL_INVALID" | "EMAIL_TOO_LONG" | "NAME_REQUIRED" | "NAME_TOO_LONG" | "OPEN_TIME_INVALID" | "PERIODS_OVERLAP" | "PERIODS_PER_DAY_TOO_MANY" | "PERIOD_OPENS_AFTER_CLOSING" | "PERIOD_REQUIRED" | "PHONE_INVALID" | "PHONE_REQUIRED" | "PROVINCE_ID_INVALID" | "PROVINCE_ID_REQUIRED" | "PROVINCE_NOT_IN_USE" | "REGULAR_HOURS_EMPTY" | "REGULAR_HOURS_REQUIRED" | "SPECIAL_HOURS_CLOSED_DATE_WITH_HOURS" | "SPECIAL_HOURS_TOO_MANY" | "VALUE_INVALID" | "VALUE_REQUIRED" | "WARD_ID_INVALID" | "WARD_ID_REQUIRED" | "WARD_NOT_IN_PROVINCE" | "WARD_NOT_IN_USE";
         BusinessLocationUpdateRequest: {
             name: null | string;
             phone: null | string;
@@ -1506,6 +1602,10 @@ export interface components {
             date: string;
             periods: components["schemas"]["OpeningPeriodDto"][];
         };
+        /** @enum {string} */
+        MeChangePasswordErrorCode: "BODY_INVALID" | "BODY_REQUIRED" | "PASSWORD_CONTAINS_ZENGEAR" | "PASSWORD_IS_DEFAULT" | "PASSWORD_LENGTH_OUT_OF_RANGE" | "PASSWORD_REQUIRED" | "PASSWORD_TOO_COMMON" | "VALUE_INVALID" | "VALUE_REQUIRED";
+        /** @enum {string} */
+        MeUpdateErrorCode: "BODY_INVALID" | "BODY_REQUIRED" | "NAME_REQUIRED" | "NAME_TOO_LONG" | "VALUE_INVALID" | "VALUE_REQUIRED";
         OpeningPeriodDto: {
             open: string;
             close: string;
@@ -1567,8 +1667,18 @@ export interface components {
             /** @description W3C trace id of the request, for support. */
             traceId?: string;
         };
+        ProblemError: {
+            pointer?: string;
+            parameter?: string;
+            code: string;
+            detail: string;
+        };
+        /** @enum {string} */
+        ProductSeriesCreateConflictCode: "BRAND_RETIRED" | "PRODUCT_SERIES_ALREADY_EXISTS";
+        /** @enum {string} */
+        ProductSeriesCreateErrorCode: "BODY_INVALID" | "BODY_REQUIRED" | "BRAND_ID_REQUIRED" | "BRAND_NOT_FOUND" | "NAME_REQUIRED" | "NAME_TOO_LONG" | "NAME_WITHOUT_LETTER_OR_DIGIT" | "VALUE_INVALID" | "VALUE_REQUIRED";
         ProductSeriesCreateRequest: {
-            name: string;
+            name: null | string;
             /** Format: uuid */
             brandId: null | string;
         };
@@ -1581,8 +1691,14 @@ export interface components {
             /** Format: uuid */
             brandId: string;
         };
+        /** @enum {string} */
+        ProductSeriesListErrorCode: "BODY_INVALID" | "BODY_REQUIRED" | "PAGE_OUT_OF_RANGE" | "PAGE_SIZE_OUT_OF_RANGE" | "VALUE_INVALID" | "VALUE_REQUIRED";
+        /** @enum {string} */
+        ProductSeriesUpdateConflictCode: "BRAND_RETIRED" | "PRODUCT_SERIES_ALREADY_EXISTS";
+        /** @enum {string} */
+        ProductSeriesUpdateErrorCode: "BODY_INVALID" | "BODY_REQUIRED" | "BRAND_ID_REQUIRED" | "BRAND_NOT_FOUND" | "IS_ACTIVE_REQUIRED" | "NAME_REQUIRED" | "NAME_TOO_LONG" | "NAME_WITHOUT_LETTER_OR_DIGIT" | "VALUE_INVALID" | "VALUE_REQUIRED";
         ProductSeriesUpdateRequest: {
-            name: string;
+            name: null | string;
             /** Format: uuid */
             brandId: null | string;
             isActive: null | boolean;
@@ -1613,14 +1729,18 @@ export interface components {
             open: null | string;
             close: null | string;
         };
+        /** @enum {string} */
+        StaffCreateConflictCode: "ADMIN_ROLE_NOT_ASSIGNABLE" | "AUTH_ACCOUNT_EXISTS" | "EMAIL_ALREADY_REGISTERED" | "EMPLOYEE_CODE_TAKEN" | "ROLE_NOT_FOR_STAFF" | "ROLE_REQUIRED";
+        /** @enum {string} */
+        StaffCreateErrorCode: "BODY_INVALID" | "BODY_REQUIRED" | "EMAIL_INVALID" | "EMAIL_REQUIRED" | "EMAIL_TOO_LONG" | "EMPLOYEE_CODE_REQUIRED" | "EMPLOYEE_CODE_TOO_LONG" | "EMPLOYEE_CODE_UNTRIMMED" | "JOINED_DATE_REQUIRED" | "NAME_REQUIRED" | "NAME_TOO_LONG" | "ROLE_IDS_REQUIRED" | "ROLE_IDS_TOO_MANY" | "ROLE_ID_EMPTY" | "ROLE_NOT_FOUND" | "VALUE_INVALID" | "VALUE_REQUIRED" | "WORK_PHONE_INVALID";
         StaffCreateRequest: {
-            email: string;
-            name: string;
-            employeeCode: string;
+            email: null | string;
+            name: null | string;
+            employeeCode: null | string;
             /** Format: date */
             joinedDate: string;
             workPhone: null | string;
-            roleIds: string[];
+            roleIds: null | string[];
         };
         StaffDisableRequest: {
             /** Format: date */
@@ -1641,6 +1761,8 @@ export interface components {
             mustChangePassword: boolean;
             roles: components["schemas"]["StaffRoleDto"][];
         };
+        /** @enum {string} */
+        StaffListErrorCode: "BODY_INVALID" | "BODY_REQUIRED" | "PAGE_OUT_OF_RANGE" | "PAGE_SIZE_OUT_OF_RANGE" | "SORT_INVALID" | "STATUS_INVALID" | "VALUE_INVALID" | "VALUE_REQUIRED";
         StaffListItemDto: {
             /** Format: uuid */
             id: string;
@@ -1659,18 +1781,20 @@ export interface components {
             id: string;
             name: string;
         };
+        /** @enum {string} */
+        StaffStatusDisableConflictCode: "LEFT_DATE_BEFORE_JOINED_DATE" | "LEFT_DATE_IN_FUTURE";
+        /** @enum {string} */
+        StaffStatusDisableErrorCode: "BODY_INVALID" | "BODY_REQUIRED" | "VALUE_INVALID" | "VALUE_REQUIRED";
         /** @enum {unknown} */
         UserStatus: "ACTIVE" | "DISABLED" | "ANONYMIZED";
-        ValidationProblemDetails: {
+        ValidationProblem: {
             type?: null | string;
             title?: null | string;
             /** Format: int32 */
             status?: null | number | string;
             detail?: null | string;
             instance?: null | string;
-            errors?: {
-                [key: string]: string[];
-            };
+            errors?: components["schemas"]["ProblemError"][];
             /** @description Business rule that was violated, e.g. R-SEC-04; absent when there is none. */
             ruleId?: null | string;
             /** @description W3C trace id of the request, for support. */

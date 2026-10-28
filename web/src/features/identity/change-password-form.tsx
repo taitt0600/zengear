@@ -4,12 +4,12 @@ import { LoaderCircleIcon } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { useId, useMemo, useRef, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
-import { toast } from 'sonner'
 import type { z } from 'zod'
+import { FormProblems, NO_FORM_PROBLEMS } from '@/components/app/form-problems'
 import { Button } from '@/components/ui/button'
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { ApiError, fieldErrors, problemName } from '@/lib/api/problems'
+import { ApiError, fieldErrors, hasProblemType } from '@/lib/api/problems'
 import { passwordChangeSchema } from './account-schemas'
 import { changeMyPassword } from './me'
 import { sessionOutcome } from './me-outcome'
@@ -48,6 +48,8 @@ export function ChangePasswordForm({
   }
   // From the 204 until the page changes: the button stays disabled.
   const [leaving, setLeaving] = useState(false)
+  // The texts of a 400 that no field shows, until the next send.
+  const [problems, setProblems] = useState(NO_FORM_PROBLEMS)
 
   const schema = useMemo(
     () =>
@@ -71,6 +73,7 @@ export function ChangePasswordForm({
 
   // `retry`: the send that follows the sign-in again of 403 recent-login-required, which happens once.
   async function send(retry: boolean) {
+    setProblems(NO_FORM_PROBLEMS)
     try {
       await change.mutateAsync()
     } catch (error) {
@@ -87,18 +90,22 @@ export function ChangePasswordForm({
     // 401 and the session problems: the admin layout follows them (staff-session.tsx).
     if (sessionOutcome(error)) return
     if (error instanceof ApiError) {
-      // The API's messages are English: the field shows the web's own text (owner's answer, docs/SCREENS.md).
-      if (error.status === 400 && fieldErrors(error.problem).newPassword) {
-        form.setError(
-          'newPassword',
-          { message: t('changePassword.validation.refused') },
-          { shouldFocus: true },
-        )
+      // The API's texts (DEC-117 (4)): under the field, and those no field shows at the top of the form.
+      if (error.status === 400 && error.problem?.errors?.length) {
+        const { byField, other } = fieldErrors(error.problem, ['newPassword'])
+        if (byField.newPassword) {
+          form.setError('newPassword', { message: byField.newPassword }, { shouldFocus: true })
+        }
+        setProblems({ texts: other, focus: !byField.newPassword })
         return
       }
-      if (error.status === 403 && problemName(error.problem) === 'recent-login-required') {
-        if (retry) toast.error(t('problems.unknown'))
-        else showReauth(true)
+      // The sign-in again happens once: a second 403 shows its text.
+      if (
+        error.status === 403 &&
+        hasProblemType(error.problem, 'recent-login-required') &&
+        !retry
+      ) {
+        showReauth(true)
         return
       }
     }
@@ -118,6 +125,7 @@ export function ChangePasswordForm({
       <form noValidate onSubmit={(event) => void form.handleSubmit(() => send(false))(event)}>
         <FieldGroup>
           {email && <AccountName email={email} />}
+          <FormProblems problems={problems} />
           <Controller
             name="newPassword"
             control={form.control}

@@ -14,7 +14,7 @@ public class StaffListTests : IntegrationTestBase
     private const string AdminUid = "uid-admin";
     private const string ManagerUid = "uid-manager";
     private const string CashierUid = "uid-cashier";
-    private const string ValidationType = "https://tools.ietf.org/html/rfc9110#section-15.5.1";
+    private const string ValidationType = ProblemAssertions.ValidationType;
 
     private Guid _adminRole;
     private Guid _cashierRole;
@@ -171,20 +171,30 @@ public class StaffListTests : IntegrationTestBase
         queried.GetRawText().ShouldBe(all.GetRawText());
     }
 
-    [TestCase("status=ANONYMIZED", "status")]
-    [TestCase("status=active", "status")]
-    [TestCase("sort=email", "sort")]
-    [TestCase("page=0", "page")]
-    [TestCase("pageSize=101", "pageSize")]
-    [TestCase("roleId=abc", "roleId")]
-    [TestCase("page=x", "page")]
-    [TestCase("pageSize=x", "pageSize")]
-    public async Task R_USR_13_an_invalid_parameter_is_400_naming_the_rule(string query, string field)
+    [TestCase("status=ANONYMIZED", "status", "STATUS_INVALID")]
+    [TestCase("status=active", "status", "STATUS_INVALID")]
+    [TestCase("sort=email", "sort", "SORT_INVALID")]
+    [TestCase("page=0", "page", "PAGE_OUT_OF_RANGE")]
+    [TestCase("pageSize=101", "pageSize", "PAGE_SIZE_OUT_OF_RANGE")]
+    [TestCase("roleId=abc", "roleId", "VALUE_INVALID")]
+    [TestCase("page=x", "page", "VALUE_INVALID")]
+    [TestCase("pageSize=x", "pageSize", "VALUE_INVALID")]
+    public async Task R_USR_13_an_invalid_parameter_is_400_naming_the_rule(string query, string parameter, string code)
     {
         var response = await GetAsync(AdminUid, $"{Path}?{query}");
 
-        await response.ShouldBeProblemAsync(HttpStatusCode.BadRequest, ValidationType, "R-USR-13");
-        (await JsonAsync(response)).GetProperty("errors").TryGetProperty(field, out _).ShouldBeTrue();
+        var problem = await response.ShouldBeProblemAsync(HttpStatusCode.BadRequest, ValidationType, "R-USR-13",
+            ExpectedError.OnParameter(parameter, code));
+        problem.ErrorCodes().ShouldBe([code]);
+    }
+
+    [Test]
+    public async Task R_USR_13_a_page_size_out_of_range_gets_the_limits_in_the_text()
+    {
+        var problem = await (await GetAsync(AdminUid, $"{Path}?pageSize=101")).ShouldBeProblemAsync(HttpStatusCode.BadRequest,
+            ValidationType, "R-USR-13", ExpectedError.OnParameter("pageSize", "PAGE_SIZE_OUT_OF_RANGE"));
+
+        problem.ErrorDetail(ExpectedError.OnParameter("pageSize", "PAGE_SIZE_OUT_OF_RANGE")).ShouldBe("Số dòng mỗi trang phải từ 1 đến 100.");
     }
 
     [Test]

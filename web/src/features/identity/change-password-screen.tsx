@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ChangePasswordForm } from './change-password-form'
+import { useProblemText } from './problem-toast'
 import { PASSWORD_CHANGED } from './routes'
 import { useStaffSession } from './staff-session'
 
@@ -17,6 +18,7 @@ import { useStaffSession } from './staff-session'
 export function ChangePasswordScreen() {
   const t = useTranslations()
   const session = useStaffSession('change-password')
+  const problemText = useProblemText()
 
   return (
     <main className="flex flex-1 items-center justify-center p-4">
@@ -30,7 +32,7 @@ export function ChangePasswordScreen() {
           {session.status === 'loading' && <Skeleton className="h-40 w-full" />}
           {session.status === 'error' && (
             <Alert variant="destructive">
-              <AlertDescription>{t('problems.unknown')}</AlertDescription>
+              <AlertDescription>{problemText(session.error)}</AlertDescription>
             </Alert>
           )}
           {session.status === 'ready' && (

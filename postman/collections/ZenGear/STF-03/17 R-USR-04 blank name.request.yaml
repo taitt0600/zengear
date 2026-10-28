@@ -1,7 +1,7 @@
 $kind: http-request
 description: |-
-  R-USR-04: the display name cannot be blank (400 validation problem, errors on name). An input error of the name
-  carries no ruleId: the API names a rule only for R-USR-11.
+  R-USR-04: the display name cannot be blank (400 validation problem, the code NAME_REQUIRED on the pointer #/name).
+  An input error of the name carries no ruleId: the API names a rule only for R-USR-11.
 method: PATCH
 url: '{{baseUrl}}/api/v1/admin/me'
 order: 17000
@@ -22,6 +22,9 @@ scripts:
     code: |-
       pm.test('status 400', () => pm.response.to.have.status(400));
       const problem = pm.response.json();
-      pm.test('problem type validation', () => pm.expect(problem.type).to.eql('https://tools.ietf.org/html/rfc9110#section-15.5.1'));
-      pm.test('error on name', () => pm.expect(problem.errors.name).to.be.an('array').that.is.not.empty);
+      pm.test('problem type /problems/validation', () => pm.expect(problem.type).to.eql('/problems/validation'));
+      pm.test('error NAME_REQUIRED on #/name', () => {
+        pm.expect(problem.errors).to.be.an('array');
+        pm.expect(problem.errors.map((e) => `${e.pointer} ${e.code}`)).to.include('#/name NAME_REQUIRED');
+      });
       pm.test('no ruleId', () => pm.expect(problem).to.not.have.property('ruleId'));

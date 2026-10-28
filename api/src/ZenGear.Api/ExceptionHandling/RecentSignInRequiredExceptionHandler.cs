@@ -15,8 +15,7 @@ public sealed class RecentSignInRequiredExceptionHandler(IProblemDetailsService 
             return false;
         }
 
-        await ForbiddenProblem.WriteAsync(httpContext, problemDetails, "recent-login-required", "Recent sign-in required",
-            "Sign in again within 5 minutes before changing the password.", "R-USR-04");
+        await ForbiddenProblem.WriteAsync(httpContext, problemDetails, "recent-login-required", "R-USR-04");
         return true;
     }
 }

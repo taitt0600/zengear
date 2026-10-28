@@ -2,6 +2,7 @@ using System.ComponentModel;
 using Microsoft.AspNetCore.Mvc;
 using ZenGear.Api.Attributes;
 using ZenGear.Api.Constants;
+using ZenGear.Api.ExceptionHandling;
 using ZenGear.Api.Extensions;
 using ZenGear.Services.Catalog.Brands;
 using ZenGear.Services.Common.Models;
@@ -20,7 +21,8 @@ public sealed class BrandController(BrandService brands) : ControllerBase
     [HttpGet]
     [RequirePermission(PermissionKeys.BrandRead)]
     [ProducesResponseType<PagedDto<BrandDto>>(StatusCodes.Status200OK, "application/json")]
-    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest, "application/problem+json")]
+    [ProducesResponseType<ValidationProblem>(StatusCodes.Status400BadRequest, "application/problem+json")]
+    [ErrorCodes(StatusCodes.Status400BadRequest, "PAGE_OUT_OF_RANGE", "PAGE_SIZE_OUT_OF_RANGE")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized, "application/problem+json")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden, "application/problem+json")]
     public Task<PagedDto<BrandDto>> List(
@@ -63,10 +65,12 @@ public sealed class BrandController(BrandService brands) : ControllerBase
     [HttpPost]
     [RequirePermission(PermissionKeys.BrandCreate)]
     [ProducesResponseType<BrandDto>(StatusCodes.Status201Created, "application/json")]
-    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest, "application/problem+json")]
+    [ProducesResponseType<ValidationProblem>(StatusCodes.Status400BadRequest, "application/problem+json")]
+    [ErrorCodes(StatusCodes.Status400BadRequest, "NAME_REQUIRED", "NAME_TOO_LONG", "NAME_WITHOUT_LETTER_OR_DIGIT")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized, "application/problem+json")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden, "application/problem+json")]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict, "application/problem+json")]
+    [ProducesResponseType<ValidationProblem>(StatusCodes.Status409Conflict, "application/problem+json")]
+    [ErrorCodes(StatusCodes.Status409Conflict, "BRAND_ALREADY_EXISTS")]
     public async Task<ActionResult<BrandDto>> Create(BrandCreateRequest request, CancellationToken cancellationToken)
     {
         var created = await brands.CreateAsync(request, User.GetUserId(), cancellationToken);
@@ -89,17 +93,20 @@ public sealed class BrandController(BrandService brands) : ControllerBase
     [HttpPut("{id:guid}")]
     [RequirePermission(PermissionKeys.BrandUpdate)]
     [ProducesResponseType<BrandDto>(StatusCodes.Status200OK, "application/json")]
-    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest, "application/problem+json")]
+    [ProducesResponseType<ValidationProblem>(StatusCodes.Status400BadRequest, "application/problem+json")]
+    [ErrorCodes(StatusCodes.Status400BadRequest, "NAME_REQUIRED", "NAME_TOO_LONG", "NAME_WITHOUT_LETTER_OR_DIGIT",
+        "IS_ACTIVE_REQUIRED")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized, "application/problem+json")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden, "application/problem+json")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound, "application/problem+json")]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict, "application/problem+json")]
+    [ProducesResponseType<ValidationProblem>(StatusCodes.Status409Conflict, "application/problem+json")]
+    [ErrorCodes(StatusCodes.Status409Conflict, "BRAND_ALREADY_EXISTS")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status412PreconditionFailed, "application/problem+json")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status428PreconditionRequired, "application/problem+json")]
     public async Task<ActionResult<BrandDto>> Update(Guid id, BrandUpdateRequest request,
         [FromHeader(Name = "If-Match")] string? ifMatch, CancellationToken cancellationToken)
     {
-        if (!this.TryReadIfMatch(ifMatch, "/api/v1/admin/brands/{id}", out var version, out var refusal))
+        if (!this.TryReadIfMatch(ifMatch, out var version, out var refusal))
         {
             return refusal;
         }

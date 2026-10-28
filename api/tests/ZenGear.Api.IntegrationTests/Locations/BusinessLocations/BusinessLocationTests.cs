@@ -141,7 +141,7 @@ public class BusinessLocationTests : IntegrationTestBase
         var response = await SendAsync(new HttpMethod(method), string.Format(path, _locationId), AdminUid,
             method == "POST" ? ValidUpdate() : null);
 
-        response.StatusCode.ShouldBe(HttpStatusCode.MethodNotAllowed);
+        await response.ShouldBeProblemAsync(HttpStatusCode.MethodNotAllowed, "/problems/method-not-allowed", null);
         (await TestLocations.CountAsync()).ShouldBe(1);
     }
 
@@ -152,8 +152,8 @@ public class BusinessLocationTests : IntegrationTestBase
 
         var response = await UpdateAsync(AdminUid, await ETagAsync(), ValidUpdate() with { WardId = TestLocations.HoanKiemWard });
 
-        await response.ShouldBeProblemAsync(HttpStatusCode.BadRequest, "https://tools.ietf.org/html/rfc9110#section-15.5.1", null);
-        (await JsonAsync(response)).GetProperty("errors").TryGetProperty("wardId", out _).ShouldBeTrue();
+        await response.ShouldBeProblemAsync(HttpStatusCode.BadRequest, ProblemAssertions.ValidationType, null,
+            ExpectedError.At("#/wardId", "WARD_NOT_IN_PROVINCE"));
         (await TestLocations.RowAsync(_locationId)).ShouldBe(before);
     }
 
@@ -162,15 +162,16 @@ public class BusinessLocationTests : IntegrationTestBase
     {
         var response = await UpdateAsync(AdminUid, await ETagAsync(), ValidUpdate() with { ProvinceId = 99 });
 
-        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
-        (await JsonAsync(response)).GetProperty("errors").TryGetProperty("provinceId", out _).ShouldBeTrue();
+        await response.ShouldBeProblemAsync(HttpStatusCode.BadRequest, ProblemAssertions.ValidationType, null,
+            ExpectedError.At("#/provinceId", "PROVINCE_NOT_IN_USE"));
     }
 
     [Test]
     public async Task An_inactive_ward_is_refused_when_chosen_but_kept_when_unchanged()
     {
         var chosen = await UpdateAsync(AdminUid, await ETagAsync(), ValidUpdate() with { WardId = TestLocations.InactiveWard });
-        chosen.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        await chosen.ShouldBeProblemAsync(HttpStatusCode.BadRequest, ProblemAssertions.ValidationType, null,
+            ExpectedError.At("#/wardId", "WARD_NOT_IN_USE"));
 
         await using (var connection = await TestRoles.OpenAsync())
         await using (var command = new NpgsqlCommand($"UPDATE wards SET is_active = false WHERE id = {TestLocations.SaiGonWard}", connection))
@@ -207,7 +208,9 @@ public class BusinessLocationTests : IntegrationTestBase
 
         var response = await UpdateAsync(AdminUid, await ETagAsync(), update);
 
-        await response.ShouldBeProblemAsync(HttpStatusCode.BadRequest, "https://tools.ietf.org/html/rfc9110#section-15.5.1", "R-LOC-01");
+        var problem = await response.ShouldBeProblemAsync(HttpStatusCode.BadRequest, ProblemAssertions.ValidationType, "R-LOC-01",
+            ExpectedError.At("#/specialHours", "SPECIAL_HOURS_CLOSED_DATE_WITH_HOURS"));
+        problem.ErrorCodes().ShouldBe(["SPECIAL_HOURS_CLOSED_DATE_WITH_HOURS"]);
         (await TestLocations.RowAsync(_locationId)).ShouldBe(before);
     }
 
@@ -234,7 +237,7 @@ public class BusinessLocationTests : IntegrationTestBase
 
         var response = await UpdateAsync(AdminUid, stale, ValidUpdate());
 
-        response.StatusCode.ShouldBe(HttpStatusCode.PreconditionFailed);
+        await response.ShouldBeProblemAsync(HttpStatusCode.PreconditionFailed, "/problems/precondition-failed", null);
     }
 
     [Test]
@@ -257,8 +260,8 @@ public class BusinessLocationTests : IntegrationTestBase
         var response = await Client.SendAsync(TestTokens.Get(
             $"/api/v1/shop/business-locations?page={ZenGear.Services.Common.Models.PageRequest.MaxPage + 1}&pageSize=100", null));
 
-        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
-        (await JsonAsync(response)).GetProperty("errors").TryGetProperty("page", out _).ShouldBeTrue();
+        await response.ShouldBeProblemAsync(HttpStatusCode.BadRequest, ProblemAssertions.ValidationType, null,
+            ExpectedError.OnParameter("page", "PAGE_OUT_OF_RANGE"));
     }
 
     [Test]
@@ -274,12 +277,13 @@ public class BusinessLocationTests : IntegrationTestBase
 
         var response = await UpdateAsync(AdminUid, await ETagAsync(), update);
 
-        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
-        var errors = (await JsonAsync(response)).GetProperty("errors");
-        foreach (var field in new[] { "name", "phone", "email", "regularHours[0].day", "regularHours[0].open", "regularHours[1]" })
-        {
-            errors.TryGetProperty(field, out _).ShouldBeTrue(field);
-        }
+        await response.ShouldBeProblemAsync(HttpStatusCode.BadRequest, ProblemAssertions.ValidationType, null,
+            ExpectedError.At("#/name", "NAME_REQUIRED"),
+            ExpectedError.At("#/phone", "PHONE_INVALID"),
+            ExpectedError.At("#/email", "EMAIL_INVALID"),
+            ExpectedError.At("#/regularHours/0/day", "DAY_OUT_OF_RANGE"),
+            ExpectedError.At("#/regularHours/0/open", "OPEN_TIME_INVALID"),
+            ExpectedError.At("#/regularHours/1", "PERIOD_OPENS_AFTER_CLOSING"));
     }
 
     [Test]
@@ -290,8 +294,8 @@ public class BusinessLocationTests : IntegrationTestBase
 
         await (await UpdateAsync(AdminUid, null, ValidUpdate()))
             .ShouldBeProblemAsync(HttpStatusCode.PreconditionRequired, "/problems/if-match-required", null);
-        (await UpdateAsync(AdminUid, etag, ValidUpdate() with { Name = "Khác" })).StatusCode
-            .ShouldBe(HttpStatusCode.PreconditionFailed);
+        await (await UpdateAsync(AdminUid, etag, ValidUpdate() with { Name = "Khác" }))
+            .ShouldBeProblemAsync(HttpStatusCode.PreconditionFailed, "/problems/precondition-failed", null);
         (await TestLocations.RowAsync(_locationId)).Name.ShouldBe("ZenGear Bến Thành");
     }
 
@@ -300,7 +304,7 @@ public class BusinessLocationTests : IntegrationTestBase
     {
         var response = await SendAsync(HttpMethod.Get, $"/api/v1/admin/business-locations/{Guid.NewGuid()}", AdminUid);
 
-        response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+        await response.ShouldBeProblemAsync(HttpStatusCode.NotFound, "/problems/not-found", null);
     }
 
     [Test]
@@ -319,7 +323,7 @@ public class BusinessLocationTests : IntegrationTestBase
     {
         var response = await Client.SendAsync(TestTokens.Get($"/api/v1/admin/business-locations/{_locationId}", null));
 
-        response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+        await response.ShouldBeProblemAsync(HttpStatusCode.Unauthorized, "/problems/unauthenticated", null);
     }
 
     [Test]
@@ -327,8 +331,9 @@ public class BusinessLocationTests : IntegrationTestBase
     {
         var response = await Client.SendAsync(TestTokens.Get("/api/v1/shop/business-locations?pageSize=101", null));
 
-        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
-        (await JsonAsync(response)).GetProperty("errors").TryGetProperty("pageSize", out _).ShouldBeTrue();
+        var problem = await response.ShouldBeProblemAsync(HttpStatusCode.BadRequest, ProblemAssertions.ValidationType, null,
+            ExpectedError.OnParameter("pageSize", "PAGE_SIZE_OUT_OF_RANGE"));
+        problem.ErrorDetail(ExpectedError.OnParameter("pageSize", "PAGE_SIZE_OUT_OF_RANGE")).ShouldBe("Số dòng mỗi trang phải từ 1 đến 100.");
     }
 
     [Test]
@@ -369,10 +374,9 @@ public class BusinessLocationTests : IntegrationTestBase
     {
         var response = await SendAsync(HttpMethod.Get, "/api/v1/admin/business-locations?pageSize=101", AdminUid);
 
-        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
-        var body = await JsonAsync(response);
-        body.GetProperty("errors").TryGetProperty("pageSize", out _).ShouldBeTrue();
-        body.TryGetProperty("ruleId", out _).ShouldBeFalse();
+        // ShouldBeProblemAsync also checks that the 400 names no rule.
+        await response.ShouldBeProblemAsync(HttpStatusCode.BadRequest, ProblemAssertions.ValidationType, null,
+            ExpectedError.OnParameter("pageSize", "PAGE_SIZE_OUT_OF_RANGE"));
     }
 
     private static Update ValidUpdate() => new(

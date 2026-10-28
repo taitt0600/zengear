@@ -1,6 +1,7 @@
 using FluentValidation.TestHelper;
 using Shouldly;
 using ZenGear.Services.Common.Models;
+using ZenGear.Services.Common.Validators;
 using ZenGear.Services.Identity.StaffAccounts;
 
 namespace ZenGear.Services.Tests.Identity.StaffAccounts;
@@ -44,7 +45,7 @@ public class StaffListRequestValidatorTests
     [TestCase("1")]
     public void R_USR_13_refuses_a_status_other_than_ACTIVE_or_DISABLED(string status) =>
         _validator.TestValidate(Request(status: status)).ShouldHaveValidationErrorFor(r => r.Status)
-            .WithErrorCode(StaffListRequestValidator.RuleId);
+            .WithErrorCode(StaffListRequestValidator.StatusInvalid).WithCustomState(StaffListRequestValidator.RuleId);
 
     [TestCase("email")]
     [TestCase("phone")]
@@ -54,19 +55,19 @@ public class StaffListRequestValidatorTests
     [TestCase("name,employeeCode")]
     public void R_USR_13_refuses_an_undocumented_sort(string sort) =>
         _validator.TestValidate(Request(sort: sort)).ShouldHaveValidationErrorFor(r => r.Sort)
-            .WithErrorCode(StaffListRequestValidator.RuleId);
+            .WithErrorCode(StaffListRequestValidator.SortInvalid).WithCustomState(StaffListRequestValidator.RuleId);
 
     [TestCase(0)]
     [TestCase(PageRequest.MaxPage + 1)]
     public void R_USR_13_refuses_a_page_out_of_range(int page) =>
         _validator.TestValidate(Request(page: page)).ShouldHaveValidationErrorFor(r => r.Page)
-            .WithErrorCode(StaffListRequestValidator.RuleId);
+            .WithErrorCode(PageRequestValidator.PageOutOfRange).WithCustomState(StaffListRequestValidator.RuleId);
 
     [TestCase(0)]
     [TestCase(PageRequest.MaxPageSize + 1)]
     public void R_USR_13_refuses_a_page_size_outside_1_to_100(int pageSize) =>
         _validator.TestValidate(Request(pageSize: pageSize)).ShouldHaveValidationErrorFor(r => r.PageSize)
-            .WithErrorCode(StaffListRequestValidator.RuleId);
+            .WithErrorCode(PageRequestValidator.PageSizeOutOfRange).WithCustomState(StaffListRequestValidator.RuleId);
 
     [Test]
     public void R_USR_13_messages_never_repeat_the_value_sent()

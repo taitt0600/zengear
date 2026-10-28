@@ -10,29 +10,30 @@ namespace ZenGear.Api.Extensions;
 /// </summary>
 public static class ETagExtensions
 {
+    public const string PreconditionFailedType = "/problems/precondition-failed";
+
     public static void SetETag(this HttpResponse response, uint version) =>
         response.Headers.ETag = $"\"{version.ToString(CultureInfo.InvariantCulture)}\"";
 
     /// <summary>
     /// The version an update sends in <c>If-Match</c> (<see cref="TryParseIfMatch"/>); when it sends none, the 428
-    /// <c>/problems/if-match-required</c> naming <paramref name="readPath"/>, the <c>GET</c> that gives the tag; when it
-    /// sends a tag that can never match, 412.
+    /// <c>/problems/if-match-required</c>; when it sends a tag that can never match, the 412
+    /// <c>/problems/precondition-failed</c>. Their texts come from <c>ProblemDetailsSetup</c>.
     /// </summary>
-    public static bool TryReadIfMatch(this ControllerBase controller, string? ifMatch, string readPath, out uint? version,
+    public static bool TryReadIfMatch(this ControllerBase controller, string? ifMatch, out uint? version,
         [NotNullWhen(false)] out ActionResult? refusal)
     {
         ArgumentNullException.ThrowIfNull(controller);
         version = null;
         if (string.IsNullOrWhiteSpace(ifMatch))
         {
-            refusal = controller.Problem(statusCode: StatusCodes.Status428PreconditionRequired, type: "/problems/if-match-required",
-                title: "If-Match required", detail: $"Send the ETag of GET {readPath} in the If-Match header.");
+            refusal = controller.Problem(statusCode: StatusCodes.Status428PreconditionRequired, type: "/problems/if-match-required");
             return false;
         }
 
         if (!TryParseIfMatch(ifMatch, out version))
         {
-            refusal = controller.Problem(statusCode: StatusCodes.Status412PreconditionFailed);
+            refusal = controller.Problem(statusCode: StatusCodes.Status412PreconditionFailed, type: PreconditionFailedType);
             return false;
         }
 

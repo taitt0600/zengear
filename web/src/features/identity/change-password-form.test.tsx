@@ -16,9 +16,22 @@ vi.mock('@/lib/auth/session', () => session)
 const toast = vi.hoisted(() => ({ error: vi.fn(), success: vi.fn() }))
 vi.mock('sonner', () => ({ toast }))
 
-const problem = (status: number, name: string, errors?: Record<string, string[]>) =>
-  new ApiError(status, { type: `/problems/${name}`, status, errors })
-const recentLogin = () => problem(403, 'recent-login-required')
+const problem = (status: number, name: string, detail?: string) =>
+  new ApiError(status, { type: `/problems/${name}`, status, detail })
+const validation = (...errors: { pointer?: string; code: string; detail: string }[]) =>
+  new ApiError(400, {
+    type: '/problems/validation',
+    status: 400,
+    detail: 'Vui lòng kiểm tra lại các thông tin đã nhập.',
+    errors,
+  })
+const TOO_COMMON = 'Mật khẩu này quá phổ biến. Vui lòng chọn mật khẩu khác.'
+const tooCommon = () =>
+  validation({ pointer: '#/newPassword', code: 'PASSWORD_TOO_COMMON', detail: TOO_COMMON })
+const RECENT_LOGIN =
+  'Lần đăng nhập gần nhất đã quá 5 phút, nên cần xác nhận lại trước khi đổi mật khẩu.'
+const recentLogin = () => problem(403, 'recent-login-required', RECENT_LOGIN)
+const STAFF_ONLY = 'Chỉ tài khoản nhân viên mới đổi mật khẩu tại đây.'
 const firebaseError = (code: string) => Object.assign(new Error(code), { code })
 
 const NEW_PASSWORD = 'mot mat khau moi dai'
@@ -110,25 +123,46 @@ describe('the answers of POST /me/change-password', () => {
     expect(api.changeMyPassword).toHaveBeenCalledOnce()
   })
 
-  it('400: shows the refusal under the field, in Vietnamese, and keeps what was typed', async () => {
-    api.changeMyPassword.mockRejectedValue(
-      problem(400, 'validation', { newPassword: ['New password is too common.'] }),
-    )
+  it("400: shows the API's text under the field and keeps what was typed", async () => {
+    api.changeMyPassword.mockRejectedValue(tooCommon())
     renderForm()
     await submit()
 
-    expect(
-      await screen.findByText('Không dùng được mật khẩu này. Vui lòng chọn mật khẩu khác.'),
-    ).toBeInTheDocument()
-    expect(screen.queryByText('New password is too common.')).not.toBeInTheDocument()
+    expect(await screen.findByText(TOO_COMMON)).toBeInTheDocument()
     expect(screen.getByLabelText('Mật khẩu mới')).toHaveValue(NEW_PASSWORD)
     expect(screen.getByLabelText('Mật khẩu mới')).toHaveAttribute('aria-invalid', 'true')
     expect(screen.getByLabelText('Mật khẩu mới')).toHaveFocus()
     expect(onChanged).not.toHaveBeenCalled()
   })
 
+  it('400: shows the texts no field shows at the top of the form, until the next send', async () => {
+    api.changeMyPassword
+      .mockRejectedValueOnce(
+        validation({
+          pointer: '#',
+          code: 'BODY_INVALID',
+          detail: 'Nội dung yêu cầu không đọc được.',
+        }),
+      )
+      .mockReturnValueOnce(new Promise(() => {}))
+    renderForm()
+    const user = await submit()
+
+    const text = await screen.findByText('Nội dung yêu cầu không đọc được.')
+    expect(text.closest('[data-slot="alert"]')).toHaveAttribute('role', 'alert')
+    // No field shows an error, so the alert takes the focus.
+    await waitFor(() => expect(text.closest('[data-slot="alert"]')).toHaveFocus())
+    expect(screen.getByLabelText('Mật khẩu mới')).toHaveAttribute('aria-invalid', 'false')
+    expect(toast.error).not.toHaveBeenCalled()
+
+    await user.click(screen.getByRole('button', { name: 'Đổi mật khẩu' }))
+    await waitFor(() =>
+      expect(screen.queryByText('Nội dung yêu cầu không đọc được.')).not.toBeInTheDocument(),
+    )
+  })
+
   it('keeps no password in the mutation cache after an answer', async () => {
-    api.changeMyPassword.mockRejectedValue(problem(409, 'staff-account-required'))
+    api.changeMyPassword.mockRejectedValue(problem(409, 'staff-account-required', STAFF_ONLY))
     const client = renderForm()
     await submit()
 
@@ -138,25 +172,35 @@ describe('the answers of POST /me/change-password', () => {
     for (const mutation of sent) expect(mutation.state.variables).toBeUndefined()
   })
 
-  it('409 staff-account-required: shows its message', async () => {
-    api.changeMyPassword.mockRejectedValue(problem(409, 'staff-account-required'))
+  it("409 staff-account-required: shows the API's text", async () => {
+    api.changeMyPassword.mockRejectedValue(problem(409, 'staff-account-required', STAFF_ONLY))
     renderForm()
     await submit()
 
-    await waitFor(() =>
-      expect(toast.error).toHaveBeenCalledWith('Chỉ tài khoản nhân viên mới đổi mật khẩu tại đây.'),
-    )
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith(STAFF_ONLY))
     expect(onChanged).not.toHaveBeenCalled()
   })
 
   it('another problem: shows its detail, never its ruleId', async () => {
     api.changeMyPassword.mockRejectedValue(
-      new ApiError(500, { type: '/problems/x', status: 500, detail: 'Chi tiết.', ruleId: 'R-X' }),
+      new ApiError(409, { type: '/problems/x', status: 409, detail: 'Chi tiết.', ruleId: 'R-X' }),
     )
     renderForm()
     await submit()
 
     await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Chi tiết.'))
+  })
+
+  it('500 (no detail): shows the generic text', async () => {
+    api.changeMyPassword.mockRejectedValue(
+      new ApiError(500, { type: '/problems/internal-error', status: 500, title: 'Lỗi hệ thống' }),
+    )
+    renderForm()
+    await submit()
+
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith('Đã có lỗi xảy ra. Vui lòng thử lại.'),
+    )
   })
 
   it('a network failure: says so', async () => {
@@ -200,11 +244,7 @@ describe('403 recent-login-required (DEC-094)', () => {
   })
 
   it('maps the answers of the second send as the first', async () => {
-    api.changeMyPassword
-      .mockRejectedValueOnce(recentLogin())
-      .mockRejectedValueOnce(
-        problem(400, 'validation', { newPassword: ['New password is too common.'] }),
-      )
+    api.changeMyPassword.mockRejectedValueOnce(recentLogin()).mockRejectedValueOnce(tooCommon())
     renderForm()
     const user = await submit()
 
@@ -212,13 +252,11 @@ describe('403 recent-login-required (DEC-094)', () => {
     await user.type(within(dialog).getByLabelText('Mật khẩu hiện tại'), 'mat-khau-cu')
     await user.click(within(dialog).getByRole('button', { name: 'Tiếp tục' }))
 
-    expect(
-      await screen.findByText('Không dùng được mật khẩu này. Vui lòng chọn mật khẩu khác.'),
-    ).toBeInTheDocument()
+    expect(await screen.findByText(TOO_COMMON)).toBeInTheDocument()
     expect(onChanged).not.toHaveBeenCalled()
   })
 
-  it('sends the change only once more: a second 403 is an error', async () => {
+  it("sends the change only once more: a second 403 shows the API's text", async () => {
     api.changeMyPassword.mockRejectedValue(recentLogin())
     renderForm()
     const user = await submit()
@@ -227,9 +265,7 @@ describe('403 recent-login-required (DEC-094)', () => {
     await user.type(within(dialog).getByLabelText('Mật khẩu hiện tại'), 'mat-khau-cu')
     await user.click(within(dialog).getByRole('button', { name: 'Tiếp tục' }))
 
-    await waitFor(() =>
-      expect(toast.error).toHaveBeenCalledWith('Đã có lỗi xảy ra. Vui lòng thử lại.'),
-    )
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith(RECENT_LOGIN))
     expect(api.changeMyPassword).toHaveBeenCalledTimes(2)
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })

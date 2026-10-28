@@ -44,8 +44,11 @@ const admin: CurrentUser = {
 const manager: CurrentUser = { ...admin, name: 'Quản lý (fixture)', permissions: ['staff.read'] }
 const consultant: CurrentUser = { ...admin, name: 'Tư vấn bán hàng', permissions: [] }
 
-const problem = (status: number, name: string) =>
-  new ApiError(status, { type: `/problems/${name}`, status })
+const problem = (status: number, name: string, detail?: string) =>
+  new ApiError(status, { type: `/problems/${name}`, status, detail })
+const DISABLED = 'Tài khoản đã bị khóa. Vui lòng liên hệ quản lý cửa hàng.'
+const NOT_REGISTERED = 'Tài khoản này chưa được đăng ký trong hệ thống.'
+const keptReason = () => window.sessionStorage.getItem('zengear.signOutReason')
 
 function renderWithProviders(ui: React.ReactNode) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
@@ -63,6 +66,7 @@ const renderShell = (page: React.ReactNode = <p>Nội dung trang</p>) =>
 
 beforeEach(() => {
   vi.resetAllMocks()
+  window.sessionStorage.clear()
   session.state = 'signed-in'
   session.signOutAndClear.mockResolvedValue(undefined)
   navigation.pathname = '/admin/staff'
@@ -113,23 +117,38 @@ describe('the guard', () => {
   })
 
   it.each([
-    ['403 account-disabled', problem(403, 'account-disabled'), '?reason=account-disabled'],
+    ['403 account-disabled', problem(403, 'account-disabled', DISABLED), '', DISABLED],
     [
       '403 account-not-registered',
-      problem(403, 'account-not-registered'),
-      '?reason=account-not-registered',
+      problem(403, 'account-not-registered', NOT_REGISTERED),
+      '',
+      NOT_REGISTERED,
     ],
-    ['401', new ApiError(401), '?next=%2Fadmin%2Fstaff%3Fpage%3D2'],
-  ])('signs out on %s of GET /me', async (_, error, query) => {
+    ['401', new ApiError(401), '?next=%2Fadmin%2Fstaff%3Fpage%3D2', null],
+  ])('signs out on %s of GET /me', async (_, error, query, kept) => {
     api.me.mockRejectedValue(error)
     renderShell()
 
     await waitFor(() => expect(navigation.replace).toHaveBeenCalledWith(`/admin/sign-in${query}`))
     expect(session.signOutAndClear).toHaveBeenCalledOnce()
+    // The sign-in page shows the API's text of the refusal (DEC-117 (4)).
+    expect(keptReason()).toBe(kept)
+  })
+
+  it('signs out as a disabled account when Firebase says so, with the reason in the URL', async () => {
+    api.me.mockRejectedValue(
+      Object.assign(new Error('auth/user-disabled'), { code: 'auth/user-disabled' }),
+    )
+    renderShell()
+
+    await waitFor(() =>
+      expect(navigation.replace).toHaveBeenCalledWith('/admin/sign-in?reason=account-disabled'),
+    )
+    expect(keptReason()).toBeNull()
   })
 
   it.each([
-    ['403 account-disabled', problem(403, 'account-disabled'), '?reason=account-disabled'],
+    ['403 account-disabled', problem(403, 'account-disabled', DISABLED), ''],
     ['401', new ApiError(401), '?next=%2Fadmin%2Fstaff%3Fpage%3D2'],
   ])('signs out when a refetch of GET /me answers %s', async (_, error, query) => {
     const { client } = renderShell()
@@ -151,6 +170,26 @@ describe('the guard', () => {
 
     expect(screen.getByText('Nội dung trang')).toBeInTheDocument()
     expect(navigation.replace).not.toHaveBeenCalled()
+  })
+
+  it("shows the API's text when GET /me fails with one", async () => {
+    api.me.mockRejectedValue(
+      problem(403, 'forbidden', 'Bạn không được phép thực hiện thao tác này.'),
+    )
+    renderShell()
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Bạn không được phép thực hiện thao tác này.',
+    )
+  })
+
+  it('says the server could not be reached when GET /me gets no answer', async () => {
+    api.me.mockRejectedValue(new TypeError('Failed to fetch'))
+    renderShell()
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Không kết nối được máy chủ. Vui lòng kiểm tra mạng và thử lại.',
+    )
   })
 
   it('offers to try again or sign out when GET /me fails otherwise', async () => {
@@ -267,15 +306,14 @@ describe('the answers of other calls', () => {
     expect(await screen.findByText('Nội dung trang')).toBeInTheDocument()
   })
 
-  it('signs out when another call says the account was disabled', async () => {
+  it('signs out when another call says the account was disabled, keeping its text', async () => {
     renderShell()
     await screen.findByText('Nội dung trang')
 
-    act(() => reportApiError(problem(403, 'account-disabled')))
+    act(() => reportApiError(problem(403, 'account-disabled', DISABLED)))
 
-    await waitFor(() =>
-      expect(navigation.replace).toHaveBeenCalledWith('/admin/sign-in?reason=account-disabled'),
-    )
+    await waitFor(() => expect(navigation.replace).toHaveBeenCalledWith('/admin/sign-in'))
+    expect(keptReason()).toBe(DISABLED)
   })
 
   it('leaves the other problems to the screen', async () => {
@@ -342,6 +380,18 @@ describe('ChangePasswordScreen', () => {
     )
     expect(session.signOutAndClear).toHaveBeenCalledOnce()
     expect(api.changeMyPassword).toHaveBeenCalledExactlyOnceWith('mot mat khau moi dai')
+  })
+
+  it("shows the API's text when GET /me fails with one", async () => {
+    api.me.mockRejectedValue(
+      problem(403, 'forbidden', 'Bạn không được phép thực hiện thao tác này.'),
+    )
+    renderWithProviders(<ChangePasswordScreen />)
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Bạn không được phép thực hiện thao tác này.',
+    )
+    expect(screen.getByRole('button', { name: 'Thử lại' })).toBeInTheDocument()
   })
 
   it('sends a staff member without a pending change to the landing page', async () => {

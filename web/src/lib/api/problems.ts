@@ -1,7 +1,9 @@
 import type { components } from './schema'
 
-// Problem Details of the API (docs/API_CONVENTIONS.md, Errors; docs/FRONTEND.md, Forms and errors).
-export type Problem = components['schemas']['ValidationProblemDetails']
+// Problem Details of the API (docs/API_CONVENTIONS.md, Errors; docs/FRONTEND.md, Forms and errors). The API writes
+// `title`, `detail` and the `detail` of each `errors` item in Vietnamese (DEC-117): the web shows them as they come and
+// never maps a type or a code to a text of its own.
+export type Problem = components['schemas']['ValidationProblem']
 
 /** A failed API call: its HTTP status and, when the body was one, its Problem Details. */
 export class ApiError extends Error {
@@ -28,35 +30,80 @@ export function unwrap<T>(result: { data?: T; error?: unknown; response: Respons
   throw new ApiError(result.response.status, isProblem(result.error) ? result.error : undefined)
 }
 
-const PROBLEM_TYPE = /^\/problems\/([a-z0-9-]+)$/
-
-/** The `/problems/<name>` part of a problem's type, or undefined for another type. */
-export function problemName(problem: Problem | undefined): string | undefined {
-  return problem?.type?.match(PROBLEM_TYPE)?.[1]
+/**
+ * Whether a problem has the type `/problems/<name>`: for behaviour only (which page or dialog follows), never to
+ * choose a text.
+ */
+export function hasProblemType(problem: Problem | undefined, name: string): boolean {
+  return problem?.type === `/problems/${name}`
 }
-
-export type ProblemMessage = { key: `problems.${string}` } | { text: string }
 
 /**
- * What to show for a problem: the message key `problems.<name>` when the message files have one, otherwise the
- * problem's `detail`, otherwise the key `problems.unknown`. `ruleId` is for logs and never shown. A 412 has no
- * problem type of its own (the API answers ASP.NET's default): its text comes from the status, at the caller.
+ * Whether a call got no answer at all: fetch fails with a TypeError, and Firebase (getIdToken in the API client, or a
+ * sign-in) with the code auth/network-request-failed.
  */
-export function problemMessage(
-  problem: Problem | undefined,
-  hasKey: (key: string) => boolean,
-): ProblemMessage {
-  const name = problemName(problem)
-  if (name && hasKey(`problems.${name}`)) return { key: `problems.${name}` }
-  if (problem?.detail) return { text: problem.detail }
-  return { key: 'problems.unknown' }
+export function isNetworkError(error: unknown): boolean {
+  if (error instanceof TypeError) return true
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    error.code === 'auth/network-request-failed'
+  )
 }
 
-/** The first message of each field of a 400 validation problem, keyed like the form fields (camelCase). */
-export function fieldErrors(problem: Problem | undefined): Record<string, string> {
-  return Object.fromEntries(
-    Object.entries(problem?.errors ?? {})
-      .filter(([, messages]) => messages.length > 0)
-      .map(([field, messages]) => [field, messages[0]]),
-  )
+/** The web's own texts of a failed call, for when the API gave none. */
+export type ProblemTextKey = 'problems.network' | 'problems.unknown'
+
+/** What to show for a failed call: the API's text, or the key of the web's own text. */
+export type ProblemText = { text: string } | { key: ProblemTextKey }
+
+/**
+ * What to show for a failed call: the problem's `detail`; without an answer, the key `problems.network`; for an
+ * answer without a `detail` (a 500, a body that is not a problem) or any other error, the key `problems.unknown`.
+ * `ruleId` is for logs and never shown.
+ */
+export function problemText(error: unknown): ProblemText {
+  if (isNetworkError(error)) return { key: 'problems.network' }
+  const detail = error instanceof ApiError ? error.problem?.detail : undefined
+  return detail ? { text: detail } : { key: 'problems.unknown' }
+}
+
+/** The texts of a 400 (or a 409 bound to a field): one per form field, and those no field of the form shows. */
+export interface FieldErrors<F extends string> {
+  byField: Partial<Record<F, string>>
+  other: string[]
+}
+
+// A JSON Pointer as a URI fragment (`#/regularHours/1/day`) as the path of a form field (`regularHours.1.day`).
+function pointerPath(pointer: string): string | undefined {
+  if (!pointer.startsWith('#/')) return undefined
+  return pointer
+    .slice(2)
+    .split('/')
+    .map((segment) => segment.replaceAll('~1', '/').replaceAll('~0', '~'))
+    .join('.')
+}
+
+/**
+ * The `errors` of a problem on the fields of a form: the first `detail` of each field the form has, matched by
+ * `pointer` (`#/name`, a body field) or `parameter` (`roleId`, a query or route parameter); every other item goes to
+ * `other`, for the form to show at its top.
+ */
+export function fieldErrors<F extends string>(
+  problem: Problem | undefined,
+  fields: readonly F[],
+): FieldErrors<F> {
+  const byField: Partial<Record<F, string>> = {}
+  const other: string[] = []
+  for (const item of problem?.errors ?? []) {
+    const path = item.pointer === undefined ? item.parameter : pointerPath(item.pointer)
+    const field = fields.find((name) => name === path)
+    if (field === undefined) {
+      if (!other.includes(item.detail)) other.push(item.detail)
+    } else {
+      byField[field] ??= item.detail
+    }
+  }
+  return { byField, other }
 }

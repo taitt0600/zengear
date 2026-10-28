@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using ZenGear.Api.Attributes;
 using ZenGear.Api.Constants;
+using ZenGear.Api.ExceptionHandling;
 using ZenGear.Api.Extensions;
 using ZenGear.Services.Common.Models;
 using ZenGear.Services.Identity.Permissions;
@@ -19,7 +20,8 @@ public sealed class BusinessLocationsController(BusinessLocationService location
     [HttpGet]
     [RequirePermission(PermissionKeys.BusinessLocationUpdate)]
     [ProducesResponseType<PagedDto<BusinessLocationDto>>(StatusCodes.Status200OK, "application/json")]
-    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest, "application/problem+json")]
+    [ProducesResponseType<ValidationProblem>(StatusCodes.Status400BadRequest, "application/problem+json")]
+    [ErrorCodes(StatusCodes.Status400BadRequest, "PAGE_OUT_OF_RANGE", "PAGE_SIZE_OUT_OF_RANGE")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized, "application/problem+json")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden, "application/problem+json")]
     public Task<PagedDto<BusinessLocationDto>> List(CancellationToken cancellationToken, [FromQuery] int page = 1,
@@ -64,7 +66,14 @@ public sealed class BusinessLocationsController(BusinessLocationService location
     [HttpPut("{id:guid}")]
     [RequirePermission(PermissionKeys.BusinessLocationUpdate)]
     [ProducesResponseType<BusinessLocationDto>(StatusCodes.Status200OK, "application/json")]
-    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest, "application/problem+json")]
+    [ProducesResponseType<ValidationProblem>(StatusCodes.Status400BadRequest, "application/problem+json")]
+    [ErrorCodes(StatusCodes.Status400BadRequest, "NAME_REQUIRED", "NAME_TOO_LONG", "PHONE_REQUIRED", "PHONE_INVALID",
+        "EMAIL_INVALID", "EMAIL_TOO_LONG", "ADDRESS_DETAIL_REQUIRED", "ADDRESS_DETAIL_TOO_LONG",
+        "PROVINCE_ID_REQUIRED", "PROVINCE_ID_INVALID", "PROVINCE_NOT_IN_USE", "WARD_ID_REQUIRED", "WARD_ID_INVALID",
+        "WARD_NOT_IN_PROVINCE", "WARD_NOT_IN_USE", "REGULAR_HOURS_REQUIRED", "REGULAR_HOURS_EMPTY", "PERIOD_REQUIRED",
+        "DAY_REQUIRED", "DAY_OUT_OF_RANGE", "OPEN_TIME_INVALID", "CLOSE_TIME_INVALID", "PERIOD_OPENS_AFTER_CLOSING",
+        "PERIODS_PER_DAY_TOO_MANY", "PERIODS_OVERLAP", "SPECIAL_HOURS_TOO_MANY", "DATE_REQUIRED", "CLOSED_REQUIRED",
+        "SPECIAL_HOURS_CLOSED_DATE_WITH_HOURS")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized, "application/problem+json")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden, "application/problem+json")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound, "application/problem+json")]
@@ -73,7 +82,7 @@ public sealed class BusinessLocationsController(BusinessLocationService location
     public async Task<ActionResult<BusinessLocationDto>> Update(Guid id, BusinessLocationUpdateRequest request,
         [FromHeader(Name = "If-Match")] string? ifMatch, CancellationToken cancellationToken)
     {
-        if (!this.TryReadIfMatch(ifMatch, "/api/v1/admin/business-locations/{id}", out var version, out var refusal))
+        if (!this.TryReadIfMatch(ifMatch, out var version, out var refusal))
         {
             return refusal;
         }

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using ZenGear.Api.Attributes;
 using ZenGear.Api.Constants;
+using ZenGear.Api.ExceptionHandling;
 using ZenGear.Api.Extensions;
 using ZenGear.Services.Identity.Account;
 
@@ -53,7 +54,8 @@ public sealed class MeController(CurrentUserService currentUsers) : ControllerBa
     [HttpPatch]
     [AnyRegisteredUser]
     [ProducesResponseType<CurrentUserDto>(StatusCodes.Status200OK, "application/json")]
-    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest, "application/problem+json")]
+    [ProducesResponseType<ValidationProblem>(StatusCodes.Status400BadRequest, "application/problem+json")]
+    [ErrorCodes(StatusCodes.Status400BadRequest, "NAME_REQUIRED", "NAME_TOO_LONG")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized, "application/problem+json")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden, "application/problem+json")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status412PreconditionFailed, "application/problem+json")]
@@ -61,7 +63,7 @@ public sealed class MeController(CurrentUserService currentUsers) : ControllerBa
     public async Task<ActionResult<CurrentUserDto>> Update(CurrentUserUpdateRequest request,
         [FromHeader(Name = "If-Match")] string? ifMatch, CancellationToken cancellationToken)
     {
-        if (!this.TryReadIfMatch(ifMatch, "/api/v1/admin/me", out var version, out var refusal))
+        if (!this.TryReadIfMatch(ifMatch, out var version, out var refusal))
         {
             return refusal;
         }
@@ -84,7 +86,9 @@ public sealed class MeController(CurrentUserService currentUsers) : ControllerBa
     [AnyRegisteredUser]
     [AllowWhilePasswordChangeRequired]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest, "application/problem+json")]
+    [ProducesResponseType<ValidationProblem>(StatusCodes.Status400BadRequest, "application/problem+json")]
+    [ErrorCodes(StatusCodes.Status400BadRequest, "PASSWORD_REQUIRED", "PASSWORD_LENGTH_OUT_OF_RANGE",
+        "PASSWORD_IS_DEFAULT", "PASSWORD_TOO_COMMON", "PASSWORD_CONTAINS_ZENGEAR")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized, "application/problem+json")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden, "application/problem+json")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict, "application/problem+json")]

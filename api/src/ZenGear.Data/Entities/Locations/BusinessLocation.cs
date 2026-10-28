@@ -11,6 +11,14 @@ public class BusinessLocation : IAggregateRoot
     /// <summary>The most opening periods of one weekday or one holiday date.</summary>
     public const int MaxPeriodsPerDay = 3;
 
+    // The codes the hours checks return (DEC-117 (2)); the API writes their texts.
+    public const string RegularHoursEmpty = "REGULAR_HOURS_EMPTY";
+    public const string DayOutOfRange = "DAY_OUT_OF_RANGE";
+    public const string OpenTimeInvalid = "OPEN_TIME_INVALID";
+    public const string PeriodsPerDayTooMany = "PERIODS_PER_DAY_TOO_MANY";
+    public const string PeriodOpensAfterClosing = "PERIOD_OPENS_AFTER_CLOSING";
+    public const string PeriodsOverlap = "PERIODS_OVERLAP";
+
     protected BusinessLocation()
     {
     }
@@ -129,18 +137,18 @@ public class BusinessLocation : IAggregateRoot
         }
     }
 
-    /// <summary>What is wrong with the weekly hours (<see cref="CheckHours"/>); null when nothing is.</summary>
+    /// <summary>The code of what is wrong with the weekly hours (<see cref="CheckHours"/>); null when nothing is.</summary>
     public static string? RegularHoursProblem(IReadOnlyList<RegularHoursPeriod> regularHours)
     {
         ArgumentNullException.ThrowIfNull(regularHours);
         if (regularHours.Count == 0)
         {
-            return "The weekly hours need at least one period.";
+            return RegularHoursEmpty;
         }
 
         if (regularHours.Any(r => r.Day is < 1 or > 7))
         {
-            return "A weekday is 1 (Monday) to 7 (Sunday).";
+            return DayOutOfRange;
         }
 
         return regularHours.GroupBy(r => r.Day)
@@ -149,8 +157,8 @@ public class BusinessLocation : IAggregateRoot
     }
 
     /// <summary>
-    /// What is wrong with the holiday schedule (<see cref="CheckHours"/>); null when nothing is. A message about a closed
-    /// date starts with <c>R-LOC-01:</c>.
+    /// The code of what is wrong with the holiday schedule (<see cref="CheckHours"/>); null when nothing is.
+    /// <see cref="ClosedDateWithHours"/> breaks R-LOC-01; an open date without its times is <see cref="OpenTimeInvalid"/>.
     /// </summary>
     public static string? SpecialHoursProblem(IReadOnlyList<SpecialHoursPeriod>? specialHours)
     {
@@ -169,7 +177,7 @@ public class BusinessLocation : IAggregateRoot
 
             if (entries.Exists(s => s.Open is null || s.Close is null))
             {
-                return "An open holiday date needs its opening and closing times.";
+                return OpenTimeInvalid;
             }
 
             if (PeriodsProblem([.. entries.Select(s => new OpeningPeriod(s.Open!.Value, s.Close!.Value))]) is { } problem)
@@ -181,19 +189,19 @@ public class BusinessLocation : IAggregateRoot
         return null;
     }
 
-    /// <summary>The problem of a closed holiday date that also has hours or other entries (R-LOC-01).</summary>
-    public const string ClosedDateWithHours = "R-LOC-01: a closed holiday date has no hours and no other entry.";
+    /// <summary>The code of a closed holiday date that also has hours or other entries (R-LOC-01).</summary>
+    public const string ClosedDateWithHours = "SPECIAL_HOURS_CLOSED_DATE_WITH_HOURS";
 
     private static string? PeriodsProblem(List<OpeningPeriod> periods)
     {
         if (periods.Count > MaxPeriodsPerDay)
         {
-            return $"At most {MaxPeriodsPerDay} opening periods a day.";
+            return PeriodsPerDayTooMany;
         }
 
         if (periods.Exists(p => p.Open >= p.Close))
         {
-            return "A period opens before it closes.";
+            return PeriodOpensAfterClosing;
         }
 
         var ordered = periods.OrderBy(p => p.Open).ToList();
@@ -201,7 +209,7 @@ public class BusinessLocation : IAggregateRoot
         {
             if (ordered[i].Open < ordered[i - 1].Close)
             {
-                return "Opening periods of one day cannot overlap.";
+                return PeriodsOverlap;
             }
         }
 

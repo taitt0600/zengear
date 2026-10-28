@@ -52,6 +52,7 @@ test('a name changed elsewhere since the page loaded is not overwritten', async 
   await nameField(page).fill('Đổi trên màn hình này')
   await save(page).click()
 
+  // The detail of the API's 412 (DEC-117 (4)), in a toast.
   await expect(page.getByText('Dữ liệu đã được người khác thay đổi. Đang tải lại.')).toBeVisible()
   await expect(nameField(page)).toHaveValue('Đổi ở thiết bị khác')
 })
@@ -74,8 +75,10 @@ test('a staff member changes the password in the dialog, signing in again first'
       contentType: 'application/problem+json',
       body: JSON.stringify({
         type: '/problems/recent-login-required',
-        title: 'Recent sign-in required',
+        title: 'Cần xác nhận lại mật khẩu',
         status: 403,
+        detail:
+          'Lần đăng nhập gần nhất đã quá 5 phút, nên cần xác nhận lại trước khi đổi mật khẩu.',
         ruleId: 'R-USR-04',
       }),
     })
