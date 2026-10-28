@@ -11,7 +11,7 @@ public sealed class FolderTests
     private const string Data = "ZenGear.Data";
 
     private static readonly string[] ApiFolders =
-        ["Controllers", "ExceptionHandling", "Middlewares", "Extensions", "Attributes", "Authorization", "Options", "Constants", "Logging", "Hosting", "Properties"];
+        ["Controllers", "ExceptionHandling", "Middlewares", "Extensions", "Attributes", "Authorization", "Options", "Constants", "Logging", "Hosting", "Resources", "Properties"];
 
     private static readonly string[] DataFolders = ["Common", "Entities", "Configurations", "Externals", "Migrations"];
 

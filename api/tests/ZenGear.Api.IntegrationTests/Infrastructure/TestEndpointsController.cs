@@ -1,9 +1,11 @@
+using System.Globalization;
 using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ZenGear.Api.Attributes;
+using ZenGear.Api.ExceptionHandling;
 using ZenGear.Api.Extensions;
 using ZenGear.Services.Common;
 
@@ -67,6 +69,15 @@ public sealed class TestEndpointsController : ControllerBase
     [AllowAnonymous]
     [BadRequestRule(BadRequestRuleId)]
     public IActionResult BadRequestRuleReturned() => BadRequest();
+
+    /// <summary>
+    /// The title and detail <see cref="ProblemTexts"/> gives a problem type in the culture of the request, and the
+    /// formatting culture of the request.
+    /// </summary>
+    [HttpGet("problem-texts/{problemType}")]
+    [AllowAnonymous]
+    public IActionResult ProblemTextsOf(string problemType, [FromServices] ProblemTexts texts) =>
+        Ok(new { title = texts.Title(problemType), detail = texts.Detail(problemType), culture = CultureInfo.CurrentCulture.Name });
 
     [HttpPut("concurrency")]
     [AllowAnonymous]

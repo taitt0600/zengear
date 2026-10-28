@@ -17,6 +17,7 @@ public static class ProblemDetailsSetup
     {
         services.AddProblemDetails(options => options.CustomizeProblemDetails = context =>
             context.ProblemDetails.Extensions["traceId"] = Activity.Current?.Id ?? context.HttpContext.TraceIdentifier);
+        services.AddSingleton<ProblemTexts>();
 
         services.AddExceptionHandler<BusinessRuleExceptionHandler>();
         services.AddExceptionHandler<ValidationExceptionHandler>();
