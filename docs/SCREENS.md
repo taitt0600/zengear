@@ -13,23 +13,25 @@ only the shape of the input (required, length, format) with the limits below, wh
 ## Conventions for every screen
 
 - **Text**: every label, message and button comes from `web/messages/vi.json` (next-intl). The texts quoted below
-  are the Vietnamese wording for that file; terms of `docs/GLOSSARY.md` keep its Vietnamese label.
+  are the Vietnamese wording for that file; terms of `docs/GLOSSARY.md` keep its Vietnamese label. The text of an
+  error the API answers is the API's (`title`, `detail` and the `detail` of each `errors` item, from its vi-VN
+  resources, DEC-117): the tables of the screens say only where it shows.
 - **Access**: a staff screen needs a signed-in staff account; the permission of each screen is the one its endpoints
   require. Menus and buttons the user's permissions do not allow are hidden (`permissions` of `GET /api/v1/admin/me`,
   the user's own permission keys; never a role name), and the API still answers 403.
-- **Errors**: a 400 validation problem puts a message under each form field that `errors` names and keeps what was
-  typed; the message is the web's own Vietnamese text of that field, since the API writes the messages of `errors`
-  in English and with no code per reason (the owner's answer in the web-only pull request of STF-03; the rule for
-  later forms waits for the Decision of the Next row `dec-api-errors` of `docs/STATUS.md`);
-  any other problem shows the message of its `type` (table of each screen) in a toast, or `detail` when the type has
-  no message; `ruleId` is never shown. 401 signs the user out to the sign-in page; 403
+- **Errors** (DEC-117 (4)): a 400, or a 409 about one field, puts the `detail` of each `errors` item under the
+  form field its `pointer` or `parameter` names and keeps what was typed; an item no field shows goes in an alert at
+  the top of the form; any other problem shows its `detail` in a toast, or on the page when the page cannot show
+  without it; a 500 or an answer that cannot be read shows "Đã có lỗi xảy ra. Vui lòng thử lại." and no answer
+  "Không kết nối được máy chủ. Vui lòng kiểm tra mạng và thử lại." (the web's only texts for an answer of the API);
+  `ruleId` is never shown. 401 signs the user out to the sign-in page; 403
   `/problems/permission-denied` shows the no-permission page; 403 `/problems/recent-login-required` asks for the
   password again and retries once (DEC-094); 403 `/problems/password-change-required` (any call while the default
   password is unchanged) goes to SCR-AUT-02; 403 `/problems/account-disabled` (an account disabled while signed in,
-  R-SEC-04) and 403 `/problems/account-not-registered` sign the user out to SCR-AUT-01 with the message of
-  SCR-AUT-01.
-- **Edits with an ETag** (`If-Match`): the form keeps the `ETag` of the loaded resource; 412 says "Dữ liệu đã được
-  người khác thay đổi. Đang tải lại." and reloads the form.
+  R-SEC-04) and 403 `/problems/account-not-registered` sign the user out to SCR-AUT-01, which shows the problem's
+  `detail` once.
+- **Edits with an ETag** (`If-Match`): the form keeps the `ETag` of the loaded resource; 412 (or 428) shows its
+  `detail` in a toast and reloads the form.
 - **Leaving a form**: an admin edit form does not warn before the user leaves it with changes not saved (a menu
   link, a reload, closing the tab); the changes are lost. Chosen in the web-only pull request of STF-03 for every
   admin form alike (SCR-LOC-01 has no warning either), instead of one screen with a warning.
@@ -81,8 +83,9 @@ Every admin screen except the sign-in page sits in this layout.
   can open (other than this page), or "Tài khoản của tôi" when there is none. A page also shows it at once when the
   user lacks the permission of its endpoints; a 403 `permission-denied` shows it until the path changes.
 - **Other texts**: the skip link "Bỏ qua đến nội dung chính"; on narrow screens the menu opens with "Mở menu" and
-  closes with "Đóng menu"; the menu's name is "Menu"; when GET `/me` fails otherwise, "Đã có lỗi xảy ra. Vui lòng thử
-  lại." with "Thử lại" and "Đăng xuất". The header shows "ZenGear" instead of the store name until gap 6 is closed.
+  closes with "Đóng menu"; the menu's name is "Menu"; when GET `/me` fails otherwise, the problem's `detail` (or
+  the web's text of *Conventions*) with "Thử lại" and "Đăng xuất". The header shows "ZenGear" instead of the store
+  name until gap 6 is closed.
 - **Not found**: an `/admin` URL that matches no screen shows "Không tìm thấy trang này." inside the layout, with the
   link "Về trang chính" (`/admin`, the landing page); signed out, it goes to SCR-AUT-01 like any admin route.
 - **Toasts** ("Đã lưu." and the problems no field shows) sit in a region named "Thông báo".
@@ -105,8 +108,8 @@ Staff sign in with their company email and password (UC-001).
 |---|---|
 | Firebase: wrong email or password | "Email hoặc mật khẩu không đúng." (never which one) |
 | Firebase: too many attempts | "Bạn đã thử quá nhiều lần. Vui lòng thử lại sau." |
-| 403 `/problems/account-disabled` | "Tài khoản đã bị khóa. Vui lòng liên hệ quản lý cửa hàng." (then signs out) |
-| 403 `/problems/account-not-registered` | "Tài khoản này chưa được đăng ký trong hệ thống." (then signs out) |
+| 403 `/problems/account-disabled` | Its `detail` (then signs out) |
+| 403 `/problems/account-not-registered` | Its `detail` (then signs out) |
 
 No "forgot password" link in Phase 1: a staff member whose password is lost asks the Admin (UC-001 has no reset
 flow).
@@ -114,9 +117,10 @@ flow).
 Texts of the page that the table does not quote: the heading "Đăng nhập nhân viên"; the show/hide button "Hiện mật
 khẩu" (one label, its state is `aria-pressed`); "Vui lòng nhập email công ty.", "Email không hợp lệ.", "Vui lòng nhập
 mật khẩu."; a network failure of Firebase or of GET `/me`: "Không kết nối được máy chủ. Vui lòng kiểm tra mạng và thử
-lại."; any other failure, including an API that refuses GET `/me` right after Firebase accepted the password (the user
-is then signed out): "Không đăng nhập được. Vui lòng thử lại."; Firebase `auth/user-disabled` shows the text of
-`/problems/account-disabled`.
+lại."; any other failure of Firebase: "Không đăng nhập được. Vui lòng thử lại."; an API that refuses GET `/me` right
+after Firebase accepted the password (the user is then signed out): the problem's `detail`, or "Đã có lỗi xảy ra. Vui
+lòng thử lại." when it has none; Firebase `auth/user-disabled`: "Tài khoản đã bị khóa. Vui lòng liên hệ quản lý cửa
+hàng."
 
 ## SCR-AUT-02 Required password change
 
@@ -137,9 +141,9 @@ The web does not check the blocklist or the default password: the API does (R-US
 
 | Answer | Shown |
 |---|---|
-| 400 with `errors.newPassword` | "Không dùng được mật khẩu này. Vui lòng chọn mật khẩu khác." under the field, below the help text that names the policies (the default password, the blocklist or zengear; the web has checked the length) |
+| 400 with an item on `#/newPassword` | Under the field, below the help text that names the policies (the default password, the blocklist or zengear; the web has checked the length) |
 | 403 `/problems/recent-login-required` | A dialog "Vui lòng nhập lại mật khẩu hiện tại để tiếp tục": re-authenticates with Firebase, then sends the change again once |
-| 409 `/problems/staff-account-required` | "Chỉ tài khoản nhân viên mới đổi mật khẩu tại đây." |
+| 409 `/problems/staff-account-required` | Toast |
 
 "Đăng xuất" is the only other action on this screen.
 
@@ -148,9 +152,9 @@ tự." and "Mật khẩu nhập lại không khớp." (checked by the web); the 
 has the description "Lần đăng nhập gần nhất đã quá 5 phút, nên cần xác nhận lại trước khi đổi mật khẩu.", the field
 "Mật khẩu hiện tại" ("Vui lòng nhập mật khẩu hiện tại." when empty), "Tiếp tục" and "Hủy"; Firebase's answers there
 are "Mật khẩu hiện tại không đúng." for a wrong password and the texts of SCR-AUT-01 for the others; a second 403
-after signing in again shows "Đã có lỗi xảy ra. Vui lòng thử lại."; a network failure "Không kết nối được máy chủ.
-Vui lòng kiểm tra mạng và thử lại." The sign-in page shows the message of step 2 as a notice, not as an error,
-until the next sign-in attempt.
+after signing in again shows its `detail`; a network failure "Không kết nối được máy chủ. Vui lòng kiểm tra mạng và
+thử lại." The sign-in page shows the message of step 2 as a notice, not as an error, until the next sign-in
+attempt.
 
 ## SCR-ACC-01 My account
 
@@ -169,7 +173,7 @@ Loaded from `GET /api/v1/admin/me` (keep its `ETag`).
 
 | Answer | Shown |
 |---|---|
-| 400 with `errors.name` | "Tên hiển thị không hợp lệ." under the field |
+| 400 with an item on `#/name` | Under the field |
 | 412 or 428 | Reload, as in *Conventions* |
 
 The form keeps the `ETag` of the values it shows: a refetch of `GET /me` in the background (the window regains
@@ -228,13 +232,10 @@ The Admin (or a Store Manager holding `staff.create`) creates a staff account wi
 
 | Answer | Shown |
 |---|---|
-| 400 with `errors.<field>` | Under the field |
-| 409 `/problems/email-already-registered` | Under Email: "Email này đã có tài khoản." |
-| 409 `/problems/auth-account-exists` | Under Email: "Email này đã có tài khoản đăng nhập." |
-| 409 `/problems/employee-code-taken` | Under Mã nhân viên: "Mã nhân viên đã được dùng." |
-| 409 `/problems/role-required` | Under Vai trò: "Chọn ít nhất một vai trò." |
-| 409 `/problems/role-not-for-staff` | Under Vai trò: "Vai trò này không dùng cho nhân viên." |
-| 409 `/problems/admin-role-not-assignable` | Under Vai trò: "Chỉ quản trị viên mới gán được vai trò Admin." |
+| 400 with an item on `#/<field>` | Under the field |
+| 409 `/problems/email-already-registered`, `/problems/auth-account-exists` (item on `#/email`) | Under Email |
+| 409 `/problems/employee-code-taken` (item on `#/employeeCode`) | Under Mã nhân viên |
+| 409 `/problems/role-required`, `/problems/role-not-for-staff`, `/problems/admin-role-not-assignable` (item on `#/roleIds`) | Under Vai trò |
 
 ## SCR-STF-03 Staff account
 
@@ -260,17 +261,12 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
 
 | Answer | Shown |
 |---|---|
-| 404 | "Không tìm thấy tài khoản nhân viên." with a link to SCR-STF-01 |
-| 400 with `errors.leftDate` | Under the date field |
-| 409 `/problems/left-date-before-joined-date` | Under the date field: "Ngày nghỉ việc không được trước ngày vào làm." |
-| 409 `/problems/left-date-in-future` | Under the date field: "Ngày nghỉ việc không được sau hôm nay." |
-| 409 `/problems/own-account-not-lockable` | "Bạn không thể khóa tài khoản của chính mình." |
-| 409 `/problems/last-active-admin` | "Không thể khóa tài khoản quản trị viên cuối cùng đang hoạt động." |
-| 409 `/problems/admin-account-not-lockable` | "Chỉ quản trị viên mới khóa được tài khoản quản trị viên." |
-| 409 `/problems/admin-account-not-restorable` | "Chỉ quản trị viên mới khôi phục được tài khoản quản trị viên." |
-| 409 `/problems/account-anonymized` | "Tài khoản đã được ẩn danh, không thể khôi phục." |
-| 409 `/problems/concurrency-conflict` | "Tài khoản vừa được thay đổi. Đang tải lại." and reloads |
-| 500 on "Khóa" | The account may be disabled with its sessions still open (R-SEC-04), or not disabled at all: "Chưa khóa xong tài khoản. Vui lòng bấm Khóa lại để thử lại." The account is reloaded; "Khóa" (ACTIVE) or "Khóa lại" (DISABLED) sends the request again, which revokes the sessions again |
+| 404 | Its `detail` on the page, with a link to SCR-STF-01 |
+| 400 with an item on `#/leftDate` | Under the date field |
+| 409 `/problems/left-date-before-joined-date`, `/problems/left-date-in-future` (item on `#/leftDate`) | Under the date field |
+| 409 `/problems/own-account-not-lockable`, `/problems/last-active-admin`, `/problems/admin-account-not-lockable`, `/problems/admin-account-not-restorable`, `/problems/account-anonymized` | Toast |
+| 409 `/problems/concurrency-conflict` | Toast, and reloads |
+| 500 on "Khóa" | The account may be disabled with its sessions still open (R-SEC-04), or not disabled at all: the web's text of *Conventions* in a toast. The account is reloaded; "Khóa" (ACTIVE) or "Khóa lại" (DISABLED) sends the request again, which revokes the sessions again |
 
 ## SCR-LOC-01 Business location
 
@@ -296,7 +292,7 @@ the title says "Website, phiếu in và email dùng thông tin này."
 
 | Answer | Shown |
 |---|---|
-| 400 with `errors.<field>` | Under the field or the row of hours (a province no longer in use is under Tỉnh/Thành phố, a ward outside the province under Phường/Xã) |
+| 400 with an item on `#/<field>` | Under the field or the row of hours (`#/regularHours/1`, `#/specialHours`; a province no longer in use is under Tỉnh/Thành phố, a ward outside the province under Phường/Xã) |
 | 412 | Reload, as in *Conventions* |
 
 ---

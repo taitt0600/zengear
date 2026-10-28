@@ -17,10 +17,9 @@ Decision: DEC-106, amended by DEC-107.
 >   `BusinessLocationsController` calls `BusinessLocationService`): renaming them changes the OpenAPI tags again
 >   (DEC-107 (3)).
 > - The paging rule is not shared yet (DEC-106 (8), DEC-107 (5)); the paging query is, through `PagedQuery`
->   (DEC-109). The staff list answers its paging errors with
->   `ruleId` R-USR-13 and its own messages, while the `PageRequest` validator of `Common` names no rule. Sharing it
->   needs a rule-builder in `Common` that takes the caller's code, a new kind of type that `docs/ARCHITECTURE.md` asks
->   about first.
+>   (DEC-109). The staff list answers its paging errors with the codes of the `PageRequest` validator of `Common` and
+>   the rule R-USR-13, while that validator names no rule. Sharing the rule itself needs a rule-builder in `Common`
+>   that takes the caller's rule, a new kind of type that `docs/ARCHITECTURE.md` asks about first.
 > - The route and anonymous-access checks of DEC-106 (6) are tests of `ZenGear.Api.IntegrationTests`
 >   (`Authorization/AccessSurfaceTests`), not of `ZenGear.ArchitectureTests`: they read the routes the host builds
 >   after the route prefix convention has run (DEC-107 (6)).
@@ -80,7 +79,8 @@ These look like duplication but must stay separate. Do not merge them for DRY:
 |---|---|
 | A DTO per audience (`BusinessLocationDto` for staff, `BusinessLocationShopDto` for the shop) | R-SEC-10: one shared type is one permission bug away from showing cost fields or internal notes to customers |
 | A list DTO and a detail DTO of one entity (`StaffListItemDto`, `StaffDto`) | The list carries less personal data (no work phone) and less work per row |
-| The error code of each rule in its validator | Every 400 names its own `ruleId` (`docs/API_CONVENTIONS.md`, Errors) |
+| The error code of each reason, a const of its validator (`NAME_REQUIRED` in the validators of Catalog, Identity and Locations), and the rule of a check in its `WithState` | A code names one reason (DEC-117 (2)) and the areas share no Services type; every 400 names its own `ruleId` (`docs/API_CONVENTIONS.md`, Errors) |
+| The codes of an action in its `[ErrorCodes]`, written again as literals | The OpenAPI document is built without resolving the validators (some need Firebase); `OpenApiDocumentTests` checks that each enum holds every code of its validator |
 | One Postman folder per feature | Each feature is tested alone, in any order |
 | Migrations | A migration that has run is never edited |
 
@@ -172,17 +172,24 @@ STF-05 (the staff list); paths are those of section 5.
      expected reason.
 5. **Service layer**, in `ZenGear.Services/<Area>/<Module>/`:
    - the request (`StaffListRequest`) and the DTO (`StaffListItemDto`), records;
-   - the validator (`StaffListRequestValidator`, FluentValidation), each failure with `.WithErrorCode("R-…")` when it
-     breaks a rule, and a message that never repeats the value sent;
+   - the validator (`StaffListRequestValidator`, FluentValidation): each check with its own code,
+     `.WithErrorCode(StatusInvalid)` (a const of the validator, `STATUS_INVALID`), and `.WithState(_ => RuleId)` when it
+     breaks a rule; no message: the text of each code, with its placeholders (`{MaxLength}`, given by the check with
+     `context.MessageFormatter.AppendArgument`), goes in `ZenGear.Api/Resources/ExceptionHandling.ProblemTexts.vi-VN.resx`
+     and never repeats the value sent (DEC-117 (2), (3));
    - the method on the service of the use-case family (`StaffService.ListAsync`, taking a `CancellationToken`):
      validate, query with `ZenGearDbContext` (projection to the DTO, `AsNoTracking` for reads; a list pages its
      ordered query through `PagedQuery.ToPagedDtoAsync`), and for a rule broken by the current data throw
-     `BusinessRuleException(ruleId, problemType, title, detail)`, which the API returns as a 409.
+     `BusinessRuleException(ruleId, problemType, field)`, which the API returns as a 409 (`field`, the request property
+     the conflict is about, or none); the title and detail of the type go in the same resource file.
 6. **Controller**, in `ZenGear.Api/Controllers/<Area>/`: one action that calls the service, with
    - its access attribute (`[RequirePermission(PermissionKeys.StaffRead)]`);
    - `[ProducesResponseType]` for every answer, which feeds the OpenAPI document, and an XML `<response>` comment for
      each error code, for the reader (no project sets `GenerateDocumentationFile`, so XML comments do not reach the
      OpenAPI document);
+   - `[ErrorCodes(StatusCodes.Status400BadRequest, …)]` with every code its validator and service can answer, and
+     `[ErrorCodes(StatusCodes.Status409Conflict, …)]` with its field-bound conflicts, whose response is then a
+     `ValidationProblem`: the OpenAPI document turns them into the enum the web reads (DEC-117 (2));
    - `[BadRequestRule(<Validator>.RuleId)]` when the 400 of model binding (`?roleId=abc`) must name the rule, as
      STF-05 does;
    - no data access and no rule of its own.
