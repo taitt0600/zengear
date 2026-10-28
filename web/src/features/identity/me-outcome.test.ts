@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { ApiError } from '@/lib/api/problems'
 import type { CurrentUser } from './me'
-import { landingPath, meOutcome, sessionOutcome } from './me-outcome'
+import { firebaseError, landingPath, meOutcome, sessionOutcome } from './me-outcome'
 
 const staff: CurrentUser = {
   id: '0199a0f3-0000-7000-8000-000000000001',
@@ -33,14 +33,13 @@ describe('meOutcome', () => {
     })
   })
 
-  it('maps the session problems of the API', () => {
-    expect(meOutcome({ error: problem(403, 'account-disabled') })).toEqual({
-      kind: 'sign-out',
-      reason: 'account-disabled',
-    })
-    expect(meOutcome({ error: problem(403, 'account-not-registered') })).toEqual({
-      kind: 'sign-out',
-      reason: 'account-not-registered',
+  it('maps the session problems of the API, keeping the refusal for its text', () => {
+    const disabled = problem(403, 'account-disabled')
+    expect(meOutcome({ error: disabled })).toEqual({ kind: 'account-refused', error: disabled })
+    const notRegistered = problem(403, 'account-not-registered')
+    expect(meOutcome({ error: notRegistered })).toEqual({
+      kind: 'account-refused',
+      error: notRegistered,
     })
     expect(meOutcome({ error: problem(403, 'password-change-required') })).toEqual({
       kind: 'change-password',
@@ -48,45 +47,48 @@ describe('meOutcome', () => {
     expect(meOutcome({ error: new ApiError(401) })).toEqual({ kind: 'sign-in-again' })
   })
 
-  it('reports other answers as errors, telling a network failure apart', () => {
-    expect(meOutcome({ error: new ApiError(500) })).toEqual({ kind: 'error', network: false })
-    expect(meOutcome({ error: problem(403, 'permission-denied') })).toEqual({
-      kind: 'error',
-      network: false,
-    })
-    expect(meOutcome({ error: new TypeError('Failed to fetch') })).toEqual({
-      kind: 'error',
-      network: true,
-    })
+  it('reports other answers and a network failure as errors', () => {
+    expect(meOutcome({ error: new ApiError(500) })).toEqual({ kind: 'error' })
+    expect(meOutcome({ error: problem(403, 'permission-denied') })).toEqual({ kind: 'error' })
+    expect(meOutcome({ error: new TypeError('Failed to fetch') })).toEqual({ kind: 'error' })
   })
 })
 
 describe('a token Firebase can no longer refresh', () => {
-  const firebaseError = (code: string) => Object.assign(new Error(code), { code })
+  const firebaseFailure = (code: string) => Object.assign(new Error(code), { code })
 
   it.each(['auth/user-token-expired', 'auth/invalid-user-token', 'auth/user-not-found'])(
     '%s asks to sign in again',
     (code) => {
-      expect(meOutcome({ error: firebaseError(code) })).toEqual({ kind: 'sign-in-again' })
+      expect(meOutcome({ error: firebaseFailure(code) })).toEqual({ kind: 'sign-in-again' })
     },
   )
 
   it('auth/user-disabled signs out as a disabled account', () => {
-    expect(meOutcome({ error: firebaseError('auth/user-disabled') })).toEqual({
+    expect(meOutcome({ error: firebaseFailure('auth/user-disabled') })).toEqual({
       kind: 'sign-out',
       reason: 'account-disabled',
     })
   })
 
-  it('auth/network-request-failed is a network error, another code is not', () => {
-    expect(meOutcome({ error: firebaseError('auth/network-request-failed') })).toEqual({
+  it('another code is an error', () => {
+    expect(meOutcome({ error: firebaseFailure('auth/network-request-failed') })).toEqual({
       kind: 'error',
-      network: true,
     })
-    expect(meOutcome({ error: firebaseError('auth/internal-error') })).toEqual({
-      kind: 'error',
-      network: false,
-    })
+    expect(meOutcome({ error: firebaseFailure('auth/internal-error') })).toEqual({ kind: 'error' })
+  })
+})
+
+describe('firebaseError', () => {
+  const failure = (code: string) => Object.assign(new Error(code), { code })
+
+  it('gives the message key of each answer of a sign-in with a password', () => {
+    expect(firebaseError(failure('auth/invalid-credential'))).toBe('signIn.errors.wrongCredentials')
+    expect(firebaseError(failure('auth/too-many-requests'))).toBe('signIn.errors.tooManyAttempts')
+    expect(firebaseError(failure('auth/user-disabled'))).toBe('signIn.errors.accountDisabled')
+    expect(firebaseError(failure('auth/network-request-failed'))).toBe('problems.network')
+    expect(firebaseError(failure('auth/internal-error'))).toBe('signIn.errors.generic')
+    expect(firebaseError(new Error('not Firebase'))).toBe('signIn.errors.generic')
   })
 })
 

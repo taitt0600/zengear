@@ -1,20 +1,20 @@
 using Microsoft.AspNetCore.Mvc;
+using ZenGear.Api.Extensions;
 
 namespace ZenGear.Api.ExceptionHandling;
 
-/// <summary>403 Problem Details written outside MVC, with <c>traceId</c> added by the Problem Details service.</summary>
+/// <summary>
+/// 403 Problem Details written outside MVC; the Problem Details service adds its title, detail and <c>traceId</c>.
+/// </summary>
 internal static class ForbiddenProblem
 {
-    public static async Task WriteAsync(HttpContext context, IProblemDetailsService problemDetails,
-        string problemType, string title, string detail, string? ruleId)
+    public static async Task WriteAsync(HttpContext context, IProblemDetailsService problemDetails, string problemType, string? ruleId)
     {
         context.Response.StatusCode = StatusCodes.Status403Forbidden;
         var problem = new ProblemDetails
         {
-            Type = $"/problems/{problemType}",
-            Title = title,
+            Type = ProblemDetailsSetup.ProblemTypePrefix + problemType,
             Status = StatusCodes.Status403Forbidden,
-            Detail = detail,
         };
         if (ruleId is not null)
         {

@@ -57,9 +57,9 @@ public sealed class ProductSeriesService(
         await createValidator.ValidateAndThrowAsync(request, cancellationToken);
         var brandId = request.BrandId!.Value;
         await EnsureBrandInUseAsync(brandId, nameof(ProductSeriesCreateRequest.BrandId), cancellationToken);
-        await EnsureNameFreeAsync(request.Name, exceptId: null, cancellationToken);
+        await EnsureNameFreeAsync(request.Name!, exceptId: null, cancellationToken);
 
-        var series = ProductSeries.Create(request.Name, CatalogSlug.From(request.Name), brandId, actorId, clock.UtcNow);
+        var series = ProductSeries.Create(request.Name!, CatalogSlug.From(request.Name!), brandId, actorId, clock.UtcNow);
         db.ProductSeries.Add(series);
         try
         {
@@ -115,7 +115,7 @@ public sealed class ProductSeriesService(
             await EnsureBrandInUseAsync(brandId, nameof(ProductSeriesUpdateRequest.BrandId), cancellationToken);
         }
 
-        if (request.Name.Trim() != series.Name)
+        if (request.Name!.Trim() != series.Name)
         {
             await EnsureNameFreeAsync(request.Name, series.Id, cancellationToken);
         }
@@ -135,13 +135,12 @@ public sealed class ProductSeriesService(
             .SingleOrDefaultAsync(cancellationToken);
         if (isActive is null)
         {
-            throw new ValidationException([new ValidationFailure(field, "The brand does not exist.")]);
+            throw new ValidationException([new ValidationFailure(field, BrandNotFound) { ErrorCode = BrandNotFound }]);
         }
 
         if (isActive == false)
         {
-            throw new BusinessRuleException("R-DEL-01", "brand-retired", "Brand retired",
-                "The brand is retired: restore it before giving it a series.");
+            throw new BusinessRuleException("R-DEL-01", "brand-retired", field);
         }
     }
 
@@ -170,6 +169,8 @@ public sealed class ProductSeriesService(
         new(series.Id, series.Name, series.Slug, series.IsActive, series.BrandId, series.Version);
 
     private static BusinessRuleException NameTaken() =>
-        new(null, "product-series-already-exists", "Product series already exists",
-            "Another series, of any brand, already has this name or one that gives the same slug; if it is retired, restore it instead.");
+        new(null, "product-series-already-exists", nameof(ProductSeriesCreateRequest.Name));
+
+    /// <summary>The code of a brand id that names no brand (400 on the field, DEC-117 (2)).</summary>
+    public const string BrandNotFound = "BRAND_NOT_FOUND";
 }

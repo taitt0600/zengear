@@ -3,26 +3,33 @@
 import { useTranslations } from 'next-intl'
 import { useCallback } from 'react'
 import { toast } from 'sonner'
-import { ApiError, problemMessage } from '@/lib/api/problems'
-import { isNetworkError } from './me-outcome'
+import { problemText } from '@/lib/api/problems'
 
 /**
- * Shows in a toast a failed call that neither a form field nor a session rule takes (docs/SCREENS.md, Conventions):
- * the message of its problem type, or its `detail`, or the generic text; a network failure says so.
+ * The text of a failed call (DEC-117 (4)): the API's `detail`, or the web's own text when there is no answer or the
+ * answer has no `detail`.
  */
-export function useProblemToast(): (error: unknown) => void {
+export function useProblemText(): (error: unknown) => string {
   const t = useTranslations()
   return useCallback(
     (error: unknown) => {
-      if (isNetworkError(error)) {
-        toast.error(t('signIn.errors.network'))
-        return
-      }
-      const problem = error instanceof ApiError ? error.problem : undefined
-      // problemMessage returns a key only when the message file has it; the type names one such key.
-      const message = problemMessage(problem, (key) => t.has(key as 'problems.unknown'))
-      toast.error('key' in message ? t(message.key as 'problems.unknown') : message.text)
+      const text = problemText(error)
+      return 'key' in text ? t(text.key) : text.text
     },
     [t],
+  )
+}
+
+/**
+ * Shows in a toast a failed call that neither a form field nor a session rule takes (docs/SCREENS.md, Conventions),
+ * with the text of useProblemText.
+ */
+export function useProblemToast(): (error: unknown) => void {
+  const text = useProblemText()
+  return useCallback(
+    (error: unknown) => {
+      toast.error(text(error))
+    },
+    [text],
   )
 }

@@ -22,3 +22,8 @@ scripts:
       pm.test('problem type /problems/brand-retired', () =>
         pm.expect(pm.response.json().type).to.eql('/problems/brand-retired'));
       pm.test('ruleId R-DEL-01', () => pm.expect(pm.response.json().ruleId).to.eql('R-DEL-01'));
+      pm.test('error BRAND_RETIRED on #/brandId', () => {
+        const errors = pm.response.json().errors;
+        pm.expect(errors).to.be.an('array').with.lengthOf(1);
+        pm.expect(errors[0]).to.include({ pointer: '#/brandId', code: 'BRAND_RETIRED' });
+      });

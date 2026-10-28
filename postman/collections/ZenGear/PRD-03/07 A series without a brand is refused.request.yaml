@@ -1,7 +1,7 @@
 $kind: http-request
 description: |-
   Acceptance criterion 1: a series always belongs to one brand, so a series without one is a validation error
-  (400, errors.brandId).
+  (400, the code BRAND_ID_REQUIRED on the pointer #/brandId).
 method: POST
 url: '{{baseUrl}}/api/v1/admin/product-series'
 order: 7000
@@ -19,4 +19,9 @@ scripts:
     language: text/javascript
     code: |-
       pm.test('status 400', () => pm.response.to.have.status(400));
-      pm.test('the error is on brandId', () => pm.expect(pm.response.json().errors).to.have.property('brandId'));
+      const problem = pm.response.json();
+      pm.test('problem type /problems/validation', () => pm.expect(problem.type).to.eql('/problems/validation'));
+      pm.test('error BRAND_ID_REQUIRED on #/brandId', () => {
+        pm.expect(problem.errors).to.be.an('array');
+        pm.expect(problem.errors.map((e) => `${e.pointer} ${e.code}`)).to.include('#/brandId BRAND_ID_REQUIRED');
+      });

@@ -245,19 +245,6 @@ public class SignInTests : IntegrationTestBase
     private static async Task<JsonElement> JsonAsync(HttpResponseMessage response) =>
         JsonDocument.Parse(await response.Content.ReadAsStringAsync()).RootElement;
 
-    private static async Task ShouldBeProblemAsync(HttpResponseMessage response, string type, string? ruleId)
-    {
-        response.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
-        response.Content.Headers.ContentType!.MediaType.ShouldBe("application/problem+json");
-        var body = await JsonAsync(response);
-        body.GetProperty("type").GetString().ShouldBe(type);
-        if (ruleId is null)
-        {
-            body.TryGetProperty("ruleId", out _).ShouldBeFalse();
-        }
-        else
-        {
-            body.GetProperty("ruleId").GetString().ShouldBe(ruleId);
-        }
-    }
+    private static Task<JsonElement> ShouldBeProblemAsync(HttpResponseMessage response, string type, string? ruleId) =>
+        response.ShouldBeForbiddenProblemAsync(type, ruleId);
 }

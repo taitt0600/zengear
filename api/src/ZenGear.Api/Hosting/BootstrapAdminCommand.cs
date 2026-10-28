@@ -1,5 +1,8 @@
+using System.Globalization;
 using FluentValidation;
 using Microsoft.Extensions.Options;
+using ZenGear.Api.ExceptionHandling;
+using ZenGear.Api.Extensions;
 using ZenGear.Services.Common;
 using ZenGear.Services.Identity.StaffAccounts;
 
@@ -8,7 +11,8 @@ namespace ZenGear.Api.Hosting;
 /// <summary>
 /// The one-off command <c>dotnet ZenGear.Api.dll bootstrap-admin --email &lt;email&gt; --name &lt;name&gt;</c> that creates the
 /// first Admin of an environment (DEC-096). It runs instead of the web server: no request is served and no job starts.
-/// The password reset link is written to the operator's terminal only, never to a log.
+/// The password reset link is written to the operator's terminal only, never to a log. A refusal is written with the
+/// texts of the API's problems, in the default language (DEC-117 (3)): no request sets the culture here.
 /// </summary>
 public static class BootstrapAdminCommand
 {
@@ -25,6 +29,8 @@ public static class BootstrapAdminCommand
     /// <returns>The exit code: <see cref="Succeeded"/>, <see cref="Refused"/> or <see cref="UsageError"/>.</returns>
     public static async Task<int> RunAsync(IServiceProvider services, string[] args, TextWriter output, CancellationToken cancellationToken)
     {
+        CultureInfo.CurrentUICulture = LocalizationSetup.DefaultUiCulture;
+        var texts = services.GetRequiredService<ProblemTexts>();
         if (ReadOption(args, "--email") is not { } email || ReadOption(args, "--name") is not { } name)
         {
             await output.WriteLineAsync(Usage);
@@ -62,13 +68,13 @@ public static class BootstrapAdminCommand
         }
         catch (ValidationException ex)
         {
-            await output.WriteLineAsync(string.Join(" ", ex.Errors.Select(e => e.ErrorMessage)));
+            await output.WriteLineAsync(string.Join(" ", ex.Errors.Select(e => texts.ErrorDetail(e.ErrorCode, e.FormattedMessagePlaceholderValues))));
             await output.WriteLineAsync(Usage);
             return UsageError;
         }
         catch (BusinessRuleException ex)
         {
-            await output.WriteLineAsync(ex.Detail);
+            await output.WriteLineAsync(texts.Detail(ex.ProblemType));
             return Refused;
         }
     }

@@ -17,6 +17,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton'
 import { AdminNav } from './admin-nav'
 import { NoPermission } from './no-permission'
+import { useProblemText } from './problem-toast'
 import { CurrentUserProvider, useStaffSession } from './staff-session'
 import { UserMenu } from './user-menu'
 
@@ -24,6 +25,7 @@ import { UserMenu } from './user-menu'
 export function AdminShell({ children }: { children: ReactNode }) {
   const t = useTranslations()
   const session = useStaffSession('shell')
+  const problemText = useProblemText()
   const [menuOpen, setMenuOpen] = useState(false)
   // One context value per user and sign-out, so that the pages reading it re-render only when one of them changes.
   const readyMe = session.status === 'ready' ? session.me : null
@@ -39,7 +41,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
       <main className="flex flex-1 items-center justify-center p-4">
         <div className="flex w-full max-w-sm flex-col gap-4">
           <Alert variant="destructive">
-            <AlertDescription>{t('problems.unknown')}</AlertDescription>
+            <AlertDescription>{problemText(session.error)}</AlertDescription>
           </Alert>
           <div className="flex gap-2">
             <Button onClick={session.retry}>{t('admin.retry')}</Button>

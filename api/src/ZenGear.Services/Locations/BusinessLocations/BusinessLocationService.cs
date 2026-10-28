@@ -107,7 +107,7 @@ public sealed class BusinessLocationService(
             .SingleOrDefaultAsync(cancellationToken);
         if (province is null || (provinceChanged && !province.IsActive))
         {
-            throw Invalid(nameof(BusinessLocationUpdateRequest.ProvinceId), "No province in use has this id.");
+            throw Invalid(nameof(BusinessLocationUpdateRequest.ProvinceId), ProvinceNotInUse);
         }
 
         var ward = await db.Wards.AsNoTracking()
@@ -116,17 +116,22 @@ public sealed class BusinessLocationService(
             .SingleOrDefaultAsync(cancellationToken);
         if (ward is null || ward.ProvinceId != provinceId)
         {
-            throw Invalid(nameof(BusinessLocationUpdateRequest.WardId), "The ward does not belong to the chosen province.");
+            throw Invalid(nameof(BusinessLocationUpdateRequest.WardId), WardNotInProvince);
         }
 
         if (wardChanged && !ward.IsActive)
         {
-            throw Invalid(nameof(BusinessLocationUpdateRequest.WardId), "The ward is no longer in use.");
+            throw Invalid(nameof(BusinessLocationUpdateRequest.WardId), WardNotInUse);
         }
     }
 
-    private static ValidationException Invalid(string propertyName, string message) =>
-        new([new ValidationFailure(propertyName, message)]);
+    private static ValidationException Invalid(string propertyName, string code) =>
+        new([new ValidationFailure(propertyName, code) { ErrorCode = code }]);
 
     private sealed record LocationWithNames(BusinessLocation Location, string ProvinceName, string WardName);
+
+    // The codes of the checks that need the database (400 on the field, DEC-117 (2)).
+    public const string ProvinceNotInUse = "PROVINCE_NOT_IN_USE";
+    public const string WardNotInProvince = "WARD_NOT_IN_PROVINCE";
+    public const string WardNotInUse = "WARD_NOT_IN_USE";
 }

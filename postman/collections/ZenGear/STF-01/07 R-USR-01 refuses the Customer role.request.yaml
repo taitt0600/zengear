@@ -27,3 +27,8 @@ scripts:
       pm.test('status 409', () => pm.response.to.have.status(409));
       pm.test('problem type /problems/role-not-for-staff', () => pm.expect(pm.response.json().type).to.eql('/problems/role-not-for-staff'));
       pm.test('ruleId R-USR-01', () => pm.expect(pm.response.json().ruleId).to.eql('R-USR-01'));
+      pm.test('error ROLE_NOT_FOR_STAFF on #/roleIds', () => {
+        const errors = pm.response.json().errors;
+        pm.expect(errors).to.be.an('array').with.lengthOf(1);
+        pm.expect(errors[0]).to.include({ pointer: '#/roleIds', code: 'ROLE_NOT_FOR_STAFF' });
+      });

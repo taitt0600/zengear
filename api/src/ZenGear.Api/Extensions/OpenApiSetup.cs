@@ -6,7 +6,9 @@ using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.Net.Http.Headers;
 using Microsoft.OpenApi;
+using ZenGear.Api.Attributes;
 using ZenGear.Api.Controllers.Identity;
+using ZenGear.Api.ExceptionHandling;
 using ZenGear.Services.Identity.StaffAccounts;
 
 namespace ZenGear.Api.Extensions;
@@ -28,7 +30,81 @@ public static class OpenApiSetup
             .AddDocumentTransformer(TransformDocument)
             .AddSchemaTransformer(TransformProblemDetailsSchema)
             .AddOperationTransformer(DeclareETagHeader)
-            .AddOperationTransformer(DeclareStaffListValues));
+            .AddOperationTransformer(DeclareStaffListValues)
+            .AddOperationTransformer(DeclareErrorCodes));
+
+    /// <summary>
+    /// The codes of <c>errors</c> each operation can answer (DEC-117 (2)), so the web gets a union per endpoint: for the
+    /// 400 its <see cref="ErrorCodesAttribute"/> codes and the model-binding codes, for a 409 that names a field its
+    /// codes. Each becomes the enum component <c>&lt;Controller&gt;&lt;Action&gt;ErrorCode</c> (or <c>…ConflictCode</c>),
+    /// in ordinal order so the document is the same at every build, and the response schema becomes
+    /// <see cref="ValidationProblem"/> with <c>errors[].code</c> narrowed to it.
+    /// </summary>
+    private static Task DeclareErrorCodes(OpenApiOperation operation, OpenApiOperationTransformerContext context,
+        CancellationToken cancellationToken)
+    {
+        if (operation.Responses is not { } responses || context.Document is not { } document
+            || context.Description.ActionDescriptor is not ControllerActionDescriptor action)
+        {
+            return Task.CompletedTask;
+        }
+
+        var declared = action.EndpointMetadata.OfType<ErrorCodesAttribute>().ToList();
+        foreach (var (status, suffix) in new[] { (StatusCodes.Status400BadRequest, "ErrorCode"), (StatusCodes.Status409Conflict, "ConflictCode") })
+        {
+            var codes = declared.Where(a => a.Status == status).SelectMany(a => a.Codes)
+                .Concat(status == StatusCodes.Status400BadRequest ? ProblemDetailsSetup.ModelBindingCodes : [])
+                .Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToList();
+            if (codes.Count == 0
+                || !responses.TryGetValue(status.ToString(CultureInfo.InvariantCulture), out var found)
+                || found is not OpenApiResponse { Content: { } content }
+                || !content.TryGetValue("application/problem+json", out var media))
+            {
+                continue;
+            }
+
+            if (media.Schema is not OpenApiSchemaReference { Reference.Id: nameof(ValidationProblem) } problem)
+            {
+                throw new InvalidOperationException(
+                    $"{action.DisplayName} declares error codes for {status}, but its response is not a {nameof(ValidationProblem)}.");
+            }
+
+            var enumName = action.ControllerName + action.ActionName + suffix;
+            document.AddComponent<IOpenApiSchema>(enumName, new OpenApiSchema
+            {
+                Type = JsonSchemaType.String,
+                Enum = [.. codes.Select(code => (JsonNode)JsonValue.Create(code))],
+            });
+            media.Schema = new OpenApiSchema
+            {
+                AllOf =
+                [
+                    problem,
+                    new OpenApiSchema
+                    {
+                        Type = JsonSchemaType.Object,
+                        Properties = new Dictionary<string, IOpenApiSchema>
+                        {
+                            ["errors"] = new OpenApiSchema
+                            {
+                                Type = JsonSchemaType.Array,
+                                Items = new OpenApiSchema
+                                {
+                                    Type = JsonSchemaType.Object,
+                                    Properties = new Dictionary<string, IOpenApiSchema>
+                                    {
+                                        ["code"] = new OpenApiSchemaReference(enumName, document),
+                                    },
+                                },
+                            },
+                        },
+                    },
+                ],
+            };
+        }
+
+        return Task.CompletedTask;
+    }
 
     /// <summary>
     /// The <c>ETag</c> response header on every 200 and 201 whose body is a versioned resource: a DTO with a
@@ -94,6 +170,22 @@ public static class OpenApiSetup
     /// </summary>
     private static Task TransformProblemDetailsSchema(OpenApiSchema schema, OpenApiSchemaTransformerContext context, CancellationToken cancellationToken)
     {
+        // An item names a pointer or a parameter, the other one is left out (never null).
+        if (context.JsonTypeInfo.Type == typeof(ProblemError))
+        {
+            foreach (var place in new[] { "pointer", "parameter" })
+            {
+                schema.Required?.Remove(place);
+                if (schema.Properties is { } properties && properties.TryGetValue(place, out var found)
+                    && found is OpenApiSchema property)
+                {
+                    property.Type = JsonSchemaType.String;
+                }
+            }
+
+            return Task.CompletedTask;
+        }
+
         if (!typeof(ProblemDetails).IsAssignableFrom(context.JsonTypeInfo.Type))
         {
             return Task.CompletedTask;

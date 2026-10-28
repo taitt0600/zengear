@@ -4,18 +4,21 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { usePathname, useRouter } from 'next/navigation'
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { onApiError } from '@/lib/api/api-errors'
-import { ApiError, problemName } from '@/lib/api/problems'
+import { ApiError, hasProblemType } from '@/lib/api/problems'
 import { signOutAndClear, useAuthState } from '@/lib/auth/session'
 import { meQuery, type CurrentUser } from './me'
 import { meOutcome, sessionOutcome, type MeOutcome } from './me-outcome'
+import { useProblemText } from './problem-toast'
 import { adminRoutes, signInPath, type PASSWORD_CHANGED } from './routes'
+import { keepSignOutReason } from './sign-out-reason'
 
 /** Signs out to the sign-in page; after a password change, with its notice there. */
 export type SignOut = (reason?: typeof PASSWORD_CHANGED) => Promise<void>
 
 export type StaffSession =
   | { status: 'loading' }
-  | { status: 'error'; retry: () => void; signOut: SignOut }
+  // `error`: what failed, GET /me or the sign-out, for the text of the error state.
+  | { status: 'error'; error: unknown; retry: () => void; signOut: SignOut }
   | {
       status: 'ready'
       me: CurrentUser
@@ -36,11 +39,13 @@ export function useStaffSession(mode: 'shell' | 'change-password'): StaffSession
   const router = useRouter()
   const pathname = usePathname()
   const queryClient = useQueryClient()
+  const problemText = useProblemText()
   const auth = useAuthState()
   const me = useQuery({ ...meQuery, enabled: auth === 'signed-in' })
   // Once the page is left (a redirect or a sign-out), nothing else is decided here.
   const leaving = useRef(false)
-  const [failed, setFailed] = useState(false)
+  // The sign-out failed: its error, kept until "Thử lại".
+  const [failed, setFailed] = useState<{ error: unknown } | null>(null)
   const [forbiddenPath, setForbiddenPath] = useState<string | null>(null)
   // The layout stays mounted across pages: a new path clears the no-permission page of the last one.
   const [shownPath, setShownPath] = useState(pathname)
@@ -76,7 +81,8 @@ export function useStaffSession(mode: 'shell' | 'change-password'): StaffSession
   )
   // Firebase could not sign out: the error state offers to try again or to sign out again.
   const leaveOrFail = useCallback(
-    (path: string, signOut: boolean) => leave(path, signOut).catch(() => setFailed(true)),
+    (path: string, signOut: boolean) =>
+      leave(path, signOut).catch((error: unknown) => setFailed({ error })),
     [leave],
   )
 
@@ -93,6 +99,11 @@ export function useStaffSession(mode: 'shell' | 'change-password'): StaffSession
         case 'sign-out':
           void leaveOrFail(signInPath({ reason: next.reason }), true)
           return
+        case 'account-refused':
+          // The sign-in page shows the API's text once (DEC-117 (4)).
+          if (!leaving.current) keepSignOutReason(problemText(next.error))
+          void leaveOrFail(adminRoutes.signIn, true)
+          return
         case 'sign-in-again':
           void leaveOrFail(signInPath({ next: here }), true)
           return
@@ -100,7 +111,7 @@ export function useStaffSession(mode: 'shell' | 'change-password'): StaffSession
           return
       }
     },
-    [leaveOrFail, mode],
+    [leaveOrFail, mode, problemText],
   )
 
   useEffect(() => {
@@ -123,7 +134,7 @@ export function useStaffSession(mode: 'shell' | 'change-password'): StaffSession
         else if (
           error instanceof ApiError &&
           error.status === 403 &&
-          problemName(error.problem) === 'permission-denied'
+          hasProblemType(error.problem, 'permission-denied')
         ) {
           setForbiddenPath(window.location.pathname)
         }
@@ -140,10 +151,10 @@ export function useStaffSession(mode: 'shell' | 'change-password'): StaffSession
 
   if (failed || outcome?.kind === 'error') {
     const retry = () => {
-      setFailed(false)
+      setFailed(null)
       void me.refetch()
     }
-    return { status: 'error', retry, signOut }
+    return { status: 'error', error: failed ? failed.error : me.error, retry, signOut }
   }
   const allowed = mode === 'shell' ? 'staff' : 'change-password'
   // After a sign-out the cache is empty and the session signed out, so this is loading again.

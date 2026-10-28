@@ -29,3 +29,8 @@ scripts:
       pm.test('status 409', () => pm.response.to.have.status(409));
       pm.test('problem type /problems/admin-role-not-assignable', () => pm.expect(pm.response.json().type).to.eql('/problems/admin-role-not-assignable'));
       pm.test('ruleId R-TX-11', () => pm.expect(pm.response.json().ruleId).to.eql('R-TX-11'));
+      pm.test('error ADMIN_ROLE_NOT_ASSIGNABLE on #/roleIds', () => {
+        const errors = pm.response.json().errors;
+        pm.expect(errors).to.be.an('array').with.lengthOf(1);
+        pm.expect(errors[0]).to.include({ pointer: '#/roleIds', code: 'ADMIN_ROLE_NOT_ASSIGNABLE' });
+      });

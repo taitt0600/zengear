@@ -39,15 +39,13 @@ public sealed class StaffStatusService(
 
         if (id == actorId)
         {
-            throw new BusinessRuleException("R-USR-12", "own-account-not-lockable", "Own account not lockable",
-                "No one can disable their own account.");
+            throw new BusinessRuleException("R-USR-12", "own-account-not-lockable");
         }
 
         var holdsAdmin = await staff.HoldsAdminRoleAsync(id, cancellationToken);
         if (holdsAdmin && !await staff.HoldsAdminRoleAsync(actorId, cancellationToken))
         {
-            throw new BusinessRuleException("R-TX-11", "admin-account-not-lockable", "Admin account not lockable",
-                "Only an Admin can disable an account that holds the Admin role.");
+            throw new BusinessRuleException("R-TX-11", "admin-account-not-lockable");
         }
 
         if (request.LeftDate < user.StaffProfile!.JoinedDate)
@@ -57,8 +55,7 @@ public sealed class StaffStatusService(
 
         if (request.LeftDate > clock.Today)
         {
-            throw new BusinessRuleException("R-USR-07", "left-date-in-future", "Left date in the future",
-                "The left date cannot be after today.");
+            throw new BusinessRuleException("R-USR-07", "left-date-in-future", nameof(StaffDisableRequest.LeftDate));
         }
 
         // Only disabling an ACTIVE Admin needs the lock of the last-Admin check held until the commit.
@@ -129,8 +126,7 @@ public sealed class StaffStatusService(
 
         if (await staff.HoldsAdminRoleAsync(id, cancellationToken) && !await staff.HoldsAdminRoleAsync(actorId, cancellationToken))
         {
-            throw new BusinessRuleException("R-USR-12", "admin-account-not-restorable", "Admin account not restorable",
-                "Only an Admin can restore an account that holds the Admin role.");
+            throw new BusinessRuleException("R-USR-12", "admin-account-not-restorable");
         }
 
         user.Restore(actorId, clock.UtcNow);
@@ -162,8 +158,7 @@ public sealed class StaffStatusService(
 
         if (activeAdmins.TrueForAll(adminId => adminId == id))
         {
-            throw new BusinessRuleException("R-USR-12", "last-active-admin", "Last active Admin",
-                "The last ACTIVE account holding the Admin role cannot be disabled.");
+            throw new BusinessRuleException("R-USR-12", "last-active-admin");
         }
     }
 
@@ -186,12 +181,10 @@ public sealed class StaffStatusService(
     {
         if (user.Status == UserStatus.Anonymized)
         {
-            throw new BusinessRuleException("R-USR-03", "account-anonymized", "Account anonymized",
-                "An anonymized account cannot be disabled or restored.");
+            throw new BusinessRuleException("R-USR-03", "account-anonymized");
         }
     }
 
     private static BusinessRuleException LeftDateBeforeJoinedDate() =>
-        new("R-USR-07", "left-date-before-joined-date", "Left date before joined date",
-            "The left date cannot be before the joined date.");
+        new("R-USR-07", "left-date-before-joined-date", nameof(StaffDisableRequest.LeftDate));
 }

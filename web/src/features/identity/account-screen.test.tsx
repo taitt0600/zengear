@@ -33,6 +33,14 @@ const consultant: LoadedCurrentUser = {
 }
 const signOut = vi.fn()
 
+const validation = (...errors: { pointer?: string; code: string; detail: string }[]) =>
+  new ApiError(400, {
+    type: '/problems/validation',
+    status: 400,
+    detail: 'Vui lòng kiểm tra lại các thông tin đã nhập.',
+    errors,
+  })
+
 function renderScreen() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   render(
@@ -127,32 +135,52 @@ describe('"Lưu" (PATCH /me with If-Match)', () => {
     await waitFor(() => expect(api.updateMe).toHaveBeenCalledWith('Tên đang gõ', '"v1"'))
   })
 
-  it('400: shows a Vietnamese message under the field and keeps the name', async () => {
+  it("400: shows the API's text under the field and keeps the name", async () => {
     api.updateMe.mockRejectedValue(
-      new ApiError(400, { status: 400, errors: { name: ['Name is required.'] } }),
+      validation({ pointer: '#/name', code: 'NAME_TOO_LONG', detail: 'Tên tối đa 100 ký tự.' }),
     )
     renderScreen()
     const user = await rename('Tên mới')
     await user.click(screen.getByRole('button', { name: 'Lưu' }))
 
-    expect(await screen.findByText('Tên hiển thị không hợp lệ.')).toBeInTheDocument()
-    expect(screen.queryByText('Name is required.')).not.toBeInTheDocument()
+    expect(await screen.findByText('Tên tối đa 100 ký tự.')).toBeInTheDocument()
     expect(nameField()).toHaveValue('Tên mới')
+    expect(nameField()).toHaveAttribute('aria-invalid', 'true')
     expect(nameField()).toHaveFocus()
   })
 
-  it.each([412, 428])('%i: says the data changed and reloads the form', async (status) => {
-    api.updateMe.mockRejectedValue(new ApiError(status))
+  it('400: shows the texts no field shows at the top of the form', async () => {
+    api.updateMe.mockRejectedValue(
+      validation(
+        { pointer: '#/name', code: 'NAME_REQUIRED', detail: 'Vui lòng nhập tên.' },
+        { pointer: '#', code: 'BODY_INVALID', detail: 'Nội dung yêu cầu không đọc được.' },
+      ),
+    )
+    renderScreen()
+    const user = await rename('Tên mới')
+    await user.click(screen.getByRole('button', { name: 'Lưu' }))
+
+    const text = await screen.findByText('Nội dung yêu cầu không đọc được.')
+    expect(text.closest('[data-slot="alert"]')).toHaveAttribute('role', 'alert')
+    expect(screen.getByText('Vui lòng nhập tên.')).toBeInTheDocument()
+    // The field in error takes the focus, not the alert.
+    await waitFor(() => expect(screen.getByLabelText('Tên hiển thị')).toHaveFocus())
+    expect(toast.error).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    [412, 'precondition-failed', 'Dữ liệu đã được người khác thay đổi. Đang tải lại.'],
+    [428, 'if-match-required', 'Không xác định được phiên bản của dữ liệu đang sửa. Đang tải lại.'],
+  ])("%i: shows the API's text and reloads the form", async (status, type, detail) => {
+    api.updateMe.mockRejectedValue(
+      new ApiError(status, { type: `/problems/${type}`, status, detail }),
+    )
     renderScreen()
     const user = await rename('Tên của tôi')
     api.me.mockResolvedValue({ ...consultant, name: 'Đổi ở nơi khác', etag: '"v2"' })
     await user.click(screen.getByRole('button', { name: 'Lưu' }))
 
-    await waitFor(() =>
-      expect(toast.error).toHaveBeenCalledWith(
-        'Dữ liệu đã được người khác thay đổi. Đang tải lại.',
-      ),
-    )
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith(detail))
     await waitFor(() => expect(nameField()).toHaveValue('Đổi ở nơi khác'))
 
     api.updateMe.mockResolvedValue({ ...consultant, etag: '"v3"' })
@@ -164,7 +192,13 @@ describe('"Lưu" (PATCH /me with If-Match)', () => {
   })
 
   it('412 and GET /me then fails: keeps what was typed and says the reload failed', async () => {
-    api.updateMe.mockRejectedValue(new ApiError(412))
+    api.updateMe.mockRejectedValue(
+      new ApiError(412, {
+        type: '/problems/precondition-failed',
+        status: 412,
+        detail: 'Dữ liệu đã được người khác thay đổi. Đang tải lại.',
+      }),
+    )
     renderScreen()
     const user = await rename('Tên của tôi')
     api.me.mockRejectedValue(new TypeError('Failed to fetch'))
@@ -174,6 +208,10 @@ describe('"Lưu" (PATCH /me with If-Match)', () => {
     expect(toast.error).toHaveBeenNthCalledWith(
       1,
       'Dữ liệu đã được người khác thay đổi. Đang tải lại.',
+    )
+    expect(toast.error).toHaveBeenNthCalledWith(
+      2,
+      'Không kết nối được máy chủ. Vui lòng kiểm tra mạng và thử lại.',
     )
     expect(nameField()).toHaveValue('Tên của tôi')
   })

@@ -40,9 +40,9 @@ public sealed class BrandService(
     public async Task<BrandDto> CreateAsync(BrandCreateRequest request, Guid actorId, CancellationToken cancellationToken)
     {
         await createValidator.ValidateAndThrowAsync(request, cancellationToken);
-        await EnsureNameFreeAsync(request.Name, exceptId: null, cancellationToken);
+        await EnsureNameFreeAsync(request.Name!, exceptId: null, cancellationToken);
 
-        var brand = Brand.Create(request.Name, CatalogSlug.From(request.Name), actorId, clock.UtcNow);
+        var brand = Brand.Create(request.Name!, CatalogSlug.From(request.Name!), actorId, clock.UtcNow);
         db.Brands.Add(brand);
         try
         {
@@ -87,7 +87,7 @@ public sealed class BrandService(
             db.Entry(brand).Property(b => b.Version).OriginalValue = expected;
         }
 
-        if (request.Name.Trim() != brand.Name)
+        if (request.Name!.Trim() != brand.Name)
         {
             await EnsureNameFreeAsync(request.Name, brand.Id, cancellationToken);
         }
@@ -121,6 +121,5 @@ public sealed class BrandService(
     private static BrandDto ToDto(Brand brand) => new(brand.Id, brand.Name, brand.Slug, brand.IsActive, brand.Version);
 
     private static BusinessRuleException NameTaken() =>
-        new(null, "brand-already-exists", "Brand already exists",
-            "Another brand already has this name or one that gives the same slug; if it is retired, restore it instead.");
+        new(null, "brand-already-exists", nameof(BrandCreateRequest.Name));
 }

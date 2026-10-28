@@ -37,12 +37,10 @@ public sealed class StaffBootstrapService(
             await db.Database.ExecuteSqlAsync($"SELECT pg_advisory_xact_lock({AdvisoryLockKeys.AdminBootstrap})", cancellationToken);
 
             var adminRole = await db.Roles.SingleOrDefaultAsync(r => r.Name == PermissionCatalog.AdminRoleName, cancellationToken)
-                ?? throw new BusinessRuleException(null, "admin-role-missing", "Admin role missing",
-                    "The Admin role does not exist: run api/db/zengear_08_roles.sql and api/seed first.");
+                ?? throw new BusinessRuleException(null, "admin-role-missing");
             if (await db.UserRoles.AnyAsync(ur => ur.RoleId == adminRole.Id, cancellationToken))
             {
-                throw new BusinessRuleException(null, "admin-already-exists", "Admin already exists",
-                    "An Admin already exists; nothing was changed. The Admin creates the other accounts.");
+                throw new BusinessRuleException(null, "admin-already-exists");
             }
 
             if (await db.Users.AnyAsync(u => u.Email == email, cancellationToken))
@@ -115,13 +113,26 @@ public sealed class StaffBootstrapService(
         var failures = new List<ValidationFailure>();
         if (!StaffCreateRequestValidator.IsEmail(email))
         {
-            failures.Add(new ValidationFailure(nameof(email), "Email is not a valid email address."));
+            failures.Add(new ValidationFailure(nameof(email), StaffCreateRequestValidator.EmailInvalid)
+            {
+                ErrorCode = StaffCreateRequestValidator.EmailInvalid,
+            });
         }
 
-        if (name.Length == 0 || name.Length > StaffCreateRequestValidator.NameMaxLength)
+        if (name.Length == 0)
         {
-            failures.Add(new ValidationFailure(nameof(name),
-                $"Name is required and at most {StaffCreateRequestValidator.NameMaxLength} characters."));
+            failures.Add(new ValidationFailure(nameof(name), StaffCreateRequestValidator.NameRequired)
+            {
+                ErrorCode = StaffCreateRequestValidator.NameRequired,
+            });
+        }
+        else if (name.Length > StaffCreateRequestValidator.NameMaxLength)
+        {
+            failures.Add(new ValidationFailure(nameof(name), StaffCreateRequestValidator.NameTooLong)
+            {
+                ErrorCode = StaffCreateRequestValidator.NameTooLong,
+                FormattedMessagePlaceholderValues = new Dictionary<string, object> { ["MaxLength"] = StaffCreateRequestValidator.NameMaxLength },
+            });
         }
 
         if (failures.Count > 0)
@@ -131,5 +142,5 @@ public sealed class StaffBootstrapService(
     }
 
     private static BusinessRuleException EmailAlreadyRegistered() =>
-        new(null, "email-already-registered", "Email already registered", "Another account already uses this email.");
+        new(null, "email-already-registered");
 }

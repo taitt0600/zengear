@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using ZenGear.Api.Attributes;
 using ZenGear.Api.Constants;
+using ZenGear.Api.ExceptionHandling;
 using ZenGear.Services.Identity.Permissions;
 using ZenGear.Services.Identity.StaffAccounts;
 
@@ -30,11 +31,12 @@ public sealed class StaffStatusController(StaffStatusService staffStatus) : Cont
     [HttpPost("{id:guid}/disable")]
     [RequirePermission(PermissionKeys.StaffDisable)]
     [ProducesResponseType<StaffDto>(StatusCodes.Status200OK, "application/json")]
-    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest, "application/problem+json")]
+    [ProducesResponseType<ValidationProblem>(StatusCodes.Status400BadRequest, "application/problem+json")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized, "application/problem+json")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden, "application/problem+json")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound, "application/problem+json")]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict, "application/problem+json")]
+    [ProducesResponseType<ValidationProblem>(StatusCodes.Status409Conflict, "application/problem+json")]
+    [ErrorCodes(StatusCodes.Status409Conflict, "LEFT_DATE_BEFORE_JOINED_DATE", "LEFT_DATE_IN_FUTURE")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError, "application/problem+json")]
     public async Task<ActionResult<StaffDto>> Disable(Guid id,
         [FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Allow)] StaffDisableRequest? request,

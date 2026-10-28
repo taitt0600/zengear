@@ -9,8 +9,14 @@ public sealed class CurrentUserUpdateRequestValidator : AbstractValidator<Curren
     public CurrentUserUpdateRequestValidator()
     {
         RuleFor(r => r.Name).Cascade(CascadeMode.Stop)
-            .Must(n => !string.IsNullOrWhiteSpace(n)).WithMessage("Name is required.")
-            .Must(n => n!.Trim().Length <= StaffCreateRequestValidator.NameMaxLength)
-            .WithMessage($"Name must be at most {StaffCreateRequestValidator.NameMaxLength} characters.");
+            .Must(n => !string.IsNullOrWhiteSpace(n)).WithErrorCode(StaffCreateRequestValidator.NameRequired)
+            .Must(FitsNameMaxLength).WithErrorCode(StaffCreateRequestValidator.NameTooLong);
+    }
+
+    /// <summary>Also gives the limit to the text of the error (<c>{MaxLength}</c>).</summary>
+    private static bool FitsNameMaxLength(CurrentUserUpdateRequest request, string? name, ValidationContext<CurrentUserUpdateRequest> context)
+    {
+        context.MessageFormatter.AppendArgument("MaxLength", StaffCreateRequestValidator.NameMaxLength);
+        return name!.Trim().Length <= StaffCreateRequestValidator.NameMaxLength;
     }
 }

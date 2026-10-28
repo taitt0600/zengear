@@ -1,7 +1,7 @@
 $kind: http-request
 description: |-
   UC-070 3a (acceptance criterion "Phường/xã phải thuộc tỉnh/thành đã chọn"): Phường Hoàn Kiếm (Hà Nội) with TP. Hồ Chí
-  Minh is refused with 400 on wardId; 09 shows nothing changed.
+  Minh is refused with 400, the code WARD_NOT_IN_PROVINCE on the pointer #/wardId; 09 shows nothing changed.
 method: PUT
 url: '{{baseUrl}}/api/v1/admin/business-locations/{{businessLocationId}}'
 order: 7000
@@ -28,6 +28,9 @@ scripts:
     language: text/javascript
     code: |-
       pm.test('status 400', () => pm.response.to.have.status(400));
-      pm.test('problem type 400', () =>
-        pm.expect(pm.response.json().type).to.eql('https://tools.ietf.org/html/rfc9110#section-15.5.1'));
-      pm.test('error on wardId', () => pm.expect(pm.response.json().errors).to.have.property('wardId'));
+      const problem = pm.response.json();
+      pm.test('problem type /problems/validation', () => pm.expect(problem.type).to.eql('/problems/validation'));
+      pm.test('error WARD_NOT_IN_PROVINCE on #/wardId', () => {
+        pm.expect(problem.errors).to.be.an('array');
+        pm.expect(problem.errors.map((e) => `${e.pointer} ${e.code}`)).to.include('#/wardId WARD_NOT_IN_PROVINCE');
+      });

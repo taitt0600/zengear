@@ -104,9 +104,9 @@ function ReauthForm({
         {error && (
           <Alert variant="destructive">
             <AlertDescription>
-              {error === 'wrongCredentials'
+              {error === 'signIn.errors.wrongCredentials'
                 ? t('changePassword.reauth.wrongPassword')
-                : t(`signIn.errors.${error}`)}
+                : t(error)}
             </AlertDescription>
           </Alert>
         )}

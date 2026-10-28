@@ -18,9 +18,7 @@
       "wrongCredentials": "Email hoặc mật khẩu không đúng.",
       "tooManyAttempts": "Bạn đã thử quá nhiều lần. Vui lòng thử lại sau.",
       "accountDisabled": "Tài khoản đã bị khóa. Vui lòng liên hệ quản lý cửa hàng.",
-      "accountNotRegistered": "Tài khoản này chưa được đăng ký trong hệ thống.",
       "notStaff": "Tài khoản này không phải tài khoản nhân viên.",
-      "network": "Không kết nối được máy chủ. Vui lòng kiểm tra mạng và thử lại.",
       "generic": "Không đăng nhập được. Vui lòng thử lại."
     },
     "passwordChanged": "Đã đổi mật khẩu. Vui lòng đăng nhập lại bằng mật khẩu mới."
@@ -42,7 +40,6 @@
     },
     "noPermission": "Bạn không có quyền xem trang này.",
     "placeholder": "Màn hình này đang được xây dựng.",
-    "stale": "Dữ liệu đã được người khác thay đổi. Đang tải lại.",
     "notifications": "Thông báo",
     "notFound": "Không tìm thấy trang này.",
     "home": "Về trang chính"
@@ -57,8 +54,7 @@
     "validation": {
       "required": "Vui lòng nhập mật khẩu mới.",
       "length": "Mật khẩu mới dài từ 12 đến 128 ký tự.",
-      "mismatch": "Mật khẩu nhập lại không khớp.",
-      "refused": "Không dùng được mật khẩu này. Vui lòng chọn mật khẩu khác."
+      "mismatch": "Mật khẩu nhập lại không khớp."
     },
     "reauth": {
       "title": "Vui lòng nhập lại mật khẩu hiện tại để tiếp tục",
@@ -79,13 +75,12 @@
     "changePasswordNote": "Sau khi đổi, bạn và mọi thiết bị đã đăng nhập phải đăng nhập lại bằng mật khẩu mới.",
     "validation": {
       "nameRequired": "Vui lòng nhập tên hiển thị.",
-      "nameTooLong": "Tên hiển thị tối đa 100 ký tự.",
-      "nameRefused": "Tên hiển thị không hợp lệ."
+      "nameTooLong": "Tên hiển thị tối đa 100 ký tự."
     }
   },
   "problems": {
-    "unknown": "Đã có lỗi xảy ra. Vui lòng thử lại.",
-    "staff-account-required": "Chỉ tài khoản nhân viên mới đổi mật khẩu tại đây."
+    "network": "Không kết nối được máy chủ. Vui lòng kiểm tra mạng và thử lại.",
+    "unknown": "Đã có lỗi xảy ra. Vui lòng thử lại."
   },
   "ui": {
     "close": "Đóng"

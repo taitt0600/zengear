@@ -8,8 +8,8 @@ public sealed class BrandCreateRequestValidator : AbstractValidator<BrandCreateR
     public BrandCreateRequestValidator()
     {
         // A child validator skips a null value, so the null check stays here.
-        RuleFor(r => r.Name).Cascade(CascadeMode.Stop)
-            .NotNull().WithMessage("Name is required.")
+        RuleFor(r => r.Name!).Cascade(CascadeMode.Stop)
+            .NotNull().WithErrorCode(CatalogNameValidator.NameRequired)
             .SetValidator(new CatalogNameValidator());
     }
 }

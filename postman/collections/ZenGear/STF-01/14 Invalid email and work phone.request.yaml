@@ -1,6 +1,7 @@
 $kind: http-request
 description: |-
-  Input validation: 400 with an error for each field.
+  Input validation: 400 with an error for each field, its pointer and its code (EMAIL_INVALID on #/email,
+  WORK_PHONE_INVALID on #/workPhone).
 method: POST
 url: '{{baseUrl}}/api/v1/admin/staff'
 order: 14000
@@ -25,5 +26,10 @@ scripts:
     language: text/javascript
     code: |-
       pm.test('status 400', () => pm.response.to.have.status(400));
-      const fields = Object.keys(pm.response.json().errors || {}).map((k) => k.toLowerCase());
-      pm.test('errors on email and workPhone', () => pm.expect(fields).to.include.members(['email', 'workphone']));
+      const problem = pm.response.json();
+      pm.test('problem type /problems/validation', () => pm.expect(problem.type).to.eql('/problems/validation'));
+      pm.test('errors EMAIL_INVALID on #/email and WORK_PHONE_INVALID on #/workPhone', () => {
+        pm.expect(problem.errors).to.be.an('array');
+        pm.expect(problem.errors.map((e) => `${e.pointer} ${e.code}`))
+          .to.include.members(['#/email EMAIL_INVALID', '#/workPhone WORK_PHONE_INVALID']);
+      });

@@ -26,3 +26,8 @@ scripts:
     code: |-
       pm.test('status 409', () => pm.response.to.have.status(409));
       pm.test('problem type /problems/employee-code-taken', () => pm.expect(pm.response.json().type).to.eql('/problems/employee-code-taken'));
+      pm.test('error EMPLOYEE_CODE_TAKEN on #/employeeCode', () => {
+        const errors = pm.response.json().errors;
+        pm.expect(errors).to.be.an('array').with.lengthOf(1);
+        pm.expect(errors[0]).to.include({ pointer: '#/employeeCode', code: 'EMPLOYEE_CODE_TAKEN' });
+      });

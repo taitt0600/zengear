@@ -12,16 +12,385 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="validation.title" xml:space="preserve">
+    <value>Dữ liệu không hợp lệ</value>
+  </data>
+  <data name="validation.detail" xml:space="preserve">
+    <value>Vui lòng kiểm tra lại các thông tin đã nhập.</value>
+  </data>
+  <data name="unauthenticated.title" xml:space="preserve">
+    <value>Chưa đăng nhập</value>
+  </data>
+  <data name="unauthenticated.detail" xml:space="preserve">
+    <value>Vui lòng đăng nhập để tiếp tục.</value>
+  </data>
+  <data name="account-not-registered.title" xml:space="preserve">
+    <value>Tài khoản chưa đăng ký</value>
+  </data>
+  <data name="account-not-registered.detail" xml:space="preserve">
+    <value>Tài khoản này chưa được đăng ký trong hệ thống.</value>
+  </data>
+  <data name="permission-denied.title" xml:space="preserve">
+    <value>Không có quyền</value>
+  </data>
+  <data name="permission-denied.detail" xml:space="preserve">
+    <value>Bạn không có quyền thực hiện thao tác này.</value>
+  </data>
+  <data name="account-disabled.title" xml:space="preserve">
+    <value>Tài khoản đã bị khóa</value>
+  </data>
+  <data name="account-disabled.detail" xml:space="preserve">
+    <value>Tài khoản đã bị khóa. Vui lòng liên hệ quản lý cửa hàng.</value>
+  </data>
+  <data name="password-change-required.title" xml:space="preserve">
+    <value>Cần đổi mật khẩu</value>
+  </data>
+  <data name="password-change-required.detail" xml:space="preserve">
+    <value>Vui lòng đổi mật khẩu trước khi dùng các chức năng khác.</value>
+  </data>
+  <data name="recent-login-required.title" xml:space="preserve">
+    <value>Cần xác nhận lại mật khẩu</value>
+  </data>
+  <data name="recent-login-required.detail" xml:space="preserve">
+    <value>Lần đăng nhập gần nhất đã quá 5 phút, nên cần xác nhận lại trước khi đổi mật khẩu.</value>
+  </data>
+  <data name="forbidden.title" xml:space="preserve">
+    <value>Không được phép</value>
+  </data>
+  <data name="forbidden.detail" xml:space="preserve">
+    <value>Bạn không được phép thực hiện thao tác này.</value>
+  </data>
+  <data name="not-found.title" xml:space="preserve">
+    <value>Không tìm thấy</value>
+  </data>
+  <data name="not-found.detail" xml:space="preserve">
+    <value>Không tìm thấy dữ liệu yêu cầu.</value>
+  </data>
+  <data name="method-not-allowed.title" xml:space="preserve">
+    <value>Thao tác không được hỗ trợ</value>
+  </data>
+  <data name="method-not-allowed.detail" xml:space="preserve">
+    <value>Thao tác này không được hỗ trợ.</value>
+  </data>
+  <data name="not-acceptable.title" xml:space="preserve">
+    <value>Định dạng không được hỗ trợ</value>
+  </data>
+  <data name="not-acceptable.detail" xml:space="preserve">
+    <value>Định dạng dữ liệu này không được hỗ trợ.</value>
+  </data>
+  <data name="unsupported-media-type.title" xml:space="preserve">
+    <value>Định dạng không được hỗ trợ</value>
+  </data>
+  <data name="unsupported-media-type.detail" xml:space="preserve">
+    <value>Định dạng dữ liệu này không được hỗ trợ.</value>
+  </data>
+  <data name="concurrency-conflict.title" xml:space="preserve">
+    <value>Dữ liệu đã thay đổi</value>
+  </data>
+  <data name="concurrency-conflict.detail" xml:space="preserve">
+    <value>Dữ liệu vừa được người khác thay đổi. Đang tải lại.</value>
+  </data>
+  <data name="precondition-failed.title" xml:space="preserve">
+    <value>Dữ liệu đã thay đổi</value>
+  </data>
+  <data name="precondition-failed.detail" xml:space="preserve">
+    <value>Dữ liệu đã được người khác thay đổi. Đang tải lại.</value>
+  </data>
+  <data name="if-match-required.title" xml:space="preserve">
+    <value>Thiếu phiên bản dữ liệu</value>
+  </data>
+  <data name="if-match-required.detail" xml:space="preserve">
+    <value>Không xác định được phiên bản của dữ liệu đang sửa. Đang tải lại.</value>
+  </data>
+  <data name="internal-error.title" xml:space="preserve">
+    <value>Lỗi hệ thống</value>
+  </data>
   <data name="unexpected-error.title" xml:space="preserve">
     <value>Không xử lý được yêu cầu</value>
   </data>
   <data name="unexpected-error.detail" xml:space="preserve">
     <value>Đã có lỗi xảy ra. Vui lòng thử lại.</value>
   </data>
-  <data name="validation.title" xml:space="preserve">
-    <value>Dữ liệu không hợp lệ</value>
+  <data name="staff-account-required.title" xml:space="preserve">
+    <value>Không phải tài khoản nhân viên</value>
   </data>
-  <data name="validation.detail" xml:space="preserve">
-    <value>Vui lòng kiểm tra lại các thông tin đã nhập.</value>
+  <data name="staff-account-required.detail" xml:space="preserve">
+    <value>Chỉ tài khoản nhân viên mới đổi mật khẩu tại đây.</value>
+  </data>
+  <data name="email-already-registered.title" xml:space="preserve">
+    <value>Email đã có tài khoản</value>
+  </data>
+  <data name="email-already-registered.detail" xml:space="preserve">
+    <value>Email này đã có tài khoản.</value>
+  </data>
+  <data name="auth-account-exists.title" xml:space="preserve">
+    <value>Email đã có tài khoản đăng nhập</value>
+  </data>
+  <data name="auth-account-exists.detail" xml:space="preserve">
+    <value>Email này đã có tài khoản đăng nhập. Vui lòng xóa tài khoản đó trong Firebase trước.</value>
+  </data>
+  <data name="employee-code-taken.title" xml:space="preserve">
+    <value>Mã nhân viên đã được dùng</value>
+  </data>
+  <data name="employee-code-taken.detail" xml:space="preserve">
+    <value>Mã nhân viên đã được dùng.</value>
+  </data>
+  <data name="role-required.title" xml:space="preserve">
+    <value>Thiếu vai trò</value>
+  </data>
+  <data name="role-required.detail" xml:space="preserve">
+    <value>Chọn ít nhất một vai trò.</value>
+  </data>
+  <data name="role-not-for-staff.title" xml:space="preserve">
+    <value>Vai trò không dùng cho nhân viên</value>
+  </data>
+  <data name="role-not-for-staff.detail" xml:space="preserve">
+    <value>Vai trò này không dùng cho nhân viên.</value>
+  </data>
+  <data name="admin-role-not-assignable.title" xml:space="preserve">
+    <value>Không gán được vai trò Admin</value>
+  </data>
+  <data name="admin-role-not-assignable.detail" xml:space="preserve">
+    <value>Chỉ quản trị viên mới gán được vai trò Admin.</value>
+  </data>
+  <data name="left-date-before-joined-date.title" xml:space="preserve">
+    <value>Ngày nghỉ việc trước ngày vào làm</value>
+  </data>
+  <data name="left-date-before-joined-date.detail" xml:space="preserve">
+    <value>Ngày nghỉ việc không được trước ngày vào làm.</value>
+  </data>
+  <data name="left-date-in-future.title" xml:space="preserve">
+    <value>Ngày nghỉ việc sau hôm nay</value>
+  </data>
+  <data name="left-date-in-future.detail" xml:space="preserve">
+    <value>Ngày nghỉ việc không được sau hôm nay.</value>
+  </data>
+  <data name="own-account-not-lockable.title" xml:space="preserve">
+    <value>Không khóa được tài khoản của mình</value>
+  </data>
+  <data name="own-account-not-lockable.detail" xml:space="preserve">
+    <value>Bạn không thể khóa tài khoản của chính mình.</value>
+  </data>
+  <data name="last-active-admin.title" xml:space="preserve">
+    <value>Quản trị viên cuối cùng</value>
+  </data>
+  <data name="last-active-admin.detail" xml:space="preserve">
+    <value>Không thể khóa tài khoản quản trị viên cuối cùng đang hoạt động.</value>
+  </data>
+  <data name="admin-account-not-lockable.title" xml:space="preserve">
+    <value>Không khóa được tài khoản quản trị viên</value>
+  </data>
+  <data name="admin-account-not-lockable.detail" xml:space="preserve">
+    <value>Chỉ quản trị viên mới khóa được tài khoản quản trị viên.</value>
+  </data>
+  <data name="admin-account-not-restorable.title" xml:space="preserve">
+    <value>Không khôi phục được tài khoản quản trị viên</value>
+  </data>
+  <data name="admin-account-not-restorable.detail" xml:space="preserve">
+    <value>Chỉ quản trị viên mới khôi phục được tài khoản quản trị viên.</value>
+  </data>
+  <data name="account-anonymized.title" xml:space="preserve">
+    <value>Tài khoản đã ẩn danh</value>
+  </data>
+  <data name="account-anonymized.detail" xml:space="preserve">
+    <value>Tài khoản đã được ẩn danh, không thể khóa hay khôi phục.</value>
+  </data>
+  <data name="brand-already-exists.title" xml:space="preserve">
+    <value>Thương hiệu đã tồn tại</value>
+  </data>
+  <data name="brand-already-exists.detail" xml:space="preserve">
+    <value>Đã có thương hiệu trùng tên này. Nếu thương hiệu đó đã ngừng dùng, hãy khôi phục nó.</value>
+  </data>
+  <data name="product-series-already-exists.title" xml:space="preserve">
+    <value>Dòng sản phẩm đã tồn tại</value>
+  </data>
+  <data name="product-series-already-exists.detail" xml:space="preserve">
+    <value>Đã có dòng sản phẩm trùng tên này, ở bất kỳ thương hiệu nào. Nếu dòng đó đã ngừng dùng, hãy khôi phục nó.</value>
+  </data>
+  <data name="brand-retired.title" xml:space="preserve">
+    <value>Thương hiệu đã ngừng dùng</value>
+  </data>
+  <data name="brand-retired.detail" xml:space="preserve">
+    <value>Thương hiệu đã ngừng dùng. Vui lòng khôi phục thương hiệu trước khi thêm dòng sản phẩm.</value>
+  </data>
+  <data name="admin-role-missing.title" xml:space="preserve">
+    <value>Thiếu vai trò Admin</value>
+  </data>
+  <data name="admin-role-missing.detail" xml:space="preserve">
+    <value>Chưa có vai trò Admin: hãy chạy api/db/zengear_08_roles.sql và api/seed trước.</value>
+  </data>
+  <data name="admin-already-exists.title" xml:space="preserve">
+    <value>Đã có quản trị viên</value>
+  </data>
+  <data name="admin-already-exists.detail" xml:space="preserve">
+    <value>Đã có quản trị viên; không thay đổi gì. Quản trị viên tạo các tài khoản khác.</value>
+  </data>
+  <data name="NAME_REQUIRED" xml:space="preserve">
+    <value>Vui lòng nhập tên.</value>
+  </data>
+  <data name="NAME_TOO_LONG" xml:space="preserve">
+    <value>Tên tối đa {MaxLength} ký tự.</value>
+  </data>
+  <data name="NAME_WITHOUT_LETTER_OR_DIGIT" xml:space="preserve">
+    <value>Tên cần có ít nhất một chữ cái không dấu hoặc chữ số.</value>
+  </data>
+  <data name="IS_ACTIVE_REQUIRED" xml:space="preserve">
+    <value>Vui lòng chọn đang dùng hay ngừng dùng.</value>
+  </data>
+  <data name="BRAND_ID_REQUIRED" xml:space="preserve">
+    <value>Vui lòng chọn thương hiệu.</value>
+  </data>
+  <data name="BRAND_NOT_FOUND" xml:space="preserve">
+    <value>Thương hiệu không tồn tại.</value>
+  </data>
+  <data name="PAGE_OUT_OF_RANGE" xml:space="preserve">
+    <value>Số trang phải từ {From} đến {To}.</value>
+  </data>
+  <data name="PAGE_SIZE_OUT_OF_RANGE" xml:space="preserve">
+    <value>Số dòng mỗi trang phải từ {From} đến {To}.</value>
+  </data>
+  <data name="PASSWORD_REQUIRED" xml:space="preserve">
+    <value>Vui lòng nhập mật khẩu mới.</value>
+  </data>
+  <data name="PASSWORD_LENGTH_OUT_OF_RANGE" xml:space="preserve">
+    <value>Mật khẩu mới dài từ {MinLength} đến {MaxLength} ký tự.</value>
+  </data>
+  <data name="PASSWORD_IS_DEFAULT" xml:space="preserve">
+    <value>Không dùng mật khẩu mặc định. Vui lòng chọn mật khẩu khác.</value>
+  </data>
+  <data name="PASSWORD_TOO_COMMON" xml:space="preserve">
+    <value>Mật khẩu này quá phổ biến. Vui lòng chọn mật khẩu khác.</value>
+  </data>
+  <data name="PASSWORD_CONTAINS_ZENGEAR" xml:space="preserve">
+    <value>Mật khẩu không được chứa chữ zengear. Vui lòng chọn mật khẩu khác.</value>
+  </data>
+  <data name="EMAIL_REQUIRED" xml:space="preserve">
+    <value>Vui lòng nhập email.</value>
+  </data>
+  <data name="EMAIL_TOO_LONG" xml:space="preserve">
+    <value>Email tối đa {MaxLength} ký tự.</value>
+  </data>
+  <data name="EMAIL_INVALID" xml:space="preserve">
+    <value>Email không hợp lệ.</value>
+  </data>
+  <data name="EMPLOYEE_CODE_REQUIRED" xml:space="preserve">
+    <value>Vui lòng nhập mã nhân viên.</value>
+  </data>
+  <data name="EMPLOYEE_CODE_UNTRIMMED" xml:space="preserve">
+    <value>Mã nhân viên không được bắt đầu hay kết thúc bằng khoảng trắng.</value>
+  </data>
+  <data name="EMPLOYEE_CODE_TOO_LONG" xml:space="preserve">
+    <value>Mã nhân viên tối đa {MaxLength} ký tự.</value>
+  </data>
+  <data name="JOINED_DATE_REQUIRED" xml:space="preserve">
+    <value>Vui lòng nhập ngày vào làm.</value>
+  </data>
+  <data name="WORK_PHONE_INVALID" xml:space="preserve">
+    <value>Số điện thoại công việc gồm {MinDigits} đến {MaxDigits} chữ số, có thể bắt đầu bằng dấu +.</value>
+  </data>
+  <data name="ROLE_IDS_REQUIRED" xml:space="preserve">
+    <value>Chọn ít nhất một vai trò.</value>
+  </data>
+  <data name="ROLE_IDS_TOO_MANY" xml:space="preserve">
+    <value>Chọn tối đa {MaxCount} vai trò.</value>
+  </data>
+  <data name="ROLE_ID_EMPTY" xml:space="preserve">
+    <value>Vai trò không hợp lệ.</value>
+  </data>
+  <data name="ROLE_NOT_FOUND" xml:space="preserve">
+    <value>Vai trò không tồn tại.</value>
+  </data>
+  <data name="STATUS_INVALID" xml:space="preserve">
+    <value>Trạng thái không hợp lệ.</value>
+  </data>
+  <data name="SORT_INVALID" xml:space="preserve">
+    <value>Cách sắp xếp không hợp lệ.</value>
+  </data>
+  <data name="PHONE_REQUIRED" xml:space="preserve">
+    <value>Vui lòng nhập hotline.</value>
+  </data>
+  <data name="PHONE_INVALID" xml:space="preserve">
+    <value>Hotline gồm {MinDigits} đến {MaxDigits} chữ số.</value>
+  </data>
+  <data name="ADDRESS_DETAIL_REQUIRED" xml:space="preserve">
+    <value>Vui lòng nhập địa chỉ.</value>
+  </data>
+  <data name="ADDRESS_DETAIL_TOO_LONG" xml:space="preserve">
+    <value>Địa chỉ tối đa {MaxLength} ký tự.</value>
+  </data>
+  <data name="PROVINCE_ID_REQUIRED" xml:space="preserve">
+    <value>Vui lòng chọn tỉnh/thành phố.</value>
+  </data>
+  <data name="PROVINCE_ID_INVALID" xml:space="preserve">
+    <value>Tỉnh/thành phố không hợp lệ.</value>
+  </data>
+  <data name="PROVINCE_NOT_IN_USE" xml:space="preserve">
+    <value>Tỉnh/thành phố không tồn tại hoặc đã ngừng dùng.</value>
+  </data>
+  <data name="WARD_ID_REQUIRED" xml:space="preserve">
+    <value>Vui lòng chọn xã/phường/đặc khu.</value>
+  </data>
+  <data name="WARD_ID_INVALID" xml:space="preserve">
+    <value>Xã/phường/đặc khu không hợp lệ.</value>
+  </data>
+  <data name="WARD_NOT_IN_PROVINCE" xml:space="preserve">
+    <value>Xã/phường/đặc khu không thuộc tỉnh/thành phố đã chọn.</value>
+  </data>
+  <data name="WARD_NOT_IN_USE" xml:space="preserve">
+    <value>Xã/phường/đặc khu đã ngừng dùng.</value>
+  </data>
+  <data name="REGULAR_HOURS_REQUIRED" xml:space="preserve">
+    <value>Vui lòng nhập giờ mở cửa hằng tuần.</value>
+  </data>
+  <data name="REGULAR_HOURS_EMPTY" xml:space="preserve">
+    <value>Giờ mở cửa hằng tuần cần ít nhất một khung giờ.</value>
+  </data>
+  <data name="PERIOD_REQUIRED" xml:space="preserve">
+    <value>Vui lòng nhập khung giờ.</value>
+  </data>
+  <data name="DAY_REQUIRED" xml:space="preserve">
+    <value>Vui lòng chọn thứ trong tuần.</value>
+  </data>
+  <data name="DAY_OUT_OF_RANGE" xml:space="preserve">
+    <value>Thứ trong tuần phải từ 1 (thứ Hai) đến 7 (Chủ nhật).</value>
+  </data>
+  <data name="OPEN_TIME_INVALID" xml:space="preserve">
+    <value>Giờ mở cửa phải có dạng HH:mm.</value>
+  </data>
+  <data name="CLOSE_TIME_INVALID" xml:space="preserve">
+    <value>Giờ đóng cửa phải có dạng HH:mm.</value>
+  </data>
+  <data name="PERIOD_OPENS_AFTER_CLOSING" xml:space="preserve">
+    <value>Giờ mở cửa phải trước giờ đóng cửa.</value>
+  </data>
+  <data name="PERIODS_PER_DAY_TOO_MANY" xml:space="preserve">
+    <value>Mỗi ngày tối đa {MaxCount} khung giờ.</value>
+  </data>
+  <data name="PERIODS_OVERLAP" xml:space="preserve">
+    <value>Các khung giờ trong một ngày không được trùng nhau.</value>
+  </data>
+  <data name="SPECIAL_HOURS_TOO_MANY" xml:space="preserve">
+    <value>Tối đa {MaxCount} ngày có lịch riêng.</value>
+  </data>
+  <data name="DATE_REQUIRED" xml:space="preserve">
+    <value>Vui lòng chọn ngày.</value>
+  </data>
+  <data name="CLOSED_REQUIRED" xml:space="preserve">
+    <value>Vui lòng chọn đóng cửa cả ngày hay mở cửa.</value>
+  </data>
+  <data name="SPECIAL_HOURS_CLOSED_DATE_WITH_HOURS" xml:space="preserve">
+    <value>Ngày đóng cửa cả ngày không có giờ mở cửa và không có dòng khác cùng ngày.</value>
+  </data>
+  <data name="BODY_REQUIRED" xml:space="preserve">
+    <value>Thiếu nội dung yêu cầu.</value>
+  </data>
+  <data name="BODY_INVALID" xml:space="preserve">
+    <value>Nội dung yêu cầu không đọc được.</value>
+  </data>
+  <data name="VALUE_REQUIRED" xml:space="preserve">
+    <value>Vui lòng nhập giá trị này.</value>
+  </data>
+  <data name="VALUE_INVALID" xml:space="preserve">
+    <value>Giá trị không hợp lệ.</value>
   </data>
 </root>

@@ -81,8 +81,7 @@ public sealed class CurrentUserService(
         var user = await db.Users.Include(u => u.StaffProfile).SingleAsync(u => u.Id == userId, cancellationToken);
         if (user.StaffProfile is not { } profile || user.FirebaseUid is not { } uid)
         {
-            throw new BusinessRuleException(null, "staff-account-required", "Staff account required",
-                "Only a staff account changes its password here.");
+            throw new BusinessRuleException(null, "staff-account-required");
         }
 
         var now = clock.UtcNow;

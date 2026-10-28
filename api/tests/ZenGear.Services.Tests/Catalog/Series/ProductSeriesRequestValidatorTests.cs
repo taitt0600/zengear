@@ -1,3 +1,4 @@
+using FluentValidation.Results;
 using Shouldly;
 using ZenGear.Services.Catalog.Series;
 
@@ -9,12 +10,22 @@ public class ProductSeriesRequestValidatorTests
     private static readonly Guid Asus = Guid.CreateVersion7();
 
     private static IEnumerable<string> CreateErrors(string? name, Guid? brandId) =>
-        new ProductSeriesCreateRequestValidator().Validate(new ProductSeriesCreateRequest(name!, brandId)).Errors
-            .Select(e => e.PropertyName);
+        CreateFailures(name, brandId).Select(e => e.PropertyName);
 
     private static IEnumerable<string> UpdateErrors(string? name, Guid? brandId, bool? isActive = true) =>
-        new ProductSeriesUpdateRequestValidator().Validate(new ProductSeriesUpdateRequest(name!, brandId, isActive)).Errors
-            .Select(e => e.PropertyName);
+        UpdateFailures(name, brandId, isActive).Select(e => e.PropertyName);
+
+    private static IEnumerable<string> CreateCodes(string? name, Guid? brandId) =>
+        CreateFailures(name, brandId).Select(e => e.ErrorCode);
+
+    private static IEnumerable<string> UpdateCodes(string? name, Guid? brandId, bool? isActive = true) =>
+        UpdateFailures(name, brandId, isActive).Select(e => e.ErrorCode);
+
+    private static List<ValidationFailure> CreateFailures(string? name, Guid? brandId) =>
+        new ProductSeriesCreateRequestValidator().Validate(new ProductSeriesCreateRequest(name, brandId)).Errors;
+
+    private static List<ValidationFailure> UpdateFailures(string? name, Guid? brandId, bool? isActive) =>
+        new ProductSeriesUpdateRequestValidator().Validate(new ProductSeriesUpdateRequest(name, brandId, isActive)).Errors;
 
     [TestCase("ROG Strix")]
     [TestCase("Dòng Việt")]
@@ -36,6 +47,16 @@ public class ProductSeriesRequestValidatorTests
         UpdateErrors(name, Asus).ShouldBe([nameof(ProductSeriesUpdateRequest.Name)]);
     }
 
+    [TestCase(null, "NAME_REQUIRED")]
+    [TestCase("   ", "NAME_REQUIRED")]
+    [TestCase("!!!", "NAME_WITHOUT_LETTER_OR_DIGIT")]
+    [TestCase("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "NAME_TOO_LONG")]
+    public void Each_name_check_has_its_own_code(string? name, string code)
+    {
+        CreateCodes(name, Asus).ShouldBe([code]);
+        UpdateCodes(name, Asus).ShouldBe([code]);
+    }
+
     [Test]
     public void A_name_is_at_most_100_characters_after_trimming()
     {
@@ -52,9 +73,14 @@ public class ProductSeriesRequestValidatorTests
         CreateErrors("ROG Strix", Guid.Empty).ShouldBe([nameof(ProductSeriesCreateRequest.BrandId)]);
         UpdateErrors("ROG Strix", null).ShouldBe([nameof(ProductSeriesUpdateRequest.BrandId)]);
         UpdateErrors("ROG Strix", Guid.Empty).ShouldBe([nameof(ProductSeriesUpdateRequest.BrandId)]);
+        CreateCodes("ROG Strix", Guid.Empty).ShouldBe([ProductSeriesCreateRequestValidator.BrandIdRequired]);
+        UpdateCodes("ROG Strix", null).ShouldBe([ProductSeriesCreateRequestValidator.BrandIdRequired]);
     }
 
     [Test]
-    public void An_update_without_is_active_is_refused() =>
+    public void An_update_without_is_active_is_refused()
+    {
         UpdateErrors("ROG Strix", Asus, isActive: null).ShouldBe([nameof(ProductSeriesUpdateRequest.IsActive)]);
+        UpdateCodes("ROG Strix", Asus, isActive: null).ShouldBe(["IS_ACTIVE_REQUIRED"]);
+    }
 }

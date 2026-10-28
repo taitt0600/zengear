@@ -17,9 +17,13 @@ public class ProductSeriesTests : IntegrationTestBase
     private const string ReaderUid = "uid-reader";
     private const string CreatorUid = "uid-creator";
     private const string Path = "/api/v1/admin/product-series";
-    private const string ValidationType = "https://tools.ietf.org/html/rfc9110#section-15.5.1";
+    private const string ValidationType = ProblemAssertions.ValidationType;
     private const string AlreadyExists = "/problems/product-series-already-exists";
     private const string BrandRetired = "/problems/brand-retired";
+
+    private static readonly ExpectedError NameTaken = ExpectedError.At("#/name", "PRODUCT_SERIES_ALREADY_EXISTS");
+
+    private static readonly ExpectedError BrandRetiredError = ExpectedError.At("#/brandId", "BRAND_RETIRED");
 
     private static readonly DateTimeOffset Now = new(2027, 2, 5, 3, 0, 0, TimeSpan.Zero);
 
@@ -85,8 +89,8 @@ public class ProductSeriesTests : IntegrationTestBase
     {
         var response = await SendAsync(HttpMethod.Post, Path, ManagerUid, new { name = "ROG Strix" });
 
-        await response.ShouldBeProblemAsync(HttpStatusCode.BadRequest, ValidationType, null);
-        (await JsonAsync(response)).GetProperty("errors").TryGetProperty("brandId", out _).ShouldBeTrue();
+        await response.ShouldBeProblemAsync(HttpStatusCode.BadRequest, ValidationType, null,
+            ExpectedError.At("#/brandId", "BRAND_ID_REQUIRED"));
         (await CountAsync()).ShouldBe(0);
     }
 
@@ -95,8 +99,8 @@ public class ProductSeriesTests : IntegrationTestBase
     {
         var response = await CreateAsync("ROG Strix", Guid.CreateVersion7());
 
-        await response.ShouldBeProblemAsync(HttpStatusCode.BadRequest, ValidationType, null);
-        (await JsonAsync(response)).GetProperty("errors").TryGetProperty("brandId", out _).ShouldBeTrue();
+        await response.ShouldBeProblemAsync(HttpStatusCode.BadRequest, ValidationType, null,
+            ExpectedError.At("#/brandId", "BRAND_NOT_FOUND"));
         (await CountAsync()).ShouldBe(0);
     }
 
@@ -107,7 +111,7 @@ public class ProductSeriesTests : IntegrationTestBase
 
         var response = await CreateAsync("AORUS", retired);
 
-        await response.ShouldBeProblemAsync(HttpStatusCode.Conflict, BrandRetired, "R-DEL-01");
+        await response.ShouldBeProblemAsync(HttpStatusCode.Conflict, BrandRetired, "R-DEL-01", BrandRetiredError);
         (await CountAsync()).ShouldBe(0);
     }
 
@@ -121,7 +125,7 @@ public class ProductSeriesTests : IntegrationTestBase
 
         var response = await CreateAsync(second, sameBrand ? _msi : _asus);
 
-        await response.ShouldBeProblemAsync(HttpStatusCode.Conflict, AlreadyExists, null);
+        await response.ShouldBeProblemAsync(HttpStatusCode.Conflict, AlreadyExists, null, NameTaken);
         (await CountAsync()).ShouldBe(1);
     }
 
@@ -132,20 +136,19 @@ public class ProductSeriesTests : IntegrationTestBase
         (await UpdateAsync(strix, await ETagAsync(strix), new SeriesUpdate("ROG Strix", _asus, true))).StatusCode
             .ShouldBe(HttpStatusCode.OK);
 
-        await (await CreateAsync("Strix", _asus)).ShouldBeProblemAsync(HttpStatusCode.Conflict, AlreadyExists, null);
-        await (await CreateAsync("ROG-Strix", _asus)).ShouldBeProblemAsync(HttpStatusCode.Conflict, AlreadyExists, null);
+        await (await CreateAsync("Strix", _asus)).ShouldBeProblemAsync(HttpStatusCode.Conflict, AlreadyExists, null, NameTaken);
+        await (await CreateAsync("ROG-Strix", _asus)).ShouldBeProblemAsync(HttpStatusCode.Conflict, AlreadyExists, null, NameTaken);
     }
 
-    [TestCase("")]
-    [TestCase("   ")]
-    [TestCase("!!!")]
-    [TestCase("联想")]
-    public async Task Create_refuses_invalid_input(string name)
+    [TestCase("", "NAME_REQUIRED")]
+    [TestCase("   ", "NAME_REQUIRED")]
+    [TestCase("!!!", "NAME_WITHOUT_LETTER_OR_DIGIT")]
+    [TestCase("联想", "NAME_WITHOUT_LETTER_OR_DIGIT")]
+    public async Task Create_refuses_invalid_input(string name, string code)
     {
         var response = await CreateAsync(name, _asus);
 
-        await response.ShouldBeProblemAsync(HttpStatusCode.BadRequest, ValidationType, null);
-        (await JsonAsync(response)).GetProperty("errors").TryGetProperty("name", out _).ShouldBeTrue();
+        await response.ShouldBeProblemAsync(HttpStatusCode.BadRequest, ValidationType, null, ExpectedError.At("#/name", code));
         (await CountAsync()).ShouldBe(0);
     }
 
@@ -157,7 +160,7 @@ public class ProductSeriesTests : IntegrationTestBase
         responses.Count(r => r.StatusCode == HttpStatusCode.Created).ShouldBe(1);
         foreach (var refused in responses.Where(r => r.StatusCode != HttpStatusCode.Created))
         {
-            await refused.ShouldBeProblemAsync(HttpStatusCode.Conflict, AlreadyExists, null);
+            await refused.ShouldBeProblemAsync(HttpStatusCode.Conflict, AlreadyExists, null, NameTaken);
         }
 
         (await CountAsync()).ShouldBe(1);
@@ -207,7 +210,7 @@ public class ProductSeriesTests : IntegrationTestBase
 
         var response = await SendAsync(HttpMethod.Delete, $"{Path}/{strix}", ManagerUid);
 
-        response.StatusCode.ShouldBe(HttpStatusCode.MethodNotAllowed);
+        await response.ShouldBeProblemAsync(HttpStatusCode.MethodNotAllowed, "/problems/method-not-allowed", null);
         (await CountAsync()).ShouldBe(1);
     }
 
@@ -265,20 +268,19 @@ public class ProductSeriesTests : IntegrationTestBase
 
         var response = await UpdateAsync(strix, await ETagAsync(strix), new SeriesUpdate("VENTUS", _asus, true));
 
-        await response.ShouldBeProblemAsync(HttpStatusCode.Conflict, AlreadyExists, null);
+        await response.ShouldBeProblemAsync(HttpStatusCode.Conflict, AlreadyExists, null, NameTaken);
         (await RowAsync(strix)).Name.ShouldBe("ROG Strix");
     }
 
-    [TestCase("")]
-    [TestCase("!!!")]
-    public async Task Update_refuses_invalid_input(string name)
+    [TestCase("", "NAME_REQUIRED")]
+    [TestCase("!!!", "NAME_WITHOUT_LETTER_OR_DIGIT")]
+    public async Task Update_refuses_invalid_input(string name, string code)
     {
         var strix = await CreatedIdAsync("ROG Strix", _asus);
 
         var response = await UpdateAsync(strix, await ETagAsync(strix), new SeriesUpdate(name, _asus, true));
 
-        await response.ShouldBeProblemAsync(HttpStatusCode.BadRequest, ValidationType, null);
-        (await JsonAsync(response)).GetProperty("errors").TryGetProperty("name", out _).ShouldBeTrue();
+        await response.ShouldBeProblemAsync(HttpStatusCode.BadRequest, ValidationType, null, ExpectedError.At("#/name", code));
         (await RowAsync(strix)).Name.ShouldBe("ROG Strix");
     }
 
@@ -291,8 +293,8 @@ public class ProductSeriesTests : IntegrationTestBase
 
         var response = await Client.SendAsync(request);
 
-        await response.ShouldBeProblemAsync(HttpStatusCode.BadRequest, ValidationType, null);
-        (await JsonAsync(response)).GetProperty("errors").TryGetProperty("isActive", out _).ShouldBeTrue();
+        await response.ShouldBeProblemAsync(HttpStatusCode.BadRequest, ValidationType, null,
+            ExpectedError.At("#/isActive", "IS_ACTIVE_REQUIRED"));
         (await RowAsync(strix)).ShouldBe(new SeriesRow("ROG Strix", "rog-strix", _asus, true, _managerId, _managerId));
     }
 
@@ -316,8 +318,8 @@ public class ProductSeriesTests : IntegrationTestBase
 
         var response = await UpdateAsync(strix, etag, new SeriesUpdate("ROG Strix", Guid.CreateVersion7(), true));
 
-        await response.ShouldBeProblemAsync(HttpStatusCode.BadRequest, ValidationType, null);
-        (await JsonAsync(response)).GetProperty("errors").TryGetProperty("brandId", out _).ShouldBeTrue();
+        await response.ShouldBeProblemAsync(HttpStatusCode.BadRequest, ValidationType, null,
+            ExpectedError.At("#/brandId", "BRAND_NOT_FOUND"));
         (await RowAsync(strix)).BrandId.ShouldBe(_asus);
         (await ETagAsync(strix)).ShouldBe(etag);
     }
@@ -330,7 +332,7 @@ public class ProductSeriesTests : IntegrationTestBase
 
         var response = await UpdateAsync(strix, await ETagAsync(strix), new SeriesUpdate("ROG Strix", retired, true));
 
-        await response.ShouldBeProblemAsync(HttpStatusCode.Conflict, BrandRetired, "R-DEL-01");
+        await response.ShouldBeProblemAsync(HttpStatusCode.Conflict, BrandRetired, "R-DEL-01", BrandRetiredError);
         (await RowAsync(strix)).BrandId.ShouldBe(_asus);
     }
 
@@ -358,7 +360,7 @@ public class ProductSeriesTests : IntegrationTestBase
 
         var response = await UpdateAsync(strix, await ETagAsync(strix), new SeriesUpdate("ROG Strix", _asus, true));
 
-        await response.ShouldBeProblemAsync(HttpStatusCode.Conflict, BrandRetired, "R-DEL-01");
+        await response.ShouldBeProblemAsync(HttpStatusCode.Conflict, BrandRetired, "R-DEL-01", BrandRetiredError);
         (await RowAsync(strix)).IsActive.ShouldBeFalse();
     }
 
@@ -381,18 +383,19 @@ public class ProductSeriesTests : IntegrationTestBase
 
         var response = await UpdateAsync(strix, stale, new SeriesUpdate("Strix", _asus, true));
 
-        response.StatusCode.ShouldBe(HttpStatusCode.PreconditionFailed);
+        await response.ShouldBeProblemAsync(HttpStatusCode.PreconditionFailed, "/problems/precondition-failed", null);
         (await RowAsync(strix)).Name.ShouldBe("ROG");
     }
 
     [Test]
     public async Task Update_unknown_series_is_404() =>
-        (await UpdateAsync(Guid.CreateVersion7(), "*", new SeriesUpdate("ROG Strix", _asus, true))).StatusCode
-            .ShouldBe(HttpStatusCode.NotFound);
+        await (await UpdateAsync(Guid.CreateVersion7(), "*", new SeriesUpdate("ROG Strix", _asus, true)))
+            .ShouldBeProblemAsync(HttpStatusCode.NotFound, "/problems/not-found", null);
 
     [Test]
     public async Task Get_unknown_series_is_404() =>
-        (await SendAsync(HttpMethod.Get, $"{Path}/{Guid.CreateVersion7()}", ManagerUid)).StatusCode.ShouldBe(HttpStatusCode.NotFound);
+        await (await SendAsync(HttpMethod.Get, $"{Path}/{Guid.CreateVersion7()}", ManagerUid))
+            .ShouldBeProblemAsync(HttpStatusCode.NotFound, "/problems/not-found", null);
 
     [Test]
     public async Task Get_returns_the_series_with_its_etag()
@@ -445,10 +448,11 @@ public class ProductSeriesTests : IntegrationTestBase
         offered.GetProperty("items")[0].GetProperty("brandId").GetGuid().ShouldBe(_asus);
     }
 
-    [TestCase("page=0")]
-    [TestCase("pageSize=101")]
-    public async Task List_refuses_a_page_out_of_range(string query) =>
-        (await SendAsync(HttpMethod.Get, $"{Path}?{query}", ManagerUid)).StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+    [TestCase("page=0", "page", "PAGE_OUT_OF_RANGE")]
+    [TestCase("pageSize=101", "pageSize", "PAGE_SIZE_OUT_OF_RANGE")]
+    public async Task List_refuses_a_page_out_of_range(string query, string parameter, string code) =>
+        await (await SendAsync(HttpMethod.Get, $"{Path}?{query}", ManagerUid))
+            .ShouldBeProblemAsync(HttpStatusCode.BadRequest, ValidationType, null, ExpectedError.OnParameter(parameter, code));
 
     [TestCase("GET", Path)]
     [TestCase("GET", Path + "/{0}")]

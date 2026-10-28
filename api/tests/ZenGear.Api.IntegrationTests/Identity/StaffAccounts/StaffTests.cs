@@ -79,7 +79,8 @@ public class StaffTests : IntegrationTestBase
     {
         var response = await PostAsync(AdminUid, Body("a@zengear.test", "NV0001", _cashierRole, _customerRole));
 
-        await response.ShouldBeProblemAsync(HttpStatusCode.Conflict, "/problems/role-not-for-staff", "R-USR-01");
+        await response.ShouldBeProblemAsync(HttpStatusCode.Conflict, "/problems/role-not-for-staff", "R-USR-01",
+            ExpectedError.At("#/roleIds", "ROLE_NOT_FOR_STAFF"));
         await ShouldHaveCreatedNothingAsync();
     }
 
@@ -88,7 +89,8 @@ public class StaffTests : IntegrationTestBase
     {
         var response = await PostAsync(AdminUid, Body("a@zengear.test", "NV0001"));
 
-        await response.ShouldBeProblemAsync(HttpStatusCode.Conflict, "/problems/role-required", "R-SEC-01");
+        await response.ShouldBeProblemAsync(HttpStatusCode.Conflict, "/problems/role-required", "R-SEC-01",
+            ExpectedError.At("#/roleIds", "ROLE_REQUIRED"));
         await ShouldHaveCreatedNothingAsync();
     }
 
@@ -100,7 +102,8 @@ public class StaffTests : IntegrationTestBase
             email = "a@zengear.test", name = "A", employeeCode = "NV0001", joinedDate = "2026-10-01",
         });
 
-        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        await response.ShouldBeProblemAsync(HttpStatusCode.BadRequest, ProblemAssertions.ValidationType, null,
+            ExpectedError.At("#/roleIds", "ROLE_IDS_REQUIRED"));
         await ShouldHaveCreatedNothingAsync();
     }
 
@@ -109,7 +112,8 @@ public class StaffTests : IntegrationTestBase
     {
         var response = await PostAsync(ManagerUid, Body("a@zengear.test", "NV0001", _cashierRole, _adminRole));
 
-        await response.ShouldBeProblemAsync(HttpStatusCode.Conflict, "/problems/admin-role-not-assignable", "R-TX-11");
+        await response.ShouldBeProblemAsync(HttpStatusCode.Conflict, "/problems/admin-role-not-assignable", "R-TX-11",
+            ExpectedError.At("#/roleIds", "ADMIN_ROLE_NOT_ASSIGNABLE"));
         await ShouldHaveCreatedNothingAsync();
     }
 
@@ -142,26 +146,91 @@ public class StaffTests : IntegrationTestBase
         await ShouldHaveCreatedNothingAsync(extraUsers: 1);
     }
 
-    [TestCase("not-an-email", "0901234567", "email")]
-    [TestCase("a@localhost", "0901234567", "email")]
-    [TestCase("a b@zengear.test", "0901234567", "email")]
-    [TestCase("a@zengear.test", "090-123", "workPhone")]
-    public async Task Invalid_input_is_400(string email, string workPhone, string field)
+    [TestCase("not-an-email", "0901234567", "#/email", "EMAIL_INVALID")]
+    [TestCase("a@localhost", "0901234567", "#/email", "EMAIL_INVALID")]
+    [TestCase("a b@zengear.test", "0901234567", "#/email", "EMAIL_INVALID")]
+    [TestCase("a@zengear.test", "090-123", "#/workPhone", "WORK_PHONE_INVALID")]
+    public async Task Invalid_input_is_400(string email, string workPhone, string pointer, string code)
     {
         var response = await PostAsync(AdminUid, Body(email, "NV0001", workPhone, _cashierRole));
 
-        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
-        (await JsonAsync(response)).GetProperty("errors").TryGetProperty(field, out _).ShouldBeTrue();
+        var problem = await response.ShouldBeProblemAsync(HttpStatusCode.BadRequest, ProblemAssertions.ValidationType, null,
+            ExpectedError.At(pointer, code));
+        problem.GetProperty("errors").GetArrayLength().ShouldBe(1);
+        problem.GetRawText().ShouldNotContain(workPhone == "090-123" ? workPhone : email);
+        await ShouldHaveCreatedNothingAsync();
+    }
+
+    [Test]
+    public async Task An_invalid_work_phone_gets_the_digit_counts_in_the_text()
+    {
+        var problem = await (await PostAsync(AdminUid, Body("a@zengear.test", "NV0001", "090-123", _cashierRole)))
+            .ShouldBeProblemAsync(HttpStatusCode.BadRequest, ProblemAssertions.ValidationType, null,
+                ExpectedError.At("#/workPhone", "WORK_PHONE_INVALID"));
+
+        problem.ErrorDetail(ExpectedError.At("#/workPhone", "WORK_PHONE_INVALID"))
+            .ShouldBe("Số điện thoại công việc gồm 8 đến 15 chữ số, có thể bắt đầu bằng dấu +.");
+    }
+
+    /// <summary>
+    /// A missing or blank value reaches the validator (the request properties are nullable), not model binding, so each
+    /// gets its own code.
+    /// </summary>
+    [TestCase("name", null, "#/name", "NAME_REQUIRED")]
+    [TestCase("name", "   ", "#/name", "NAME_REQUIRED")]
+    [TestCase("email", null, "#/email", "EMAIL_REQUIRED")]
+    [TestCase("email", " ", "#/email", "EMAIL_REQUIRED")]
+    [TestCase("employeeCode", null, "#/employeeCode", "EMPLOYEE_CODE_REQUIRED")]
+    [TestCase("employeeCode", "", "#/employeeCode", "EMPLOYEE_CODE_REQUIRED")]
+    public async Task A_missing_or_blank_value_is_400_with_its_code(string field, string? value, string pointer, string code)
+    {
+        var body = new Dictionary<string, object?>
+        {
+            ["email"] = "a@zengear.test",
+            ["name"] = "Nguyễn Văn An",
+            ["employeeCode"] = "NV0001",
+            ["joinedDate"] = "2026-10-01",
+            ["roleIds"] = new[] { _cashierRole },
+        };
+        if (value is null)
+        {
+            body.Remove(field);
+        }
+        else
+        {
+            body[field] = value;
+        }
+
+        var problem = await (await PostAsync(AdminUid, body)).ShouldBeProblemAsync(HttpStatusCode.BadRequest,
+            ProblemAssertions.ValidationType, null, ExpectedError.At(pointer, code));
+
+        problem.ErrorCodes().ShouldBe([code]);
+        await ShouldHaveCreatedNothingAsync();
+    }
+
+    [Test]
+    public async Task A_value_of_the_wrong_type_is_BODY_INVALID_at_its_field()
+    {
+        var response = await PostAsync(AdminUid, new
+        {
+            email = "a@zengear.test", name = "A", employeeCode = "NV0001", joinedDate = "not-a-date", roleIds = new[] { _cashierRole },
+        });
+
+        var problem = await response.ShouldBeProblemAsync(HttpStatusCode.BadRequest, ProblemAssertions.ValidationType, null,
+            ExpectedError.At("#/joinedDate", "BODY_INVALID"));
+        problem.GetRawText().ShouldNotContain("not-a-date");
         await ShouldHaveCreatedNothingAsync();
     }
 
     [Test]
     public async Task Unknown_role_is_400()
     {
-        var response = await PostAsync(AdminUid, Body("a@zengear.test", "NV0001", Guid.NewGuid()));
+        var unknown = Guid.NewGuid();
+        var response = await PostAsync(AdminUid, Body("a@zengear.test", "NV0001", unknown));
 
-        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
-        (await JsonAsync(response)).GetProperty("errors").TryGetProperty("roleIds", out _).ShouldBeTrue();
+        var problem = await response.ShouldBeProblemAsync(HttpStatusCode.BadRequest, ProblemAssertions.ValidationType, null,
+            ExpectedError.At("#/roleIds", "ROLE_NOT_FOUND"));
+        problem.GetRawText().ShouldNotContain(unknown.ToString());
         await ShouldHaveCreatedNothingAsync();
     }
 
@@ -171,7 +240,8 @@ public class StaffTests : IntegrationTestBase
         // TestUsers stores <uid>@zengear.test.
         var response = await PostAsync(AdminUid, Body("UID-Manager@ZenGear.test", "NV0001", _cashierRole));
 
-        await response.ShouldBeProblemAsync(HttpStatusCode.Conflict, "/problems/email-already-registered", null);
+        await response.ShouldBeProblemAsync(HttpStatusCode.Conflict, "/problems/email-already-registered", null,
+            ExpectedError.At("#/email", "EMAIL_ALREADY_REGISTERED"));
         Auth.Accounts.ShouldBeEmpty();
     }
 
@@ -182,7 +252,8 @@ public class StaffTests : IntegrationTestBase
 
         var response = await PostAsync(AdminUid, Body("second@zengear.test", "NV0001", _cashierRole));
 
-        await response.ShouldBeProblemAsync(HttpStatusCode.Conflict, "/problems/employee-code-taken", null);
+        await response.ShouldBeProblemAsync(HttpStatusCode.Conflict, "/problems/employee-code-taken", null,
+            ExpectedError.At("#/employeeCode", "EMPLOYEE_CODE_TAKEN"));
         Auth.Accounts.Select(a => a.Email).ShouldBe(["first@zengear.test"]);
     }
 
@@ -193,7 +264,8 @@ public class StaffTests : IntegrationTestBase
 
         var response = await PostAsync(AdminUid, Body("taken@zengear.test", "NV0001", _cashierRole));
 
-        await response.ShouldBeProblemAsync(HttpStatusCode.Conflict, "/problems/auth-account-exists", null);
+        await response.ShouldBeProblemAsync(HttpStatusCode.Conflict, "/problems/auth-account-exists", null,
+            ExpectedError.At("#/email", "AUTH_ACCOUNT_EXISTS"));
         Auth.Accounts.ShouldBe([existing]);
         Auth.Deleted.ShouldBeEmpty();
         await ShouldHaveCreatedNothingAsync(firebaseAccounts: 1);
@@ -228,7 +300,8 @@ public class StaffTests : IntegrationTestBase
 
         var response = await PostAsync(AdminUid, Body("late@zengear.test", "NV0001", _cashierRole));
 
-        await response.ShouldBeProblemAsync(HttpStatusCode.Conflict, "/problems/employee-code-taken", null);
+        await response.ShouldBeProblemAsync(HttpStatusCode.Conflict, "/problems/employee-code-taken", null,
+            ExpectedError.At("#/employeeCode", "EMPLOYEE_CODE_TAKEN"));
         Auth.Accounts.ShouldBeEmpty();
         Auth.Deleted.Count.ShouldBe(1);
     }
@@ -310,7 +383,7 @@ public class StaffTests : IntegrationTestBase
     {
         var customerId = await TestUsers.InsertAsync("uid-customer", isStaff: false);
 
-        (await GetAsync(AdminUid, $"{Path}/{Guid.NewGuid()}")).StatusCode.ShouldBe(HttpStatusCode.NotFound);
+        await (await GetAsync(AdminUid, $"{Path}/{Guid.NewGuid()}")).ShouldBeProblemAsync(HttpStatusCode.NotFound, "/problems/not-found", null);
         (await GetAsync(AdminUid, $"{Path}/{customerId}")).StatusCode.ShouldBe(HttpStatusCode.NotFound);
     }
 

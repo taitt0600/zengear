@@ -27,16 +27,13 @@ public sealed class ZenGearAuthorizationResultHandler(IProblemDetailsService pro
         {
             if (!context.User.HasClaim(c => c.Type == ZenGearClaims.UserId))
             {
-                await ForbiddenProblem.WriteAsync(context, problemDetails, "account-not-registered", "Account not registered",
-                    "No ZenGear account is linked to this sign-in.", ruleId: null);
+                await ForbiddenProblem.WriteAsync(context, problemDetails, "account-not-registered", ruleId: null);
                 return;
             }
 
-            var missing = authorizeResult.AuthorizationFailure?.FailedRequirements.OfType<PermissionRequirement>().ToList();
-            if (missing is { Count: > 0 })
+            if (authorizeResult.AuthorizationFailure?.FailedRequirements.OfType<PermissionRequirement>().Any() == true)
             {
-                await ForbiddenProblem.WriteAsync(context, problemDetails, "permission-denied", "Permission denied",
-                    $"Permission {string.Join(", ", missing.Select(r => r.Key))} is required.", "R-SEC-03");
+                await ForbiddenProblem.WriteAsync(context, problemDetails, "permission-denied", "R-SEC-03");
                 return;
             }
         }

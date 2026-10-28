@@ -1,6 +1,7 @@
 $kind: http-request
 description: |-
-  A name must give a slug: one without a Latin letter or digit is a validation error (400, errors.name).
+  A name must give a slug: one without a Latin letter or digit is a validation error (400, the code
+  NAME_WITHOUT_LETTER_OR_DIGIT on the pointer #/name).
 method: POST
 url: '{{baseUrl}}/api/v1/admin/brands'
 order: 4000
@@ -18,4 +19,10 @@ scripts:
     language: text/javascript
     code: |-
       pm.test('status 400', () => pm.response.to.have.status(400));
-      pm.test('the error is on name', () => pm.expect(pm.response.json().errors).to.have.property('name'));
+      const problem = pm.response.json();
+      pm.test('problem type /problems/validation', () => pm.expect(problem.type).to.eql('/problems/validation'));
+      pm.test('error NAME_WITHOUT_LETTER_OR_DIGIT on #/name', () => {
+        pm.expect(problem.errors).to.be.an('array');
+        pm.expect(problem.errors.map((e) => `${e.pointer} ${e.code}`))
+          .to.include('#/name NAME_WITHOUT_LETTER_OR_DIGIT');
+      });

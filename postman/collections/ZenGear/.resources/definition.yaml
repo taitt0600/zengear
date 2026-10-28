@@ -2,7 +2,9 @@ $kind: collection
 name: ZenGear
 description: |-
   API scenarios of ZenGear, one folder per feature (DEC-100). Each request checks its status code, the Problem
-  Details `type` of a refusal and the fields its acceptance criterion names.
+  Details `type` of a refusal, the `code` and `pointer` (or `parameter`) of each item of `errors` it expects
+  (DEC-117; never a title or detail text, which the API writes in Vietnamese) and the fields its acceptance
+  criterion names.
 
   Environments: `dev` (the API run from the branch with profile http, tools/dev_reset.ps1 first) and `ci` (the
   acceptance compose of CI). Neither holds a secret.

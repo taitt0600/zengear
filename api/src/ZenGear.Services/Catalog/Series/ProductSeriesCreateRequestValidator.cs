@@ -9,14 +9,16 @@ namespace ZenGear.Services.Catalog.Series;
 /// </summary>
 public sealed class ProductSeriesCreateRequestValidator : AbstractValidator<ProductSeriesCreateRequest>
 {
+    public const string BrandIdRequired = "BRAND_ID_REQUIRED";
+
     public ProductSeriesCreateRequestValidator()
     {
         // A child validator skips a null value, so the null check stays here.
-        RuleFor(r => r.Name).Cascade(CascadeMode.Stop)
-            .NotNull().WithMessage("Name is required.")
+        RuleFor(r => r.Name!).Cascade(CascadeMode.Stop)
+            .NotNull().WithErrorCode(CatalogNameValidator.NameRequired)
             .SetValidator(new CatalogNameValidator());
 
         // NotEmpty lets Guid.Empty through on a nullable Guid.
-        RuleFor(r => r.BrandId).Must(id => id is { } brand && brand != Guid.Empty).WithMessage("BrandId is required: a series belongs to exactly one brand.");
+        RuleFor(r => r.BrandId).Must(id => id is { } brand && brand != Guid.Empty).WithErrorCode(BrandIdRequired);
     }
 }
