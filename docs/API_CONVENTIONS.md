@@ -79,8 +79,9 @@ enum `<Controller><Action>ErrorCode` of its 400 and `…ConflictCode` of its fie
 action; model binding adds `BODY_REQUIRED`, `BODY_INVALID`, `VALUE_REQUIRED` and `VALUE_INVALID` to every 400).
 401, 403, 412, 428 and the other 409s are told apart by their `type` alone, with no code. A service sets only codes
 and the values a text needs (`WithErrorCode`, a placeholder such as `{MaxLength}`; `BusinessRuleException` carries
-the type, the rule and the field): a new error adds one code or type and one text in the resources, and a new
-language adds its resource file and its culture (`LocalizationSetup`).
+the type, the rule and the field): a new error adds one code or type, its text in the resources and, for the code of
+a 400 or of a 409 about a field, its place in the `[ErrorCodes]` of the actions that answer it; a new language adds its resource file and its culture
+(`LocalizationSetup`).
 
 ## Paging, sorting, filtering
 
