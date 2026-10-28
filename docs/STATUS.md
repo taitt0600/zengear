@@ -7,7 +7,6 @@ flight, what is done and how this file changes: `CLAUDE.md`, *Work state*.
 
 | Key | Item | Who | Source |
 |---|---|---|---|
-| api-errors | The pull request of DEC-117 (its Consequences) | local | DEC-117 |
 | web-structure | The owner-path pull request (A) of DEC-118 | local | DEC-118 |
 | design-flow | The owner-path pull request of DEC-119, then the design system of ZenGear in Claude Design | local | DEC-119 |
 | shell-refactor | The designs of SCR-ADM-01 and SCR-AUT-01 (`/design-screen`), then the pull request (B) of DEC-118; that pull request adds the Next rows STF-05 (pointing to the row before STF-05) and STF-02 (the design of SCR-STF-03, then SCR-STF-03), in that order | local | DEC-118 (5); DEC-119 (3); `docs/SCREENS.md`, SCR-STF-03; DEC-116 (6) |
@@ -16,7 +15,7 @@ flight, what is done and how this file changes: `CLAUDE.md`, *Work state*.
 
 | Trigger | Item | Source |
 |---|---|---|
-| before PRD-01 | (1) Decision: where code shared by the modules of an area goes (`CatalogSlug` and `CatalogNameValidator` in `Catalog/Brands`, for the third module of Catalog); (2) Decision: a shared `If-Match` version check in `Common` (copied in `BusinessLocationService`, `CurrentUserService`, `BrandService` and `ProductSeriesService`; a new `Common` type changes `docs/ARCHITECTURE.md`) | (1) DEC-109 (2); (2) `docs/CODING_GUIDE.md`, section 1 item 3; code-reviewer of the product series pull request |
+| before PRD-01 | (1) Decision: where code shared by the modules of an area goes (`CatalogSlug`, `CatalogNameValidator` and the code `IS_ACTIVE_REQUIRED` of `BrandUpdateRequestValidator` in `Catalog/Brands`, used by Series; for the third module of Catalog); (2) Decision: a shared `If-Match` version check in `Common` (copied in `BusinessLocationService`, `CurrentUserService`, `BrandService` and `ProductSeriesService`; a new `Common` type changes `docs/ARCHITECTURE.md`) | (1) DEC-109 (2); (2) `docs/CODING_GUIDE.md`, section 1 item 3; code-reviewer of the product series pull request |
 | before PRD-05 | (1) Decision: TAX-01 first, or PRD-05 creates the tax tables (`products.tax_class_id` is NOT NULL and no migration creates `tax_classes` yet); (2) the update of a product series refuses moving it to another brand while products reference it (UC-013 extension 3a, R-PRD-07); `fk_products_product_series_series_id` will refuse it in the database once `products` is migrated | (1) `docs/DATABASE.md`, `#### products`; (2) DEC-108; `docs/blueprint/use-cases.md`, UC-013 |
 | before AUT-02 | Decision: change `[ShopEndpoint]` for the endpoints of a signed-in customer | DEC-107 (1) |
 | before PAY-02 | Decision: change `[ShopEndpoint]` for the payment callbacks (VNPay IPN) | DEC-107 (1) |

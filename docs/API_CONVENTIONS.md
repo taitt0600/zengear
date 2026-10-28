@@ -4,7 +4,7 @@ REST over HTTPS, JSON, served by `ZenGear.Api`.
 
 ## Contract
 
-The OpenAPI document `api/openapi/ZenGear.Api.json` is generated from the controllers at build time and committed. The web app generates its TypeScript types from it (`docs/FRONTEND.md`). Every endpoint declares its response types and Problem Details responses so the document is complete. What attributes cannot say is added by the transformers of `OpenApiSetup`: the `ETag` response header of every 200 and 201 whose body is a versioned resource (a DTO with a `[JsonIgnore] uint Version`), beside the `If-Match` request header of its updates, and the `enum` values of a query parameter that a validator restricts (`status` and `sort` of `GET /api/v1/admin/staff`), kept as strings in C# so that a wrong value still gets the 400 of its rule.
+The OpenAPI document `api/openapi/ZenGear.Api.json` is generated from the controllers at build time and committed. The web app generates its TypeScript types from it (`docs/FRONTEND.md`). Every endpoint declares its response types and Problem Details responses so the document is complete. What attributes cannot say is added by the transformers of `OpenApiSetup`: the `ETag` response header of every 200 and 201 whose body is a versioned resource (a DTO with a `[JsonIgnore] uint Version`), beside the `If-Match` request header of its updates, and the `enum` values of a query parameter that a validator restricts (`status` and `sort` of `GET /api/v1/admin/staff`), kept as strings in C# so that a wrong value still gets the 400 of its rule; and the enum of the error codes of each operation (*Errors*).
 
 ## URLs
 
@@ -40,20 +40,47 @@ The OpenAPI document `api/openapi/ZenGear.Api.json` is generated from the contro
 
 ## Errors
 
-Problem Details (RFC 9457) with `application/problem+json`, built with ASP.NET Core `AddProblemDetails`:
+Every error is Problem Details (RFC 9457) with `application/problem+json`, built with ASP.NET Core
+`AddProblemDetails` (DEC-117 (1)):
+
+- `type`: a relative path `/problems/<kebab-case>`, the stable name of the kind of error; the framework's own answers
+  get one too (`/problems/validation` 400, `/problems/unauthenticated` 401, `/problems/forbidden` 403,
+  `/problems/not-found` 404, `/problems/method-not-allowed` 405, `/problems/not-acceptable` 406,
+  `/problems/precondition-failed` 412, `/problems/unsupported-media-type` 415, `/problems/internal-error` 500,
+  `/problems/unexpected-error` for any other status).
+- `title` and `detail`: in the language of the request (`Accept-Language`; vi-VN by default and for every language
+  without its resources, the only one in Phase 1). They come from the API's resources
+  (`ZenGear.Api/Resources/`), keyed by the type, never from a service; they never repeat a value the user sent. A 500
+  has no `detail`.
+- `status`, `ruleId` when a business rule was violated (on a 400, a 403 or a 409 alike), and `traceId`.
+- `errors` on a 400, and on a 409 about one field of the request: an array whose items name where the error is, a
+  `pointer` (JSON Pointer to a field of the body, as a URI fragment: `#/newPassword`, `#/regularHours/1/day`) or a
+  `parameter` (a query or route parameter: `roleId`), the `code` of the reason and its `detail`. The item of a 409
+  has the type as its code (`/problems/email-already-registered` → `EMAIL_ALREADY_REGISTERED`).
 
 ```json
 {
-  "type": "/problems/stock-not-available",
-  "title": "Stock not available",
-  "status": 409,
-  "detail": "SKU L-1 has 1 unit available, 2 requested.",
-  "ruleId": "R-INV-02",
+  "type": "/problems/validation",
+  "title": "Dữ liệu không hợp lệ",
+  "status": 400,
+  "detail": "Vui lòng kiểm tra lại các thông tin đã nhập.",
+  "errors": [
+    { "pointer": "#/newPassword", "code": "PASSWORD_TOO_COMMON", "detail": "Mật khẩu này quá phổ biến. Vui lòng chọn mật khẩu khác." }
+  ],
+  "ruleId": "R-USR-11",
   "traceId": "00-4bf92f…"
 }
 ```
 
-Validation errors use `ValidationProblemDetails` with an `errors` object keyed by camelCase field name. `ruleId` names the business rule that was violated when there is one, on a 400, a 403 or a 409 alike.
+A `code` names one reason, in UPPER_SNAKE_CASE `<SUBJECT>_<REASON>` (`PASSWORD_TOO_COMMON`, `NAME_TOO_LONG`),
+matching `^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$` and at most 63 characters (DEC-117 (2)). A code is stable: renaming or
+removing one is a breaking change. Each operation declares in the OpenAPI document the codes it can answer, as the
+enum `<Controller><Action>ErrorCode` of its 400 and `…ConflictCode` of its field-bound 409 (`[ErrorCodes]` on the
+action; model binding adds `BODY_REQUIRED`, `BODY_INVALID`, `VALUE_REQUIRED` and `VALUE_INVALID` to every 400).
+401, 403, 412, 428 and the other 409s are told apart by their `type` alone, with no code. A service sets only codes
+and the values a text needs (`WithErrorCode`, a placeholder such as `{MaxLength}`; `BusinessRuleException` carries
+the type, the rule and the field): a new error adds one code or type and one text in the resources, and a new
+language adds its resource file and its culture (`LocalizationSetup`).
 
 ## Paging, sorting, filtering
 
@@ -63,8 +90,8 @@ Validation errors use `ValidationProblemDetails` with an `errors` object keyed b
 
 ## Concurrency and idempotency
 
-- Resources that can be edited return an `ETag` built from `xmin`; updates send `If-Match` and get 412 when the row changed (optimistic concurrency).
-- `PUT` / `PATCH` on a resource that has an `ETag` without `If-Match` gets 428.
+- Resources that can be edited return an `ETag` built from `xmin`; updates send `If-Match` and get 412 `/problems/precondition-failed` when the row changed (optimistic concurrency).
+- `PUT` / `PATCH` on a resource that has an `ETag` without `If-Match` gets 428 `/problems/if-match-required`.
 - A concurrent change detected on save (`xmin`) for a request without `If-Match` (a command such as `POST /api/v1/admin/orders/{id}/confirm`) gets 409 with `type` `/problems/concurrency-conflict` and no `ruleId`; the caller reloads and retries.
 - `POST` requests that must not run twice (checkout, payments) send an `Idempotency-Key` header; a repeated key returns the first result (R-ORD-12). Payment callbacks are idempotent by the gateway transaction id (R-TX-07).
 
