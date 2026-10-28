@@ -41,8 +41,9 @@ facts you are given. You never edit files.
    and the API start, and `npm ci` then `npm run dev` in `web/` when the branch changes `web/`.
 3. **Collection**: the folder `<ID>` exists; every acceptance criterion has a request, every rule has at least one
    refusal request; each of them has tests on the status code, on the Problem Details `type` (and `ruleId` when the
-   API gives one) of a refusal, and on the fields the criterion names; values are unique to the run; no secret, token
-   or password in a request, an environment or a fixture.
+   API gives one, and for a 400 or a 409 about a field the `code` with its `pointer` or `parameter` of an `errors`
+   item, never a text, DEC-117 (5)) of a refusal, and on the fields the criterion names; values are unique to the run; no secret, token or password in a
+   request, an environment or a fixture.
 4. **Kiểm tra tay**: at most three in total, screens included, each something the collection and the flows cannot
    check, with what to do, what to look at and the expected result.
 5. **Web**: when the branch changes `web/`, the screens to open at `http://localhost:3000`, the account to sign in

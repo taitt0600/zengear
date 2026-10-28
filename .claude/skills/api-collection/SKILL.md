@@ -13,7 +13,8 @@ file.
    `api/openapi/ZenGear.Api.json`. List the scenarios before writing:
    - every acceptance criterion: at least one request that shows it, the happy path first;
    - every rule of the dossier: at least one refusal (status, Problem Details `type`, `ruleId` when the API gives
-     one), and the allowed case when the rule is a permission (as R-TX-11 in `STF-01`);
+     one, and for a 400 or a 409 about a field the `code` with its `pointer` or `parameter` of the expected `errors`
+     item), and the allowed case when the rule is a permission (as R-TX-11 in `STF-01`);
    - the conflicts and validation errors the endpoint documents, and one request without a token (401).
    A defect adds the request that showed it, with the result now expected.
 2. **Folder** `postman/collections/ZenGear/$ARGUMENTS/`: a `.resources/definition.yaml` (`$kind: collection`, the
@@ -26,7 +27,10 @@ file.
      Auth Emulator with a custom token, so no password appears anywhere. No header = no token. Those requests run
      only against the emulator (environments `dev` and `ci`): say so in the folder description;
    - `afterResponse` tests: `pm.response.to.have.status(…)`; for a refusal, `pm.response.json().type` equals
-     `/problems/<type>` and `ruleId` equals the rule; for a success, every field the criterion names;
+     `/problems/<type>` and `ruleId` equals the rule, and for a 400 or a 409 about a field, `errors` holds the expected
+     item (with `const problem = pm.response.json()`, ``problem.errors.map(e => `${e.pointer} ${e.code}`)`` includes
+     `'#/name NAME_TOO_LONG'`; `e.parameter` for a query or route parameter); never a `title` or `detail` text
+     (DEC-117 (5)); for a success, every field the criterion names;
    - values unique to the run: the first request sets `pm.variables.set('run', Date.now().toString(36))` and every
      email, code or name that must be unique carries `{{run}}`, so the folder passes twice in a row without a reset.
      An id a later request needs is read during the run, from a response of the same folder (as LOC-01 request 01
