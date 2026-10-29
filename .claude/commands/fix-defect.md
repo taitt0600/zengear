@@ -56,8 +56,13 @@ output to `out/logs/` and bring only a summary into the context, as **Output** o
    the report.
 5. **Fix** the code, the smallest change that makes the tests pass without weakening another test, then
    `dotnet build ZenGear.slnx`, `dotnet test ZenGear.slnx` and the drift check from `api/`, then the web checks of
-   `/finish-feature` (step 2) when they apply. A `shadcn add` for the fix is committed alone, before any file it
-   wrote is edited, as `/implement-feature` step 7 says (DEC-116 (1)).
+   `/finish-feature` (step 2) when they apply. A fix that departs from a screen's approved design follows step 4 of
+   `/implement-feature` (DEC-119 (4)); a fix that would change the layout of a screen without a Layout is a Needs
+   decision item (DEC-119 (1)): fix it without changing the layout (recommended when that fixes the defect), or stop
+   with the report of `/finish-feature` (step 14), without a pull request, naming `/design-screen <SCR-ID>` as the
+   next step and the stash of the failing test (`git stash push -u -m "<Feature ID>: needs a Layout"`, as step 4
+   does). A defect that is itself a fault of the layout leaves only the stop. A `shadcn add` for the fix is committed alone, before any file it wrote is edited, as
+   `/implement-feature` step 7 says (DEC-116 (1)).
 6. **Finish** with `/finish-feature` for this feature (and `--checkpoints` when it was given), in this session and
    without reading a handoff file (pass it the facts of steps 2–5), with these differences:
    - On a new `fix/` branch: one commit `fix(<scope>): <subject>` with `Refs:` (and `Closes #<issue>`), after the
@@ -66,7 +71,8 @@ output to `out/logs/` and bring only a summary into the context, as **Output** o
    - On the open branch of the feature: the commit is typed by what it changes (`fix` is only for a bug already on
      `main`), pushed to the existing pull request, which `/finish-feature` follows from step 11.
    - The test guide and **Kịch bản kiểm thử** of the report are about the defect: the steps that showed it, with the
-     result now expected.
+     result now expected; a defect of a screen puts its screenshot beside the screen's design link, as
+     `/finish-feature` step 13.2 says.
    - Every report of this command, also the stops of steps 2 and 4, has a line **Nguyên nhân** after **Chức năng**:
      the sentence of step 4 (or "chưa xác định" with the evidence, without personal data or secrets), the
      hypotheses rejected when there were any, and the follow-ups of step 4.

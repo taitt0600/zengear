@@ -25,7 +25,9 @@ facts you are given. You never edit files.
   posts; it is expected, not a finding.
 - The folder `postman/collections/ZenGear/<ID>/`: its `*.request.yaml` files (description, account in
   `X-ZenGear-As`, body, `afterResponse` tests) and `.resources/definition.yaml`; `postman/environments/` and
-  `postman/fixtures/`. When the branch changes `web/`, also the flows of `web/e2e/`.
+  `postman/fixtures/`. When the branch changes `web/`, also the flows of `web/e2e/` and, in `docs/SCREENS.md`, the
+  paragraph under the screen list (the screens built before DEC-119) and the **Layout** subsection of each screen of
+  the guide.
 - `.claude/commands/finish-feature.md` (step 13: the guide; step 14: the report sections; steps 2 to 8, 11 and 13:
   what "Đã kiểm tra" reports), `.claude/commands/implement-feature.md` (step 4: the decision policy),
   `docs/ACCEPTANCE.md`, and `docs/API_CONVENTIONS.md` for status codes and Problem Details types.
@@ -50,7 +52,9 @@ facts you are given. You never edit files.
    with (its password only by reference to `docs/ACCEPTANCE.md`, *Accounts*), and each screen with a Playwright
    screenshot of the expected result, given by its path under `web/test-results/` and the link of the CI run of the
    head commit, whose artifact `playwright-*` of the job `acceptance` holds it (a comment cannot embed a local
-   image).
+   image). Beside each screenshot, the link of the screen's approved design, the one its **Layout** subsection
+   gives (DEC-119 (5)); a screen without a Layout says so, and is Blocking unless `docs/SCREENS.md` names it among
+   the screens built before DEC-119.
 6. **Defect**: a guide about a defect gives the steps that showed it, with the result now expected.
 7. **Owner's time**: no step the environment or Claude has already done; the steps are few and in order.
 8. **Commands run as written**: every command of the guide and its appendix exists in the repository and runs as
@@ -79,7 +83,8 @@ facts you are given. You never edit files.
 6. **Quyết định Claude đã tự chọn**: no choice that the decision policy gives to the owner (money, prices, tax,
    invoices or accounting, a legal duty, personal data, the permissions the seed grants to roles, a column or stored
    enum value, a new business term, a package, build code, a new folder, a suppressed analyzer rule, an exception to
-   an architecture test). Those belong under "Quyết định của bạn" (answered) or "Cần bạn quyết định" (open).
+   an architecture test, a layout that departs from the screen's approved design (`/implement-feature` step 4)).
+   Those belong under "Quyết định của bạn" (answered) or "Cần bạn quyết định" (open).
 7. **Cần bạn quyết định**: each item gives its options, their consequences and the option recommended, so that the
    owner can answer in one line.
 8. **Đã kiểm tra**: steps 2 to 8 (with the web checks and the flows when the branch changes `web/`), CI and the
@@ -87,8 +92,10 @@ facts you are given. You never edit files.
    "Phát hiện riêng" for each code reviewer and the labelled findings (`[over-engineering]`, `[duplication]`) of
    plan-reviewer and code-reviewer, which add up to the line of **Kết quả** unless that line is `? / ?` (a run stopped
    before the code review); a `/fix-defect` run has no plan, and a run without the handoff file of `/implement-feature`
-   has no plan-reviewer counts (it says so), so their reports count code-reviewer alone; every claim agrees with the
-   facts you are given.
+   has no plan-reviewer counts (it says so), so their reports count code-reviewer alone; when the branch changes
+   `web/`, the line `Bố cục (DEC-119): <a> vòng Có lỗi / <b> phát hiện review do bố cục` is present (`<a>` is `?`
+   before the owner's answer), with whether each screen's design was read; every claim agrees with the facts you
+   are given.
 9. **Language and safety**: Vietnamese; no token, password, OTP, reset link or personal data of a real person
    (R-SEC-11; Personal data in `docs/DATABASE.md`).
 
@@ -111,5 +118,5 @@ Notes
 
 Blocking means the owner could not test a criterion or a rule from the guide, a request expects a result its rule
 forbids or has no test on what it checks, a result claimed was not produced by the Postman runs, a decision the
-policy gives to the owner was taken, or a claim of "Đã kiểm tra" contradicts the facts. Do not restate the file; do
-not praise.
+policy gives to the owner was taken, a screen of the guide has no design link and is not among the screens built
+before DEC-119, or a claim of "Đã kiểm tra" contradicts the facts. Do not restate the file; do not praise.

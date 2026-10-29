@@ -14,7 +14,8 @@ reviewer agents) returns its report to this run: keep its numbers for the report
 
 **Handoff** (DEC-112 (4)): `/implement-feature` ends by writing `out/handoff-<ID>.md` and the owner starts this
 command after `/clear`. Read that file first, unless `/fix-defect` runs this command (it passes its facts in the same
-session): the branch, the plan-reviewer verdict and its counts of `[over-engineering]` and `[duplication]` findings,
+session): the branch, the plan-reviewer verdict and its counts of `[over-engineering]` and `[duplication]` findings
+and of findings caused by layout, for each screen built whether its design was read or only its Layout tree,
 the Needs decision items answered or left open, how each Work state row is handled, the decisions made, the
 deviations from the plan, whether the run is web-only (then the pull request title it names) and the results of the
 build, the tests, the Postman runs and the web checks. A file whose branch is not
@@ -208,7 +209,9 @@ step 11 when the pull request is open.
          each screen the Playwright screenshot of the expected result from step 7: its path under
          `web/test-results/` on this machine, and the link of the `pipeline.yml` run of the head commit (from step
          11, or `gh run list --commit <head sha> --workflow pipeline.yml`), whose artifact `playwright-*` of the
-         job `acceptance` holds the same screenshots.
+         job `acceptance` holds the same screenshots. Beside each screenshot, the link of the screen's approved
+         design (its **Layout** in `docs/SCREENS.md`) for the owner to compare (DEC-119 (5)); a screen without one
+         says "chưa có bản vẽ (màn hình làm trước DEC-119)".
        - **Kiểm tra tay**: at most three checks in total, screens included, that the collection and the flows cannot
          make (a command, a screen, a value in the Emulator UI or the database), each with what to do, what to look
          at and the expected result.
@@ -280,7 +283,13 @@ step 11 when the pull request is open.
       of the Waiting row of `docs/STATUS.md` on DEC-112), also the line
       `security-guidance: <a> cảnh báo / <b> phát hiện riêng`: its warnings on edits and its review findings at the
       end of a turn and on commit or push, those of the **Handoff** added to this session's, and how many no other
-      reviewer found).
+      reviewer found); when the branch changes `web/`, also the line
+      `Bố cục (DEC-119): <a> vòng Có lỗi / <b> phát hiện review do bố cục`: `<a>` the **Có lỗi** rounds caused by
+      the layout of a screen (`?` before the owner's answer at step 13), `<b>` the findings caused by layout of
+      plan-reviewer (from the **Handoff**), `/code-review` and code-reviewer (`docs/AUTOMATION.md`, *Metrics*), and
+      for each screen whether its design was read or only its Layout tree, or "không có Layout" (a screen built
+      before DEC-119); a run without a plan (`/fix-defect`, or no handoff file) counts no plan-reviewer findings and
+      says so, as the over-engineering line does.
     Before posting, give the `report-reviewer` agent `out/report.md`, `out/feature-<ID>.md` and the facts it reads:
     the pull request number and state, the check runs of its head with their results, the areas the branch changes
     (as in 13.3), the plan-reviewer and code-reviewer verdicts, whether the security review ran, the Postman runs, the
