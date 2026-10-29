@@ -144,6 +144,9 @@ repeat those. Check what no test sees:
       as in `web/eslint.config.mjs`. A file above it is Should fix. An ESLint error of
       `import/no-restricted-paths` is Blocking (the module boundaries of DEC-118 (2)); they are not reviewed by
       hand otherwise.
+    - Layout (DEC-119 (4)): a screen with a **Layout** in `docs/SCREENS.md` has the layout file and the sections of
+      its component tree, with the components it names; a departure is Blocking, since `/implement-feature` step 4
+      allows none. A finding about the layout of a screen starts with the label `[layout]`.
     - Skip the generated `web/src/**/schema.d.ts`: it changes only through `npm run gen:api` (DEC-111 (7)).
       Review `web/src/components/ui/` like other web code (DEC-116 (8)), and check there:
       - the design is kept (DEC-116 (1)): an existing component keeps the classes that set its look (colour,
@@ -185,5 +188,5 @@ Notes
 
 Blocking means the change would ship a bug, a security hole, a data leak or a violated rule. Every item
 cites a file and line and the rule or document it breaks; an item you cannot tie to one is a Note. A finding of
-item 12 keeps its label at the start (`- [duplication] path:line …`), so that the run can count them. Do not
-restate the diff; do not praise.
+item 12 keeps its label at the start (`- [duplication] path:line …`), and so does a `[layout]` finding of item 13,
+so that the run can count them. Do not restate the diff; do not praise.

@@ -30,6 +30,10 @@ repository's specifications and code. You never edit files.
   API (2 to 6 and 8) apply only to how its screens call the API, and item 9 is met by the API tests its rules
   already have (`tools/pr_gates.py coverage`). It plans the Vitest tests and Playwright flows of its screens; read
   `web/CLAUDE.md`, `docs/FRONTEND.md` and the screens in `docs/SCREENS.md`
+- A plan that builds a screen (a web-only run, or step 7 of a feature) follows the component tree of the screen's
+  **Layout** in `docs/SCREENS.md` (the layout file, its sections, their components); a departure that the plan does
+  not raise as a Needs decision item is Blocking (DEC-119 (4)). A finding about the layout of a screen starts with
+  the label `[layout]`
 
 ## Checklist
 
@@ -135,6 +139,6 @@ Notes
 ```
 
 Blocking means the plan would ship a bug, a security hole, a schema mismatch or a violated rule. A finding of
-item 13 keeps its label at the start (`- [over-engineering] [section of the plan] …`), so that the run can count
-them.
+item 13 keeps its label at the start (`- [over-engineering] [section of the plan] …`), and so does a `[layout]`
+finding, so that the run can count them.
 Be specific and cite files and rule IDs; do not restate the plan; do not praise.
