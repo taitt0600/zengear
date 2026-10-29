@@ -25,7 +25,8 @@ change nothing:
 - for a diff under `web/src/`, `cd web && npm exec --no -- eslint --no-warn-ignored <files>`, with the paths
   relative to `web/` (`src/…`, the `web/` prefix removed) of the changed files that still exist, committed or not:
   `git diff --name-only --diff-filter=AMR main...HEAD -- web/src`, `git diff --name-only --diff-filter=AMR HEAD --
-  web/src` and the `??` paths under `web/src/` of `git status --porcelain --untracked-files=all`; in the default
+  web/src` and the `??` paths under `web/src/` of `git status --porcelain --untracked-files=all`, each of these paths
+  quoted in the ESLint command (route folders such as `(admin)` break an unquoted shell command); in the default
   output (never `--format json`, which copies each file's source); never with `--fix`, `--cache` or
   `--output-file`. From `web/` the `@/…` imports resolve, so the import boundaries are judged too.
 
