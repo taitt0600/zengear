@@ -1,23 +1,14 @@
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useMutation } from '@tanstack/react-query'
-import { LoaderCircleIcon } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import { useId, useMemo, useRef, useState } from 'react'
-import { Controller, useForm } from 'react-hook-form'
-import type { z } from 'zod'
-import { FormProblems, NO_FORM_PROBLEMS } from '@/components/app/form-problems'
+import { useId } from 'react'
+import { Controller } from 'react-hook-form'
+import { FormProblems } from '@/components/app/form-problems'
 import { Button } from '@/components/ui/button'
-import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
-import { Input } from '@/components/ui/input'
-import { changeMyPassword, sessionOutcome } from '@/features/identity/access'
-import { useProblemToast } from '@/hooks/use-problem-toast'
-import { ApiError, fieldErrors, hasProblemType } from '@/lib/api/problems'
-import { passwordChangeSchema } from '../schemas'
+import { FieldGroup } from '@/components/ui/field'
+import { useChangePassword } from '../hooks/use-change-password'
 import { AccountName } from './account-name'
+import { PasswordField } from './password-field'
 import { ReauthDialog } from './reauth-dialog'
-
-/** The key of the change while it is sent, which keeps the dialog of SCR-ACC-01 open. */
-export const changePasswordKey = ['me', 'change-password'] as const
+import { SubmitButton } from './submit-button'
 
 /**
  * The form of SCR-AUT-02 (docs/SCREENS.md), also opened in a dialog by SCR-ACC-01 with the same answers: the new
@@ -34,157 +25,54 @@ export function ChangePasswordForm({
   onChanged: () => Promise<void>
   onCancel?: () => void
 }) {
-  const t = useTranslations()
+  const t = useTranslations('changePassword')
   const id = useId()
-  const showProblem = useProblemToast()
-  const [reauthOpen, setReauthOpen] = useState(false)
-  // Read when Firebase answers: "Hủy" or Escape while it checks the password closes the dialog at once, during its
-  // exit animation too, and cancels the change.
-  const reauthShown = useRef(false)
-  function showReauth(open: boolean) {
-    reauthShown.current = open
-    setReauthOpen(open)
-  }
-  // From the 204 until the page changes: the button stays disabled.
-  const [leaving, setLeaving] = useState(false)
-  // The texts of a 400 that no field shows, until the next send.
-  const [problems, setProblems] = useState(NO_FORM_PROBLEMS)
-
-  const schema = useMemo(
-    () =>
-      passwordChangeSchema({
-        required: t('changePassword.validation.required'),
-        length: t('changePassword.validation.length'),
-        mismatch: t('changePassword.validation.mismatch'),
-      }),
-    [t],
-  )
-  const form = useForm<z.input<typeof schema>, unknown, z.output<typeof schema>>({
-    resolver: zodResolver(schema),
-    defaultValues: { newPassword: '', confirmation: '' },
-  })
-  // The password is read from the form, not passed as the variables of the mutation, which the mutation cache would
-  // keep after the request (SCR-AUT-02: the password is never kept).
-  const change = useMutation({
-    mutationKey: changePasswordKey,
-    mutationFn: () => changeMyPassword(form.getValues('newPassword')),
-  })
-
-  // `retry`: the send that follows the sign-in again of 403 recent-login-required, which happens once.
-  async function send(retry: boolean) {
-    setProblems(NO_FORM_PROBLEMS)
-    try {
-      await change.mutateAsync()
-    } catch (error) {
-      showFailure(error, retry)
-      return
-    }
-    setLeaving(true)
-    // The passwords leave the form state at once.
-    form.reset()
-    await onChanged()
-  }
-
-  function showFailure(error: unknown, retry: boolean) {
-    // 401 and the session problems: the admin layout follows them (use-staff-session.tsx).
-    if (sessionOutcome(error)) return
-    if (error instanceof ApiError) {
-      // The API's texts (DEC-117 (4)): under the field, and those no field shows at the top of the form.
-      if (error.status === 400 && error.problem?.errors?.length) {
-        const { byField, other } = fieldErrors(error.problem, ['newPassword'])
-        if (byField.newPassword) {
-          form.setError('newPassword', { message: byField.newPassword }, { shouldFocus: true })
-        }
-        setProblems({ texts: other, focus: !byField.newPassword })
-        return
-      }
-      // The sign-in again happens once: a second 403 shows its text.
-      if (
-        error.status === 403 &&
-        hasProblemType(error.problem, 'recent-login-required') &&
-        !retry
-      ) {
-        showReauth(true)
-        return
-      }
-    }
-    showProblem(error)
-  }
-
-  function onConfirmed() {
-    if (!reauthShown.current) return
-    showReauth(false)
-    void send(true)
-  }
-
-  const sending = form.formState.isSubmitting || change.isPending || leaving
+  const { control, problems, sending, onSubmit, reauth } = useChangePassword(onChanged)
 
   return (
     <>
-      <form noValidate onSubmit={(event) => void form.handleSubmit(() => send(false))(event)}>
+      <form noValidate onSubmit={onSubmit}>
         <FieldGroup>
           {email && <AccountName email={email} />}
           <FormProblems problems={problems} />
           <Controller
             name="newPassword"
-            control={form.control}
+            control={control}
             render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={`${id}-new`}>{t('changePassword.newPassword')}</FieldLabel>
-                <Input
-                  {...field}
-                  id={`${id}-new`}
-                  type="password"
-                  autoComplete="new-password"
-                  aria-describedby={`${id}-help`}
-                  aria-invalid={fieldState.invalid}
-                />
-                <FieldDescription id={`${id}-help`}>{t('changePassword.help')}</FieldDescription>
-                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-              </Field>
+              <PasswordField
+                id={`${id}-new`}
+                label={t('newPassword')}
+                autoComplete="new-password"
+                description={t('help')}
+                field={field}
+                fieldState={fieldState}
+              />
             )}
           />
           <Controller
             name="confirmation"
-            control={form.control}
+            control={control}
             render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={`${id}-confirmation`}>
-                  {t('changePassword.confirmation')}
-                </FieldLabel>
-                <Input
-                  {...field}
-                  id={`${id}-confirmation`}
-                  type="password"
-                  autoComplete="new-password"
-                  aria-invalid={fieldState.invalid}
-                />
-                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-              </Field>
+              <PasswordField
+                id={`${id}-confirmation`}
+                label={t('confirmation')}
+                autoComplete="new-password"
+                field={field}
+                fieldState={fieldState}
+              />
             )}
           />
           <div className="flex justify-end gap-2">
             {onCancel && (
               <Button type="button" variant="outline" onClick={onCancel} disabled={sending}>
-                {t('changePassword.cancel')}
+                {t('cancel')}
               </Button>
             )}
-            <Button type="submit" disabled={sending} aria-busy={sending}>
-              {sending && (
-                <LoaderCircleIcon data-icon="inline-start" className="motion-safe:animate-spin" />
-              )}
-              {t('changePassword.submit')}
-            </Button>
+            <SubmitButton sending={sending}>{t('submit')}</SubmitButton>
           </div>
         </FieldGroup>
       </form>
-      <ReauthDialog
-        email={email}
-        open={reauthOpen}
-        onOpenChange={showReauth}
-        onConfirmed={onConfirmed}
-        onClosed={() => form.setFocus('newPassword')}
-      />
+      <ReauthDialog email={email} {...reauth} />
     </>
   )
 }

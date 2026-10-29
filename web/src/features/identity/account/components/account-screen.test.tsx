@@ -1,19 +1,19 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { NextIntlClientProvider } from 'next-intl'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { CurrentUserProvider, type LoadedCurrentUser } from '@/features/identity/access'
 import { ApiError } from '@/lib/api/problems'
-import messages from '../../../../../messages/vi.json'
-import { AccountScreen } from './account-screen'
+import { renderWithProviders } from '@/test/render'
+import { AccountLayout } from './account-layout'
+import { AccountPasswordSection } from './account-password-section'
+import { AccountProfileSection } from './account-profile-section'
 
 const api = vi.hoisted(() => ({ me: vi.fn(), updateMe: vi.fn(), changeMyPassword: vi.fn() }))
+// The files the sections import: GET /me of the session, and the calls of this module.
 vi.mock('@/features/identity/access/api/me', () => ({
   meQuery: { queryKey: ['me'], queryFn: () => api.me() },
-  updateMe: api.updateMe,
-  changeMyPassword: api.changeMyPassword,
 }))
+vi.mock('../api/me', () => ({ updateMe: api.updateMe, changeMyPassword: api.changeMyPassword }))
 
 const session = vi.hoisted(() => ({ reauthenticate: vi.fn() }))
 vi.mock('@/lib/auth/session', () => session)
@@ -40,19 +40,17 @@ const validation = (...errors: { pointer?: string; code: string; detail: string 
     errors,
   })
 
-function renderScreen() {
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
-  render(
-    <NextIntlClientProvider locale="vi" messages={messages} timeZone="Asia/Ho_Chi_Minh">
-      <QueryClientProvider client={client}>
-        <CurrentUserProvider value={{ me: consultant, signOut }}>
-          <AccountScreen />
-        </CurrentUserProvider>
-      </QueryClientProvider>
-    </NextIntlClientProvider>,
+// The screen as its page composes it.
+const renderScreen = () =>
+  renderWithProviders(
+    <CurrentUserProvider value={{ me: consultant, signOut }}>
+      <AccountLayout
+        title="Tài khoản của tôi"
+        profile={<AccountProfileSection />}
+        password={<AccountPasswordSection />}
+      />
+    </CurrentUserProvider>,
   )
-  return client
-}
 
 const nameField = () => screen.getByLabelText('Tên hiển thị')
 
@@ -160,7 +158,8 @@ describe('"Lưu" (PATCH /me with If-Match)', () => {
     await user.click(screen.getByRole('button', { name: 'Lưu' }))
 
     const text = await screen.findByText('Nội dung yêu cầu không đọc được.')
-    expect(text.closest('[data-slot="alert"]')).toHaveAttribute('role', 'alert')
+    // The field's own error is an alert too: the one at the top of the form holds the text.
+    expect(screen.getAllByRole('alert').find((alert) => alert.contains(text))).toBeDefined()
     expect(screen.getByText('Vui lòng nhập tên.')).toBeInTheDocument()
     // The field in error takes the focus, not the alert.
     await waitFor(() => expect(screen.getByLabelText('Tên hiển thị')).toHaveFocus())
@@ -271,7 +270,10 @@ describe('"Đổi mật khẩu"', () => {
     await user.click(await screen.findByRole('button', { name: 'Đổi mật khẩu' }))
     const dialog = await screen.findByRole('dialog', { name: 'Đổi mật khẩu' })
 
-    expect(dialog.querySelector('input[autocomplete="username"]')).toHaveValue('tuvan@zengear.test')
+    expect(within(dialog).getByDisplayValue('tuvan@zengear.test')).toHaveAttribute(
+      'autocomplete',
+      'username',
+    )
   })
 
   it('returns to the password form when the nested sign-in dialog closes', async () => {

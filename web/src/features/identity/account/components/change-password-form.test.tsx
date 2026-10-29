@@ -1,14 +1,14 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { NextIntlClientProvider } from 'next-intl'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from '@/lib/api/problems'
-import messages from '../../../../../messages/vi.json'
+import { renderWithProviders } from '@/test/render'
 import { ChangePasswordForm } from './change-password-form'
 
 const api = vi.hoisted(() => ({ changeMyPassword: vi.fn() }))
-vi.mock('@/features/identity/access/api/me', () => ({ changeMyPassword: api.changeMyPassword }))
+vi.mock('../api/me', () => ({ changeMyPassword: api.changeMyPassword }))
+// The session module the form reads loads GET /me, and with it the API client: never reached here.
+vi.mock('@/features/identity/access/api/me', () => ({ meQuery: {} }))
 
 const session = vi.hoisted(() => ({ reauthenticate: vi.fn() }))
 vi.mock('@/lib/auth/session', () => session)
@@ -38,19 +38,13 @@ const NEW_PASSWORD = 'mot mat khau moi dai'
 const EMAIL = 'tuvan@zengear.test'
 const onChanged = vi.fn()
 
-function renderForm(onCancel?: () => void) {
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
-  render(
-    <NextIntlClientProvider locale="vi" messages={messages} timeZone="Asia/Ho_Chi_Minh">
-      <QueryClientProvider client={client}>
-        <ChangePasswordForm email={EMAIL} onChanged={onChanged} onCancel={onCancel} />
-      </QueryClientProvider>
-    </NextIntlClientProvider>,
+const renderForm = (onCancel?: () => void) =>
+  renderWithProviders(
+    <ChangePasswordForm email={EMAIL} onChanged={onChanged} onCancel={onCancel} />,
   )
-  return client
-}
 
-const usernameOf = (element: ParentNode) => element.querySelector('input[autocomplete="username"]')
+// The account for password managers: a hidden field, which has no role or label.
+const usernameIn = (element: HTMLElement) => within(element).getByDisplayValue(EMAIL)
 
 async function submit(password = NEW_PASSWORD, confirmation = password) {
   const user = userEvent.setup()
@@ -80,8 +74,8 @@ describe('the fields', () => {
 
   it('names the account for password managers, out of sight', () => {
     renderForm()
-    const username = usernameOf(document)
-    expect(username).toHaveValue(EMAIL)
+    const username = usernameIn(document.body)
+    expect(username).toHaveAttribute('autocomplete', 'username')
     expect(username).not.toBeVisible()
   })
 
@@ -149,9 +143,10 @@ describe('the answers of POST /me/change-password', () => {
     const user = await submit()
 
     const text = await screen.findByText('Nội dung yêu cầu không đọc được.')
-    expect(text.closest('[data-slot="alert"]')).toHaveAttribute('role', 'alert')
+    const alert = screen.getAllByRole('alert').find((element) => element.contains(text))
+    expect(alert).toBeDefined()
     // No field shows an error, so the alert takes the focus.
-    await waitFor(() => expect(text.closest('[data-slot="alert"]')).toHaveFocus())
+    await waitFor(() => expect(alert).toHaveFocus())
     expect(screen.getByLabelText('Mật khẩu mới')).toHaveAttribute('aria-invalid', 'false')
     expect(toast.error).not.toHaveBeenCalled()
 
@@ -233,7 +228,7 @@ describe('403 recent-login-required (DEC-094)', () => {
     const user = await submit()
 
     const dialog = await reauthDialog()
-    expect(usernameOf(dialog)).toHaveValue(EMAIL)
+    expect(usernameIn(dialog)).toHaveAttribute('autocomplete', 'username')
     await user.type(within(dialog).getByLabelText('Mật khẩu hiện tại'), 'mat-khau-cu')
     await user.click(within(dialog).getByRole('button', { name: 'Tiếp tục' }))
 
