@@ -9,13 +9,17 @@ const eslint = new ESLint({ cwd: fileURLToPath(new URL('..', import.meta.url)) }
 // Only the two rules of the text check: the snippets break others (unused declarations, <img>) on purpose.
 const TEXT_RULES = ['react/jsx-no-literals', 'no-restricted-syntax']
 
-async function ruleIds(code: string, filePath = 'src/features/sample/sample.tsx') {
+async function ruleIds(
+  code: string,
+  filePath = 'src/features/sample/sample.tsx',
+  rules = TEXT_RULES,
+) {
   const [result] = await eslint.lintText(code, { filePath })
   // A snippet ESLint cannot parse would otherwise "pass" with no message of these rules.
   expect(result.fatalErrorCount).toBe(0)
   return result.messages
     .map((message) => message.ruleId)
-    .filter((ruleId) => ruleId && TEXT_RULES.includes(ruleId))
+    .filter((ruleId) => ruleId && rules.includes(ruleId))
 }
 
 const component = (jsx: string) =>
@@ -67,5 +71,65 @@ describe('text in JSX', () => {
 
   it('does not check tests', async () => {
     expect(await ruleIds(component('<p>Xin chào</p>'), 'src/sample.test.tsx')).toEqual([])
+  })
+})
+
+// DEC-118 (2). The snippets sit in the real folders and import real files: an import that does not resolve is not
+// judged, and the modules are those of src/features.
+describe('import boundaries (DEC-118 (2))', () => {
+  const BOUNDARY = ['import/no-restricted-paths']
+  const importing = (from: string) => `import * as m from '${from}'\nexport const n = m\n`
+  const INTERNAL = '@/features/identity/access/utils/routes'
+  const INDEX = '@/features/identity/access'
+
+  it.each([
+    ['app, the inside of a module', 'src/app/sample/page.tsx', INTERNAL],
+    ['a feature, app', 'src/features/identity/access/sample.ts', '@/app/layout'],
+    ['a module, the inside of another module', 'src/features/shell/admin/sample.ts', INTERNAL],
+    ['a shared folder, a feature', 'src/hooks/sample.ts', INDEX],
+    ['a shared folder, app', 'src/lib/sample.ts', '@/app/layout'],
+    ['a root file, a feature', 'src/proxy.ts', INDEX],
+  ])('refuses that %s imports', async (_, filePath, from) => {
+    expect(await ruleIds(importing(from), filePath, BOUNDARY)).toEqual(BOUNDARY)
+  })
+
+  it.each([
+    ['app, a module through its index', 'src/app/sample/page.tsx', INDEX],
+    ['a feature, a shared folder', 'src/features/identity/access/sample.ts', '@/lib/utils'],
+    ['a module, another module through its index', 'src/features/shell/admin/sample.ts', INDEX],
+    ['a module, its own files', 'src/features/identity/access/sample.ts', './utils/routes'],
+    ['a shared folder, another shared folder', 'src/hooks/sample.ts', '@/lib/utils'],
+  ])('accepts that %s imports', async (_, filePath, from) => {
+    expect(await ruleIds(importing(from), filePath, BOUNDARY)).toEqual([])
+  })
+})
+
+// DEC-118 (3): at most 150 lines of code per file, a warning.
+describe('file length (DEC-118 (3))', () => {
+  const lines = (count: number) =>
+    Array.from({ length: count }, (_, i) => `export const n${i} = ${i}`).join('\n') + '\n'
+
+  // The severities of the max-lines messages: 1 is a warning, which DEC-118 (3) chose over an error.
+  async function maxLines(code: string, filePath = 'src/features/sample/sample.ts') {
+    const [result] = await eslint.lintText(code, { filePath })
+    expect(result.fatalErrorCount).toBe(0)
+    return result.messages
+      .filter((message) => message.ruleId === 'max-lines')
+      .map((message) => message.severity)
+  }
+
+  it('warns above 150 lines of code', async () => {
+    expect(await maxLines(lines(151))).toEqual([1])
+  })
+
+  it('counts neither blank lines nor comments', async () => {
+    expect(await maxLines(lines(150) + '\n// a comment\n/* another\n   one */\n\n')).toEqual([])
+  })
+
+  it.each([
+    ['the shadcn components', 'src/components/ui/sample.tsx'],
+    ['tests', 'src/sample.test.ts'],
+  ])('does not check %s', async (_, filePath) => {
+    expect(await maxLines(lines(151), filePath)).toEqual([])
   })
 })
