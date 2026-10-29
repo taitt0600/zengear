@@ -4,7 +4,8 @@ The screens of the web app (`web/`), per feature: route, who opens it, what it s
 how each answer of the API is shown. Structure, stack and conventions are in `docs/FRONTEND.md`; this file says
 *what* each screen does, `docs/FRONTEND.md` says *how* screens are built. `/implement-feature` builds the web part of
 a feature only when this file describes its screens (step 7), and only once the screen's row below says nothing
-blocks it; for a feature already done, it runs again as a web-only run that builds only those screens (step 1).
+blocks it and its **Layout** is approved (DEC-119); for a feature already done, it runs again as a web-only run that
+builds only those screens (step 1).
 
 A screen is written here before its feature is built on the web, from the API that exists: every field names the
 property of the OpenAPI contract (`api/openapi/ZenGear.Api.json`) it shows or sends. The API decides; the web checks
@@ -40,6 +41,28 @@ only the shape of the input (required, length, format) with the limits below, wh
 - **Dates** `yyyy-MM-dd` from the API are shown `dd/MM/yyyy`; timestamps are shown in Asia/Ho_Chi_Minh.
 - **Accessibility**: WCAG 2.2 AA; every form works with the keyboard alone, every field has a visible label, errors
   are announced to screen readers.
+- **Design system** (DEC-119 (2)): not built yet. Once built, this line reads `<link>, built <yyyy-mm-dd> from
+  web/src/app/globals.css and web/src/components/ui/ at commit <sha>`; `/design-screen` brings the system up to date
+  when those files changed since, and then this line's date and commit.
+- **Layout** (DEC-119 (3)): the approved design of a screen, a subsection at the end of its section that
+  `/design-screen <SCR-ID>` writes and the merge of its Layout pull request approves; a later change of the design is
+  a new Layout pull request. The component tree is the part a diff can review, and the runs build from it:
+
+  ````markdown
+  ### Layout
+
+  - **Design**: <link>, drawn <yyyy-mm-dd> with the design system of <yyyy-mm-dd>; approved by the merge of the
+    pull request that wrote this subsection (DEC-119).
+  - **Artboards**: desktop (1440 px), narrow (390 px); states: loading, empty, error, no permission.
+  - **Component tree** (DEC-118 (3)), under `web/src/features/<area>/<module>/components/`:
+
+    ```text
+    <screen>-layout.tsx                slots: <a> | <b> | <c>; narrow: <what changes>
+    ├── <screen>-<block>-section.tsx   <what it shows> — <shadcn component or block>; loading: <…>; empty: <…>
+    └── <screen>-<block>-section.tsx   …
+        └── <piece>.tsx                presentational — <shadcn component>
+    ```
+  ````
 
 ## Screen list
 
@@ -50,9 +73,9 @@ only the shape of the input (required, length, format) with the limits below, wh
 | SCR-AUT-02 | Required password change | `/admin/change-password` | Admin | STF-03 | signed-in staff | |
 | SCR-ACC-01 | My account | `/admin/account` | Admin | STF-03 | signed-in staff | |
 | SCR-STF-01 | Staff list | `/admin/staff` | Admin | STF-05 | `staff.read` | |
-| SCR-STF-02 | New staff account | `/admin/staff/new` | Admin | STF-01 | `staff.create` | gap 2, design (DEC-119) |
-| SCR-STF-03 | Staff account | `/admin/staff/[id]` | Admin | STF-01, STF-02 | `staff.read`; actions `staff.disable` | design (DEC-119) |
-| SCR-LOC-01 | Business location | `/admin/settings/business-location` | Admin | LOC-01 | `business_location.update` | gap 3, design (DEC-119) |
+| SCR-STF-02 | New staff account | `/admin/staff/new` | Admin | STF-01 | `staff.create` | gap 2 |
+| SCR-STF-03 | Staff account | `/admin/staff/[id]` | Admin | STF-01, STF-02 | `staff.read`; actions `staff.disable` | |
+| SCR-LOC-01 | Business location | `/admin/settings/business-location` | Admin | LOC-01 | `business_location.update` | gap 3 |
 
 The order of DEC-111 (7), which split the one tooling pull request of DEC-104: the API pull request for the web (gaps 1
 and 4) comes before or beside the three tooling pull requests T1 (package gate), T2 (CI and hooks) and T3 (Claude Code
@@ -60,11 +83,16 @@ tools), which the owner opens and merges; the web shell (`web/` set up with SCR-
 screen was built before it. Every admin screen sits inside SCR-ADM-01. The POS and
 the storefront have no screen yet: their features (catalog, stock, orders) have no API.
 
-The web shell is built (SCR-ADM-01 and SCR-AUT-01): a screen whose *Blocked by* cell is empty can be built with its
-feature. Until then its route opens a short placeholder page, "Màn hình này đang được xây dựng." inside the layout
-(SCR-STF-01, SCR-LOC-01), so no menu link leads to a 404; the feature replaces it. A date picker uses the shadcn
-calendar with date-fns (DEC-116 (6)). A cell "design (DEC-119)" holds its screen until the pull request of DEC-119
-makes the ready check of `/implement-feature` require an approved design; that pull request empties those cells.
+The web shell is built (SCR-ADM-01 and SCR-AUT-01): a screen whose *Blocked by* cell is empty and whose **Layout**
+is approved can be built with its feature; without a Layout, the ready check of `/implement-feature` holds it as a
+cell would (DEC-119 (1)). Until then its route opens a short placeholder page, "Màn hình này đang được xây dựng."
+inside the layout (SCR-STF-01, SCR-LOC-01), so no menu link leads to a 404; the feature replaces it. The screens
+built before DEC-119 — SCR-ADM-01, SCR-AUT-01, SCR-AUT-02 and SCR-ACC-01 — need a Layout only when their layout
+changes. A `refactor(web)` pull request that changes the layout of a screen (the pull request (B) of DEC-118) needs
+that screen's approved Layout first and builds it; a new Layout of a screen `web/` already has is built the same
+way, by a `refactor(web)` pull request of a local session, which the owner asks for once the Layout merges (the body
+of the Layout pull request says so). A date picker uses the shadcn calendar with date-fns
+(DEC-116 (6)).
 
 ---
 

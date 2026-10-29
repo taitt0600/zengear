@@ -5,8 +5,8 @@ The owner picks and starts features in a local session with `/implement-feature`
 (CLAUDE.md, Workflow; DEC-100). Everything else runs by itself, except four things kept for the owner on purpose: answering a **Needs decision** item (money, tax, legal duties, personal data,
 role permissions, data that is hard to migrate, packages, build code), the test before merge, merging a pull
 request that changes the specification or the tooling (`owner_paths` in `tools/pr_gates.py`), and merging the pull
-requests that change only `docs/STATUS.md` and the docs pull requests of cloud sessions (DEC-110), which never get
-auto-merge.
+requests that change only `docs/STATUS.md`, the docs pull requests of cloud sessions (DEC-110) and the Layout pull
+requests of `/design-screen` (DEC-119), which never get auto-merge.
 
 ## The owner's part
 
@@ -15,13 +15,18 @@ auto-merge.
    whose *Depends On* features are done) runs with `/implement-feature <Feature ID>` in Claude Code
    (`--checkpoints` to also approve the plan, the failing tests and the diff, as in DEC-099); when it stops after
    the tests and the Postman folder, type `/clear`, then `/finish-feature <Feature ID>` (DEC-112 (4)). A feature
-   already done whose screens `docs/SCREENS.md` no longer blocks runs `/implement-feature <Feature ID>` again: a
-   web-only run that builds only those screens, on `feat/<id>-web`, titled `feat(web): … (<Feature ID>)`
-   (`/implement-feature`, step 1). Any other row is asked
+   already done whose screens `docs/SCREENS.md` no longer blocks and that have an approved design runs
+   `/implement-feature <Feature ID>` again: a web-only run that builds only those screens, on `feat/<id>-web`,
+   titled `feat(web): … (<Feature ID>)` (`/implement-feature`, step 1). A screen is designed first (DEC-119): `/design-screen <SCR-ID>`, in a local or a
+   cloud session, draws it in Claude Design and opens a Layout pull request; comment on the design or the pull
+   request (each comment leads to a new revision when `/design-screen <SCR-ID>` runs again), add a comment
+   `Phút duyệt: <minutes>`, and merge it to approve the design. A session without the Artifact tool gives a drawing
+   prompt to paste into Claude Design in the Claude app instead; give the link back with
+   `/design-screen <SCR-ID> <link>`. Any other row is asked
    of Claude in words, from its *Source*; when its *Who* says owner path, Claude pushes the branch and the owner opens
    and merges the pull request. Cloud sessions do not run features or fixes (DEC-100): they run only the two
-   notification routines below, `/report-review`, `/decision-draft`, and the pull requests and comments of
-   DEC-110 (4).
+   notification routines below, `/report-review`, `/decision-draft`, `/design-screen`, and the pull requests and
+   comments of DEC-110 (4).
 2. Answer the **Needs decision** items when Claude asks them: all the items known after the plan in one question,
    a later one at once. An answer that changes a specification stops the run: `/decision-draft <what was decided>`
    drafts the Decision for the workbook, and the owner opens that specification pull request. A yes to a package
@@ -31,15 +36,18 @@ auto-merge.
 3. **Test before merge**: once CI is green, Claude leaves the development environment ready (reset, API of the
    branch running, and the web with `npm run dev` when the branch changes `web/`) and posts a test guide of one page
    on the pull request. Run the feature's folder in the Postman app when the API changed, open the screens of the
-   guide at http://localhost:3000 when the web changed (`docs/ACCEPTANCE.md`), do its manual checks (at most three
+   guide at http://localhost:3000 when the web changed and compare each with its screenshot and its design link
+   (`docs/ACCEPTANCE.md`, item 3), do its manual checks (at most three
    in all), then answer **Đạt** (auto-merge on),
    **Có lỗi** (describe each defect; Claude fixes it on the same branch and sends the guide again) or **Để sau**
    (a later `/finish-feature <Feature ID>` resumes at the test), with the minutes you spent.
 4. A defect found after the merge: an issue with the form **Acceptance defect** (label `defect`), one defect per
    issue, the title starting with the Feature ID, then `/fix-defect <Feature ID> #<issue>` in a local session; the
    fix pull request closes the issue when it merges, after the same test before merge.
-5. Plans and pull requests are reviewed locally (`plan-reviewer`, `code-reviewer`) and end with the section
-   "Tóm tắt cho chủ dự án" (CLAUDE.md, Workflow): read that summary instead of sending them to a cloud session.
+5. Plans and pull requests are reviewed locally (`plan-reviewer`, `code-reviewer`), except a Layout pull request that
+   a cloud session opens with `/design-screen`, which that session reviews with `code-reviewer` itself; they end with
+   the section "Tóm tắt cho chủ dự án" (CLAUDE.md, Workflow): read that summary instead of sending them to a cloud
+   session.
 6. After a few days away, or in a new session, ask **"Việc tiếp theo là gì?"**: Claude answers from
    `docs/STATUS.md` and the open pull requests, issues and branches (CLAUDE.md, *Work state*). Say first whether the
    answer was right, then what it missed; Claude logs that as a Re-entry line (below, *Metrics*). Merge a pull request
@@ -51,6 +59,7 @@ auto-merge.
 | Step | Mechanism | Where it lives |
 |---|---|---|
 | Plan, tests, code, Postman folder, verification, commits, pull request, CI, test guide, report | `/implement-feature`, then `/clear` and `/finish-feature`, which reads `out/handoff-<ID>.md` (`/fix-defect` runs in one session); for a branch that changes `web/` (or the OpenAPI contract) they also run the web checks (`npm run gen:api`, `lint`, `format`, `typecheck`, `test`, `build`) and, in `/finish-feature`, the Playwright flows of `web/e2e/`; with the `plan-reviewer`, `code-reviewer` and `report-reviewer` agents, `/code-review` and the skills `api-collection` and `api-run`; they stop only for Needs decision items, the merge of a package approval and the owner's test (and at the three checkpoints with `--checkpoints`) | Repository |
+| Design of a screen | `/design-screen`, with the Artifact tool (types Design and Design System) in the owner's Claude account: the drawing, the Layout subsection of `docs/SCREENS.md`, `code-reviewer`, the Layout pull request; the owner's merge approves it (DEC-119) | Repository; claude.ai |
 | Merge | Auto-merge, enabled when the owner answers **Đạt**, once the required checks of `main` pass (`tools/github_pr.py`) | GitHub |
 | Notify the owner, log the numbers | Routines **ZenGear PR merged** (pull request merged) and **ZenGear PR needs decision** (pull request opened as a draft), on GitHub events | The owner's claude.ai account |
 | Turn a defect issue into a fix | Routine **ZenGear fix defects** — **disabled since 2026-10-02** (DEC-100); the owner runs `/fix-defect` locally | The owner's claude.ai account |
@@ -162,6 +171,12 @@ Re-entry | <yyyy-mm-dd> | <local or cloud> | <pass or fail> | missed: <the items
 When the owner has to remind Claude of an item already discussed, or an old item comes back as a new one, Claude adds
 `Reminder | <yyyy-mm-dd> | <local or cloud> | <the item>`. These lines count M2 and M1 of DEC-110 (7); when DEC-110 is
 evaluated (DEC-110 (7)), Claude takes M3 and M4 from `git log -p origin/main -- docs/STATUS.md` after `git fetch`.
+
+The measures of DEC-119 are read by hand, since the routines copy none of them to issue #24: the share of screens
+with an approved design before their code (target 100%), from `git log origin/main -- docs/SCREENS.md` (the Layout
+of each screen merged before the pull request that builds or changes it opened); the **Có lỗi** rounds and review
+findings caused by layout, from the line `Bố cục (DEC-119)` of **Đã kiểm tra** in each report (`/finish-feature`,
+step 14); the owner's minutes per design, from the comment `Phút duyệt: <minutes>` on each Layout pull request.
 
 ## CI/CD pipeline (DEC-100 (8))
 

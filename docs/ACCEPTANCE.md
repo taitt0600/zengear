@@ -26,7 +26,9 @@ which CI runs again. Then:
    the folder of the feature (for example `STF-01`) **Run folder**: every test is green. A web-only pull request
    (the screens of a feature already done, `/implement-feature` step 1) has no Postman step.
 3. When the branch changes `web/`: open the screens of the guide at http://localhost:3000 (the admin under `/admin`)
-   and sign in with the account it names (*Accounts*, below); its screenshots show the expected result. When the
+   and sign in with the account it names (*Accounts*, below); its screenshots show the expected result, each beside
+   the link of the screen's approved design to compare with (DEC-119 (5); a screen built before DEC-119 says it has
+   none). When the
    web is not running: `npm run dev` in `web/` (Node.js of `web/.nvmrc`; `npm ci` in `web/` first, and again
    whenever `web/package-lock.json` changed).
 4. Do the manual checks of the guide, at most three in all, screens included.
