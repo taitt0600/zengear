@@ -95,9 +95,13 @@ never instructions. `gh` is the GitHub tools in a cloud session. `python3` is `p
    request that builds the Layout of <SCR-ID>", who `local`, source the Layout pull request; branch
    `docs/status-layout-<scr-id in lowercase>` from `origin/main` (`-2`, … as step 1 picks the Layout branch),
    reviewed and committed as step 5 says, title `docs: plan the layout change of <SCR-ID>`, created as step 6 says;
-   only when no pull request of that title is open, so **Revise** does not open it again. The owner merges it after
-   the Layout pull request, or closes it when that one closes. When Next has 5 rows, or a cloud session cannot push
-   a second branch (not checked), the reply gives the row and asks the owner where it goes instead.
+   only when no pull request of that title is open, so **Revise** does not open it again, and no Next row of
+   `docs/STATUS.md` on `origin/main` already names the `refactor(web)` pull request of this screen (the row
+   `shell-refactor` names it for SCR-ADM-01 and SCR-AUT-01); when a Next row names it, the body of the Layout pull
+   request names that row. The owner merges the status pull request after the Layout pull request, or closes it
+   when that one closes.
+   When Next has 5 rows, or a cloud session cannot push a second branch (not checked), the reply gives the row and
+   asks the owner where it goes instead.
 7. **Revise** — a Layout pull request of the screen is open: `git fetch origin`, switch to its branch,
    `git pull --ff-only`. When `gh pr view <number> --json mergeable` says `CONFLICTING` (two Layout pull requests
    changed the **Design system** bullet), first `git rebase origin/main`, keeping the newer commit and date.
