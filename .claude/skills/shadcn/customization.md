@@ -142,7 +142,7 @@ warning: "bg-warning text-warning-foreground hover:bg-warning/90",
 ### 4. Wrapper components
 
 Compose shadcn/ui primitives into higher-level components, in `web/src/components/app/` or
-`web/src/features/<area>/`:
+`web/src/features/<area>/<module>/`:
 
 ```tsx
 export function ConfirmDialog({ title, description, onConfirm, children }) {

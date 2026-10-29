@@ -148,7 +148,7 @@ DEC-099 marked **Checkpoint** below (two here, one in `/finish-feature`); withou
    - From `web/`: `npm ci` as `/finish-feature` step 2 says, unless step 5 ran it (the branch is new; it counts as
      the first `npm ci` of the web checks), `npm run gen:api`;
      tests first, seen failing: Vitest (Zod schemas, the mapping of Problem Details
-     onto the form, hooks; DEC-104 (7)); then pages and components in the matching `features/<area>`, and the
+     onto the form, hooks; DEC-104 (7)); then pages and components in the matching `features/<area>/<module>`, and the
      Playwright flows of the screens in `web/e2e/`.
      **A `shadcn add`** (skill `shadcn`) runs before any file it may update is edited, `web/src/app/globals.css`
      included, and is committed alone before any file it wrote is edited (DEC-116 (1)):

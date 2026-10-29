@@ -41,6 +41,7 @@
       "Bash(docker compose -f api/docker-compose.yml config --quiet)",
       "Bash(env EFBUNDLE=./efbundle docker compose -f api/acceptance/compose.yml config --quiet)",
       "Bash(actionlint)",
+      "Bash(npm exec --no -- eslint --no-warn-ignored *)",
       "Bash(postman collection run *)",
       "Bash(gh issue list *)",
       "Bash(gh issue view *)",
@@ -108,6 +109,7 @@
       "mcp__zengear__updateWorkspace"
     ],
     "deny": [
+      "Bash(*eslint*--fix*)",
       "Bash(git commit *--no-verify*)",
       "Bash(git commit -n*)",
       "Bash(git commit * -n*)",

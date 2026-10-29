@@ -20,8 +20,8 @@ ZenGear rules, DEC-116, DEC-111 (2), (5). Where this file or the files it links 
 - Keep shadcn's design: never change the classes that set the look of an existing component (colour, spacing,
   radius, font size, shadow) except to fix accessibility. The look changes through the CSS variables of
   `web/src/app/globals.css` and `web/components.json`, and a new variant uses the tokens of the theme. A component
-  in `web/src/components/app/` or `web/src/features/<area>/` is for composing several components, never needed to
-  change one.
+  in `web/src/components/app/` or `web/src/features/<area>/<module>/` is for composing several components, never
+  needed to change one.
 - Every item of the official registry (`@shadcn`, the default) in the base and style of `web/components.json`
   (radix, new-york) may be used, also one that writes English (sidebar, sheet, dialog, pagination, carousel,
   breadcrumb, calendar, command, spinner). In the pull request of its `add`, every text a user reads or a screen
@@ -31,8 +31,8 @@ ZenGear rules, DEC-116, DEC-111 (2), (5). Where this file or the files it links 
   message files: ESLint cannot see it, `code-reviewer` checks it (DEC-116 (2)). No item that needs `@base-ui/react`
   (the Base UI base) or `@shadcn/react` (the chat items).
 - Blocks of `@shadcn` (`sidebar-*`, `login-*`, `signup-*`, `dashboard-01`, …) are templates (DEC-116 (3)): after
-  `add`, their files are code of the app, moved to `web/src/features/<area>/` (DEC-118 moves it to
-  `features/<area>/<module>/`) or `web/src/components/app/`; the sample page written to `app/`, the sample data and
+  `add`, their files are code of the app, moved to `web/src/features/<area>/<module>/` (DEC-118) or
+  `web/src/components/app/`; the sample page written to `app/`, the sample data and
   the sample texts are deleted; icons are `lucide-react` (the `iconLibrary` of `components.json`), and a block that
   imports another icon set is switched to lucide. A block is never updated again from the registry.
 - Updating an installed component, only when a fix or a feature of the registry is needed (Dependabot's update of
