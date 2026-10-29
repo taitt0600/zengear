@@ -21,7 +21,13 @@ change nothing:
   workflows are reported as unchecked;
 - `<command> --help`, only for an external CLI or a script that parses `--help` itself (argparse), never with
   `pwsh -File`;
-- `python3 -m unittest discover -s tools/tests` (`python` on Windows).
+- `python3 -m unittest discover -s tools/tests` (`python` on Windows);
+- for a diff under `web/src/`, `cd web && npm exec --no -- eslint --no-warn-ignored <files>`, with the paths
+  relative to `web/` (`src/…`, the `web/` prefix removed) of the changed files that still exist, committed or not:
+  `git diff --name-only --diff-filter=AMR main...HEAD -- web/src`, `git diff --name-only --diff-filter=AMR HEAD --
+  web/src` and the `??` paths under `web/src/` of `git status --porcelain --untracked-files=all`; in the default
+  output (never `--format json`, which copies each file's source); never with `--fix`, `--cache` or
+  `--output-file`. From `web/` the `@/…` imports resolve, so the import boundaries are judged too.
 
 Never run a command that changes files, containers, databases or GitHub. A command that cannot be dry-run is
 reported as unchecked; a PowerShell script is never run, read its `ShouldProcess` gates instead.
@@ -131,6 +137,12 @@ repeat those. Check what no test sees:
     A finding of questions 1 to 3 starts with the label `[over-engineering]` (1 and 2) or `[duplication]` (3).
 13. **Web interface** (diffs under `web/` only): each changed screen or component follows
     `.claude/guidelines/web-interface-guidelines.md`; a finding cites its rule (`MUST: …`).
+    - File length (DEC-118 (3)): run the ESLint command above on the changed files of `web/src/`. A new file, or a
+      file whose content changed (not counting a move or changed imports, as `git diff -M` shows), has no
+      `max-lines` warning, i.e. at most 150 lines of code; tests, `components/ui` and `schema.d.ts` are excluded,
+      as in `web/eslint.config.mjs`. A file above it is Should fix. An ESLint error of
+      `import/no-restricted-paths` is Blocking (the module boundaries of DEC-118 (2)); they are not reviewed by
+      hand otherwise.
     - Skip the generated `web/src/**/schema.d.ts`: it changes only through `npm run gen:api` (DEC-111 (7)).
       Review `web/src/components/ui/` like other web code (DEC-116 (8)), and check there:
       - the design is kept (DEC-116 (1)): an existing component keeps the classes that set its look (colour,
