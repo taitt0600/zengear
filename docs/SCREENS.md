@@ -89,10 +89,10 @@ cell would (DEC-119 (1)). Until then its route opens a short placeholder page, "
 inside the layout (SCR-STF-01, SCR-LOC-01), so no menu link leads to a 404; the feature replaces it. The screens
 built before DEC-119 — SCR-ADM-01, SCR-AUT-01, SCR-AUT-02 and SCR-ACC-01 — need a Layout only when their layout
 changes. A `refactor(web)` pull request that changes the layout of a screen (the pull request (B) of DEC-118) needs
-that screen's approved Layout first and builds it; a new Layout of a screen `web/` already has is built the same
-way, by a `refactor(web)` pull request of a local session, which the owner asks for once the Layout merges (the body
-of the Layout pull request says so). A date picker uses the shadcn calendar with date-fns
-(DEC-116 (6)).
+that screen's approved Layout first and builds it; a new Layout of a screen `web/` already has (not a placeholder
+page) is built the same way, by a `refactor(web)` pull request of a local session, which a Next row of
+`docs/STATUS.md` keeps in view (`/design-screen` opens it beside the Layout pull request). A date picker uses the
+shadcn calendar with date-fns (DEC-116 (6)).
 
 ---
 
