@@ -22,14 +22,18 @@ import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/c
 import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
+import {
+  meQuery,
+  PASSWORD_CHANGED,
+  sessionOutcome,
+  updateMe,
+  useStaffSignOut,
+  type LoadedCurrentUser,
+} from '@/features/identity/access'
+import { useProblemToast } from '@/hooks/use-problem-toast'
 import { ApiError, fieldErrors } from '@/lib/api/problems'
-import { accountSchema } from './account-schemas'
+import { accountSchema } from '../schemas'
 import { ChangePasswordForm, changePasswordKey } from './change-password-form'
-import { meQuery, updateMe, type LoadedCurrentUser } from './me'
-import { sessionOutcome } from './me-outcome'
-import { useProblemToast } from './problem-toast'
-import { PASSWORD_CHANGED } from './routes'
-import { useStaffSignOut } from './staff-session'
 
 /**
  * SCR-ACC-01 My account (UC-007, STF-03): the display name, the email read-only, and the password change of
@@ -108,7 +112,7 @@ function AccountForm({ loaded }: { loaded: LoadedCurrentUser }) {
   }
 
   async function showFailure(error: unknown) {
-    // 401 and the session problems: the admin layout follows them (staff-session.tsx).
+    // 401 and the session problems: the admin layout follows them (use-staff-session.tsx).
     if (sessionOutcome(error)) return
     if (error instanceof ApiError) {
       // The API's texts (DEC-117 (4)): under the field, and those no field shows at the top of the form.

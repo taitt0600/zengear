@@ -9,11 +9,10 @@ import { FormProblems, NO_FORM_PROBLEMS } from '@/components/app/form-problems'
 import { Button } from '@/components/ui/button'
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
+import { changeMyPassword, sessionOutcome } from '@/features/identity/access'
+import { useProblemToast } from '@/hooks/use-problem-toast'
 import { ApiError, fieldErrors, hasProblemType } from '@/lib/api/problems'
-import { passwordChangeSchema } from './account-schemas'
-import { changeMyPassword } from './me'
-import { sessionOutcome } from './me-outcome'
-import { useProblemToast } from './problem-toast'
+import { passwordChangeSchema } from '../schemas'
 import { AccountName } from './account-name'
 import { ReauthDialog } from './reauth-dialog'
 
@@ -87,7 +86,7 @@ export function ChangePasswordForm({
   }
 
   function showFailure(error: unknown, retry: boolean) {
-    // 401 and the session problems: the admin layout follows them (staff-session.tsx).
+    // 401 and the session problems: the admin layout follows them (use-staff-session.tsx).
     if (sessionOutcome(error)) return
     if (error instanceof ApiError) {
       // The API's texts (DEC-117 (4)): under the field, and those no field shows at the top of the form.

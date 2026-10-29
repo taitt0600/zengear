@@ -9,7 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { adminRoutes } from './routes'
+import { adminRoutes } from '@/features/identity/access'
 
 /** The signed-in user's name in the header, with "Tài khoản của tôi" and "Đăng xuất" (SCR-ADM-01). */
 export function UserMenu({ name, onSignOut }: { name: string; onSignOut: () => void }) {

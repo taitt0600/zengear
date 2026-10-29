@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
 import { ScreenPlaceholder } from '@/components/app/screen-placeholder'
-import { RequirePermission } from '@/features/identity/no-permission'
+import { RequirePermission } from '@/features/shell/admin'
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('admin.menu')

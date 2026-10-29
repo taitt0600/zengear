@@ -15,10 +15,10 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
+import { CurrentUserProvider, useStaffSession } from '@/features/identity/access'
+import { useProblemText } from '@/hooks/use-problem-toast'
 import { AdminNav } from './admin-nav'
 import { NoPermission } from './no-permission'
-import { useProblemText } from './problem-toast'
-import { CurrentUserProvider, useStaffSession } from './staff-session'
 import { UserMenu } from './user-menu'
 
 /** SCR-ADM-01: the layout of every admin screen but the sign-in and the password change, behind the guard. */

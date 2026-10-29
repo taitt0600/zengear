@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
-import { ChangePasswordScreen } from '@/features/identity/change-password-screen'
+import { ChangePasswordScreen } from '@/features/identity/account'
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('changePassword')

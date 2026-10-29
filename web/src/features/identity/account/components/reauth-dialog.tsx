@@ -17,9 +17,9 @@ import {
 } from '@/components/ui/dialog'
 import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
+import { firebaseError, type PasswordSignInError } from '@/features/identity/access'
 import { reauthenticate } from '@/lib/auth/session'
 import { AccountName } from './account-name'
-import { firebaseError, type PasswordSignInError } from './me-outcome'
 
 /**
  * The sign-in again of SCR-AUT-02 for 403 recent-login-required (DEC-094): the current password, checked by Firebase.

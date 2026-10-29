@@ -20,19 +20,21 @@ import {
   InputGroupInput,
 } from '@/components/ui/input-group'
 import { Skeleton } from '@/components/ui/skeleton'
-import { ApiError, isNetworkError } from '@/lib/api/problems'
-import { hasSession, signInWithPassword, signOutAndClear } from '@/lib/auth/session'
-import { meQuery } from './me'
 import {
+  adminRoutes,
   firebaseError,
   meOutcome,
+  meQuery,
+  PASSWORD_CHANGED,
+  safeNext,
   SIGN_OUT_REASONS,
+  takeSignOutReason,
   type MeOutcome,
   type SignOutReason,
-} from './me-outcome'
-import { useProblemText } from './problem-toast'
-import { adminRoutes, PASSWORD_CHANGED, safeNext } from './routes'
-import { takeSignOutReason } from './sign-out-reason'
+} from '@/features/identity/access'
+import { useProblemText } from '@/hooks/use-problem-toast'
+import { ApiError, isNetworkError } from '@/lib/api/problems'
+import { hasSession, signInWithPassword, signOutAndClear } from '@/lib/auth/session'
 
 /** The reasons of a sign-out that the web words itself, as keys of `signIn.errors` (SCR-AUT-01). */
 const REASON_ERRORS = {
