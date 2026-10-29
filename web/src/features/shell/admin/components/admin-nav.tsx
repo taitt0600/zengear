@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useId } from 'react'
 import { cn } from '@/lib/utils'
-import { visibleMenu, type MenuEntry } from './admin-menu'
+import { visibleMenu, type MenuEntry } from '../utils/admin-menu'
 
 /** The menu of SCR-ADM-01, limited to the entries the user's permissions allow. */
 export function AdminNav({

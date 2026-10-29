@@ -1,4 +1,4 @@
-import { adminRoutes } from './routes'
+import { adminRoutes } from '@/features/identity/access'
 
 // The menu of SCR-ADM-01 (docs/SCREENS.md): each entry with the permission of the screen it opens. An entry the
 // user's permissions do not allow is hidden (never by role name, R-SEC-03); the API still answers 403.

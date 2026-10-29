@@ -5,10 +5,9 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
+import { PASSWORD_CHANGED, useStaffSession } from '@/features/identity/access'
+import { useProblemText } from '@/hooks/use-problem-toast'
 import { ChangePasswordForm } from './change-password-form'
-import { useProblemText } from './problem-toast'
-import { PASSWORD_CHANGED } from './routes'
-import { useStaffSession } from './staff-session'
 
 /**
  * SCR-AUT-02 Required password change: shown alone, without the menu, while mustChangePassword is true (R-USR-03).

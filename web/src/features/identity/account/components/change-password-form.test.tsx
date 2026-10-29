@@ -4,11 +4,11 @@ import userEvent from '@testing-library/user-event'
 import { NextIntlClientProvider } from 'next-intl'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from '@/lib/api/problems'
-import messages from '../../../messages/vi.json'
+import messages from '../../../../../messages/vi.json'
 import { ChangePasswordForm } from './change-password-form'
 
 const api = vi.hoisted(() => ({ changeMyPassword: vi.fn() }))
-vi.mock('./me', () => ({ changeMyPassword: api.changeMyPassword }))
+vi.mock('@/features/identity/access/api/me', () => ({ changeMyPassword: api.changeMyPassword }))
 
 const session = vi.hoisted(() => ({ reauthenticate: vi.fn() }))
 vi.mock('@/lib/auth/session', () => session)

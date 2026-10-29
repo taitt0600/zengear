@@ -3,14 +3,13 @@ import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { NextIntlClientProvider } from 'next-intl'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { CurrentUserProvider, type LoadedCurrentUser } from '@/features/identity/access'
 import { ApiError } from '@/lib/api/problems'
-import messages from '../../../messages/vi.json'
+import messages from '../../../../../messages/vi.json'
 import { AccountScreen } from './account-screen'
-import type { LoadedCurrentUser } from './me'
-import { CurrentUserProvider } from './staff-session'
 
 const api = vi.hoisted(() => ({ me: vi.fn(), updateMe: vi.fn(), changeMyPassword: vi.fn() }))
-vi.mock('./me', () => ({
+vi.mock('@/features/identity/access/api/me', () => ({
   meQuery: { queryKey: ['me'], queryFn: () => api.me() },
   updateMe: api.updateMe,
   changeMyPassword: api.changeMyPassword,

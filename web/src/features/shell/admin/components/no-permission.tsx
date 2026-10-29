@@ -4,9 +4,8 @@ import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import type { ReactNode } from 'react'
-import { firstEntry } from './admin-menu'
-import { adminRoutes } from './routes'
-import { useCurrentUser } from './staff-session'
+import { adminRoutes, useCurrentUser } from '@/features/identity/access'
+import { firstEntry } from '../utils/admin-menu'
 
 /**
  * The no-permission page of SCR-ADM-01: "Bạn không có quyền xem trang này." and a link to the first menu entry the user

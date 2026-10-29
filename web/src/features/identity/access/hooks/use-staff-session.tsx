@@ -3,14 +3,14 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { usePathname, useRouter } from 'next/navigation'
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
+import { useProblemText } from '@/hooks/use-problem-toast'
 import { onApiError } from '@/lib/api/api-errors'
 import { ApiError, hasProblemType } from '@/lib/api/problems'
 import { signOutAndClear, useAuthState } from '@/lib/auth/session'
-import { meQuery, type CurrentUser } from './me'
-import { meOutcome, sessionOutcome, type MeOutcome } from './me-outcome'
-import { useProblemText } from './problem-toast'
-import { adminRoutes, signInPath, type PASSWORD_CHANGED } from './routes'
-import { keepSignOutReason } from './sign-out-reason'
+import { meQuery, type CurrentUser } from '../api/me'
+import { meOutcome, sessionOutcome, type MeOutcome } from '../utils/me-outcome'
+import { adminRoutes, signInPath, type PASSWORD_CHANGED } from '../utils/routes'
+import { keepSignOutReason } from '../utils/sign-out-reason'
 
 /** Signs out to the sign-in page; after a password change, with its notice there. */
 export type SignOut = (reason?: typeof PASSWORD_CHANGED) => Promise<void>

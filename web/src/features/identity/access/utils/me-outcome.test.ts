@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { ApiError } from '@/lib/api/problems'
-import type { CurrentUser } from './me'
+import type { CurrentUser } from '../api/me'
 import { firebaseError, landingPath, meOutcome, sessionOutcome } from './me-outcome'
 
 const staff: CurrentUser = {

@@ -3,13 +3,13 @@ import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { NextIntlClientProvider } from 'next-intl'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type { CurrentUser } from '@/features/identity/access'
+import { ChangePasswordScreen } from '@/features/identity/account'
 import { reportApiError } from '@/lib/api/api-errors'
 import { ApiError } from '@/lib/api/problems'
 import type { AuthState } from '@/lib/auth/session'
-import messages from '../../../messages/vi.json'
+import messages from '../../../../../messages/vi.json'
 import { AdminShell } from './admin-shell'
-import { ChangePasswordScreen } from './change-password-screen'
-import type { CurrentUser } from './me'
 import { RequirePermission } from './no-permission'
 
 const navigation = vi.hoisted(() => ({ replace: vi.fn(), pathname: '/admin/staff' }))
@@ -28,7 +28,7 @@ vi.mock('@/lib/auth/session', () => ({
 }))
 
 const api = vi.hoisted(() => ({ me: vi.fn(), changeMyPassword: vi.fn() }))
-vi.mock('./me', () => ({
+vi.mock('@/features/identity/access/api/me', () => ({
   meQuery: { queryKey: ['me'], queryFn: () => api.me() },
   changeMyPassword: api.changeMyPassword,
 }))

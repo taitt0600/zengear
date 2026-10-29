@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { accountSchema, passwordChangeSchema } from './account-schemas'
+import { accountSchema, passwordChangeSchema } from './schemas'
 
 const passwordMessages = { required: 'required', length: 'length', mismatch: 'mismatch' }
 const nameMessages = { required: 'required', tooLong: 'tooLong' }

@@ -1,5 +1,5 @@
 import { ApiError, hasProblemType } from '@/lib/api/problems'
-import type { CurrentUser } from './me'
+import type { CurrentUser } from '../api/me'
 import { adminRoutes } from './routes'
 
 /**

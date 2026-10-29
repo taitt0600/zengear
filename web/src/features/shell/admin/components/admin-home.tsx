@@ -3,8 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import { Skeleton } from '@/components/ui/skeleton'
-import { landingPath } from './me-outcome'
-import { useCurrentUser } from './staff-session'
+import { landingPath, useCurrentUser } from '@/features/identity/access'
 
 /** /admin has no screen of its own: it opens the user's landing page (SCR-AUT-01). */
 export function AdminHome() {

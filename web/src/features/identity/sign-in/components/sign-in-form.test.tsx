@@ -3,9 +3,9 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { NextIntlClientProvider } from 'next-intl'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type { CurrentUser } from '@/features/identity/access'
 import { ApiError } from '@/lib/api/problems'
-import messages from '../../../messages/vi.json'
-import type { CurrentUser } from './me'
+import messages from '../../../../../messages/vi.json'
 import { SignInForm } from './sign-in-form'
 
 const navigation = vi.hoisted(() => ({
@@ -25,7 +25,9 @@ const session = vi.hoisted(() => ({
 vi.mock('@/lib/auth/session', () => session)
 
 const api = vi.hoisted(() => ({ me: vi.fn() }))
-vi.mock('./me', () => ({ meQuery: { queryKey: ['me'], queryFn: () => api.me() } }))
+vi.mock('@/features/identity/access/api/me', () => ({
+  meQuery: { queryKey: ['me'], queryFn: () => api.me() },
+}))
 
 const staff: CurrentUser = {
   id: '0199a0f3-0000-7000-8000-000000000001',
