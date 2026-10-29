@@ -17,14 +17,14 @@ requests of `/design-screen` (DEC-119), which never get auto-merge.
    the tests and the Postman folder, type `/clear`, then `/finish-feature <Feature ID>` (DEC-112 (4)). A feature
    already done whose screens `docs/SCREENS.md` no longer blocks and that have an approved design runs
    `/implement-feature <Feature ID>` again: a web-only run that builds only those screens, on `feat/<id>-web`,
-   titled `feat(web): … (<Feature ID>)` (`/implement-feature`, step 1). A screen is designed first (DEC-119): `/design-screen <SCR-ID>`, in a local or a
-   cloud session, draws it in Claude Design and opens a Layout pull request; comment on the design or the pull
-   request (each comment leads to a new revision when `/design-screen <SCR-ID>` runs again), add a comment
-   `Phút duyệt: <minutes>`, and merge it to approve the design. A session without the Artifact tool gives a drawing
-   prompt to paste into Claude Design in the Claude app instead; give the link back with
-   `/design-screen <SCR-ID> <link>`. Any other row is asked
-   of Claude in words, from its *Source*; when its *Who* says owner path, Claude pushes the branch and the owner opens
-   and merges the pull request. Cloud sessions do not run features or fixes (DEC-100): they run only the two
+   titled `feat(web): … (<Feature ID>)` (`/implement-feature`, step 1). A screen is designed first (DEC-119):
+   `/design-screen <SCR-ID>`, in a local or a cloud session, draws it in Claude Design and opens a Layout pull
+   request; comment on the design or the pull request (each comment leads to a new revision when
+   `/design-screen <SCR-ID>` runs again), add a comment `Phút duyệt: <minutes>`, and merge it to approve the
+   design. A session without the Artifact tool gives a drawing prompt to paste into Claude Design in the Claude app
+   instead; give the link back with `/design-screen <SCR-ID> <link>`. Any other row is asked of Claude in words,
+   from its *Source*; when its *Who* says owner path, Claude pushes the branch and the owner opens and merges the
+   pull request. Cloud sessions do not run features or fixes (DEC-100): they run only the two
    notification routines below, `/report-review`, `/decision-draft`, `/design-screen`, and the pull requests and
    comments of DEC-110 (4).
 2. Answer the **Needs decision** items when Claude asks them: all the items known after the plan in one question,
