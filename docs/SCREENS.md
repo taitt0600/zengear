@@ -91,8 +91,9 @@ built before DEC-119 — SCR-ADM-01, SCR-AUT-01, SCR-AUT-02 and SCR-ACC-01 — n
 changes. A `refactor(web)` pull request that changes the layout of a screen (the pull request (B) of DEC-118) needs
 that screen's approved Layout first and builds it; a new Layout of a screen `web/` already has (not a placeholder
 page) is built the same way, by a `refactor(web)` pull request of a local session, which a Next row of
-`docs/STATUS.md` keeps in view (`/design-screen` opens it beside the Layout pull request). A date picker uses the
-shadcn calendar with date-fns (DEC-116 (6)).
+`docs/STATUS.md` keeps in view: `/design-screen` adds that row in a `docs/STATUS.md` pull request beside the Layout
+pull request, unless a Next row already names that pull request (`shell-refactor` for SCR-ADM-01 and SCR-AUT-01). A
+date picker uses the shadcn calendar with date-fns (DEC-116 (6)).
 
 ---
 
