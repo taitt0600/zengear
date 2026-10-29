@@ -1,8 +1,9 @@
 import { getRequestConfig } from 'next-intl/server'
+import { defaultLocale } from './config'
 
-// Vietnamese only in Phase 1, without locale routing (DEC-104 (6)); dates show in Vietnam time.
+// The locale of config.ts, without locale routing (DEC-104 (6), DEC-118 (4)); dates show in Vietnam time.
 export default getRequestConfig(async () => ({
-  locale: 'vi',
+  locale: defaultLocale,
   timeZone: 'Asia/Ho_Chi_Minh',
-  messages: (await import('../../messages/vi.json')).default,
+  messages: (await import(`../../messages/${defaultLocale}.json`)).default,
 }))
