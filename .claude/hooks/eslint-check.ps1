@@ -1,7 +1,8 @@
 # PostToolUse (Edit|Write|MultiEdit): after Claude edits a .ts or .tsx file under web/, run ESLint on that file only
 # (DEC-104 (11)), with the local binary of web/node_modules and without --fix, and send its errors back to Claude.
-# Warnings stay with CI; parse errors in the middle of a change are left to the TypeScript LSP, as analyzer-check.ps1
-# leaves compiler errors. Does nothing before npm ci in web/, and never blocks on its own failure or ESLint's.
+# Warnings stay with CI (code-reviewer checks the max-lines warning, DEC-118 (3)); parse errors in the middle of a
+# change are left to the TypeScript LSP, as analyzer-check.ps1 leaves compiler errors. Does nothing before npm ci
+# in web/, and never blocks on its own failure or ESLint's.
 $ErrorActionPreference = 'Stop'
 try { $payload = [Console]::In.ReadToEnd() | ConvertFrom-Json } catch { exit 0 }
 $file = [string]$payload.tool_input.file_path
