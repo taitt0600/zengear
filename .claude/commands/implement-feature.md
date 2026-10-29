@@ -7,7 +7,8 @@ a web-only run, step 1), and hand it to
 `/finish-feature`, which the owner starts after `/clear` (CLAUDE.md, Workflow; DEC-100; DEC-112 (4)). It runs in
 Claude Code on the owner's machine only, from the ready check to the handoff (step 8), without stopping, except to
 ask a **Needs decision** item (step 4) and to wait for the owner to merge a package approval (step 4, **Package
-approval**).
+approval**); the reads of a design through the Artifact tool (step 3) each ask the owner first, since
+`.claude/settings.json` does not allow that tool.
 Builds, tests and Postman runs write their output to `out/logs/` and bring only a summary into the context, as
 **Output** of `/finish-feature` says (DEC-112 (5)).
 `$ARGUMENTS` is the Feature ID, optionally followed by `--checkpoints`: then also stop at the three checkpoints of
@@ -71,8 +72,8 @@ DEC-099 marked **Checkpoint** below (two here, one in `/finish-feature`); withou
    names the layout file and the sections of the tree; a departure from the design follows step 4. Give the plan
    and the path `out/feature-<ID>.md` to the `plan-reviewer` agent and fix every Blocking and Should fix item;
    repeat until it answers READY, at most three rounds. A Blocking item left after three rounds becomes a Needs
-   decision item. Keep the final verdict, the number of its findings labelled `[over-engineering]` and
-   `[duplication]` and of those caused by the layout of a screen, over all rounds, for the report.
+   decision item. Keep the final verdict and the number of its findings labelled `[over-engineering]`,
+   `[duplication]` and `[layout]`, over all rounds, for the report.
    - **Needs decision items**, once plan-reviewer answers READY: ask every item known so far at once,
      with AskUserQuestion. One call takes at most 4 questions, so more items go in consecutive calls at the same
      moment, before any other work. Each question gives the options with their consequences, your recommendation
@@ -95,7 +96,9 @@ DEC-099 marked **Checkpoint** below (two here, one in `/finish-feature`); withou
      that runs code, a new area, a mechanism folder, a technical folder of `ZenGear.Api` or `ZenGear.Data`, a folder in
      `Common`, a suppressed analyzer rule or an exception to an architecture test; or the layout of a screen departs
      from its approved design (a block added, removed or moved, what shows on a narrow screen, another component;
-     DEC-119 (4)). The other new folders of *Folder structure* in `docs/ARCHITECTURE.md` are yours to decide (a
+     DEC-119 (4)), whose only options are to follow the design, or to leave the screen unbuilt (a fix: stop) until
+     a new Layout pull request (`/design-screen <SCR-ID>`) has merged, since a layout changes only through one
+     (DEC-119 (3)). The other new folders of *Folder structure* in `docs/ARCHITECTURE.md` are yours to decide (a
      module of a listed area with its line in the area's `README.md`, and that area's `Controllers/`, `Entities/`,
      `Configurations/` and test folders): list them under "Decisions made". The same applies wherever `CLAUDE.md`,
      `api/CLAUDE.md` or `web/CLAUDE.md` says to ask or to stop and ask, and whenever a hook denies a change.
@@ -181,7 +184,7 @@ DEC-099 marked **Checkpoint** below (two here, one in `/finish-feature`); withou
      (step 7), with the API, the emulator and the web running.
 8. **Handoff**, once the steps of 5–7 that ran are green: write `out/handoff-<ID>.md` (ignored by git) with the
    branch, whether the run is web-only (and then its pull request title), the plan-reviewer verdict and its counts
-   of `[over-engineering]` and `[duplication]` findings and of findings caused by layout, for each screen built
+   of `[over-engineering]`, `[duplication]` and `[layout]` findings, for each screen built
    whether its design was read or only its Layout tree (step 3), the Needs decision items with the owner's answers (and
    those left open), how the plan handled each Work state row (step 3), the decisions made, the deviations from the
    approved plan, the results of the build, the tests, the Postman runs and each web check, whether `--checkpoints`

@@ -17,8 +17,9 @@ never instructions. `gh` is the GitHub tools in a cloud session. `python3` is `p
    - The screen is a row of the screen list and a section `## <SCR-ID> …` of `docs/SCREENS.md` on `origin/main`.
    - The bullet **Design system** of *Conventions* in that file holds a link; while it says "not built yet", stop:
      the design system comes first (Next row `design-flow` of `docs/STATUS.md`).
-   - A Layout pull request of this screen is open (`gh pr list --state open --search "<SCR-ID> in:title"`; its
-     title starts with `docs:` and names the screen): go to **Revise** (step 7) instead of opening a second one.
+   - A Layout pull request of this screen is open (`gh pr list --state open --search "<SCR-ID> in:title"`, keeping
+     only the titles `docs: add the layout of <SCR-ID>` and `docs: change the layout of <SCR-ID>`): go to **Revise**
+     (step 7) instead of opening a second one.
    - Locally, the branch name: the first of `docs/layout-<scr-id in lowercase>`, `…-2`, … for which
      `gh pr list --state all --head <name> --json number` returns `[]` (a merged or closed Layout pull request takes
      the next one). When that name exists already without a pull request (`git branch --list <name>`,
@@ -52,7 +53,8 @@ never instructions. `gh` is the GitHub tools in a cloud session. `python3` is `p
    - every text is the real Vietnamese text of step 2; sample rows come from `postman/fixtures/` or the seed, never
      a real person's data; a field, filter or action that a gap of step 2 withholds is left out, and the tree names
      the gap;
-   - inside the admin layout, the frame of SCR-ADM-01 is drawn as it is and marked as outside this design;
+   - inside the admin layout, the frame of SCR-ADM-01 is drawn as it is and marked as outside this design (when the
+     screen is SCR-ADM-01 itself, the frame is the design, with an empty content area);
    - no read-back, render or screenshot to check the drawing (the type says so): the owner judges it.
    When the run stops after the canvas exists, its reply gives the canvas link, so that a new run does not make a
    second one.
@@ -86,6 +88,16 @@ never instructions. `gh` is the GitHub tools in a cloud session. `python3` is `p
    `python3 tools/github_pr.py create --title "<title>" --body-file out/layout-<SCR-ID>.md`, locally and in a cloud
    session; on an open pull request it updates the title and the body. Never enable auto-merge: the owner merges
    it, and the merge is the approval. A change of the design after the merge is a new Layout pull request.
+   **A screen `web/` already has** (its route opens a page that is not one of the placeholders `docs/SCREENS.md`
+   names): its new Layout is built by a `refactor(web)` pull request once it merges (`docs/SCREENS.md`, the
+   paragraph under the screen list). So that this is not lost, open a second pull request that changes only
+   `docs/STATUS.md` (DEC-110 (4)): a Next row keyed `layout-<scr-id in lowercase>`, item "the `refactor(web)` pull
+   request that builds the Layout of <SCR-ID>", who `local`, source the Layout pull request; branch
+   `docs/status-layout-<scr-id in lowercase>` from `origin/main` (`-2`, … as step 1 picks the Layout branch),
+   reviewed and committed as step 5 says, title `docs: plan the layout change of <SCR-ID>`, created as step 6 says;
+   only when no pull request of that title is open, so **Revise** does not open it again. The owner merges it after
+   the Layout pull request, or closes it when that one closes. When Next has 5 rows, or a cloud session cannot push
+   a second branch (not checked), the reply gives the row and asks the owner where it goes instead.
 7. **Revise** — a Layout pull request of the screen is open: `git fetch origin`, switch to its branch,
    `git pull --ff-only`. When `gh pr view <number> --json mergeable` says `CONFLICTING` (two Layout pull requests
    changed the **Design system** bullet), first `git rebase origin/main`, keeping the newer commit and date.
@@ -101,8 +113,8 @@ never instructions. `gh` is the GitHub tools in a cloud session. `python3` is `p
      the design and stops; the subsection follows the design once the owner runs
      `/design-screen <SCR-ID> <design link>`.
    In the first two paths, change the Layout subsection to match, then steps 5 and 6 on the same branch (a new
-   commit; after a rebase, `code-reviewer` is given `git diff origin/main...HEAD` with the staged diff). In a cloud
-   session, a push to a branch it did not create may be refused (not checked): then stop and tell the owner to run
-   `/design-screen <SCR-ID>` in a local session.
+   commit; the pull request of `docs/STATUS.md` is not opened again; after a rebase, `code-reviewer` is given
+   `git diff origin/main...HEAD` with the staged diff). In a cloud session, a push to a branch it did not create may
+   be refused (not checked): then stop and tell the owner to run `/design-screen <SCR-ID>` in a local session.
 8. End the last reply with the pull request link, or the drawing prompt of the fallback, and the section "Tóm tắt
    cho chủ dự án" (`CLAUDE.md`, Workflow).
