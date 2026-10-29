@@ -7,7 +7,6 @@ flight, what is done and how this file changes: `CLAUDE.md`, *Work state*.
 
 | Key | Item | Who | Source |
 |---|---|---|---|
-| web-structure | The owner-path pull request (A) of DEC-118 | local | DEC-118 |
 | design-flow | The owner-path pull request of DEC-119, then the design system of ZenGear in Claude Design | local | DEC-119 |
 | shell-refactor | The designs of SCR-ADM-01 and SCR-AUT-01 (`/design-screen`), then the pull request (B) of DEC-118; that pull request adds the Next rows STF-05 (pointing to the row before STF-05) and STF-02 (the design of SCR-STF-03, then SCR-STF-03), in that order | local | DEC-118 (5); DEC-119 (3); `docs/SCREENS.md`, SCR-STF-03; DEC-116 (6) |
 

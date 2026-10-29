@@ -1,6 +1,6 @@
 # Frontend
 
-Structure of the ZenGear web app in `web/`. Stack: sheet `Tech Stack` of the blueprint. Decisions: DEC-093, DEC-104.
+Structure of the ZenGear web app in `web/`. Stack: sheet `Tech Stack` of the blueprint. Decisions: DEC-093, DEC-104, DEC-118.
 
 ## One app, three parts
 
@@ -8,29 +8,60 @@ One Next.js app (App Router) serves the storefront, the admin pages and the POS,
 
 ```
 web/src/
-├─ app/
+├─ app/                    routes only: parameters, guard, a feature's layout and sections composed; no logic
 │  ├─ (shop)/              storefront pages: home, category, product, cart, checkout, account (API /api/v1/shop/)
 │  ├─ (admin)/admin/       back office: catalog, inventory, purchasing, orders, after-sales, cash book, reports
 │  └─ (pos)/pos/           counter sales and shifts, full-screen layout
-├─ features/<area>/        components, query hooks and Zod schemas per business area (same area names as the backend)
+├─ features/<area>/<module>/   one module of a business area (the area and module names of the backend, DEC-106)
+│  ├─ api/                 TanStack Query hooks and the API calls of the module
+│  ├─ components/          the layouts, sections and presentational components of its screens, tests next to them
+│  ├─ hooks/               the module's own hooks (form logic, state)
+│  ├─ utils/               the module's pure functions
+│  ├─ schemas.ts           its Zod schemas
+│  └─ index.ts             its public API: the only file another module or app/ imports
+├─ features/shell/<module>/  the frame of the admin and of the POS (sidebar, header, guard, no-permission page), same rules
 ├─ components/ui/          shadcn/ui components, code of the app (open code, DEC-116)
 ├─ components/app/         the app's own shared components (compositions of components/ui, files of blocks)
+├─ hooks/                  hooks two or more modules use (alias @/hooks)
 ├─ lib/api/                schema.d.ts (generated), client.ts (openapi-fetch), query keys, problems.ts (errors → fields)
 ├─ lib/auth/               Firebase Authentication client, current user, ID token
-├─ lib/format/             VND money, dates in Asia/Ho_Chi_Minh (Intl only; date-fns only in the calendar and date pickers)
-├─ i18n/                   next-intl request config
+├─ lib/utils.ts            cn() of shadcn
+├─ utils/                  pure functions two or more modules use: VND money, dates in Asia/Ho_Chi_Minh (created with the first one)
+├─ i18n/                   config.ts (the locales) and request.ts (the next-intl request config)
+├─ test/                   setup.ts of Vitest and render.tsx (the app's providers for a test)
 ├─ env-schema.ts, env.ts   the NEXT_PUBLIC_* schema (Zod) and its checked values
 └─ proxy.ts                fixed route redirects (/ → /admin until the storefront) and the CSP with a nonce of /admin and /pos; never the session, never authorization
 web/messages/vi.json       every text the user sees, by key (en.json later, storefront only)
 web/e2e/                   Playwright screen flows against the API and the Firebase Auth Emulator
 ```
 
-`features/` follows the business areas of `docs/ARCHITECTURE.md` (`catalog`, `inventory`, `sales`, `pos`, …) so a feature ID maps to the same area on both sides.
+`features/` follows the business areas and modules of `docs/ARCHITECTURE.md` and the READMEs of `api/src/ZenGear.Services` (`identity/account`, `identity/staff-accounts`, `locations/business-locations`, …) so a feature ID maps to the same area on both sides. A module holds only the subfolders it needs, and nothing sits directly in `features/<area>/`. A module that other modules import (such as `identity/access`, the staff session) exports no screen, since its index would carry that screen into their pages. That is the one case where a web module splits a backend module: the sign-in (SCR-AUT-01) belongs to the backend's `Access`, but on the web it is the module `identity/sign-in` (inside `identity/access` it added 54 KB of uncompressed First Load JS to every page of the admin shell, measured on the first build of the pull request (A) of DEC-118).
+
+## Modules and boundaries
+
+Code starts in its module and moves to a shared folder (`components/app`, `hooks`, `utils`, `lib`) only once two or more modules use it (DEC-118 (1)). ESLint refuses, with `import/no-restricted-paths` of `web/eslint.config.mjs` (tested by `src/lint.test.ts`), the imports DEC-118 (2) rules out:
+
+- `app/` imports a feature module only through its `index.ts`;
+- a feature never imports `app/`;
+- a module imports another module only through its `index.ts` (its own files by relative paths, a convention ESLint does not check);
+- the shared folders and the root files of `src/` import neither `features/` nor `app/`.
+
+The modules and the shared entries are read from the disk, so a new module or folder is covered without editing the config. The rule judges the file an import resolves to, and the `@/…` imports resolve only when ESLint runs from `web/`, as `npm run lint`, CI, the eslint-check hook and Vitest do; an editor's ESLint started at the repository root may miss a boundary. A `vi.mock` path is not an import: a test may mock a file inside another module when that module's code imports it.
+
+## Screens in three layers
+
+Each screen is built in three layers (DEC-118 (3)), so that a change of layout touches one file:
+
+- `<screen>-layout.tsx` places the sections through slots (grid, spacing, order, what shows at each screen size); it holds no data and no business state;
+- a section is one block of the screen's approved design (DEC-119), or of the current screen when it has none; it gets its data through hooks and holds the behavior;
+- a presentational component renders its props only.
+
+The page in `app/` composes the layout with the sections; when one piece of client state feeds several sections (the staff session of SCR-AUT-02), a section provides it to the others through a context. The tests of sections and presentational components find elements by role and label, never by the structure of the DOM. ESLint's `max-lines` warns above 150 lines of code per file (blank lines and comments not counted), except tests, `components/ui` and `schema.d.ts`; a warning fails neither lint nor CI, and `code-reviewer` checks that a new file, or a file whose content changed, has none.
 
 ## Rendering
 
 - Storefront catalog and product pages are rendered on the server so search engines see them; they call only shop endpoints (`/api/v1/shop/`).
-- Admin and POS pages are client components behind sign-in; they call endpoints with the Firebase ID token. The root layout of `/admin` (and of `/pos` when it comes) awaits `connection()` (`next/server`), so every page of `/admin` and `/pos` renders on the server at each request and gets the nonce of its CSP (DEC-113 (3)): they are not cached by a CDN and cannot be exported statically, so the web runs on `next start` or a platform with a server (Vercel).
+- Admin and POS pages sit behind sign-in: the page and the layout of its screen are server components, and the sections are client components, shown once the client layout of the part knows the session; they call endpoints with the Firebase ID token. The root layout of `/admin` (and of `/pos` when it comes) awaits `connection()` (`next/server`), so every page of `/admin` and `/pos` renders on the server at each request and gets the nonce of its CSP (DEC-113 (3)): they are not cached by a CDN and cannot be exported statically, so the web runs on `next start` or a platform with a server (Vercel).
 - `url_redirects` (old slugs, 301) are resolved by the API; the storefront follows what the API returns.
 
 ## Data from the API
@@ -38,7 +69,7 @@ web/e2e/                   Playwright screen flows against the API and the Fireb
 - Types: `npm run gen:api` runs openapi-typescript on `../api/openapi/ZenGear.Api.json` and writes `src/lib/api/schema.d.ts`. CI regenerates it and fails when the committed file differs.
 - Calls: one openapi-fetch client, built by `src/lib/api/client.ts` and created once in `src/lib/api/api.ts`, with the base URL, the ID token (never sent to `/api/v1/shop/`), and two helpers of `src/lib/api/concurrency.ts` the caller passes: `If-Match` from the `ETag` of the loaded resource (`etagOf`), and a new `Idempotency-Key` per checkout or payment attempt (`newIdempotencyKey`, kept while that attempt is retried).
 - Every list endpoint returns `PagedDto<T>` (`items`, `page`, `pageSize`, `totalCount`).
-- Server state: TanStack Query hooks per area (`features/sales/queries.ts`); query keys in one place; after a command (`confirm`, `close shift`) invalidate the affected queries instead of editing the cache by hand.
+- Server state: TanStack Query hooks per module (`features/<area>/<module>/api/`); query keys in one place; after a command (`confirm`, `close shift`) invalidate the affected queries instead of editing the cache by hand.
 - Paging: `page`, `pageSize`, `sort` as in `docs/API_CONVENTIONS.md`, kept in the URL search params so a list can be shared and reloaded.
 
 ## Forms and errors
@@ -50,15 +81,15 @@ web/e2e/                   Playwright screen flows against the API and the Fireb
 
 ## Text and languages
 
-Every text the user sees goes through next-intl (without locale routing), except the texts of the errors the API answers, shown as they come (DEC-117 (4)): `t('key')` with the keys of `web/messages/vi.json`, never a string written in JSX or in an attribute the user reads (`alt`, `aria-label`, `placeholder`, `title`, `label`…): ESLint refuses one, in `components/ui/` too (`react/jsx-no-literals` and `no-restricted-syntax`, tested by `src/lint.test.ts`); a text that the package of a shadcn component shows (sonner, react-day-picker, cmdk, vaul) is set through its prop or locale from the message files, which `code-reviewer` checks since ESLint cannot see it (DEC-116 (2)); and a wrong key fails the typecheck (`src/global.d.ts`). CI checks that every message file has the same keys (`tools/message_keys.py`), so a storefront-only `en.json` needs a Decision on how the message files are split before it comes. Labels of business terms are the Vietnamese terms of `docs/GLOSSARY.md`. Phase 1 ships Vietnamese only. English comes later for the storefront only (`/en/...` with `hreflang`, `en.json`, an English label column in `docs/GLOSSARY.md`); the admin and the POS stay Vietnamese. Business content in two languages (product names, descriptions, categories, slugs) needs its own Decision; invoices and printed documents stay Vietnamese (DEC-104).
+Every text the user sees goes through next-intl (without locale routing), except the texts of the errors the API answers, shown as they come (DEC-117 (4)): `t('key')` with the keys of `web/messages/vi.json`, never a string written in JSX or in an attribute the user reads (`alt`, `aria-label`, `placeholder`, `title`, `label`…): ESLint refuses one, in `components/ui/` too (`react/jsx-no-literals` and `no-restricted-syntax`, tested by `src/lint.test.ts`); a text that the package of a shadcn component shows (sonner, react-day-picker, cmdk, vaul) is set through its prop or locale from the message files, which `code-reviewer` checks since ESLint cannot see it (DEC-116 (2)); and a wrong key fails the typecheck (`src/global.d.ts`). CI checks that every message file has the same keys (`tools/message_keys.py`), so a storefront-only `en.json` needs a Decision on how the message files are split before it comes. Labels of business terms are the Vietnamese terms of `docs/GLOSSARY.md`. Phase 1 ships Vietnamese only. The locales are written in one place, `src/i18n/config.ts` (`locales`, `defaultLocale`): `src/i18n/request.ts` takes the locale and its message file from it, the `Locale` of next-intl's `AppConfig` in `src/global.d.ts` is its type, and the root layout sets `<html lang>` from `getLocale()` (DEC-118 (4)). Money and dates are formatted with the locale of next-intl (`Intl` with that locale; dates in Asia/Ho_Chi_Minh). English comes later for the storefront only: its pages under a `[locale]` segment with `localePrefix: 'as-needed'` (`/en/...` with `hreflang`, `en.json`, an English label column in `docs/GLOSSARY.md`); the admin and the POS have no `[locale]` and stay Vietnamese. Business content in two languages (product names, descriptions, categories, slugs) needs its own Decision; invoices and printed documents stay Vietnamese (DEC-104).
 
 ## Components and styling
 
-`components/ui/` holds the shadcn/ui components as code of the app (open code, DEC-116 (1)): added with `npm exec --no -- shadcn add` (the CLI pinned exactly in `web/package.json`, DEC-111 (2); `--no` fails instead of downloading), then edited like other code, also in a feature pull request; in a pull request with an `add`, the first commit holds only what `add` wrote and the edits come after, so that git keeps the registry's version. The style is `new-york` on Radix (`components.json`, written by hand in web-shell, since the `init` of shadcn 4.22 offers only other styles; its registry item `index` then installed the theme and the packages of DEC-111 (1)). Every item of the official registry `@shadcn` may be used, also one that writes English (the `sidebar`, the close button of `sheet`): in the pull request of its `add`, its texts go through `t(key)` of the namespace `ui`; an item that needs `@base-ui/react` or `@shadcn/react` is not used, and a third-party registry needs a Decision of its own (DEC-116 (2), (7)). The font is the system font stack, which covers Vietnamese without a download. The design of shadcn is kept: the classes that set the look of a component (colour, spacing, radius, font size, shadow) change only to fix accessibility; the look changes through the CSS variables of `app/globals.css` (`:root`, `@theme inline`) and `components.json`, and a new variant uses the tokens of the theme. A component in `components/app/` or `features/<area>/` composes several of them. A block of `@shadcn` (`sidebar-*`, `login-*`, `dashboard-01`…) is a template: its files move to `features/<area>/` or `components/app/`, without its sample page, data and texts, and are never updated again from the registry (DEC-116 (3)). An update of an installed component is a `chore(web)` pull request of its own: `add --diff` against the registry, `add --overwrite` only when none of the files it would write was edited, otherwise the registry's changes applied by hand (DEC-116 (4); `components/ui/` stays out of Prettier so that the diff stays small). Icons are named imports from `lucide-react`; a block that imports another icon set is switched to them. Animation uses `motion` (`MotionConfig reducedMotion="user"` in the root layout, `LazyMotion`), minimal in the admin and the POS. Accessibility target: WCAG 2.2 AA.
+`components/ui/` holds the shadcn/ui components as code of the app (open code, DEC-116 (1)): added with `npm exec --no -- shadcn add` (the CLI pinned exactly in `web/package.json`, DEC-111 (2); `--no` fails instead of downloading), then edited like other code, also in a feature pull request; in a pull request with an `add`, the first commit holds only what `add` wrote and the edits come after, so that git keeps the registry's version. The style is `new-york` on Radix (`components.json`, written by hand in web-shell, since the `init` of shadcn 4.22 offers only other styles; its registry item `index` then installed the theme and the packages of DEC-111 (1)). Every item of the official registry `@shadcn` may be used, also one that writes English (the `sidebar`, the close button of `sheet`): in the pull request of its `add`, its texts go through `t(key)` of the namespace `ui`; an item that needs `@base-ui/react` or `@shadcn/react` is not used, and a third-party registry needs a Decision of its own (DEC-116 (2), (7)). The font is the system font stack, which covers Vietnamese without a download. The design of shadcn is kept: the classes that set the look of a component (colour, spacing, radius, font size, shadow) change only to fix accessibility; the look changes through the CSS variables of `app/globals.css` (`:root`, `@theme inline`) and `components.json`, and a new variant uses the tokens of the theme. A component in `components/app/` or `features/<area>/<module>/` composes several of them. A block of `@shadcn` (`sidebar-*`, `login-*`, `dashboard-01`…) is a template: its files move to `features/<area>/<module>/` or `components/app/`, without its sample page, data and texts, and are never updated again from the registry (DEC-116 (3)). An update of an installed component is a `chore(web)` pull request of its own: `add --diff` against the registry, `add --overwrite` only when none of the files it would write was edited, otherwise the registry's changes applied by hand (DEC-116 (4); `components/ui/` stays out of Prettier so that the diff stays small). Icons are named imports from `lucide-react`; a block that imports another icon set is switched to them. Animation uses `motion` (`MotionConfig reducedMotion="user"` in the root layout, `LazyMotion`), minimal in the admin and the POS. Accessibility target: WCAG 2.2 AA.
 
 ## Authentication
 
-Firebase Authentication in the browser (Phase 1): staff sign in to admin and POS; customers sign in on the storefront (Phase 2). The SDK keeps the session (its default persistence); there is no session cookie. Admin and POS pages are client components behind sign-in: the client layout of each part sends a visitor without a Firebase session to the sign-in page (the session lives in browser storage, which `proxy.ts` on the server cannot see). `proxy.ts` makes fixed route redirects and sets the CSP of `/admin` and `/pos`, and never reads the session; neither is authorization, and the API still answers 401 and 403. The client only sends the ID token; the user's permission keys (never role names, R-SEC-03) come from the API (`permissions` of `GET /api/v1/admin/me`) and are used only to hide menus and buttons — the API still enforces them. A password change revokes every refresh token (DEC-094): the web signs the user in again. In development the client connects to the Firebase Auth Emulator.
+Firebase Authentication in the browser (Phase 1): staff sign in to admin and POS; customers sign in on the storefront (Phase 2). The SDK keeps the session (its default persistence); there is no session cookie. Admin and POS pages sit behind sign-in, with their sections in the browser: the client layout of each part sends a visitor without a Firebase session to the sign-in page (the session lives in browser storage, which `proxy.ts` on the server cannot see). `proxy.ts` makes fixed route redirects and sets the CSP of `/admin` and `/pos`, and never reads the session; neither is authorization, and the API still answers 401 and 403. The client only sends the ID token; the user's permission keys (never role names, R-SEC-03) come from the API (`permissions` of `GET /api/v1/admin/me`) and are used only to hide menus and buttons — the API still enforces them. A password change revokes every refresh token (DEC-094): the web signs the user in again. In development the client connects to the Firebase Auth Emulator.
 
 ## Security headers
 
@@ -85,7 +116,7 @@ npm with `web/package-lock.json` committed; `web/.npmrc` sets `save-exact`, `eng
 
 ## Tests and checks
 
-Vitest with Testing Library (jsdom; Vite compiles TSX itself, so no React plugin) for the Zod schemas, the mapping of Problem Details onto form fields, and the hooks; Playwright for the screen flows, run by `/finish-feature` (step 7) against the development environment and in the CI job `acceptance` against the API image and the Firebase Auth Emulator, with screenshots for the owner's test guide (DEC-100). ESLint (`eslint-config-next`), Prettier and `next typegen` + `tsc --noEmit` run locally (ESLint on each edited file and the typecheck at the end of a Claude Code turn, through the hooks of DEC-104) and in the CI job `web-test`, with the build, `npm run gen:api` compared with the committed `schema.d.ts` and the keys of the message files. Business rules are tested in the API (`pr_gates` coverage counts API tests only).
+Vitest with Testing Library (jsdom; Vite compiles TSX itself, so no React plugin; setup and the providers of a test in `src/test/`) for the Zod schemas, the mapping of Problem Details onto form fields, and the hooks; Playwright for the screen flows, run by `/finish-feature` (step 7) against the development environment and in the CI job `acceptance` against the API image and the Firebase Auth Emulator, with screenshots for the owner's test guide (DEC-100). ESLint (`eslint-config-next`), Prettier and `next typegen` + `tsc --noEmit` run locally (ESLint on each edited file and the typecheck at the end of a Claude Code turn, through the hooks of DEC-104) and in the CI job `web-test`, with the build, `npm run gen:api` compared with the committed `schema.d.ts` and the keys of the message files. Business rules are tested in the API (`pr_gates` coverage counts API tests only).
 
 ## Screens
 
