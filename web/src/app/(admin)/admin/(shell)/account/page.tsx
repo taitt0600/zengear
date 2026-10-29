@@ -1,6 +1,10 @@
 import type { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
-import { AccountScreen } from '@/features/identity/account'
+import {
+  AccountLayout,
+  AccountPasswordSection,
+  AccountProfileSection,
+} from '@/features/identity/account'
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('admin.user')
@@ -8,6 +12,13 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 /** SCR-ACC-01 My account (STF-03): every signed-in staff member may open it. */
-export default function AccountPage() {
-  return <AccountScreen />
+export default async function AccountPage() {
+  const t = await getTranslations('admin.user')
+  return (
+    <AccountLayout
+      title={t('account')}
+      profile={<AccountProfileSection />}
+      password={<AccountPasswordSection />}
+    />
+  )
 }

@@ -1,16 +1,11 @@
 // The public API of the module Access (DEC-118 (2)): the staff session (AUT-04) and what the sign-in (AUT-01) reads.
-export {
-  changeMyPassword,
-  meQuery,
-  updateMe,
-  type CurrentUser,
-  type LoadedCurrentUser,
-} from './api/me'
+export { meQuery, type CurrentUser, type LoadedCurrentUser } from './api/me'
 export {
   CurrentUserProvider,
   useCurrentUser,
   useStaffSession,
   useStaffSignOut,
+  type StaffSession,
 } from './hooks/use-staff-session'
 export {
   firebaseError,

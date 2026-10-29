@@ -4,7 +4,6 @@ import userEvent from '@testing-library/user-event'
 import { NextIntlClientProvider } from 'next-intl'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { CurrentUser } from '@/features/identity/access'
-import { ChangePasswordScreen } from '@/features/identity/account'
 import { reportApiError } from '@/lib/api/api-errors'
 import { ApiError } from '@/lib/api/problems'
 import type { AuthState } from '@/lib/auth/session'
@@ -27,10 +26,9 @@ vi.mock('@/lib/auth/session', () => ({
   signOutAndClear: session.signOutAndClear,
 }))
 
-const api = vi.hoisted(() => ({ me: vi.fn(), changeMyPassword: vi.fn() }))
+const api = vi.hoisted(() => ({ me: vi.fn() }))
 vi.mock('@/features/identity/access/api/me', () => ({
   meQuery: { queryKey: ['me'], queryFn: () => api.me() },
-  changeMyPassword: api.changeMyPassword,
 }))
 
 const admin: CurrentUser = {
@@ -350,66 +348,6 @@ describe('RequirePermission', () => {
     expect(screen.getByRole('link', { name: 'Tài khoản của tôi' })).toHaveAttribute(
       'href',
       '/admin/account',
-    )
-  })
-})
-
-describe('ChangePasswordScreen', () => {
-  it('shows the form while the password change is pending, with "Đăng xuất"', async () => {
-    api.me.mockResolvedValue({ ...consultant, mustChangePassword: true })
-    renderWithProviders(<ChangePasswordScreen />)
-
-    expect(await screen.findByLabelText('Mật khẩu mới')).toBeInTheDocument()
-    expect(screen.getByLabelText('Nhập lại mật khẩu mới')).toBeInTheDocument()
-    await userEvent.setup().click(screen.getByRole('button', { name: 'Đăng xuất' }))
-    await waitFor(() => expect(navigation.replace).toHaveBeenCalledWith('/admin/sign-in'))
-  })
-
-  it('signs out after the change, with the notice of the sign-in page', async () => {
-    api.me.mockResolvedValue({ ...consultant, mustChangePassword: true })
-    api.changeMyPassword.mockResolvedValue(undefined)
-    renderWithProviders(<ChangePasswordScreen />)
-    const user = userEvent.setup()
-
-    await user.type(await screen.findByLabelText('Mật khẩu mới'), 'mot mat khau moi dai')
-    await user.type(screen.getByLabelText('Nhập lại mật khẩu mới'), 'mot mat khau moi dai')
-    await user.click(screen.getByRole('button', { name: 'Đổi mật khẩu' }))
-
-    await waitFor(() =>
-      expect(navigation.replace).toHaveBeenCalledWith('/admin/sign-in?reason=password-changed'),
-    )
-    expect(session.signOutAndClear).toHaveBeenCalledOnce()
-    expect(api.changeMyPassword).toHaveBeenCalledExactlyOnceWith('mot mat khau moi dai')
-  })
-
-  it("shows the API's text when GET /me fails with one", async () => {
-    api.me.mockRejectedValue(
-      problem(403, 'forbidden', 'Bạn không được phép thực hiện thao tác này.'),
-    )
-    renderWithProviders(<ChangePasswordScreen />)
-
-    expect(await screen.findByRole('alert')).toHaveTextContent(
-      'Bạn không được phép thực hiện thao tác này.',
-    )
-    expect(screen.getByRole('button', { name: 'Thử lại' })).toBeInTheDocument()
-  })
-
-  it('sends a staff member without a pending change to the landing page', async () => {
-    api.me.mockResolvedValue(manager)
-    renderWithProviders(<ChangePasswordScreen />)
-
-    await waitFor(() => expect(navigation.replace).toHaveBeenCalledWith('/admin/staff'))
-  })
-
-  it('sends a visitor without a session to the sign-in page', async () => {
-    session.state = 'signed-out'
-    window.history.replaceState(null, '', '/admin/change-password')
-    renderWithProviders(<ChangePasswordScreen />)
-
-    await waitFor(() =>
-      expect(navigation.replace).toHaveBeenCalledWith(
-        '/admin/sign-in?next=%2Fadmin%2Fchange-password',
-      ),
     )
   })
 })

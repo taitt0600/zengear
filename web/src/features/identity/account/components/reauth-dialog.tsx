@@ -1,5 +1,4 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { LoaderCircleIcon } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { useId, useMemo, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
@@ -15,11 +14,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
-import { Input } from '@/components/ui/input'
+import { FieldGroup } from '@/components/ui/field'
 import { firebaseError, type PasswordSignInError } from '@/features/identity/access'
 import { reauthenticate } from '@/lib/auth/session'
 import { AccountName } from './account-name'
+import { PasswordField } from './password-field'
+import { SubmitButton } from './submit-button'
 
 /**
  * The sign-in again of SCR-AUT-02 for 403 recent-login-required (DEC-094): the current password, checked by Firebase.
@@ -96,7 +96,6 @@ function ReauthForm({
     onConfirmed()
   }
 
-  const sending = form.formState.isSubmitting
   return (
     <form noValidate onSubmit={form.handleSubmit(onSubmit)}>
       <FieldGroup>
@@ -114,19 +113,13 @@ function ReauthForm({
           name="password"
           control={form.control}
           render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={`${id}-password`}>
-                {t('changePassword.reauth.password')}
-              </FieldLabel>
-              <Input
-                {...field}
-                id={`${id}-password`}
-                type="password"
-                autoComplete="current-password"
-                aria-invalid={fieldState.invalid}
-              />
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-            </Field>
+            <PasswordField
+              id={`${id}-password`}
+              label={t('changePassword.reauth.password')}
+              autoComplete="current-password"
+              field={field}
+              fieldState={fieldState}
+            />
           )}
         />
         <DialogFooter>
@@ -135,12 +128,9 @@ function ReauthForm({
               {t('changePassword.cancel')}
             </Button>
           </DialogClose>
-          <Button type="submit" disabled={sending} aria-busy={sending}>
-            {sending && (
-              <LoaderCircleIcon data-icon="inline-start" className="motion-safe:animate-spin" />
-            )}
+          <SubmitButton sending={form.formState.isSubmitting}>
             {t('changePassword.reauth.submit')}
-          </Button>
+          </SubmitButton>
         </DialogFooter>
       </FieldGroup>
     </form>
