@@ -129,6 +129,7 @@ describe('file length (DEC-118 (3))', () => {
   it.each([
     ['the shadcn components', 'src/components/ui/sample.tsx'],
     ['tests', 'src/sample.test.ts'],
+    ['the generated API client', 'src/lib/api/generated/me/me.ts'],
   ])('does not check %s', async (_, filePath) => {
     expect(await maxLines(lines(151), filePath)).toEqual([])
   })

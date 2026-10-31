@@ -34,6 +34,7 @@
   "next-themes": "DEC-104",
   "openapi-fetch": "DEC-104",
   "openapi-typescript": "DEC-104",
+  "orval": "DEC-122",
   "postcss": "DEC-111",
   "prettier": "DEC-104",
   "radix-ui": "DEC-104",
