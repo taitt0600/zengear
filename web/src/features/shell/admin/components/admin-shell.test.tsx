@@ -28,7 +28,7 @@ vi.mock('@/lib/auth/session', () => ({
 
 const api = vi.hoisted(() => ({ me: vi.fn() }))
 vi.mock('@/features/identity/access/api/me', () => ({
-  meQuery: { queryKey: ['me'], queryFn: () => api.me() },
+  meQuery: { queryKey: ['me'], queryFn: () => api.me(), meta: { reportErrors: false } },
 }))
 
 const admin: CurrentUser = {

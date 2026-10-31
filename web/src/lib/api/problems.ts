@@ -1,9 +1,10 @@
-import type { components } from './schema'
+import type { ValidationProblem } from './generated/model'
 
 // Problem Details of the API (docs/API_CONVENTIONS.md, Errors; docs/FRONTEND.md, Forms and errors). The API writes
 // `title`, `detail` and the `detail` of each `errors` item in Vietnamese (DEC-117): the web shows them as they come and
-// never maps a type or a code to a text of its own.
-export type Problem = components['schemas']['ValidationProblem']
+// never maps a type or a code to a text of its own. The shape every problem shares; the problems of one operation,
+// with the enum of its codes, are the ErrorType of its generated calls (api.ts).
+export type Problem = ValidationProblem
 
 /** A failed API call: its HTTP status and, when the body was one, its Problem Details. */
 export class ApiError extends Error {
@@ -23,12 +24,6 @@ export function isProblem(value: unknown): value is Problem {
     value !== null &&
     ('type' in value || 'status' in value || 'title' in value)
   )
-}
-
-/** The data of an openapi-fetch result, or an ApiError for any answer that is not a success. */
-export function unwrap<T>(result: { data?: T; error?: unknown; response: Response }): T {
-  if (result.response.ok) return result.data as T
-  throw new ApiError(result.response.status, isProblem(result.error) ? result.error : undefined)
 }
 
 /**

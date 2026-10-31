@@ -21,7 +21,7 @@ describe('createQueryClient', () => {
   const stop: (() => void)[] = []
   afterEach(() => stop.splice(0).forEach((unsubscribe) => unsubscribe()))
 
-  it('reports the failed queries and mutations to the admin layout, but not GET /me', async () => {
+  it('reports the failed queries and mutations to the admin layout, but not a query whose reader handles its failures', async () => {
     const reported = vi.fn()
     stop.push(onApiError(reported))
     const client = createQueryClient()
@@ -31,7 +31,11 @@ describe('createQueryClient', () => {
       .query({ queryKey: ['staff'], queryFn: () => Promise.reject(denied) })
       .catch(() => {})
     await client
-      .query({ queryKey: ['me'], queryFn: () => Promise.reject(new ApiError(401)) })
+      .query({
+        queryKey: ['own-reader'],
+        queryFn: () => Promise.reject(new ApiError(401)),
+        meta: { reportErrors: false },
+      })
       .catch(() => {})
     await client
       .getMutationCache()

@@ -10,11 +10,8 @@ import { NO_FORM_PROBLEMS } from '@/components/app/form-problems'
 import { sessionOutcome } from '@/features/identity/access'
 import { useProblemToast } from '@/hooks/use-problem-toast'
 import { ApiError, fieldErrors, hasProblemType } from '@/lib/api/problems'
-import { changeMyPassword } from '../api/me'
+import { changeMyPassword, changePasswordKey } from '../api/me'
 import { passwordChangeSchema } from '../schemas'
-
-/** The key of the change while it is sent, which keeps the dialog of SCR-ACC-01 open. */
-export const changePasswordKey = ['me', 'change-password'] as const
 
 /**
  * The password change of SCR-AUT-02 (docs/SCREENS.md): the new password typed twice, sent to POST

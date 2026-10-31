@@ -1,11 +1,11 @@
 // Optimistic concurrency and idempotency (docs/API_CONVENTIONS.md, Concurrency and idempotency).
 
 /**
- * The version of a loaded resource. An edit sends it back as its If-Match header parameter; the API answers 412
- * when the row changed since, and 428 when it is missing.
+ * The version of a loaded resource, from the headers of its answer. An edit sends it back as its If-Match header
+ * parameter; the API answers 412 when the row changed since, and 428 when it is missing.
  */
-export function etagOf(response: Response): string | undefined {
-  return response.headers.get('ETag') ?? undefined
+export function etagOf(headers: Headers): string | undefined {
+  return headers.get('ETag') ?? undefined
 }
 
 /**

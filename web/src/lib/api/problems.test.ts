@@ -5,7 +5,6 @@ import {
   hasProblemType,
   isNetworkError,
   problemText,
-  unwrap,
   type Problem,
 } from './problems'
 
@@ -130,30 +129,5 @@ describe('fieldErrors', () => {
   it('is empty for a problem without errors', () => {
     expect(fieldErrors({ status: 409 }, ['name'])).toEqual({ byField: {}, other: [] })
     expect(fieldErrors(undefined, ['name'])).toEqual({ byField: {}, other: [] })
-  })
-})
-
-describe('unwrap', () => {
-  const response = (status: number) => new Response(null, { status })
-
-  it('returns the data of a success', () => {
-    expect(unwrap({ data: { id: 1 }, response: response(200) })).toEqual({ id: 1 })
-  })
-
-  it('throws an ApiError with the status and the problem', () => {
-    const problem = { type: '/problems/permission-denied', status: 403 }
-    try {
-      unwrap({ error: problem, response: response(403) })
-      expect.unreachable()
-    } catch (error) {
-      expect(error).toBeInstanceOf(ApiError)
-      expect(error).toMatchObject({ status: 403, problem })
-    }
-  })
-
-  it('keeps no problem when the body was not one', () => {
-    expect(() => unwrap({ error: 'Bad gateway', response: response(502) })).toThrow(
-      expect.objectContaining({ status: 502, problem: undefined }),
-    )
   })
 })

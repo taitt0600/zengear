@@ -11,9 +11,13 @@ import { AccountProfileSection } from './account-profile-section'
 const api = vi.hoisted(() => ({ me: vi.fn(), updateMe: vi.fn(), changeMyPassword: vi.fn() }))
 // The files the sections import: GET /me of the session, and the calls of this module.
 vi.mock('@/features/identity/access/api/me', () => ({
-  meQuery: { queryKey: ['me'], queryFn: () => api.me() },
+  meQuery: { queryKey: ['me'], queryFn: () => api.me(), meta: { reportErrors: false } },
 }))
-vi.mock('../api/me', () => ({ updateMe: api.updateMe, changeMyPassword: api.changeMyPassword }))
+vi.mock('../api/me', () => ({
+  updateMe: api.updateMe,
+  changeMyPassword: api.changeMyPassword,
+  changePasswordKey: ['postApiV1AdminMeChangePassword'],
+}))
 
 const session = vi.hoisted(() => ({ reauthenticate: vi.fn() }))
 vi.mock('@/lib/auth/session', () => session)

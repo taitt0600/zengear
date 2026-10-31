@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { createApiClient, createApiFetch, type ApiResponse } from './client'
+import { createApiFetch, type ApiResponse } from './client'
 import { etagOf, newIdempotencyKey } from './concurrency'
 import { ApiError } from './problems'
 
@@ -11,84 +11,6 @@ const me = {
   mustChangePassword: false,
   permissions: ['staff.read'],
 }
-
-function fakeFetch() {
-  return vi.fn<typeof fetch>(
-    async () =>
-      new Response(JSON.stringify(me), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json', ETag: 'W/"42"' },
-      }),
-  )
-}
-
-// openapi-fetch calls fetch with one Request that holds every header.
-function sentRequest(fetch: ReturnType<typeof fakeFetch>): Request {
-  expect(fetch).toHaveBeenCalledOnce()
-  const [request] = fetch.mock.calls[0]
-  expect(request).toBeInstanceOf(Request)
-  return request as Request
-}
-
-describe('createApiClient', () => {
-  it('sends the Firebase ID token as a Bearer token', async () => {
-    const fetch = fakeFetch()
-    const client = createApiClient({
-      baseUrl: 'http://api.test',
-      getIdToken: async () => 'id-token',
-      fetch,
-    })
-
-    const { data } = await client.GET('/api/v1/admin/me')
-
-    const request = sentRequest(fetch)
-    expect(request.url).toBe('http://api.test/api/v1/admin/me')
-    expect(request.headers.get('Authorization')).toBe('Bearer id-token')
-    expect(data).toEqual(me)
-  })
-
-  it('sends no Authorization header when nobody is signed in', async () => {
-    const fetch = fakeFetch()
-    const client = createApiClient({
-      baseUrl: 'http://api.test',
-      getIdToken: async () => null,
-      fetch,
-    })
-
-    await client.GET('/api/v1/admin/me')
-
-    expect(sentRequest(fetch).headers.has('Authorization')).toBe(false)
-  })
-
-  it('never sends the token to a shop endpoint, even when signed in', async () => {
-    const fetch = fakeFetch()
-    const getIdToken = vi.fn(async () => 'id-token')
-    const client = createApiClient({ baseUrl: 'http://api.test', getIdToken, fetch })
-
-    await client.GET('/api/v1/shop/business-locations')
-
-    expect(sentRequest(fetch).headers.has('Authorization')).toBe(false)
-    expect(getIdToken).not.toHaveBeenCalled()
-  })
-
-  it('sends the ETag of the loaded resource back as If-Match', async () => {
-    const fetch = fakeFetch()
-    const client = createApiClient({
-      baseUrl: 'http://api.test',
-      getIdToken: async () => 't',
-      fetch,
-    })
-    const loaded = await client.GET('/api/v1/admin/me')
-    fetch.mockClear()
-
-    await client.PATCH('/api/v1/admin/me', {
-      params: { header: { 'If-Match': etagOf(loaded.response) } },
-      body: { name: 'Chủ cửa hàng' },
-    })
-
-    expect(sentRequest(fetch).headers.get('If-Match')).toBe('W/"42"')
-  })
-})
 
 describe('createApiFetch', () => {
   function json(body: unknown, status: number, contentType = 'application/json') {
@@ -249,8 +171,12 @@ describe('createApiFetch', () => {
 })
 
 describe('etagOf', () => {
-  it('is undefined when the response has no ETag', () => {
-    expect(etagOf(new Response(null))).toBeUndefined()
+  it('is the ETag header of the answer', () => {
+    expect(etagOf(new Headers({ ETag: 'W/"42"' }))).toBe('W/"42"')
+  })
+
+  it('is undefined when the answer has no ETag', () => {
+    expect(etagOf(new Headers())).toBeUndefined()
   })
 })
 
