@@ -9,7 +9,7 @@ flight, what is done and how this file changes: `CLAUDE.md`, *Work state*.
 |---|---|---|---|
 | shell-refactor | The designs of SCR-ADM-01 and SCR-AUT-01 (`/design-screen`), then the pull request (B) of DEC-118; that pull request adds the Next rows STF-05 (pointing to the row before STF-05) and STF-02 (the design of SCR-STF-03, then SCR-STF-03), in that order. The first `/design-screen` run is also the first real use of the Artifact calls of its step 3 (a canvas from the type Design, the install of the design system): a call that fails there or differs from what the command expects needs an owner-path pull request on that command | local | DEC-118 (5); DEC-119 (3); `docs/SCREENS.md`, SCR-STF-03; DEC-116 (6); pull request of `docs/design-system`, *Probe of the Artifact calls* |
 | upgrade-api | The API part of DEC-122 (5), then the API test stack of (6) in a pull request of its own | local, owner path | DEC-122 |
-| upgrade-infra | Images, GitHub Actions, the .NET SDK band and the Postman CLI: DEC-122 (7); then Dependabot and its gate: (8) | local, owner path | DEC-122 |
+| upgrade-infra | Images, GitHub Actions, the .NET SDK band and the Postman CLI: DEC-122 (7); then Dependabot and its gate: (8), after a Decision on DEC-122 (8) for the updates of orval (its options in the source) | local, owner path | DEC-122; the Orval pull request (`refactor/orval`), *Follow-ups* |
 
 ## Waiting for a trigger
 
