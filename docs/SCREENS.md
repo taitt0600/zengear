@@ -41,9 +41,9 @@ only the shape of the input (required, length, format) with the limits below, wh
 - **Dates** `yyyy-MM-dd` from the API are shown `dd/MM/yyyy`; timestamps are shown in Asia/Ho_Chi_Minh.
 - **Accessibility**: WCAG 2.2 AA; every form works with the keyboard alone, every field has a visible label, errors
   are announced to screen readers.
-- **Design system** (DEC-119 (2)): not built yet. Once built, this line reads `<link>, built <yyyy-mm-dd> from
-  web/src/app/globals.css and web/src/components/ui/ at commit <sha>`; `/design-screen` brings the system up to date
-  when those files changed since, and then this line's date and commit.
+- **Design system** (DEC-119 (2)): <https://claude.ai/artifact/DAYPEgxSLaHrHYG99Tmntb>, built 2026-10-31 from
+  `web/src/app/globals.css` and `web/src/components/ui/` at commit ccd8759; `/design-screen` brings the system up to
+  date when those files changed since, and then this line's date and commit.
 - **Layout** (DEC-119 (3)): the approved design of a screen, a subsection at the end of its section that
   `/design-screen <SCR-ID>` writes and the merge of its Layout pull request approves; a later change of the design is
   a new Layout pull request. The component tree is the part a diff can review, and the runs build from it:
