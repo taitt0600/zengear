@@ -13,7 +13,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { meQuery, PASSWORD_CHANGED, useStaffSignOut } from '@/features/identity/access'
-import { changePasswordKey } from '../hooks/use-change-password'
+import { changePasswordKey } from '../api/me'
 import { ChangePasswordForm } from './change-password-form'
 
 /**

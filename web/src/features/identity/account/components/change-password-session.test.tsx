@@ -30,9 +30,12 @@ vi.mock('@/lib/auth/session', () => ({
 const api = vi.hoisted(() => ({ me: vi.fn(), changeMyPassword: vi.fn() }))
 // The files the session and the form import: GET /me of the session, and the call of this module.
 vi.mock('@/features/identity/access/api/me', () => ({
-  meQuery: { queryKey: ['me'], queryFn: () => api.me() },
+  meQuery: { queryKey: ['me'], queryFn: () => api.me(), meta: { reportErrors: false } },
 }))
-vi.mock('../api/me', () => ({ changeMyPassword: api.changeMyPassword }))
+vi.mock('../api/me', () => ({
+  changeMyPassword: api.changeMyPassword,
+  changePasswordKey: ['postApiV1AdminMeChangePassword'],
+}))
 
 const consultant: CurrentUser = {
   id: '0199a0f3-0000-7000-8000-000000000009',

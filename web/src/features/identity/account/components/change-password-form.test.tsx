@@ -6,7 +6,10 @@ import { renderWithProviders } from '@/test/render'
 import { ChangePasswordForm } from './change-password-form'
 
 const api = vi.hoisted(() => ({ changeMyPassword: vi.fn() }))
-vi.mock('../api/me', () => ({ changeMyPassword: api.changeMyPassword }))
+vi.mock('../api/me', () => ({
+  changeMyPassword: api.changeMyPassword,
+  changePasswordKey: ['postApiV1AdminMeChangePassword'],
+}))
 // The session module the form reads loads GET /me, and with it the API client: never reached here.
 vi.mock('@/features/identity/access/api/me', () => ({ meQuery: {} }))
 
