@@ -6,8 +6,9 @@
 # confirmed even when edits are accepted automatically.
 # The checks (PR gates, schema snapshot, architecture tests and docs/ARCHITECTURE.md they read, secret scan
 # configuration) are confirmed too, so that the code is not made to pass by changing what judges it.
-# The generated web file web/src/**/schema.d.ts (DEC-111 (7), DEC-116 (5)) is confirmed when edited by hand; its
-# generator (npm run gen:api) does not name it and runs. web/src/components/ui/ is code of the app (DEC-116 (1)).
+# The generated web client web/src/lib/api/generated/ (DEC-122 (4)) is confirmed when edited by hand; its
+# generator (npm run gen:api) does not name it and runs. web/src/components/ui/ is code of the app (DEC-116 (1)), and
+# so is the mutator web/src/lib/api/api.ts beside the generated folder.
 # Covers file tools (Edit, Write, MultiEdit, NotebookEdit) and shell commands (Bash, PowerShell).
 # In an unattended cloud session (CLAUDE_CODE_REMOTE=true) nobody can answer: the specification, the tooling
 # and the checks are read-only there, and build files are left to the CI gates (tools/pr_gates.py).
@@ -23,7 +24,7 @@ $payload = [Console]::In.ReadToEnd() | ConvertFrom-Json
 
 $specReason = 'is part of the specification. Approve only if an accepted Decision (DEC-xxx) requires this change.'
 $codeReason = 'runs code or judges changes (build, git hook, Claude Code hook or setting, MCP server, CI workflow, PR gate, architecture test, secret scan). Approve only if you asked for this change.'
-$generatedReason = 'is written only by its generator (npm run gen:api), never by hand (DEC-111 (7), DEC-116 (5)). Approve only if you asked for this change.'
+$generatedReason = 'is written only by its generator (npm run gen:api), never by hand (DEC-122 (4)). Approve only if you asked for this change.'
 $unattendedReason = 'cannot change in an unattended cloud session. Stop and report it as a "Needs decision" item instead.'
 $unattended = $env:CLAUDE_CODE_REMOTE -eq 'true'
 
@@ -73,7 +74,7 @@ if ($path) {
     foreach ($item in $codePrefixes) {
         if ($relative.StartsWith($item, [StringComparison]::OrdinalIgnoreCase)) { Ask $relative $codeReason 'tooling' }
     }
-    if ($relative -match '^web/src/(.*/)?schema\.d\.ts$') { Ask $relative $generatedReason 'tooling' }
+    if ($relative -match '^web/src/lib/api/generated/') { Ask $relative $generatedReason 'tooling' }
     foreach ($item in $codeSuffixes) {
         if ($relative.EndsWith($item, [StringComparison]::OrdinalIgnoreCase)) { Ask $relative $codeReason 'build' }
     }
@@ -94,7 +95,7 @@ if ($command) {
     $mentionsSpec = '(api[\\/]+db[\\/]|(^|[\s''"=])db[\\/]+zengear_|docs[\\/]+blueprint[\\/]|DATABASE\.md|product-domain-blueprint-MVP\.xlsx|(?<![\w-])blueprint_apply\b)'
     $canWrite = '(>(?!>?\s*(&|/dev/null\b|\$null\b))|\btee\b|\bsed\b[^|;&]*\s-i|\bperl\b[^|;&]*\s-i|(^|[;&|(]\s*|\b(do|then|else|xargs|sudo|exec|env)\s+)(cp|mv|rm|truncate|touch|dd|install|unzip|tar|py(?=\s))\b|\bgit\s+(checkout|restore|apply|mv|rm|reset|stash)\b|Out-File|Set-Content|Add-Content|Remove-Item|Move-Item|Copy-Item|New-Item|Rename-Item|\bpython\d*\b|\bnode\b|\bpwsh\b|\bpowershell\b)'
     $mentionsTooling = '(\.claude[\\/]|\.githooks[\\/]|\.github[\\/]+workflows|\.gitleaks\.toml|\.mcp\.json|(?<![\w.-])(pr_gates\.py|github_pr\.py|schema_snapshot\.sql|schema_compare\.py|message_keys\.py)|ZenGear\.ArchitectureTests[\\/]|ARCHITECTURE\.md)'
-    $mentionsGenerated = 'web[\\/]+src[\\/]+\S*schema\.d\.ts'
+    $mentionsGenerated = 'web[\\/]+src[\\/]+lib[\\/]+api[\\/]+generated\b'
     $mentionsBuild = '\.(csproj|props|targets)\b'
     # The first target of each kind; asked in the order spec, tooling, generated, build once every part is judged.
     $found = @{}

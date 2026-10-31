@@ -148,7 +148,7 @@ DEC-099 marked **Checkpoint** below (two here, one in `/finish-feature`); withou
      area's tables directly.
    - From `api/`: `dotnet build ZenGear.slnx`, `dotnet test ZenGear.slnx`, the migration drift check; fix until
      green. The build refreshes `api/openapi/ZenGear.Api.json`; when it changed, also run the web checks of
-     `/finish-feature` (step 2), since the CI job `web-test` fails on a stale `web/src/lib/api/schema.d.ts`.
+     `/finish-feature` (step 2), since the CI job `web-test` fails on a stale `web/src/lib/api/generated/`.
 6. **Postman folder**: skill `api-collection` with the Feature ID writes the folder of the feature in `postman/`
    (one request per acceptance criterion, a refusal per rule, tests on status, Problem Details `type` and fields,
    values unique to the run, dev-only fixtures for a state the API cannot reach yet) and runs it twice with skill

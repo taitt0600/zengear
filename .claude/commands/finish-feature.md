@@ -83,7 +83,7 @@ step 11 when the pull request is open.
    it deletes `web/node_modules`, which a running `next dev` is expected to keep locked on Windows (not yet seen
    here), so first stop a dev server
    this session started and ask the owner to stop theirs, as skill `api-run` does for the API), `npm run gen:api`
-   (its `src/lib/api/schema.d.ts` belongs to the commit that changes the API), `npm run lint`, `npm run format`,
+   (its `src/lib/api/generated/` belongs to the commit that changes the API), `npm run lint`, `npm run format`,
    `npm run typecheck`, `npm run test` and `npm run build`, the last
    with the five `NEXT_PUBLIC_*` values of `DEVELOPMENT_DEFAULTS` in `web/src/env-schema.ts` set for that command
    only (`web/CLAUDE.md`, *Commands*), each under **Output** (`out/logs/step2-web-<script>.log`). Keep the result of
@@ -150,7 +150,7 @@ step 11 when the pull request is open.
    **Commits**, per the `Commits` section of `CLAUDE.md`, without asking: first `git config user.name taitt0600`,
    `git config user.email taitt.dev@gmail.com` and `git config core.hooksPath .githooks`. Then `feat(db)` for
    entities, configurations and migrations; `feat(api)` for behavior, endpoints, the OpenAPI document and their
-   tests (with a regenerated `web/src/lib/api/schema.d.ts` and the web code it forces, `feat` without scope, as
+   tests (with a regenerated `web/src/lib/api/generated/` and the web code it forces, `feat` without scope, as
    `CLAUDE.md`, Commits, says); `feat(web)` for screens, their Vitest tests and Playwright flows; `test` for the
    Postman folder, its environments and fixtures; `docs: close the work state rows of <ID>`
    for the rows of `docs/STATUS.md` deleted at step 4, alone in its commit with `Refs: <ID>, DEC-110`; `test(api)`

@@ -48,7 +48,7 @@ OWNER_PATHS = SPEC_PATHS + ('.claude/', '.githooks/', '.github/', '.gitleaks.tom
                             'web/approved-packages.json', 'web/npm-shrinkwrap.json', 'web/tsconfig.json',
                             'web/components.json', 'web/.npmrc',
                             'web/.nvmrc', 'web/next.config.', 'web/eslint.config.', 'web/postcss.config.',
-                            'web/vitest.config.', 'web/playwright.config.')
+                            'web/vitest.config.', 'web/playwright.config.', 'web/orval.config.')
 OWNER_SUFFIXES = BUILD_SUFFIXES + ('.rsp', '.dcproj', '.sln', '.slnx')
 CODE_PATHS = ('api/src/', 'web/')
 FEATURES = 'docs/blueprint/features.md'
