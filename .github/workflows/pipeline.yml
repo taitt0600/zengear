@@ -403,10 +403,10 @@ jobs:
           exit 1
 
       # The Postman CLI of part B (skill api-run), from the files of the repository: no sign-in, no API key, and no
-      # --output (it needs a sign-in).
+      # --output (it needs a sign-in). Its Node.js is the one of web/.nvmrc, like every setup-node step (DEC-122 (1)).
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 22
+          node-version-file: web/.nvmrc
           package-manager-cache: false
       - name: Install the Postman CLI
         run: npm install --global --no-audit --no-fund postman-cli@1.69.0
