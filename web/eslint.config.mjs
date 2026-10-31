@@ -96,7 +96,12 @@ const eslintConfig = defineConfig([
   // A warning, not an error, so that the files written before DEC-118 (3) keep lint green; code-reviewer checks it.
   {
     files: ['src/**/*.{ts,tsx}'],
-    ignores: ['src/**/*.test.{ts,tsx}', 'src/components/ui/**', 'src/lib/api/schema.d.ts'],
+    ignores: [
+      'src/**/*.test.{ts,tsx}',
+      'src/components/ui/**',
+      'src/lib/api/schema.d.ts',
+      'src/lib/api/generated/**',
+    ],
     rules: { 'max-lines': ['warn', { max: 150, skipBlankLines: true, skipComments: true }] },
   },
   // The defaults of eslint-config-next, plus generated and test output.
@@ -106,6 +111,7 @@ const eslintConfig = defineConfig([
     'build/**',
     'next-env.d.ts',
     'src/lib/api/schema.d.ts',
+    'src/lib/api/generated/**',
     'playwright-report/**',
     'test-results/**',
   ]),

@@ -7,3 +7,4 @@
 
 api/openapi/*.json linguist-generated=true
 web/src/lib/api/schema.d.ts linguist-generated=true
+web/src/lib/api/generated/** linguist-generated=true
