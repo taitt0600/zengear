@@ -186,8 +186,8 @@ Two workflows. `.github/workflows/pipeline.yml` runs on every pull request to `m
 demand: `changes` reads the changed paths; `secrets`, `tools-test`, `api-test`, `schema` and `web-test` run in
 parallel, each only when its paths changed (`api-test` and `schema` always on `main`); `web-test` (when `web/`,
 `api/openapi/` or `tools/message_keys.py` changed) checks the keys of the message files, then, once
-`web/package.json` exists, runs `npm ci`, `npm run gen:api` compared with the committed `schema.d.ts`, then ESLint,
-Prettier, `next typegen` and `tsc --noEmit`, Vitest and the build through `npm exec --no --`, with the public
+`web/package.json` exists, runs `npm ci`, `npm run gen:api` compared with the committed `src/lib/api/generated/`,
+then ESLint, Prettier, `next typegen` and `tsc --noEmit`, Vitest and the build through `npm exec --no --`, with the public
 `NEXT_PUBLIC_*` values of the acceptance environment (DEC-104 (8)); `acceptance`
 builds the API image (layers cached in GitHub Actions) and the migration bundle, prepares the data, runs the whole
 Postman collection, on `main` pushes that image to GHCR and uploads the bundle, and then, when `web/`, `api/` or
