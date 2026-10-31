@@ -16,7 +16,8 @@ export class ApiError extends Error {
   }
 }
 
-function isProblem(value: unknown): value is Problem {
+/** Whether a parsed body is Problem Details (it has a type, a status or a title). */
+export function isProblem(value: unknown): value is Problem {
   return (
     typeof value === 'object' &&
     value !== null &&
