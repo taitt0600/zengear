@@ -56,14 +56,19 @@ CASES = [
     # Build files: left to the CI gates when unattended, asked when attended.
     ({'command': 'echo x > api/src/ZenGear.Api/ZenGear.Api.csproj'}, 'allow', 'ask'),
     ({'command': 'dotnet add api/src/ZenGear.Api package Foo'}, 'allow', 'ask'),
-    # The generated schema.d.ts (DEC-111 (7), DEC-116 (5)): edited by hand it is asked, its generator and reads run;
-    # web/src/components/ui/ is code of the app (DEC-116 (1)).
+    # The generated client folder (DEC-122 (4)): edited by hand it is asked, its generator and reads run;
+    # web/src/components/ui/ (DEC-116 (1)) and the mutator web/src/lib/api/api.ts (DEC-122 (4)) are code of the app.
     ({'command': 'cp /tmp/b.tsx web/src/components/ui/button.tsx'}, 'allow', 'allow'),
-    ({'command': 'cd web && rm src/lib/api/schema.d.ts'}, 'deny', 'ask'),
+    ({'command': 'cd web && rm -r src/lib/api/generated'}, 'deny', 'ask'),
     ({'command': 'cd web/src/components/ui && sed -i s/a/b/ button.tsx'}, 'allow', 'allow'),
-    ({'command': 'cd web/src && sed -i s/a/b/ components/ui/sheet.tsx lib/api/schema.d.ts'}, 'deny', 'ask'),
-    ({'command': 'cat web/src/lib/api/schema.d.ts | head'}, 'allow', 'allow'),
+    ({'command': 'cd web/src && sed -i s/a/b/ components/ui/sheet.tsx lib/api/generated/me/me.ts'}, 'deny', 'ask'),
+    ({'command': 'git checkout -- web/src/lib/api/generated/model/brandDto.ts'}, 'deny', 'ask'),
+    ({'command': 'cat web/src/lib/api/generated/me/me.ts | head'}, 'allow', 'allow'),
+    ({'command': 'cd web/src/lib/api && sed -i s/a/b/ api.ts client.ts'}, 'allow', 'allow'),
+    ({'command': 'Remove-Item -Recurse web\\src\\lib\\api\\generated'}, 'deny', 'ask'),
+    ({'command': 'Set-Location web; Remove-Item src\\lib\\api\\generated\\me\\me.ts'}, 'deny', 'ask'),
     ({'command': 'cd web && npm run gen:api'}, 'allow', 'allow'),
+    ({'command': 'cd web && npm run gen:api > ../out/logs/step2-web-gen-api.log 2>&1'}, 'allow', 'allow'),
     ({'command': 'cd web && npm exec --no -- shadcn add button'}, 'allow', 'allow'),
     # The message-key check of web-test judges changes too; running it is not a write.
     ({'command': 'python tools/message_keys.py'}, 'allow', 'allow'),
@@ -71,7 +76,9 @@ CASES = [
     ({'command': 'cp /tmp/x.py tools/message_keys.py'}, 'deny', 'ask'),
     ({'file_path': str(REPO / 'tools' / 'message_keys.py')}, 'deny', 'ask'),
     ({'file_path': str(REPO / 'tools' / 'tests' / 'test_message_keys.py')}, 'allow', 'allow'),
-    ({'file_path': str(REPO / 'web' / 'src' / 'lib' / 'api' / 'schema.d.ts')}, 'deny', 'ask'),
+    ({'file_path': str(REPO / 'web' / 'src' / 'lib' / 'api' / 'generated' / 'me' / 'me.ts')}, 'deny', 'ask'),
+    ({'file_path': str(REPO / 'web' / 'src' / 'lib' / 'api' / 'generated' / 'model' / 'brandDto.ts')}, 'deny', 'ask'),
+    ({'file_path': str(REPO / 'web' / 'src' / 'lib' / 'api' / 'api.ts')}, 'allow', 'allow'),
     ({'file_path': str(REPO / 'web' / 'src' / 'components' / 'ui' / 'button.tsx')}, 'allow', 'allow'),
     ({'file_path': str(REPO / 'web' / 'src' / 'components' / 'app' / 'page-header.tsx')}, 'allow', 'allow'),
     ({'file_path': str(REPO / 'web' / 'src' / 'features' / 'catalog' / 'schema.ts')}, 'allow', 'allow'),

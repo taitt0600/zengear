@@ -30,7 +30,7 @@ DIFF CONTENT:
 !`git diff --merge-base main`
 ```
 
-Review the complete diff above. Files marked `??` in GIT STATUS are new and not in the diff: read each of them. Skip the generated files `api/src/ZenGear.Data/Migrations/*.Designer.cs`, the model snapshot and `api/openapi/ZenGear.Api.json`.
+Review the complete diff above. Files marked `??` in GIT STATUS are new and not in the diff: read each of them. Skip the generated files `api/src/ZenGear.Data/Migrations/*.Designer.cs`, the model snapshot, `api/openapi/ZenGear.Api.json` and the web client `web/src/lib/api/generated/` (its mutator `web/src/lib/api/api.ts` and `client.ts` are reviewed).
 
 
 OBJECTIVE:

@@ -37,8 +37,8 @@ reported as unchecked; a PowerShell script is never run, read its `ShouldProcess
 
 - `git diff main...HEAD` and `git diff HEAD` (committed and not yet committed changes of the branch).
 - `git status --porcelain --untracked-files=all`: files marked `??` are new code; read each of them.
-- Skip `api/src/ZenGear.Data/Migrations/*.Designer.cs`, the model snapshot and `api/openapi/ZenGear.Api.json`
-  (generated); read the migrations themselves.
+- Skip `api/src/ZenGear.Data/Migrations/*.Designer.cs`, the model snapshot, `api/openapi/ZenGear.Api.json` and
+  the web client `web/src/lib/api/generated/` (generated); read the migrations themselves.
 
 ## Read first
 
@@ -140,14 +140,15 @@ repeat those. Check what no test sees:
     `.claude/guidelines/web-interface-guidelines.md`; a finding cites its rule (`MUST: …`).
     - File length (DEC-118 (3)): run the ESLint command above on the changed files of `web/src/`. A new file, or a
       file whose content changed (not counting a move or changed imports, as `git diff -M` shows), has no
-      `max-lines` warning, i.e. at most 150 lines of code; tests, `components/ui` and `schema.d.ts` are excluded,
+      `max-lines` warning, i.e. at most 150 lines of code; tests, `components/ui` and `lib/api/generated/` are excluded,
       as in `web/eslint.config.mjs`. A file above it is Should fix. An ESLint error of
       `import/no-restricted-paths` is Blocking (the module boundaries of DEC-118 (2)); they are not reviewed by
       hand otherwise.
     - Layout (DEC-119 (4)): a screen with a **Layout** in `docs/SCREENS.md` has the layout file and the sections of
       its component tree, with the components it names; a departure is Blocking, since `/implement-feature` step 4
       allows none. A finding about the layout of a screen starts with the label `[layout]`.
-    - Skip the generated `web/src/**/schema.d.ts`: it changes only through `npm run gen:api` (DEC-111 (7)).
+    - Skip the generated client `web/src/lib/api/generated/`: it changes only through `npm run gen:api` (DEC-122 (4));
+      the mutator `web/src/lib/api/api.ts` and the rest of `web/src/lib/api/` are reviewed as code.
       Review `web/src/components/ui/` like other web code (DEC-116 (8)), and check there:
       - the design is kept (DEC-116 (1)): an existing component keeps the classes that set its look (colour,
         spacing, radius, font size, shadow) unless the change fixes accessibility, and a new variant uses the tokens

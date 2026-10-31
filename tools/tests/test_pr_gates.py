@@ -528,7 +528,7 @@ class WebGateTests(GitRepositoryTestCase):
     def test_the_web_build_files_of_dec_104_are_owner_paths(self):
         paths = ['web/approved-packages.json', 'web/tsconfig.json', 'web/components.json', 'web/.npmrc', 'web/.nvmrc',
                  'web/next.config.ts', 'web/eslint.config.mjs', 'web/postcss.config.mjs', 'web/vitest.config.ts',
-                 'web/playwright.config.ts']
+                 'web/playwright.config.ts', 'web/orval.config.ts']
         files = {path: '{}\n' for path in paths}
         files['web/approved-packages.json'] = {**APPROVED, 'zod': 'DEC-104'}
         files['web/src/app/page.tsx'] = 'export default function Page() {}\n'
