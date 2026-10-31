@@ -2,21 +2,21 @@
 
 | Container | Technology | Version | Purpose | Phase |
 |---|---|---|---|---|
-| Web App | Next.js | 16.4.2 | Framework cho storefront, trang quản trị và POS | Phase 1 |
+| Web App | Next.js | 16.4.3 | Framework cho storefront, trang quản trị và POS | Phase 1 |
 | Web App | React | 19.3.1 | Thư viện giao diện của Next.js (DEC-104) | Phase 1 |
-| Web App | TypeScript | 5.9.3 | Ngôn ngữ | Phase 1 |
+| Web App | TypeScript | 6.0.3 | Ngôn ngữ; TypeScript 7 khi typescript-eslint hỗ trợ (DEC-122) | Phase 1 |
 | Web App | Tailwind CSS | 4.3.3 | Styling | Phase 1 |
 | Web App | shadcn/ui | — | UI components theo mô hình open code: components/ui là code của dự án, sửa trực tiếp nhưng giữ thiết kế gốc, chữ qua file chuỗi, cập nhật bằng add --diff; block chính thức làm khuôn; calendar dùng date-fns (DEC-116) | Phase 1 |
 | Web App | Zustand | — | Client state | Phase 1 |
 | Web App | TanStack Query | — | Server state | Phase 1 |
 | Web App | React Hook Form + Zod | — | Form và validation | Phase 1 |
-| Web App | openapi-typescript + openapi-fetch | — | Sinh kiểu TypeScript từ api/openapi/ZenGear.Api.json và gọi API có kiểu; dùng với TanStack Query (DEC-093) | Phase 1 |
+| Web App | Orval | 8.46.0 | Sinh từ api/openapi/ZenGear.Api.json kiểu, client fetch và hook TanStack Query vào web/src/lib/api/generated/; mutator trong lib/api thêm Firebase ID token (trừ /api/v1/shop/) và đổi Problem Details thành ApiError (DEC-093, DEC-117, DEC-122) | Phase 1 |
 | Web App | Firebase JS SDK | — | Đăng nhập Firebase Authentication phía trình duyệt; nối emulator khi chạy dev (DEC-104) | Phase 1 |
 | Web App | next-intl | — | i18n: mọi chuỗi giao diện qua file chuỗi, Phase 1 chỉ tiếng Việt, tiếng Anh sau này cho storefront (DEC-104) | Phase 1 |
 | Web App | lucide-react | — | Icon, bộ mặc định của shadcn/ui (DEC-104) | Phase 1 |
 | Web App | motion | — | Animation; tôn trọng prefers-reduced-motion (DEC-104) | Phase 1 |
 | Web App | TanStack Table | — | Bảng danh sách của trang quản trị (DEC-104) | Phase 1 |
-| Web App | ESLint + Prettier | — | Lint và định dạng code web; tsc --noEmit kiểm kiểu (DEC-104) | Phase 1 |
+| Web App | ESLint + Prettier | ESLint 10 | Lint và định dạng code web, eslint-config-next 16.4.3; tsc --noEmit kiểm kiểu (DEC-104, DEC-122) | Phase 1 |
 | Hosting | Vercel | — | Chạy web app Next.js (storefront, trang quản trị, POS) | Phase 1 |
 | Hosting | Azure | — | Chạy backend API .NET và PostgreSQL | Phase 1 |
 | Backend API | .NET (ASP.NET Core) | 10 | Backend framework; 3 project ZenGear.Api, ZenGear.Services, ZenGear.Data (DEC-091) | Phase 1 |
@@ -38,7 +38,7 @@
 | External Service | Resend | — | Gửi email giao dịch (A14) | Phase 1 |
 | External Service | MISA meInvoice | — | Phát hành hóa đơn bán hàng điện tử qua API tích hợp dành cho developer (A15) | Phase 1 |
 | External Service | VNPay | — | Cổng thanh toán, dùng sandbox cho demo (A12) | Phase 2 |
-| Testing | NUnit | — | Test framework cho unit test và integration test | Phase 1 |
+| Testing | NUnit | 5 | Test framework cho unit test và integration test; NUnit3TestAdapter 6, Microsoft.NET.Test.Sdk 18, coverlet 10 (DEC-122) | Phase 1 |
 | Testing | Shouldly | — | Assertion | Phase 1 |
 | Testing | Moq | — | Mock dependency trong unit test | Phase 1 |
 | Testing | Testcontainers for .NET | image postgres:18, redis | PostgreSQL và Redis thật cho integration, concurrency, DB constraint và cache test | Phase 1 |
@@ -53,9 +53,10 @@
 | Dev Tooling | Firebase Local Emulator Suite | — | Chạy Firebase local | Phase 1 |
 | Dev Tooling | Docker | image postgres:18 | Container local, khớp version Azure Database for PostgreSQL | Phase 1 |
 | Dev Tooling | Claude Code | — | Plugin từ marketplace claude-plugins-official (csharp-lsp, feature-dev, typescript-lsp, frontend-design; security-guidance dùng thử) và MCP qua Docker MCP Toolkit (PostgreSQL, Postman) chỉ với dữ liệu dev (DEC-100, DEC-111, DEC-112) | Phase 1 |
-| Dev Tooling | Node.js + npm | 24.22.0 (npm 11.19.1) | Runtime và package manager của web; package-lock.json commit, CI chạy npm ci; Dependabot cooldown 7 ngày (DEC-104) | Phase 1 |
+| Dev Tooling | Node.js + npm | 26.13.0 (npm 11.20.0) | Runtime và package manager của web; package-lock.json commit, mọi bước setup-node của CI đọc web/.nvmrc, chạy npm ci; Dependabot cooldown 7 ngày (DEC-104, DEC-122) | Phase 1 |
 | Dev Tooling | Claude Design | — | Bản vẽ màn hình chủ dự án duyệt trước khi code; design system dựng từ codebase (DEC-119) | Phase 1 |
 | Source & Docs | Git + GitHub | — | Quản lý mã nguồn; một repository cho api, web và docs (DEC-093) | Phase 1 |
-| Source & Docs | GitHub Actions | — | Một pipeline (pipeline.yml), tên job trùng id: changes chọn job theo path; secrets, tools-test, api-test, schema, web-test (kiểm key của file chuỗi, rồi npm ci, gen:api so với schema.d.ts, ESLint, Prettier, tsc, Vitest, build), acceptance (build image và migration bundle một lần, chạy toàn bộ collection Postman trên image đó, trên main đẩy image lên GHCR, rồi chạy các luồng Playwright của web), ci-ok; gates.yml: pr-gates, pr-title; required checks ci-ok, pr-gates, pr-title; push main deploy staging rồi production (DEC-093, DEC-100, DEC-101, DEC-104) | Phase 1 |
+| Source & Docs | GitHub Actions | — | Một pipeline (pipeline.yml), tên job trùng id: changes chọn job theo path; secrets, tools-test, api-test, schema, web-test (kiểm key của file chuỗi, rồi npm ci, gen:api so với web/src/lib/api/generated/, ESLint, Prettier, tsc, Vitest, build), acceptance (build image và migration bundle một lần, chạy toàn bộ collection Postman trên image đó, trên main đẩy image lên GHCR, rồi chạy các luồng Playwright của web), ci-ok; gates.yml: pr-gates, pr-title; required checks ci-ok, pr-gates, pr-title; push main deploy staging rồi production (DEC-093, DEC-100, DEC-101, DEC-104, DEC-122) | Phase 1 |
+| Source & Docs | Dependabot | — | Cập nhật phiên bản hằng tuần cho npm (web/), NuGet (api/), GitHub Actions, Docker và Docker Compose; patch và minor gộp theo ecosystem, mỗi major một PR, ignore các major gắn với .NET 10 và PostgreSQL 18, và TypeScript từ 6.1; pr_gates chỉ nhận PR của dependabot[bot] đổi dòng phiên bản; chủ dự án merge từng PR (DEC-104, DEC-122) | Phase 1 |
 | Source & Docs | GitHub Container Registry | — | Lưu image API build một lần trong pipeline để deploy staging và production (DEC-100) | Phase 1 |
 | Source & Docs | dbdocs.io | — | Tài liệu ERD sinh từ khối DBML trong DATABASE.md | Phase 1 |
