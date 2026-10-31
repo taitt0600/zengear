@@ -57,6 +57,7 @@
     "vitest": "5.0.5"
   },
   "overrides": {
+    "@grpc/grpc-js": "1.14.7",
     "openapi-typescript": {
       "typescript": "$typescript"
     }
