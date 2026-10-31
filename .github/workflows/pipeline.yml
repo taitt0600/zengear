@@ -70,7 +70,7 @@ jobs:
           set_output postman '^postman/'
           set_output tools '^(tools/|\.claude/hooks/|\.githooks/|api/global\.json$)'
           set_output docs '^docs/'
-          # The web types come from the OpenAPI contract; web-test also runs the web check of tools/.
+          # The web client comes from the OpenAPI contract; web-test also runs the web check of tools/.
           set_output web '^(web/|api/openapi/|tools/message_keys\.py$)'
 
   # Secret scan with gitleaks (.gitleaks.toml): the commits of every pull request and push to main, and the whole
@@ -187,7 +187,7 @@ jobs:
       - name: Migrations produce the specified schema
         run: python3 ../tools/schema_compare.py spec.txt migrated.txt
 
-  # The web app (DEC-104 (8), DEC-111 (7)): the API types regenerated and compared with the committed file, lint,
+  # The web app (DEC-104 (8), DEC-122 (4)): the API client regenerated and compared with the committed folder, lint,
   # format, typecheck, Vitest and the build. Every npm tool runs from web/node_modules through npm exec --no, which
   # fails instead of downloading a package; gen:api is the one npm script, as DEC-104 (8) names it, and the scripts
   # of web/package.json are an owner path (DEC-111 (4)). The check of tools/ runs first and needs no web file; the
@@ -237,14 +237,15 @@ jobs:
       - name: Install
         if: steps.web.outputs.exists == 'true'
         run: npm ci --no-audit --no-fund
-      - name: API types match the OpenAPI contract
+      # Orval writes the folder anew (clean), so any file added, changed or deleted against the committed folder shows.
+      - name: API client matches the OpenAPI contract
         if: steps.web.outputs.exists == 'true'
         run: |
           npm run gen:api
-          if [ -n "$(git status --porcelain -- src/lib/api/schema.d.ts)" ]; then
-            git status --porcelain -- src/lib/api/schema.d.ts   # ?? when it was never committed
-            git diff -- src/lib/api/schema.d.ts | head -n 100
-            echo "::error::web/src/lib/api/schema.d.ts differs from npm run gen:api: regenerate it and commit it"
+          if [ -n "$(git status --porcelain --untracked-files=all -- src/lib/api/generated)" ]; then
+            git status --porcelain --untracked-files=all -- src/lib/api/generated | head -n 50   # ?? new, D deleted
+            git diff -- src/lib/api/generated | head -n 100
+            echo "::error::web/src/lib/api/generated/ differs from npm run gen:api: regenerate it and commit it"
             exit 1
           fi
       - name: Lint
