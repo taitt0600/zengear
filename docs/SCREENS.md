@@ -150,7 +150,10 @@ Every admin screen except the sign-in page sits in this layout.
   (DEC-116 (2)): `ui.sidebar.toggle` "Thu gọn hoặc mở rộng menu" (*new*; the rail's label and title, and the
   trigger's default), `ui.sidebar.title` "Menu" (*new*; the narrow sheet's title, its description dropped),
   `ui.breadcrumb.label` "Vị trí trang" (*new*; the breadcrumb's name), `ui.breadcrumb.more` "Xem thêm" (*new*;
-  the ellipsis).
+  the ellipsis). Under the heading of the no-permission page `admin.noPermissionHint` "Vai trò của bạn chưa được
+  cấp quyền xem trang này." (*new*), of the 404 `admin.notFoundHint` "Đường dẫn có thể đã sai hoặc trang không
+  còn nữa. Vui lòng chọn một mục trong menu hoặc về trang chính." (*new*), and under the button of both
+  `admin.needHelp` "Cần trợ giúp? Liên hệ quản trị viên." (*new*; text only: no support channel is specified).
 - **Component tree** (DEC-118 (3)), under `web/src/features/shell/admin/components/`; the route
   `app/(admin)/admin/(shell)/layout.tsx` (a server component) reads the cookie `sidebar_state` with `cookies()` for
   the menu's `defaultOpen` (open when there is none) and composes
@@ -201,18 +204,20 @@ Every admin screen except the sign-in page sits in this layout.
   │                                  EmptyTitle, destructive, with role="alert"; in EmptyContent a row (a div
   │                                  with flex gap-2) of "Thử lại" (default) and "Đăng xuất" (outline) — empty,
   │                                  button
-  ├── no-permission.tsx              admin-page-status with ShieldXIcon, "Bạn không có quyền xem trang này." and
-  │                                  the link to the first entry the user can open (or "Tài khoản của tôi"),
-  │                                  whose onClick clears the 403 (onLeave)
-  ├── admin-not-found.tsx            admin-page-status with SearchXIcon, "Không tìm thấy trang này." and "Về
-  │                                  trang chính" (/admin); exported by the module's index.ts, so that the route
-  │                                  app/(admin)/admin/(shell)/not-found.tsx only renders it
+  ├── no-permission.tsx              admin-page-status with ShieldXIcon, "Bạn không có quyền xem trang này.", its
+  │                                  hint and the link to the first entry the user can open (or "Tài khoản của
+  │                                  tôi"), whose onClick clears the 403 (onLeave)
+  ├── admin-not-found.tsx            admin-page-status with SearchXIcon, "Không tìm thấy trang này.", its hint
+  │                                  and "Về trang chính" (/admin); exported by the module's index.ts, so that the
+  │                                  route app/(admin)/admin/(shell)/not-found.tsx only renders it
   └── admin-page-status.tsx          presentational, no 'use client' (it renders props only) — props icon (an
-                                     element, aria-hidden), title, href, label, onClick?; an Empty with an outline
-                                     filling the page slot (main#main grows to the free height as a flex column),
-                                     its content centred: in EmptyHeader the icon in EmptyMedia
-                                     variant="icon" and the title as an h1 in EmptyTitle; in EmptyContent the
-                                     link drawn as a Button (default, asChild) — empty, button
+                                     element, aria-hidden), title, description, href, label, onClick?; an Empty
+                                     with an outline filling the page slot (main#main grows to the free height as
+                                     a flex column), its content centred, after shadcn's 404 example of Empty: in
+                                     EmptyHeader the icon in EmptyMedia variant="icon", the title as an h1 in
+                                     EmptyTitle and the description in EmptyDescription; in EmptyContent the link
+                                     drawn as a Button (default, asChild), then "Cần trợ giúp? …" in
+                                     EmptyDescription — empty, button
   ```
 
 ## SCR-AUT-01 Staff sign-in
