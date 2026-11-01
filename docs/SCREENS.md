@@ -46,6 +46,21 @@ only the shape of the input (required, length, format) with the limits below, wh
   Empty), the way out, when there is one, in `EmptyContent`; an empty list's Empty takes the place of the rows inside
   the list's card, so that its filters stay. Chosen by the owner on the Layout of SCR-ADM-01; a screen built before
   (SCR-ACC-01, the placeholder page) follows it with its next Layout.
+- **Help on screen**, in every design and its Layout, from the message files like every text:
+  - a **tooltip** (`Tooltip`) on every button that shows only an icon, with its `aria-label` (the corner close
+    button of `Dialog` and `Sheet` too, with `ui.close`, in the pull request that next changes those components),
+    and on every label cut short, with its full text; never the only place of a text a user needs (a tooltip does
+    not show on touch); the first tooltip opens after a delay and the next ones at once (`TooltipProvider` with
+    Radix's `delayDuration` 700 and `skipDelayDuration` 300, not shadcn's 0);
+  - a **description** under the title of each card, dialog, sheet and Empty that says what it is for
+    (`CardDescription`, `DialogDescription`, `SheetDescription`, `EmptyDescription`), except an Empty whose title
+    is the text of an API problem;
+  - a **hint text** (`FieldDescription`, tied to its input with `aria-describedby`) under every field with a
+    length, a format or a use to explain; a field that is only required, or must match another field, needs none;
+    a placeholder only as an example of the format, never instead of the label.
+
+  A Layout lists these texts with the screen's other new texts. Chosen by the owner on the Layout of SCR-ADM-01; a
+  screen built before (SCR-AUT-01, SCR-AUT-02, SCR-ACC-01) follows it with its next Layout.
 - **Dates** `yyyy-MM-dd` from the API are shown `dd/MM/yyyy`; timestamps are shown in Asia/Ho_Chi_Minh.
 - **Accessibility**: WCAG 2.2 AA; every form works with the keyboard alone, every field has a visible label, errors
   are announced to screen readers.
@@ -148,7 +163,8 @@ Every admin screen except the sign-in page sits in this layout.
   `admin.menu.open` "Mở menu" on a narrow one, passed as props; the close button of the narrow menu
   `admin.menu.close` "Đóng menu". The English texts of `sidebar.tsx` and `breadcrumb.tsx` go through `ui`
   (DEC-116 (2)): `ui.sidebar.toggle` "Thu gọn hoặc mở rộng menu" (*new*; the rail's label and title, and the
-  trigger's default), `ui.sidebar.title` "Menu" (*new*; the narrow sheet's title, its description dropped),
+  trigger's default), `ui.sidebar.title` "Menu" (*new*; the narrow sheet's title), `ui.sidebar.description` "Các
+  trang quản trị bạn được phép mở." (*new*; the sheet's description, read by screen readers),
   `ui.breadcrumb.label` "Vị trí trang" (*new*; the breadcrumb's name), `ui.breadcrumb.more` "Xem thêm" (*new*;
   the ellipsis). Under the heading of the no-permission page `admin.noPermissionHint` "Vai trò của bạn chưa được
   cấp quyền xem trang này." (*new*), of the 404 `admin.notFoundHint` "Đường dẫn có thể đã sai hoặc trang không
@@ -166,7 +182,8 @@ Every admin screen except the sign-in page sits in this layout.
   │                                  error: session-error; ready: its children; only the toast region
   │                                  "Thông báo" stays in app/(admin)/admin/layout.tsx
   ├── admin-layout.tsx               slots: sidebar | header | page — SidebarProvider with defaultOpen (Ctrl/⌘+B
-  │                                  toggles; it writes the cookie) and SidebarInset rendered as a div, so that
+  │                                  toggles; it writes the cookie; its TooltipProvider with the delays of **Help
+  │                                  on screen**) and SidebarInset rendered as a div, so that
   │                                  the header stays a banner and main#main holds only the page slot; the skip
   │                                  link "Bỏ qua đến nội dung chính" before the header goes to main#main; page
   │                                  padding 24px (16px narrow); narrow (below md): the sidebar becomes a Sheet
@@ -175,7 +192,8 @@ Every admin screen except the sign-in page sits in this layout.
   │   │                              SidebarRail — sidebar
   │   ├── admin-brand.tsx            presentational — SidebarMenuButton size="lg": a square in sidebar-primary
   │   │                              with lucide StoreIcon, then "ZenGear" (app.name; the store name once gap 6 is
-  │   │                              closed), a link to /admin; narrow: the close button "Đóng menu" beside it
+  │   │                              closed), a link to /admin, collapsed with that name in a Tooltip; narrow:
+  │   │                              the close button "Đóng menu" (icon only, with its Tooltip) beside it
   │   ├── admin-nav.tsx              `nav` named "Menu" around a SidebarGroup labelled "Menu", the entries of
   │   │                              visibleMenu (utils/admin-menu.ts): "Nhân viên" (UsersIcon); "Cài đặt"
   │   │                              (Settings2Icon) as a Collapsible with SidebarMenuSub "Địa điểm kinh doanh",
@@ -186,9 +204,12 @@ Every admin screen except the sign-in page sits in this layout.
   │                                  first letters of the first and last words of `name`, then `name` and
   │                                  `email` (`name` alone when `email` is null), ChevronsUpDownIcon; DropdownMenu
   │                                  (side right; bottom on a narrow screen): the same header, "Tài khoản của
-  │                                  tôi" (UserIcon), "Đăng xuất" (LogOutIcon) — avatar, dropdown-menu
-  ├── admin-header-section.tsx       header h-16 (h-12 collapsed): SidebarTrigger (texts above), a vertical
-  │                                  Separator, Breadcrumb "Vị trí trang" from the route: the entry's group as
+  │                                  tôi" (UserIcon), "Đăng xuất" (LogOutIcon); one Tooltip on the button:
+  │                                  `name` when collapsed, `name` and `email` when they are cut short — avatar,
+  │                                  dropdown-menu, tooltip
+  ├── admin-header-section.tsx       header h-16 (h-12 collapsed): SidebarTrigger (texts above, also its
+  │                                  Tooltip), a vertical Separator, Breadcrumb "Vị trí trang" from the route:
+  │                                  the entry's group as
   │                                  text, then the entry ("Cài đặt › Địa điểm kinh doanh"); a page under an entry
   │                                  (SCR-STF-02, SCR-STF-03) adds the title that its own Layout names, the entry
   │                                  then a link; the account page "Tài khoản của tôi"; the no-permission page
