@@ -38,11 +38,14 @@ only the shape of the input (required, length, format) with the limits below, wh
   admin form alike (SCR-LOC-01 has no warning either), instead of one screen with a warning.
 - **States**: loading shows skeleton rows or fields, never an empty screen; an empty list says why it is empty; a
   button that sends a request is disabled until the answer comes, so a double click sends one request.
-- **Grouping**: related content sits in a `Card` (a form, a list with its filters, a group of details, the message
-  of a page that cannot show with its way back), never loose on the page ground. A page of one card (sign-in,
-  password change, no permission, not found) has its heading in the card's `CardTitle`; a page of several cards
-  keeps its heading above them. Chosen by the owner on the Layout of SCR-ADM-01; a screen built before (SCR-ACC-01,
-  the placeholder page) follows it with its next Layout.
+- **Grouping**, by the shadcn components, never content loose on the page ground: related content sits in a
+  `Card` (a form, a list with its filters, a group of details); a page of one card (sign-in, password change) has
+  its heading in the card's `CardTitle`, a page of several cards keeps its heading above them. An area with nothing
+  to show (an empty list, no permission, not found, a failed load) is an `Empty` with an outline (`border`, dashed):
+  an icon in `EmptyMedia variant="icon"`, the message in `EmptyTitle` (the page's h1 on a page that is only this
+  Empty), the way out, when there is one, in `EmptyContent`; an empty list's Empty takes the place of the rows inside
+  the list's card, so that its filters stay. Chosen by the owner on the Layout of SCR-ADM-01; a screen built before
+  (SCR-ACC-01, the placeholder page) follows it with its next Layout.
 - **Dates** `yyyy-MM-dd` from the API are shown `dd/MM/yyyy`; timestamps are shown in Asia/Ho_Chi_Minh.
 - **Accessibility**: WCAG 2.2 AA; every form works with the keyboard alone, every field has a visible label, errors
   are announced to screen readers.
@@ -133,13 +136,13 @@ Every admin screen except the sign-in page sits in this layout.
   draws its own, except on the no-permission page and the 404, which this design draws.
 - **Artboards**: desktop (1440 px) with the menu expanded, which collapses to icons when the canvas plays it;
   desktop with the menu collapsed and the user menu open; narrow (390 px) with the menu closed and open; states:
-  loading, error of `GET /me`, no permission, not found. Empty: a user whose permissions allow no entry sees the
+  loading, error of `GET /me`, no permission, not found. No entry: a user whose permissions allow no entry sees the
   menu without its group "Menu", only the store name and the user.
 - **shadcn**: `shadcn add sidebar-07` brings `sidebar`, `collapsible`, `tooltip`, `avatar`, `breadcrumb` and
   `hooks/use-mobile.ts`; it must not overwrite the edited `sheet`, `dropdown-menu`, `button`, `separator`,
   `skeleton` and `input` (DEC-116 (4)). Its files move here (DEC-116 (3)): `app-sidebar` → admin-sidebar-section,
   `team-switcher` → admin-brand, `nav-main` → admin-nav, `nav-user` → user-menu; `nav-projects`, the sample page
-  and its data are dropped.
+  and its data are dropped. `shadcn add empty` brings `empty`; each `add` is committed alone (DEC-116 (1)).
 - **Texts** (`messages/vi.json`), new ones marked *new*: the menu button `admin.menu.collapse` "Thu gọn menu"
   (*new*) and `admin.menu.expand` "Mở rộng menu" (*new*) on a wide screen, by the menu's state, and
   `admin.menu.open` "Mở menu" on a narrow one, passed as props; the close button of the narrow menu
@@ -192,11 +195,12 @@ Every admin screen except the sign-in page sits in this layout.
   │                                  else the route's page, the 404 (the catch-all page) included
   ├── admin-shell-skeleton.tsx       presentational — the sidebar (brand, two entries, user), the header, and a
   │                                  title and a line in Skeleton
-  ├── session-error.tsx              presentational — in its own `main` (no frame, since GET /me failed), a Card
-  │                                  centred, max-w-sm: in CardHeader TriangleAlertIcon (aria-hidden) in a muted
-  │                                  square and the problem's text in destructive with role="alert"; in
-  │                                  CardFooter (justify-center) "Thử lại" (default) and "Đăng xuất" (outline) —
-  │                                  card, button
+  ├── session-error.tsx              presentational — in its own `main` (no frame, since GET /me failed), an
+  │                                  Empty with an outline, centred, max-w-md: in EmptyHeader TriangleAlertIcon
+  │                                  (aria-hidden) in EmptyMedia variant="icon" and the problem's text in
+  │                                  EmptyTitle, destructive, with role="alert"; in EmptyContent a row (a div
+  │                                  with flex gap-2) of "Thử lại" (default) and "Đăng xuất" (outline) — empty,
+  │                                  button
   ├── no-permission.tsx              admin-page-status with ShieldXIcon, "Bạn không có quyền xem trang này." and
   │                                  the link to the first entry the user can open (or "Tài khoản của tôi"),
   │                                  whose onClick clears the 403 (onLeave)
@@ -204,11 +208,11 @@ Every admin screen except the sign-in page sits in this layout.
   │                                  trang chính" (/admin); exported by the module's index.ts, so that the route
   │                                  app/(admin)/admin/(shell)/not-found.tsx only renders it
   └── admin-page-status.tsx          presentational, no 'use client' (it renders props only) — props icon (an
-                                     element, aria-hidden), title, href, label, onClick?; centred in the page
-                                     slot (main#main grows to the free height as a flex column): a Card,
-                                     max-w-sm, centred text: in CardHeader the icon in a muted square and the
-                                     title as an h1 in CardTitle; in CardFooter (justify-center) the link drawn
-                                     as a Button (default, asChild) — card, button
+                                     element, aria-hidden), title, href, label, onClick?; an Empty with an outline
+                                     filling the page slot (main#main grows to the free height as a flex column),
+                                     its content centred: in EmptyHeader the icon in EmptyMedia
+                                     variant="icon" and the title as an h1 in EmptyTitle; in EmptyContent the
+                                     link drawn as a Button (default, asChild) — empty, button
   ```
 
 ## SCR-AUT-01 Staff sign-in
