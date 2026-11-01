@@ -125,7 +125,7 @@ Every admin screen except the sign-in page sits in this layout.
 - **Design**: <https://claude.ai/artifact/LMwdwkWoxsS3hFQwxE4cXA>, drawn 2026-11-01 with the design system of
   2026-11-01; approved by the merge of the pull request that wrote this subsection (DEC-119). The shadcn block
   `sidebar-07` (a menu that collapses to icons, DEC-118 (5)); the page area is left empty, since every other screen
-  draws its own.
+  draws its own, except on the no-permission page and the 404, which this design draws.
 - **Artboards**: desktop (1440 px) with the menu expanded, which collapses to icons when the canvas plays it;
   desktop with the menu collapsed and the user menu open; narrow (390 px) with the menu closed and open; states:
   loading, error of `GET /me`, no permission, not found. Empty: a user whose permissions allow no entry sees the
@@ -134,7 +134,7 @@ Every admin screen except the sign-in page sits in this layout.
   `hooks/use-mobile.ts`; it must not overwrite the edited `sheet`, `dropdown-menu`, `button`, `separator`,
   `skeleton` and `input` (DEC-116 (4)). Its files move here (DEC-116 (3)): `app-sidebar` → admin-sidebar-section,
   `team-switcher` → admin-brand, `nav-main` → admin-nav, `nav-user` → user-menu; `nav-projects`, the sample page
-  and its data are dropped.
+  and its data are dropped. `shadcn add empty` brings `empty`, committed alone like every `add` (DEC-116 (1)).
 - **Texts** (`messages/vi.json`), new ones marked *new*: the menu button `admin.menu.collapse` "Thu gọn menu"
   (*new*) and `admin.menu.expand` "Mở rộng menu" (*new*) on a wide screen, by the menu's state, and
   `admin.menu.open` "Mở menu" on a narrow one, passed as props; the close button of the narrow menu
@@ -190,7 +190,17 @@ Every admin screen except the sign-in page sits in this layout.
   ├── session-error.tsx              presentational — centred max-w-sm: Alert variant="destructive" with
   │                                  TriangleAlertIcon and the problem's text; "Thử lại" (default) and "Đăng
   │                                  xuất" (outline); no frame, since GET /me failed — alert, button
-  └── no-permission.tsx              unchanged: "Bạn không có quyền xem trang này." and its link
+  ├── no-permission.tsx              admin-page-status with ShieldXIcon, "Bạn không có quyền xem trang này." and
+  │                                  the link to the first entry the user can open (or "Tài khoản của tôi"),
+  │                                  whose onClick clears the 403 (onLeave)
+  ├── admin-not-found.tsx            admin-page-status with SearchXIcon, "Không tìm thấy trang này." and "Về
+  │                                  trang chính" (/admin); exported by the module's index.ts, so that the route
+  │                                  app/(admin)/admin/(shell)/not-found.tsx only renders it
+  └── admin-page-status.tsx          presentational, no 'use client' (it renders props only) — props icon (an
+                                     element, aria-hidden), title, href, label, onClick?; centred in the page
+                                     slot (main#main grows to the free height as a flex column): Empty with
+                                     EmptyMedia variant="icon", an h1 in EmptyTitle and, in EmptyContent, the
+                                     link drawn as a Button (default, asChild) — empty, button
   ```
 
 ## SCR-AUT-01 Staff sign-in
