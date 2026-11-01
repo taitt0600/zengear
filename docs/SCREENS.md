@@ -42,8 +42,8 @@ only the shape of the input (required, length, format) with the limits below, wh
 - **Accessibility**: WCAG 2.2 AA; every form works with the keyboard alone, every field has a visible label, errors
   are announced to screen readers.
 - **Design system** (DEC-119 (2)): <https://claude.ai/artifact/DAYPEgxSLaHrHYG99Tmntb>, built 2026-10-31 from
-  `web/src/app/globals.css` and `web/src/components/ui/` at commit ccd8759; `/design-screen` brings the system up to
-  date when those files changed since, and then this line's date and commit.
+  `web/src/app/globals.css` and `web/src/components/ui/` and updated 2026-11-01 to commit d990f0a; `/design-screen`
+  brings the system up to date when those files changed since, and then the update's date and commit.
 - **Layout** (DEC-119 (3)): the approved design of a screen, a subsection at the end of its section that
   `/design-screen <SCR-ID>` writes and the merge of its Layout pull request approves; a later change of the design is
   a new Layout pull request. The component tree is the part a diff can review, and the runs build from it:
@@ -101,8 +101,9 @@ date picker uses the shadcn calendar with date-fns (DEC-116 (6)).
 
 Every admin screen except the sign-in page sits in this layout.
 
-- **Header**: the store name, the signed-in user's `name` (from `GET /api/v1/admin/me`) with a menu: "Tài khoản của tôi"
-  (SCR-ACC-01) and "Đăng xuất" (signs out of Firebase, clears the query cache, goes to SCR-AUT-01).
+- **Store name and user**: the store name at the top of the menu, and at its foot the signed-in user's `name` (from
+  `GET /api/v1/admin/me`) with a menu: "Tài khoản của tôi" (SCR-ACC-01) and "Đăng xuất" (signs out of Firebase,
+  clears the query cache, goes to SCR-AUT-01). The header holds the menu button and where the page sits (**Layout**).
 - **Menu**: "Nhân viên" (SCR-STF-01, needs `staff.read`), "Cài đặt" → "Địa điểm kinh doanh" (SCR-LOC-01, needs
   `business_location.update`). An entry the user cannot use is hidden.
 - **Guard**: without a Firebase session, every admin route goes to SCR-AUT-01 with the requested path kept as
@@ -113,11 +114,84 @@ Every admin screen except the sign-in page sits in this layout.
   user lacks the permission of its endpoints; a 403 `permission-denied` shows it until the path changes.
 - **Other texts**: the skip link "Bỏ qua đến nội dung chính"; on narrow screens the menu opens with "Mở menu" and
   closes with "Đóng menu"; the menu's name is "Menu"; when GET `/me` fails otherwise, the problem's `detail` (or
-  the web's text of *Conventions*) with "Thử lại" and "Đăng xuất". The header shows "ZenGear" instead of the store
+  the web's text of *Conventions*) with "Thử lại" and "Đăng xuất". The menu shows "ZenGear" instead of the store
   name until gap 6 is closed.
 - **Not found**: an `/admin` URL that matches no screen shows "Không tìm thấy trang này." inside the layout, with the
   link "Về trang chính" (`/admin`, the landing page); signed out, it goes to SCR-AUT-01 like any admin route.
 - **Toasts** ("Đã lưu." and the problems that *Errors* above sends to a toast) sit in a region named "Thông báo".
+
+### Layout
+
+- **Design**: <https://claude.ai/artifact/LMwdwkWoxsS3hFQwxE4cXA>, drawn 2026-11-01 with the design system of
+  2026-11-01; approved by the merge of the pull request that wrote this subsection (DEC-119). The shadcn block
+  `sidebar-07` (a menu that collapses to icons, DEC-118 (5)); the page area is left empty, since every other screen
+  draws its own.
+- **Artboards**: desktop (1440 px) with the menu expanded, which collapses to icons when the canvas plays it;
+  desktop with the menu collapsed and the user menu open; narrow (390 px) with the menu closed and open; states:
+  loading, error of `GET /me`, no permission, not found. Empty: a user whose permissions allow no entry sees the
+  menu without its group "Menu", only the store name and the user.
+- **shadcn**: `shadcn add sidebar-07` brings `sidebar`, `collapsible`, `tooltip`, `avatar`, `breadcrumb` and
+  `hooks/use-mobile.ts`; it must not overwrite the edited `sheet`, `dropdown-menu`, `button`, `separator`,
+  `skeleton` and `input` (DEC-116 (4)). Its files move here (DEC-116 (3)): `app-sidebar` → admin-sidebar-section,
+  `team-switcher` → admin-brand, `nav-main` → admin-nav, `nav-user` → user-menu; `nav-projects`, the sample page
+  and its data are dropped.
+- **Texts** (`messages/vi.json`), new ones marked *new*: the menu button `admin.menu.collapse` "Thu gọn menu"
+  (*new*) and `admin.menu.expand` "Mở rộng menu" (*new*) on a wide screen, by the menu's state, and
+  `admin.menu.open` "Mở menu" on a narrow one, passed as props; the close button of the narrow menu
+  `admin.menu.close` "Đóng menu". The English texts of `sidebar.tsx` and `breadcrumb.tsx` go through `ui`
+  (DEC-116 (2)): `ui.sidebar.toggle` "Thu gọn hoặc mở rộng menu" (*new*; the rail's label and title, and the
+  trigger's default), `ui.sidebar.title` "Menu" (*new*; the narrow sheet's title, its description dropped),
+  `ui.breadcrumb.label` "Vị trí trang" (*new*; the breadcrumb's name), `ui.breadcrumb.more` "Xem thêm" (*new*;
+  the ellipsis).
+- **Component tree** (DEC-118 (3)), under `web/src/features/shell/admin/components/`; the route
+  `app/(admin)/admin/(shell)/layout.tsx` (a server component) reads the cookie `sidebar_state` with `cookies()` for
+  the menu's `defaultOpen` (open when there is none) and composes
+  `<AdminShell defaultOpen><AdminLayout defaultOpen sidebar={…} header={…}><AdminPageSection>{children}…`:
+
+  ```text
+  admin-shell.tsx                    section: the staff session (useStaffSession, which also guards the routes)
+  │                                  and CurrentUserProvider, whose value adds `forbidden` and `clearForbidden`;
+  │                                  loading: admin-shell-skeleton, its menu collapsed when defaultOpen is false;
+  │                                  error: session-error; ready: its children; only the toast region
+  │                                  "Thông báo" stays in app/(admin)/admin/layout.tsx
+  ├── admin-layout.tsx               slots: sidebar | header | page — SidebarProvider with defaultOpen (Ctrl/⌘+B
+  │                                  toggles; it writes the cookie) and SidebarInset rendered as a div, so that
+  │                                  the header stays a banner and main#main holds only the page slot; the skip
+  │                                  link "Bỏ qua đến nội dung chính" before the header goes to main#main; page
+  │                                  padding 24px (16px narrow); narrow (below md): the sidebar becomes a Sheet
+  │                                  from the left
+  ├── admin-sidebar-section.tsx      Sidebar collapsible="icon": SidebarHeader, SidebarContent, SidebarFooter,
+  │   │                              SidebarRail — sidebar
+  │   ├── admin-brand.tsx            presentational — SidebarMenuButton size="lg": a square in sidebar-primary
+  │   │                              with lucide StoreIcon, then "ZenGear" (app.name; the store name once gap 6 is
+  │   │                              closed), a link to /admin; narrow: the close button "Đóng menu" beside it
+  │   ├── admin-nav.tsx              `nav` named "Menu" around a SidebarGroup labelled "Menu", the entries of
+  │   │                              visibleMenu (utils/admin-menu.ts): "Nhân viên" (UsersIcon); "Cài đặt"
+  │   │                              (Settings2Icon) as a Collapsible with SidebarMenuSub "Địa điểm kinh doanh",
+  │   │                              open when its entry is the current page; collapsed, an entry shows its label
+  │   │                              in a Tooltip and a click on "Cài đặt" expands the menu with the group open;
+  │   │                              the current entry isActive with aria-current="page" — collapsible, tooltip
+  │   └── user-menu.tsx              SidebarMenuButton size="lg" named by `name`: Avatar (aria-hidden) with the
+  │                                  first letters of the first and last words of `name`, then `name` and
+  │                                  `email` (`name` alone when `email` is null), ChevronsUpDownIcon; DropdownMenu
+  │                                  (side right; bottom on a narrow screen): the same header, "Tài khoản của
+  │                                  tôi" (UserIcon), "Đăng xuất" (LogOutIcon) — avatar, dropdown-menu
+  ├── admin-header-section.tsx       header h-16 (h-12 collapsed): SidebarTrigger (texts above), a vertical
+  │                                  Separator, Breadcrumb "Vị trí trang" from the route: the entry's group as
+  │                                  text, then the entry ("Cài đặt › Địa điểm kinh doanh"); a page under an entry
+  │                                  (SCR-STF-02, SCR-STF-03) adds the title that its own Layout names, the entry
+  │                                  then a link; the account page "Tài khoản của tôi"; the no-permission page
+  │                                  keeps the requested path; none on /admin and on the 404 — breadcrumb,
+  │                                  separator
+  ├── admin-page-section.tsx         the page slot: the no-permission page while a 403 permission-denied holds,
+  │                                  else the route's page, the 404 (the catch-all page) included
+  ├── admin-shell-skeleton.tsx       presentational — the sidebar (brand, two entries, user), the header, and a
+  │                                  title and a line in Skeleton
+  ├── session-error.tsx              presentational — centred max-w-sm: Alert variant="destructive" with
+  │                                  TriangleAlertIcon and the problem's text; "Thử lại" (default) and "Đăng
+  │                                  xuất" (outline); no frame, since GET /me failed — alert, button
+  └── no-permission.tsx              unchanged: "Bạn không có quyền xem trang này." and its link
+  ```
 
 ## SCR-AUT-01 Staff sign-in
 
@@ -196,7 +270,8 @@ Loaded from `GET /api/v1/admin/me` (keep its `ETag`).
 | Display name ("Tên hiển thị") | `name` | required, at most 100 characters after trimming |
 | Email | `email` | read-only, with the note "Email là tên đăng nhập. Liên hệ quản trị viên khi cần đổi." (gap 5) |
 
-- "Lưu" sends `PATCH /api/v1/admin/me` `{ name }` with `If-Match`; 200 shows "Đã lưu." and refreshes the header name.
+- "Lưu" sends `PATCH /api/v1/admin/me` `{ name }` with `If-Match`; 200 shows "Đã lưu." and refreshes the name in
+  the user menu.
 - "Đổi mật khẩu" opens the form of SCR-AUT-02 in a dialog, with the same answers; after 204 the user is signed out the
   same way.
 
@@ -346,7 +421,7 @@ A closed gap keeps its number, since other lines refer to it.
    `GET /api/v1/admin/staff`.
 5. **Changing a staff member's email.** No endpoint changes it, while UC-007 (2a) and R-USR-04 say the Admin does it in the
    staff management of STF-01, whose feature row has no such criterion; SCR-ACC-01 only points the staff member to the Admin. Needs a feature or a Decision when the Admin must do it.
-6. **Store name for every staff member.** SCR-ADM-01 shows the store name in the header, but `GET
+6. **Store name for every staff member.** SCR-ADM-01 shows the store name at the top of its menu, but `GET
    /api/v1/admin/business-locations` needs `business_location.update` and no endpoint every signed-in staff member may
-   read returns it; the header shows "ZenGear" (message `app.name`) until then. Needs a feature or a Decision (an
+   read returns it; the menu shows "ZenGear" (message `app.name`) until then. Needs a feature or a Decision (an
    anonymous `GET /api/v1/shop/business-locations` exists, but admin pages call admin endpoints, `docs/FRONTEND.md`).
