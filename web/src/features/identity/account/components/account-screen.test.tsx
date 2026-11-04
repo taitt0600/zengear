@@ -126,7 +126,7 @@ describe('"Lưu" (PATCH /me with If-Match)', () => {
   })
 
   it('keeps the version it loaded when GET /me refetches in the background', async () => {
-    const client = renderScreen()
+    const { client } = renderScreen()
     const user = await rename('Tên đang gõ')
     api.me.mockResolvedValue({ ...consultant, name: 'Đổi ở nơi khác', etag: '"v2"' })
     await client.refetchQueries({ queryKey: ['me'] })
