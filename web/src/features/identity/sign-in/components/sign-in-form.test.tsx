@@ -1,11 +1,9 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { NextIntlClientProvider } from 'next-intl'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { CurrentUser } from '@/features/identity/access'
 import { ApiError } from '@/lib/api/problems'
-import messages from '../../../../../messages/vi.json'
+import { renderWithProviders } from '@/test/render'
 import { SignInForm } from './sign-in-form'
 
 const navigation = vi.hoisted(() => ({
@@ -47,14 +45,7 @@ const GENERIC = 'Không đăng nhập được. Vui lòng thử lại.'
 
 function renderForm(search = '') {
   navigation.search = new URLSearchParams(search)
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
-  return render(
-    <NextIntlClientProvider locale="vi" messages={messages} timeZone="Asia/Ho_Chi_Minh">
-      <QueryClientProvider client={client}>
-        <SignInForm />
-      </QueryClientProvider>
-    </NextIntlClientProvider>,
-  )
+  return renderWithProviders(<SignInForm />)
 }
 
 async function signIn(email = 'nhanvien@zengear.test', password = 'mat-khau-cua-toi') {
@@ -108,6 +99,29 @@ describe('fields', () => {
     // A toggle keeps its label; its state is aria-pressed (WAI-ARIA APG, Button).
     expect(toggle).toHaveAccessibleName('Hiện mật khẩu')
     expect(toggle).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('says what the page is for and helps with the email and a lost password', () => {
+    renderForm()
+
+    expect(screen.getByRole('heading', { name: 'Đăng nhập nhân viên' })).toBeInTheDocument()
+    expect(screen.getByText('Đăng nhập để vào khu quản trị của cửa hàng.')).toBeInTheDocument()
+    const email = screen.getByLabelText('Email công ty')
+    expect(email).toHaveAccessibleDescription('Email công ty mà cửa hàng đã cấp cho bạn.')
+    expect(email).toHaveAttribute('placeholder', 'ten@example.com')
+    // The password is only required: neither a hint nor a placeholder (Help on screen).
+    expect(screen.getByLabelText('Mật khẩu')).not.toHaveAttribute('placeholder')
+    expect(screen.getByText('Quên mật khẩu? Liên hệ quản trị viên.')).toBeInTheDocument()
+  })
+
+  it('names the show/hide button in a tooltip too', async () => {
+    renderForm()
+    const toggle = screen.getByRole('button', { name: 'Hiện mật khẩu' })
+
+    // Focus opens a tooltip at once (a hover waits for the delay of the provider).
+    act(() => toggle.focus())
+
+    expect(await screen.findByRole('tooltip')).toHaveTextContent('Hiện mật khẩu')
   })
 
   it('signs in with the trimmed email and the password as typed', async () => {
@@ -290,14 +304,14 @@ describe('the reason of a sign-out', () => {
       'zengear.signOutReason',
       'Tài khoản này chưa được đăng ký trong hệ thống.',
     )
-    const { unmount } = renderForm()
+    renderForm()
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
       'Tài khoản này chưa được đăng ký trong hệ thống.',
     )
     expect(window.sessionStorage.getItem('zengear.signOutReason')).toBeNull()
 
-    unmount()
+    cleanup()
     renderForm()
     await waitFor(() => expect(screen.getByRole('button', { name: 'Đăng nhập' })).toBeEnabled())
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
