@@ -95,7 +95,7 @@ repeat those. Check what no test sees:
 10. **Tests**: integration tests for constraints, transactions, concurrency and endpoints; a negative test
     for every refusal and every permission; no `Task.Delay` or real clock in tests.
 11. **Changes outside the C# code** (workflows, scripts, compose files, the Postman collection, commands, agents,
-    skills, documents): the six checks below, applied to the change. Read the file, job or session that consumes
+    skills, documents): the checks below, applied to the change. Read the file, job or session that consumes
     what the change writes, not only the diff.
     1. **Interactions**: what reads what this change writes, and when. This covers:
        - the routines "ZenGear PR merged" and "ZenGear PR needs decision", which start on the GitHub event and
@@ -128,6 +128,14 @@ repeat those. Check what no test sees:
        - a tool that writes back into tracked files (the Postman app, generators, formatters) leaves `git status`
          clean;
        - a secret never reaches a log, a file, an annotation or a command line.
+    7. **Layout** (DEC-119 (3)), for a diff that adds or changes a `### Layout` of `docs/SCREENS.md`, by
+       **Help on screen** of its *Conventions*; a missing item is Should fix, except one that the caller names as
+       a change for the owner to make on a design the owner drew:
+       - each card, dialog, sheet and Empty of the component tree has a description, except an Empty whose title is
+         the text of an API problem;
+       - each field has the hint text and the placeholder that bullet asks for, and none where it forbids them;
+       - each icon-only button and each label cut short has a `Tooltip`;
+       - each of these texts is listed in the **Texts** bullet with its message key.
 12. **Simplicity and duplication** (`docs/CODING_GUIDE.md`, section 7):
     1. Is there a simpler way that does the same job?
     2. Does every interface, base class or option have a reason from section 2 of the guide, or a second caller
@@ -145,8 +153,9 @@ repeat those. Check what no test sees:
       `import/no-restricted-paths` is Blocking (the module boundaries of DEC-118 (2)); they are not reviewed by
       hand otherwise.
     - Layout (DEC-119 (4)): a screen with a **Layout** in `docs/SCREENS.md` has the layout file and the sections of
-      its component tree, with the components it names; a departure is Blocking, since `/implement-feature` step 4
-      allows none. A finding about the layout of a screen starts with the label `[layout]`.
+      its component tree, with the components it names, and shows every description, hint text, placeholder and
+      tooltip its Layout lists; a departure, a missing one of these included, is Blocking, since
+      `/implement-feature` step 4 allows none. A finding about the layout of a screen starts with the label `[layout]`.
     - Skip the generated client `web/src/lib/api/generated/`: it changes only through `npm run gen:api` (DEC-122 (4));
       the mutator `web/src/lib/api/api.ts` and the rest of `web/src/lib/api/` are reviewed as code.
       Review `web/src/components/ui/` like other web code (DEC-116 (8)), and check there:
