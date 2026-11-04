@@ -57,10 +57,16 @@ only the shape of the input (required, length, format) with the limits below, wh
     is the text of an API problem;
   - a **hint text** (`FieldDescription`, tied to its input with `aria-describedby`) under every field with a
     length, a format or a use to explain; a field that is only required, or must match another field, needs none;
-    a placeholder only as an example of the format, never instead of the label.
+  - a **placeholder** in every field with a format (an email, a phone number, a code with a fixed pattern, an
+    amount, a time `HH:mm`): an example value as it would be typed, without `…` (unlike the Web Interface
+    Guidelines, since an ellipsis would read as part of the value), in `muted-foreground`, with a reserved example
+    domain (`example.com`, RFC 2606) and never a real person or company; never instead of the label nor repeating
+    it, and the hint never repeats its example; none in a password field, a field without a format, a read-only
+    field, a select or a date picker.
 
-  A Layout lists these texts with the screen's other new texts. Chosen by the owner on the Layout of SCR-ADM-01; a
-  screen built before (SCR-AUT-01, SCR-AUT-02, SCR-ACC-01) follows it with its next Layout.
+  A Layout lists these texts with the screen's other new texts. Chosen by the owner on the Layout of SCR-ADM-01,
+  the placeholder on the Layout of SCR-AUT-01; a screen built before (SCR-AUT-01, SCR-AUT-02, SCR-ACC-01) follows
+  it with its next Layout.
 - **Dates** `yyyy-MM-dd` from the API are shown `dd/MM/yyyy`; timestamps are shown in Asia/Ho_Chi_Minh.
 - **Accessibility**: WCAG 2.2 AA; every form works with the keyboard alone, every field has a visible label, errors
   are announced to screen readers.
@@ -288,8 +294,9 @@ hàng."
   first.
 - **Texts** (`messages/vi.json`), new ones marked *new*, by **Help on screen**: the card's description
   `signIn.description` "Đăng nhập để vào khu quản trị của cửa hàng." (*new*); the hint of the email
-  `signIn.emailHint` "Email công ty mà cửa hàng đã cấp cho bạn." (*new*; the password, only required, has
-  none); under the button `signIn.forgotPassword` "Quên mật khẩu? Liên hệ quản trị viên." (*new*; text only, since
+  `signIn.emailHint` "Email công ty mà cửa hàng đã cấp cho bạn." (*new*) and its placeholder
+  `signIn.emailPlaceholder` "ten@example.com" (*new*; the password, only required, has neither); under the button
+  `signIn.forgotPassword` "Quên mật khẩu? Liên hệ quản trị viên." (*new*; text only, since
   Phase 1 has no reset flow); the show/hide button's tooltip is its `aria-label` `signIn.showPassword` "Hiện mật
   khẩu". The delays of **Help on screen** come from one `TooltipProvider` per page, so that the next tooltip opens
   at once: one in `app/(admin)/admin/layout.tsx` (sign-in, password change and the shell) with `delayDuration` 700
@@ -313,8 +320,9 @@ hàng."
   │                                  CardDescription; CardContent: FieldGroup with, first, an Alert role="status"
   │                                  (CircleCheckIcon) for the notice after a password change or an Alert
   │                                  variant="destructive" (CircleAlertIcon) for a sign-in error; the email Field
-  │                                  with its FieldDescription hint tied by aria-describedby, then FieldError; the
-  │                                  password Field with an InputGroup whose InputGroupButton icon-xs (EyeIcon /
+  │                                  with its placeholder, its FieldDescription hint tied by aria-describedby,
+  │                                  then FieldError; the password Field with an InputGroup whose InputGroupButton
+  │                                  icon-xs (EyeIcon /
   │                                  EyeOffIcon, aria-pressed) sits in a Tooltip; the submit Button, full width,
   │                                  disabled with LoaderCircleIcon while busy; a FieldDescription centred with
   │                                  "Quên mật khẩu? …" — card, field, input, input-group, button, alert, tooltip
