@@ -83,13 +83,21 @@ only the shape of the input (required, length, format) with the limits below, wh
   - **Design**: <link>, drawn <yyyy-mm-dd> with the design system of <yyyy-mm-dd>; approved by the merge of the
     pull request that wrote this subsection (DEC-119).
   - **Artboards**: desktop (1440 px), narrow (390 px); states: loading, empty, error, no permission.
+  - **shadcn**: the `shadcn add` of the components and blocks the design needs (the tree names them too,
+    `/design-screen` step 2), with where a block's files move (DEC-116 (3)), or "no `add`".
+  - **Texts** (`messages/vi.json`), new ones marked *new*: each text of **Help on screen** with its key and where
+    it goes (the description of each card, dialog, sheet and Empty, but an Empty whose title is an API problem; the
+    hint and placeholder of each field that has them; the tooltip of each icon-only button, its `aria-label`, and
+    of each label cut short), with the screen's other new texts.
   - **Component tree** (DEC-118 (3)), under `web/src/features/<area>/<module>/components/`:
 
     ```text
     <screen>-layout.tsx                slots: <a> | <b> | <c>; narrow: <what changes>
-    ├── <screen>-<block>-section.tsx   <what it shows> — <shadcn component or block>; loading: <…>; empty: <…>
-    └── <screen>-<block>-section.tsx   …
-        └── <piece>.tsx                presentational — <shadcn component>
+    ├── <screen>-<block>-section.tsx   <what it shows> — <shadcn component or block>; CardDescription <key>;
+    │                                  loading: <…>; empty: Empty with EmptyTitle <key> and EmptyDescription <key>
+    └── <screen>-<block>-section.tsx   … the field <label> with its FieldDescription <key> and placeholder <key>
+        └── <piece>.tsx                presentational — <shadcn component>; its icon-only button in a Tooltip,
+                                       its text <key> passed as a prop
     ```
   ````
 
