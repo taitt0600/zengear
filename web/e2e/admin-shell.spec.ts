@@ -16,6 +16,10 @@ test('the Admin signs in and sees every menu entry', async ({ page }) => {
 
   await expect(page).toHaveURL('/admin/staff')
   await expect(menu(page).getByRole('link', { name: 'Nhân viên' })).toBeVisible()
+  // The group is closed while none of its entries is the current page (the Layout of SCR-ADM-01).
+  const settings = menu(page).getByRole('button', { name: 'Cài đặt' })
+  await expect(settings).toHaveAttribute('aria-expanded', 'false')
+  await settings.click()
   await expect(menu(page).getByRole('link', { name: 'Địa điểm kinh doanh' })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Chủ cửa hàng' })).toBeVisible()
   await page.screenshot({ path: test.info().outputPath('admin-layout.png'), fullPage: true })
@@ -78,7 +82,9 @@ test('a new staff member changes the password first, then sees no entry without 
 
   await signIn(page, staff.email, changed)
   await expect(page).toHaveURL('/admin/account')
-  await expect(menu(page).getByRole('link')).toHaveCount(0)
+  // No entry: once the frame shows, the menu has no group "Menu", only the store name and the user.
+  await expect(page.getByRole('button', { name: /^E2E \d+$/ })).toBeVisible()
+  await expect(menu(page)).toHaveCount(0)
 
   await page.goto('/admin/staff')
   await expect(

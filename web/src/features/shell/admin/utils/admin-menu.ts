@@ -29,6 +29,26 @@ export function visibleMenu(permissions: readonly string[]): MenuItem[] {
   })
 }
 
+/** A step of the breadcrumb, as a key of the messages `admin`. */
+export type CrumbKey = `menu.${MenuEntry['key'] | MenuGroup['key']}` | 'user.account'
+
+/**
+ * Where the page sits, for the breadcrumb of the header: the entry's group as text, then the entry; the account page
+ * alone. By the exact path, so that /admin and an unknown path (the 404) have none.
+ */
+export function breadcrumbOf(pathname: string): CrumbKey[] {
+  if (pathname === adminRoutes.account) return ['user.account']
+  for (const item of adminMenu) {
+    if (!('entries' in item)) {
+      if (item.href === pathname) return [`menu.${item.key}`]
+      continue
+    }
+    const entry = item.entries.find((candidate) => candidate.href === pathname)
+    if (entry) return [`menu.${item.key}`, `menu.${entry.key}`]
+  }
+  return []
+}
+
 /**
  * The first menu entry the user can open, other than the page `except` they are on, for the link of the
  * no-permission page; undefined when there is none.

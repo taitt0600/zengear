@@ -3,10 +3,11 @@ export { meQuery, type CurrentUser, type LoadedCurrentUser } from './api/me'
 export {
   CurrentUserProvider,
   useCurrentUser,
-  useStaffSession,
+  useForbiddenPage,
   useStaffSignOut,
-  type StaffSession,
-} from './hooks/use-staff-session'
+  type CurrentUserContextValue,
+} from './hooks/current-user'
+export { useStaffSession, type StaffSession } from './hooks/use-staff-session'
 export {
   firebaseError,
   landingPath,

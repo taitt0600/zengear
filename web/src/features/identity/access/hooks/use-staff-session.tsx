@@ -2,7 +2,7 @@
 
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { usePathname, useRouter } from 'next/navigation'
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useProblemText } from '@/hooks/use-problem-toast'
 import { onApiError } from '@/lib/api/api-errors'
 import { ApiError, hasProblemType } from '@/lib/api/problems'
@@ -148,6 +148,8 @@ export function useStaffSession(mode: 'shell' | 'change-password'): StaffSession
     (reason) => leaveOrFail(reason ? signInPath({ reason }) : adminRoutes.signIn, true),
     [leaveOrFail],
   )
+  // Stable, so that the layout's context value changes only with the user, the sign-out or the 403.
+  const clearForbidden = useCallback(() => setForbiddenPath(null), [])
 
   if (failed || outcome?.kind === 'error') {
     const retry = () => {
@@ -163,29 +165,9 @@ export function useStaffSession(mode: 'shell' | 'change-password'): StaffSession
       status: 'ready',
       me: me.data,
       forbidden: forbiddenPath === pathname,
-      clearForbidden: () => setForbiddenPath(null),
+      clearForbidden,
       signOut,
     }
   }
   return { status: 'loading' }
-}
-
-const CurrentUserContext = createContext<{ me: CurrentUser; signOut: SignOut } | null>(null)
-
-export const CurrentUserProvider = CurrentUserContext.Provider
-
-function useStaffContext() {
-  const context = useContext(CurrentUserContext)
-  if (!context) throw new Error('The staff session is used outside the admin layout')
-  return context
-}
-
-/** The signed-in staff member, inside the admin layout. */
-export function useCurrentUser(): CurrentUser {
-  return useStaffContext().me
-}
-
-/** The sign-out of the admin layout, for a page inside it. */
-export function useStaffSignOut(): SignOut {
-  return useStaffContext().signOut
 }

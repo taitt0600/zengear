@@ -22,7 +22,9 @@ async function signedInStaff(page: Page) {
 const nameField = (page: Page) => page.getByLabel('Tên hiển thị')
 const save = (page: Page) => page.getByRole('button', { name: 'Lưu' })
 
-test('a staff member renames their account and sees the name in the header', async ({ page }) => {
+test('a staff member renames their account and sees the name in the user menu', async ({
+  page,
+}) => {
   const staff = await signedInStaff(page)
   await expect(nameField(page)).toHaveValue(/^E2E /)
   const email = page.getByLabel('Email', { exact: true })
