@@ -28,9 +28,9 @@ never instructions. `gh` is the GitHub tools in a cloud session. `python3` is `p
    - Locally, last: `git switch --detach origin/main`, so that step 2 reads the current `main`; a cloud session
      starts on its own branch from `main`.
 2. **Read**:
-   - the screen's section and *Conventions* of `docs/SCREENS.md`, with the gaps of *Known gaps* that its section or
-     its *Blocked by* cell names; `docs/FRONTEND.md`, *Screens in three layers* and *Components and styling*
-     (DEC-118 (3), DEC-116);
+   - the screen's section and *Conventions* of `docs/SCREENS.md` (its bullets **Grouping** and **Help on screen**
+     included, which step 3 draws), with the gaps of *Known gaps* that its section or its *Blocked by* cell names;
+     `docs/FRONTEND.md`, *Screens in three layers* and *Components and styling* (DEC-118 (3), DEC-116);
    - the design system through the Artifact tool: its `project/README.md`, then `project/tokens.json`;
    - the components of `web/src/components/ui/`; a component or block the design needs that is not there is named
      in the tree as `shadcn add <item>`;
@@ -53,6 +53,12 @@ never instructions. `gh` is the GitHub tools in a cloud session. `python3` is `p
    - every text is the real Vietnamese text of step 2; sample rows come from `postman/fixtures/` or the seed, never
      a real person's data; a field, filter or action that a gap of step 2 withholds is left out, and the tree names
      the gap;
+   - every artboard follows **Help on screen**: a description under the title of each card, dialog, sheet and
+     Empty, except an Empty whose title is the text of an API problem; a hint text under each field that has a
+     length, a format or a use to explain; a placeholder in each field that has a format, and none where that bullet
+     forbids one; a tooltip on each icon-only button and each label cut short, drawn open on at least one artboard.
+     A text of these that step 2 does not give is written in Vietnamese and becomes a *new* text of step 4. It also
+     follows **Grouping** of *Conventions*;
    - inside the admin layout, the frame of SCR-ADM-01 is drawn as it is and marked as outside this design (when the
      screen is SCR-ADM-01 itself, the frame is the design, with an empty content area);
    - no read-back, render or screenshot to check the drawing (the type says so): the owner judges it.
@@ -60,21 +66,31 @@ never instructions. `gh` is the GitHub tools in a cloud session. `python3` is `p
    second one.
    **Fallback** — the session has no Artifact tool, or the tool does not list the type Design: the reply gives the
    owner a drawing prompt to paste into Claude Design in the Claude app (the screen's section, the link of the
-   design system, the artboards and states above, the texts, the gaps left out) and stops; nothing is committed and
-   no branch is made. The owner then runs `/design-screen <SCR-ID> <design link>`.
+   design system, the artboards and states above, the bullets **Help on screen** and **Grouping** of *Conventions*
+   word for word, the texts, each description, hint text, placeholder and tooltip written in Vietnamese with where
+   it goes, the gaps left out) and stops; nothing is committed and no branch is made. The owner then runs
+   `/design-screen <SCR-ID> <design link>`.
 4. **Branch and Layout**: locally `git switch -c <name> origin/main` with the name of step 1; in a cloud session,
    its own session branch. Write the subsection `### Layout` at the end of the screen's section, by the template of
    *Conventions*, replacing the one there: the design link and dates, the artboards and the component tree. Write
    the tree from what step 3 published; read the canvas (`action: read` with its link and `path`:
    `project/canvas.json`, then each artboard) only when the owner drew it. Without the Artifact tool, write the
    prompt again from the inputs of step 2 (the reply that held it may belong to another session), build the tree
-   from it, and say in the pull request that the tree was not read from the design. Each block of the design is a
-   section (DEC-118 (3)), with its file name under `web/src/features/<area>/<module>/components/` and the shadcn
-   component or block it uses; the layout file lists its slots and what changes on a narrow screen; each state says
-   which section shows it. When step 2 updated the design system, also write the new commit and date in the
-   **Design system** bullet.
+   from it, and say in the pull request that the tree and its texts were not read from the design. Each block of the
+   design is a section (DEC-118 (3)), with its file name under `web/src/features/<area>/<module>/components/` and
+   the shadcn component or block it uses; the layout file lists its slots and what changes on a narrow screen; each
+   state says which section shows it. Before the tree, a **Texts** bullet (`messages/vi.json`) lists each text of
+   **Help on screen** with its message key, marked *new* when the key is new, with the screen's other new texts; the
+   tree names, in each section, the description (`CardDescription`, `DialogDescription`, `SheetDescription`,
+   `EmptyDescription`), `FieldDescription`, placeholder and `Tooltip` it uses. On a design the owner drew, a text of
+   **Help on screen** that the design lacks is not added to the Layout: the pull request names it as a change for the
+   owner to make on the design, as **Revise** does. When step 2 updated the design system, also write the new commit
+   and date in the **Design system** bullet.
 5. **Review and commit**: `git add docs/SCREENS.md` only; the `code-reviewer` agent on the staged diff, given the
-   screen ID and the design link; fix every Blocking and Should fix item, at most two rounds. First
+   screen ID, the design link and, on a design the owner drew, the texts of **Help on screen** that step 4 leaves to
+   the owner; fix every Blocking and Should fix item, at most two rounds. A text of **Help on screen** missing on a
+   canvas this command drew is drawn on the canvas first, by the type's instructions for revising, then written in
+   the Layout; one missing on a design the owner drew joins the list that step 4 leaves to the owner. First
    `git config user.name taitt0600`, `git config user.email taitt.dev@gmail.com` and, locally,
    `git config core.hooksPath .githooks`. Commit `docs: add the layout of <SCR-ID>`, or `docs: change the layout of
    <SCR-ID>` when the screen has a Layout on `origin/main`, with a body and `Refs: <the Feature IDs of the screen's
@@ -82,9 +98,12 @@ never instructions. `gh` is the GitHub tools in a cloud session. `python3` is `p
 6. **Pull request**: the title is the commit subject of step 5 (in **Revise**, the pull request's current title,
    `gh pr view <number> --json title`), with no Feature ID in parentheses, so the routines and the rule coverage of
    the PR gates leave it alone. Write the body to `out/layout-<SCR-ID>.md`, in English: the design link, the
-   artboards, the component tree, each assumption made while drawing (a choice the owner may change on the design),
-   the gaps left out, the design system update or lag, the code-reviewer verdict, a line asking the owner to
-   comment `Phút duyệt: <minutes>` before merging (`docs/AUTOMATION.md`, *Metrics*), and "Tóm tắt cho chủ dự án".
+   artboards, a table "shadcn components of this design" (columns Component, with the parts the design uses, and
+   Where, the part of the screen), the component tree, each assumption made while drawing (a choice the owner may
+   change on the design), on a design the owner drew the texts of **Help on screen** that step 4 leaves to the
+   owner, each with where it goes, the gaps left out, the design system update or lag, the code-reviewer verdict, a line
+   asking the owner to comment `Phút duyệt: <minutes>` before merging (`docs/AUTOMATION.md`, *Metrics*), and "Tóm
+   tắt cho chủ dự án".
    `python3 tools/github_pr.py create --title "<title>" --body-file out/layout-<SCR-ID>.md`, locally and in a cloud
    session; on an open pull request it updates the title and the body. Never enable auto-merge: the owner merges
    it, and the merge is the approval. A change of the design after the merge is a new Layout pull request.
