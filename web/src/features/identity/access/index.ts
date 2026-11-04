@@ -5,7 +5,6 @@ export {
   useCurrentUser,
   useForbiddenPage,
   useStaffSignOut,
-  type CurrentUserContextValue,
 } from './hooks/current-user'
 export { useStaffSession, type StaffSession } from './hooks/use-staff-session'
 export {
