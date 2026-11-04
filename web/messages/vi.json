@@ -5,10 +5,14 @@
   },
   "signIn": {
     "title": "Đăng nhập nhân viên",
+    "description": "Đăng nhập để vào khu quản trị của cửa hàng.",
     "email": "Email công ty",
+    "emailHint": "Email công ty mà cửa hàng đã cấp cho bạn.",
+    "emailPlaceholder": "ten@example.com",
     "password": "Mật khẩu",
     "showPassword": "Hiện mật khẩu",
     "submit": "Đăng nhập",
+    "forgotPassword": "Quên mật khẩu? Liên hệ quản trị viên.",
     "validation": {
       "emailRequired": "Vui lòng nhập email công ty.",
       "emailInvalid": "Email không hợp lệ.",
