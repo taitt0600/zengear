@@ -161,7 +161,7 @@ describe('the answers of POST /me/change-password', () => {
 
   it('keeps no password in the mutation cache after an answer', async () => {
     api.changeMyPassword.mockRejectedValue(problem(409, 'staff-account-required', STAFF_ONLY))
-    const client = renderForm()
+    const { client } = renderForm()
     await submit()
 
     await waitFor(() => expect(toast.error).toHaveBeenCalled())

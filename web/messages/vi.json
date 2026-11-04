@@ -83,6 +83,15 @@
     "unknown": "Đã có lỗi xảy ra. Vui lòng thử lại."
   },
   "ui": {
-    "close": "Đóng"
+    "close": "Đóng",
+    "sidebar": {
+      "toggle": "Thu gọn hoặc mở rộng menu",
+      "title": "Menu",
+      "description": "Các trang quản trị bạn được phép mở."
+    },
+    "breadcrumb": {
+      "label": "Vị trí trang",
+      "more": "Xem thêm"
+    }
   }
 }
