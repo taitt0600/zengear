@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { firstEntry, visibleMenu } from './admin-menu'
+import { breadcrumbOf, firstEntry, visibleMenu } from './admin-menu'
 
 describe('visibleMenu', () => {
   it('shows every entry to a user with every permission', () => {
@@ -26,6 +26,20 @@ describe('visibleMenu', () => {
 
   it('is empty without any menu permission', () => {
     expect(visibleMenu([])).toEqual([])
+  })
+})
+
+describe('breadcrumbOf', () => {
+  it.each([
+    ['/admin/staff', ['menu.staff']],
+    ['/admin/settings/business-location', ['menu.settings', 'menu.businessLocation']],
+    ['/admin/account', ['user.account']],
+    ['/admin', []],
+    // An unknown path, the 404: no breadcrumb, also under an entry.
+    ['/admin/staff/khong-ton-tai', []],
+    ['/admin/khong-ton-tai', []],
+  ])('%s', (pathname, crumbs) => {
+    expect(breadcrumbOf(pathname)).toEqual(crumbs)
   })
 })
 

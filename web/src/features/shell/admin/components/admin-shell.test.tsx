@@ -1,14 +1,16 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { act, render, screen, waitFor, within } from '@testing-library/react'
+import { act, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { NextIntlClientProvider } from 'next-intl'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { CurrentUser } from '@/features/identity/access'
 import { reportApiError } from '@/lib/api/api-errors'
 import { ApiError } from '@/lib/api/problems'
 import type { AuthState } from '@/lib/auth/session'
-import messages from '../../../../../messages/vi.json'
+import { renderWithProviders } from '@/test/render'
+import { AdminHeaderSection } from './admin-header-section'
+import { AdminLayout } from './admin-layout'
+import { AdminPageSection } from './admin-page-section'
 import { AdminShell } from './admin-shell'
+import { AdminSidebarSection } from './admin-sidebar-section'
 import { RequirePermission } from './no-permission'
 
 const navigation = vi.hoisted(() => ({ replace: vi.fn(), pathname: '/admin/staff' }))
@@ -48,19 +50,17 @@ const DISABLED = 'Tài khoản đã bị khóa. Vui lòng liên hệ quản lý 
 const NOT_REGISTERED = 'Tài khoản này chưa được đăng ký trong hệ thống.'
 const keptReason = () => window.sessionStorage.getItem('zengear.signOutReason')
 
-function renderWithProviders(ui: React.ReactNode) {
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
-  const wrap = (node: React.ReactNode) => (
-    <NextIntlClientProvider locale="vi" messages={messages} timeZone="Asia/Ho_Chi_Minh">
-      <QueryClientProvider client={client}>{node}</QueryClientProvider>
-    </NextIntlClientProvider>
-  )
-  const result = render(wrap(ui))
-  return { client, rerender: (node: React.ReactNode) => result.rerender(wrap(node)) }
-}
+// The frame as app/(admin)/admin/(shell)/layout.tsx composes it.
+const shell = (page: React.ReactNode) => (
+  <AdminShell defaultOpen>
+    <AdminLayout defaultOpen sidebar={<AdminSidebarSection />} header={<AdminHeaderSection />}>
+      <AdminPageSection>{page}</AdminPageSection>
+    </AdminLayout>
+  </AdminShell>
+)
 
 const renderShell = (page: React.ReactNode = <p>Nội dung trang</p>) =>
-  renderWithProviders(<AdminShell>{page}</AdminShell>)
+  renderWithProviders(shell(page))
 
 beforeEach(() => {
   vi.resetAllMocks()
@@ -214,7 +214,10 @@ describe('the layout', () => {
       'aria-current',
       'page',
     )
-    expect(within(menu).getByText('Cài đặt')).toBeInTheDocument()
+    // The group is closed while none of its entries is the current page (the Layout of SCR-ADM-01).
+    const settings = within(menu).getByRole('button', { name: 'Cài đặt' })
+    expect(settings).toHaveAttribute('aria-expanded', 'false')
+    await userEvent.setup().click(settings)
     expect(within(menu).getByRole('link', { name: 'Địa điểm kinh doanh' })).toHaveAttribute(
       'href',
       '/admin/settings/business-location',
@@ -265,11 +268,7 @@ describe('the answers of other calls', () => {
   it('shows the no-permission page for 403 permission-denied until the path changes', async () => {
     const { rerender } = renderShell()
     await screen.findByText('Nội dung trang')
-    const page = (
-      <AdminShell>
-        <p>Nội dung trang</p>
-      </AdminShell>
-    )
+    const page = shell(<p>Nội dung trang</p>)
 
     act(() => reportApiError(problem(403, 'permission-denied')))
 

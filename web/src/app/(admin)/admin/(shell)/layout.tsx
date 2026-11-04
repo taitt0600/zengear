@@ -1,6 +1,25 @@
-import { AdminShell } from '@/features/shell/admin'
+import { cookies } from 'next/headers'
+import {
+  AdminHeaderSection,
+  AdminLayout,
+  AdminPageSection,
+  AdminShell,
+  AdminSidebarSection,
+} from '@/features/shell/admin'
 
 /** SCR-ADM-01: every admin screen but the sign-in and the password change sits in this layout. */
-export default function ShellLayout({ children }: LayoutProps<'/admin'>) {
-  return <AdminShell>{children}</AdminShell>
+export default async function ShellLayout({ children }: LayoutProps<'/admin'>) {
+  // The menu's state, which SidebarProvider keeps in this cookie: open when there is none.
+  const defaultOpen = (await cookies()).get('sidebar_state')?.value !== 'false'
+  return (
+    <AdminShell defaultOpen={defaultOpen}>
+      <AdminLayout
+        defaultOpen={defaultOpen}
+        sidebar={<AdminSidebarSection />}
+        header={<AdminHeaderSection />}
+      >
+        <AdminPageSection>{children}</AdminPageSection>
+      </AdminLayout>
+    </AdminShell>
+  )
 }

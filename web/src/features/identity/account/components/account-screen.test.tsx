@@ -47,7 +47,9 @@ const validation = (...errors: { pointer?: string; code: string; detail: string 
 // The screen as its page composes it.
 const renderScreen = () =>
   renderWithProviders(
-    <CurrentUserProvider value={{ me: consultant, signOut }}>
+    <CurrentUserProvider
+      value={{ me: consultant, signOut, forbidden: false, clearForbidden: () => {} }}
+    >
       <AccountLayout
         title="Tài khoản của tôi"
         profile={<AccountProfileSection />}

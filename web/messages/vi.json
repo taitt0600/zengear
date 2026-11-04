@@ -30,6 +30,8 @@
       "title": "Menu",
       "open": "Mở menu",
       "close": "Đóng menu",
+      "collapse": "Thu gọn menu",
+      "expand": "Mở rộng menu",
       "staff": "Nhân viên",
       "settings": "Cài đặt",
       "businessLocation": "Địa điểm kinh doanh"
@@ -39,10 +41,13 @@
       "signOut": "Đăng xuất"
     },
     "noPermission": "Bạn không có quyền xem trang này.",
+    "noPermissionHint": "Vai trò của bạn chưa được cấp quyền xem trang này.",
     "placeholder": "Màn hình này đang được xây dựng.",
     "notifications": "Thông báo",
     "notFound": "Không tìm thấy trang này.",
-    "home": "Về trang chính"
+    "notFoundHint": "Đường dẫn có thể đã sai hoặc trang không còn nữa. Vui lòng chọn một mục trong menu hoặc về trang chính.",
+    "home": "Về trang chính",
+    "needHelp": "Cần trợ giúp? Liên hệ quản trị viên."
   },
   "changePassword": {
     "title": "Đổi mật khẩu",
