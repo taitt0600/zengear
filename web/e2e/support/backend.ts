@@ -98,6 +98,25 @@ export async function renameMe(email: string, password: string, name: string) {
   }
 }
 
+/**
+ * The page of SCR-STF-01, at its 20 rows a page, that shows the account `email` with the filters and sort of
+ * `query` (`status=DISABLED&sort=-employeeCode`), read from the API as the Admin. The development database keeps the
+ * accounts of every earlier run (the Postman collection's included), so a flow cannot count on page 1.
+ */
+export async function staffListPage(email: string, query: string): Promise<number> {
+  const headers = { Authorization: `Bearer ${await idToken(accounts.admin, PASSWORD)}` }
+  for (let page = 1; ; page++) {
+    const url = `${API}/api/v1/admin/staff?${query}&pageSize=100&page=${page}`
+    const response = await fetch(url, { headers })
+    if (!response.ok)
+      throw new Error(`GET /api/v1/admin/staff: ${response.status} ${await response.text()}`)
+    const { items } = (await response.json()) as { items: { email: string | null }[] }
+    const index = items.findIndex((item) => item.email === email)
+    if (index >= 0) return Math.floor(((page - 1) * 100 + index) / 20) + 1
+    if (items.length < 100) throw new Error(`${email} is not in the staff list of ${query}`)
+  }
+}
+
 /** Disables a staff account as the Admin (STF-02), with today as the last working day. */
 export async function disableStaff(id: string) {
   const admin = await idToken(accounts.admin, PASSWORD)

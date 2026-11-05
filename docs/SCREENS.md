@@ -124,7 +124,7 @@ the storefront have no screen yet: their features (catalog, stock, orders) have 
 The web shell is built (SCR-ADM-01 and SCR-AUT-01): a screen whose *Blocked by* cell is empty and whose **Layout**
 is approved can be built with its feature; without a Layout, the ready check of `/implement-feature` holds it as a
 cell would (DEC-119 (1)). Until then its route opens a short placeholder page, "Màn hình này đang được xây dựng."
-inside the layout (SCR-STF-01, SCR-LOC-01), so no menu link leads to a 404; the feature replaces it. The screens
+inside the layout (SCR-LOC-01), so no menu link leads to a 404; the feature replaces it. The screens
 built before DEC-119 — SCR-ADM-01, SCR-AUT-01, SCR-AUT-02 and SCR-ACC-01 — need a Layout only when their layout
 changes. A `refactor(web)` pull request that changes the layout of a screen (the pull request (B) of DEC-118) needs
 that screen's approved Layout first and builds it; a new Layout of a screen `web/` already has (not a placeholder
