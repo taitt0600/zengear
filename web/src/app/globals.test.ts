@@ -3,7 +3,9 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
 // WCAG 2.2 AA (docs/FRONTEND.md) on the theme of :root, the only one the app sets: SC 1.4.11 asks 3:1 for the
-// border of a field and of its focus, SC 1.4.3 asks 4.5:1 for text. The margin absorbs the rounding of a render.
+// border of a field and of its focus, SC 1.4.3 asks 4.5:1 for text, which also holds for the white text of the
+// badges `success` and `destructive` on --success and --destructive (measured against --background, the same
+// white). The margin absorbs the rounding of a render.
 const MARGIN = 0.05
 
 const css = readFileSync(new URL('./globals.css', import.meta.url), 'utf8')
@@ -63,6 +65,13 @@ describe('theme tokens of :root', () => {
     '--muted-foreground reaches 4.5:1 on --%s (SC 1.4.3)',
     (surface) => {
       expect(contrast('muted-foreground', surface)).toBeGreaterThanOrEqual(4.5 + MARGIN)
+    },
+  )
+
+  it.each([['success'], ['destructive']])(
+    '--%s carries white text, the white of --background, at 4.5:1 (SC 1.4.3)',
+    (fill) => {
+      expect(contrast(fill, 'background')).toBeGreaterThanOrEqual(4.5 + MARGIN)
     },
   )
 
