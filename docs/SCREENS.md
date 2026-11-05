@@ -71,7 +71,7 @@ only the shape of the input (required, length, format) with the limits below, wh
 - **Accessibility**: WCAG 2.2 AA; every form works with the keyboard alone, every field has a visible label, errors
   are announced to screen readers.
 - **Design system** (DEC-119 (2)): <https://claude.ai/artifact/DAYPEgxSLaHrHYG99Tmntb>, built 2026-10-31 from
-  `web/src/app/globals.css` and `web/src/components/ui/` and updated 2026-11-01 to commit d990f0a; `/design-screen`
+  `web/src/app/globals.css` and `web/src/components/ui/` and updated 2026-11-05 to commit 7e930f5; `/design-screen`
   brings the system up to date when those files changed since, and then the update's date and commit.
 - **Layout** (DEC-119 (3)): the approved design of a screen, a subsection at the end of its section that
   `/design-screen <SCR-ID>` writes and the merge of its Layout pull request approves; a later change of the design is
@@ -430,6 +430,78 @@ reload or a shared link shows the same list.
   phù hợp với bộ lọc." with a button to clear the filters.
 
 A 400 means the URL was edited by hand: the list falls back to the default filters.
+
+### Layout
+
+- **Design**: <https://claude.ai/artifact/J3zZ3ffqs7PTWEcu83nFfk>, drawn 2026-11-05 with the design system of
+  2026-11-05; approved by the merge of the pull request that wrote this subsection (DEC-119). The canvas shows the
+  frame of SCR-ADM-01 for context only; this Layout does not approve it.
+- **Artboards**: desktop (1440 px), where "Họ tên" sorts in Play; narrow (390 px), on the first of three pages,
+  with the search hint and the tooltip of "Trang sau" open; states: loading, empty (no account), empty (nothing
+  matches the filters), error. No permission is the page of SCR-ADM-01 (`RequirePermission` with `staff.read`).
+- **shadcn**: `shadcn add table badge select pagination` (the tree names them too); it must not overwrite the
+  edited `button` that `pagination` depends on (DEC-116 (4)); `pagination` writes English texts, which go through
+  `ui`.
+- **Texts** (`messages/vi.json`), new ones marked *new*, under `staff.list` unless named: the card's description
+  `description` "Tài khoản nhân viên của cửa hàng, cùng vai trò và trạng thái. Mở một tài khoản để xem, khóa hoặc khôi
+  phục." (*new*); `add` "Thêm nhân viên" (*new*); the columns `columns.name` "Họ tên", `columns.employeeCode` "Mã nhân
+  viên", `columns.email` "Email", `columns.roles` "Vai trò", `columns.status` "Trạng thái", `columns.joinedDate` "Ngày
+  vào làm", `columns.leftDate` "Ngày nghỉ việc" (*new*); `status.all` "Tất cả", `status.active` "Đang hoạt động",
+  `status.disabled` "Đã khóa" (*new*; the status Field is labelled by `columns.status`); the search box's label
+  `search` "Lọc theo tên, mã hoặc email" (*new*; no placeholder, since it has no format) and its hint `searchHint`
+  "Chỉ lọc trong trang đang xem." (*new*, shown with more than one page); `empty.title` "Chưa có tài khoản nhân viên."
+  and `empty.description` "Tài khoản do quản trị viên hoặc quản lý cửa hàng tạo sẽ hiện ở đây." (*new*);
+  `noMatch.title` "Không có nhân viên phù hợp với bộ lọc.", `noMatch.description` "Thử bỏ bớt điều kiện lọc để xem
+  thêm tài khoản." and `clearFilters` "Xóa bộ lọc" (*new*); `total` "{count} nhân viên" and `page` "Trang {page} /
+  {pages}" (*new*); the table box's name `tableLabel` "Bảng nhân viên" (*new*);
+  `admin.retry` "Thử lại"; `ui.pagination.label` "Phân trang" (*new*; the nav's name), `ui.pagination.previous` "Trang
+  trước" and `ui.pagination.next` "Trang sau" (*new*; each both the visible text and the `aria-label` of its link, and
+  its tooltip on a narrow screen, where the text hides), `ui.pagination.more` "Các trang khác" (*new*). No cell is cut
+  short: the cells do not wrap and the table box scrolls sideways, so no text of the table needs a tooltip.
+- **Component tree** (DEC-118 (3)), under `web/src/features/identity/staff-accounts/components/`; the route
+  `app/(admin)/admin/(shell)/staff/page.tsx` composes the layout with the three sections inside
+  `RequirePermission` (`staff.read`):
+
+  ```text
+  staff-list-layout.tsx              slots: header | filters | list — one Card (a one-card page: the h1 in
+  │                                  CardTitle); narrow: the filters stack and the table's box gets a border
+  ├── staff-list-header-section.tsx  CardHeader: CardTitle with the h1 "Nhân viên" (admin.menu.staff),
+  │                                  CardDescription `description`; CardAction: the link "Thêm nhân viên" (PlusIcon,
+  │                                  a Button asChild) to SCR-STF-02, shown with `staff.create`, full width on a
+  │                                  narrow screen — card, button
+  ├── staff-list-filters-section.tsx the Field `search` (InputGroup with SearchIcon, FieldDescription `searchHint`
+  │                                  with more than one page, tied by aria-describedby) and the Field `status`
+  │                                  labelled `columns.status` (Select: Tất cả, Đang hoạt động, Đã khóa); status,
+  │                                  sort and page in the URL, a change of status drops `page` (back to 1); the
+  │                                  search text stays in the page, never in the URL (DEC-105): the route calls
+  │                                  `hooks/use-staff-list.ts` once and gives its state to this section and the
+  │                                  table section; the role filter left out (gap 2) — field, input-group, select
+  └── staff-list-table-section.tsx   renders what `hooks/use-staff-list.ts` gives (the query GET
+      │                              /api/v1/admin/staff with the URL's status, sort and page, pageSize 20, the
+      │                              search over the page's rows, and the URL changes, so the section stays under
+      │                              150 lines): the Table of the seven columns, in a box with role="region",
+      │                              tabIndex 0 and aria-label `tableLabel` at every width, its cells not wrapped;
+      │                              "Họ tên" a link to SCR-STF-03; footer: `total` and the Pagination named
+      │                              `ui.pagination.label` ("Trang trước", `page`, "Trang sau"; on page 1 and on the
+      │                              last page the link that leads nowhere has no href, aria-disabled and opacity
+      │                              50%; on a narrow screen the two links show only their icon, each in a
+      │                              Tooltip with its text); loading: three rows of Skeleton; empty (`totalCount`
+      │                              0 with the default filters): Empty `empty.*` (UsersIcon) with "Thêm nhân viên"
+      │                              when `staff.create`; nothing matches (`totalCount` 0 with a status, or the
+      │                              search hides every row of the page): Empty `noMatch.*` (SearchXIcon) with
+      │                              "Xóa bộ lọc" (outline), which clears the search and `status`; a page past the
+      │                              end (`items` empty, `totalCount` above 0) goes back to page 1; a 400 resets
+      │                              the URL to the default filters; any other problem: Empty with the problem's
+      │                              text in EmptyTitle, destructive, role="alert" (TriangleAlertIcon), and "Thử
+      │                              lại", disabled while the retry is pending; each Empty in place of the rows,
+      │                              inside the card, so that the filters stay — table, tooltip, empty, skeleton,
+      │                              pagination
+      ├── staff-sort-header.tsx      presentational — the header cell of "Họ tên", "Mã nhân viên" or "Ngày vào
+      │                              làm", whose button sorts, with aria-sort and ArrowUpIcon (ascending),
+      │                              ArrowDownIcon (descending) or ArrowUpDownIcon (not sorted) — button
+      ├── staff-roles-cell.tsx       presentational — one Badge (secondary) per role name — badge
+      └── staff-status-badge.tsx     presentational — Badge: "Đang hoạt động" (default), "Đã khóa" (outline) — badge
+  ```
 
 ## SCR-STF-02 New staff account
 
