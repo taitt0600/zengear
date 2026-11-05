@@ -196,13 +196,13 @@ Every admin screen except the sign-in page sits in this layout.
   │                                  error: session-error; ready: its children; only the toast region
   │                                  "Thông báo" stays in app/(admin)/admin/layout.tsx
   ├── admin-layout.tsx               slots: sidebar | header | page — SidebarProvider with defaultOpen (Ctrl/⌘+B
-  │                                  toggles; it writes the cookie; the TooltipProvider of `sidebar.tsx` loses its
-  │                                  `delayDuration={0}`, so that the one provider of SCR-AUT-01's Layout sets the
-  │                                  delays of **Help on screen**) and SidebarInset rendered as a div, so that
-  │                                  the header stays a banner and main#main holds only the page slot; the skip
-  │                                  link "Bỏ qua đến nội dung chính" before the header goes to main#main; page
-  │                                  padding 24px (16px narrow); narrow (below md): the sidebar becomes a Sheet
-  │                                  from the left
+  │                                  toggles; it writes the cookie; it wraps no TooltipProvider of its own, so that
+  │                                  the one provider of SCR-AUT-01's Layout sets the delays of **Help on
+  │                                  screen**) and SidebarInset rendered as a div, so that the header stays a
+  │                                  banner and main#main holds only the page slot; the skip link "Bỏ qua đến nội
+  │                                  dung chính", the first focus stop of the page (before the menu and the
+  │                                  header), goes to main#main; page padding 24px (16px narrow); narrow (below
+  │                                  md): the sidebar becomes a Sheet from the left
   ├── admin-sidebar-section.tsx      Sidebar collapsible="icon": SidebarHeader, SidebarContent, SidebarFooter,
   │   │                              SidebarRail — sidebar
   │   ├── admin-brand.tsx            presentational — SidebarMenuButton size="lg": a square in sidebar-primary
@@ -308,9 +308,8 @@ hàng."
   Phase 1 has no reset flow); the show/hide button's tooltip is its `aria-label` `signIn.showPassword` "Hiện mật
   khẩu". The delays of **Help on screen** come from one `TooltipProvider` per page, so that the next tooltip opens
   at once: one in `app/(admin)/admin/layout.tsx` (sign-in, password change and the shell) with `delayDuration` 700
-  and `skipDelayDuration` 300; in the commit that edits `components/ui/tooltip.tsx` after its `add`, `Tooltip`
-  wraps no provider of its own if shadcn's does, and `sidebar.tsx`'s provider takes no delay of its own
-  (SCR-ADM-01's Layout).
+  and `skipDelayDuration` 300; `Tooltip` of `components/ui/tooltip.tsx` wraps no provider of its own, and
+  `SidebarProvider` of `sidebar.tsx` wraps none either (SCR-ADM-01's Layout).
 - **Component tree** (DEC-118 (3)), under `web/src/features/identity/sign-in/`; the route
   `app/(admin)/admin/sign-in/page.tsx` composes `<SignInLayout brand={<SignInBrand />}>` around the form in a
   `Suspense` whose fallback is the skeleton:
