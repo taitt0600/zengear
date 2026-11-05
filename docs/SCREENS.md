@@ -72,7 +72,7 @@ only the shape of the input (required, length, format) with the limits below, wh
 - **Accessibility**: WCAG 2.2 AA; every form works with the keyboard alone, every field has a visible label, errors
   are announced to screen readers.
 - **Design system** (DEC-119 (2)): <https://claude.ai/artifact/DAYPEgxSLaHrHYG99Tmntb>, built 2026-10-31 from
-  `web/src/app/globals.css` and `web/src/components/ui/` and updated 2026-11-05 to commit 7e930f5; `/design-screen`
+  `web/src/app/globals.css` and `web/src/components/ui/` and updated 2026-11-05 to commit 1470612; `/design-screen`
   brings the system up to date when those files changed since, and then the update's date and commit.
 - **Layout** (DEC-119 (3)): the approved design of a screen, a subsection at the end of its section that
   `/design-screen <SCR-ID>` writes and the merge of its Layout pull request approves; a later change of the design is
@@ -567,6 +567,126 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
 | 409 `/problems/own-account-not-lockable`, `/problems/last-active-admin`, `/problems/admin-account-not-lockable`, `/problems/admin-account-not-restorable`, `/problems/account-anonymized` | Toast |
 | 409 `/problems/concurrency-conflict` | Toast, and reloads |
 | 500 on "Khóa" | The account may be disabled with its sessions still open (R-SEC-04), or not disabled at all: the web's text of *Conventions* in a toast. The account is reloaded; "Khóa" (ACTIVE) or "Khóa lại" (DISABLED) sends the request again, which revokes the sessions again |
+
+### Layout
+
+- **Design**: <https://claude.ai/artifact/DuLX9hmqGWyyP9vmoUw6Dd>, drawn 2026-11-05 with the design system of
+  2026-11-05; approved by the merge of the pull request that wrote this subsection (DEC-119). The canvas shows the
+  frame of SCR-ADM-01 for context only; this Layout does not approve it.
+- **Artboards**: desktop (1440 px) of an ACTIVE account, where "Khóa tài khoản", the dialog and "Khôi phục tài
+  khoản" work in Play; narrow (390 px) of an account whose default password is unchanged; the dialog "Khóa tài
+  khoản" with "Nhân viên nghỉ việc" ticked, the calendar and the tooltip of its close button open; a DISABLED
+  account; the confirmation of "Khôi phục"; states: loading, 404, error. No permission is the page of SCR-ADM-01
+  (`RequirePermission` with `staff.read`). The sample is the fixture manager; its narrow artboard shows the badge of
+  an unchanged password and its DISABLED artboard a left date only to show them.
+- **shadcn**: `shadcn add checkbox popover calendar alert-dialog`; `calendar` brings `react-day-picker` and
+  `date-fns`, which `web/approved-packages.json` lists (DEC-116 (6)); it must not overwrite the edited `button`
+  (DEC-116 (4)). In the commits after the `add`: the texts of `calendar` (its month and weekday names through the
+  locale `vi` of `date-fns/locale`; every entry of react-day-picker's `labels` it uses from `ui.calendar`, checked
+  against the installed version; each navigation button in a Tooltip with its text) and the corner close button of
+  `dialog` in a Tooltip with `ui.close` (*Conventions*, **Help on screen**). `badge`, `card`, `dialog`, `alert`,
+  `field`, `sonner`, `skeleton`, `empty` and `tooltip` are installed.
+- **Texts** (`messages/vi.json`), new ones marked *new*, under `staff.account` unless named: the page's title and
+  breadcrumb entry `title` "Tài khoản nhân viên" (*new*); the details card `info.title` "Thông tin nhân viên" and
+  `info.description` "Thông tin ghi khi tạo tài khoản. Hiện chưa sửa được trên màn hình này." (*new*); its labels
+  `staff.list.columns.email`, `.employeeCode`, `.roles`, `.joinedDate`, `.leftDate`, with `workPhone` "SĐT công việc"
+  (*new*), and `staff.list.noValue` "—" for an empty value; the status card `status.title` "Trạng thái tài khoản"
+  and `status.description` "Tài khoản bị khóa không đăng nhập được; khôi phục để nhân viên dùng lại." (*new*), its
+  label `staff.list.columns.status`, the badges `staff.list.status.active` and `.disabled`, with
+  `status.anonymized` "Đã ẩn danh" (*new*); `password` "Mật khẩu" and `mustChangePassword` "Chưa đổi mật khẩu mặc
+  định" (*new*); the actions `disable` "Khóa tài khoản", `disableAgain` "Khóa lại" with its hint `disableAgainHint`
+  "Gửi lại lệnh khóa để đăng xuất nhân viên khỏi mọi thiết bị, khi lần khóa trước báo lỗi.", `restore` "Khôi phục
+  tài khoản", `ownAccount` "Bạn không thể khóa tài khoản của chính mình." and `anonymized` "Dữ liệu cá nhân của tài
+  khoản này đã được ẩn danh, nên không khóa hay khôi phục được nữa." (*new*); the dialog `disableDialog.title` "Khóa
+  tài khoản", `disableDialog.description` "Tài khoản bị khóa không đăng nhập được cho đến khi được khôi phục.",
+  `disableDialog.warning` "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị ngay lập tức.", `disableDialog.leaving`
+  "Nhân viên nghỉ việc" with its hint `disableDialog.leavingHint` "Đánh dấu khi nhân viên đã nghỉ, để ghi ngày làm
+  việc cuối cùng.", the date's hint `disableDialog.leftDateHint` "Ngày làm việc cuối cùng: không sau hôm nay và
+  không trước ngày vào làm ({joinedDate})." or, without a joined date, `disableDialog.leftDateHintToday` "Ngày làm
+  việc cuối cùng: không sau hôm nay.", `disableDialog.submit` "Khóa" (*new*; the date's label is
+  `staff.list.columns.leftDate`); the confirmation `restoreDialog.title` "Khôi phục tài khoản?",
+  `restoreDialog.description` "Nhân viên đăng nhập lại được bằng mật khẩu đang có, và ngày nghỉ việc được xóa." and
+  `restoreDialog.submit` "Khôi phục" (*new*); `cancel` "Hủy" (*new*); the toasts `disabled` "Đã khóa tài khoản." and
+  `restored` "Đã khôi phục tài khoản." (*new*); `backToList` "Về danh sách nhân viên" (*new*); `admin.retry` "Thử
+  lại"; `ui.calendar.previousMonth` "Tháng trước" and `ui.calendar.nextMonth` "Tháng sau" (*new*; each both the
+  `aria-label` of its button and its tooltip), `ui.calendar.nav` "Chọn tháng" (the nav's name), `ui.calendar.today`
+  "hôm nay" and `ui.calendar.selected` "đã chọn" (the parts a day button's name adds) (*new*), and a key of the same
+  namespace for any other label the installed version reads; `ui.close` "Đóng" (its tooltip);
+  `disableDialog.leftDateFuture` "Ngày vào làm sau hôm nay, nên chưa ghi được ngày nghỉ việc." (*new*). The date
+  picker and the checkbox have no placeholder.
+- **Component tree** (DEC-118 (3)), under `web/src/features/identity/staff-accounts/components/`; the route
+  `app/(admin)/admin/(shell)/staff/[id]/page.tsx` (its metadata title `staff.account.title`) composes the layout
+  with its sections inside `RequirePermission` (`staff.read`) and the client `StaffAccountProvider`
+  (`hooks/staff-account-context.tsx`), which holds the one call of `hooks/use-staff-account.ts`: GET
+  /api/v1/admin/staff/{id}, the disable and restore mutations (on 200 each invalidates that account's query and
+  the queries of the staff list, so that SCR-STF-01 shows the new status, `docs/FRONTEND.md`, *Data from the
+  API*), and whether the user may act (`staff.disable`, and not their own account: `id` of `useCurrentUser` from
+  `identity/access`):
+
+  ```text
+  staff-account-layout.tsx               slots: heading | details | status — a page of two cards, its heading
+  │                                      above them (Grouping); desktop: details over two thirds, status over one
+  │                                      third; narrow: one column, status first so that its action comes before
+  │                                      the details; it only places the slots
+  ├── staff-account-heading-section.tsx  the h1 `name` with the status badge; loading: Skeleton of the heading;
+  │                                      404: Empty, the problem's `detail` in EmptyTitle as the
+  │                                      page's h1 (UserXIcon), no description, the link "Về danh sách nhân viên"
+  │                                      (ArrowLeftIcon, a Button asChild) to SCR-STF-01; any other problem: Empty
+  │                                      with the problem's text in EmptyTitle as the page's h1, destructive,
+  │                                      role="alert" (TriangleAlertIcon), and "Thử lại", disabled while the
+  │                                      retry is pending;
+  │                                      401 and 403 as *Conventions* says — skeleton, empty, button
+  ├── staff-account-details-section.tsx  Card: CardTitle `info.title`, CardDescription `info.description`; a
+  │                                      description list (`dl`, two columns, one on a narrow screen): Email,
+  │                                      Mã nhân viên, SĐT công việc, Vai trò (one Badge secondary each), Ngày
+  │                                      vào làm, Ngày nghỉ việc (`dd/MM/yyyy`; "—" when empty); a long email
+  │                                      wraps, never cut short; loading: the card with Skeleton of its title and
+  │                                      six fields; on a 404 or a failed load it renders nothing (the heading
+  │                                      section shows the Empty) — card, badge, skeleton
+  ├── staff-account-status-section.tsx   Card: CardTitle `status.title`, CardDescription `status.description`;
+  │                                      the row "Trạng thái" with the status badge; the row "Mật khẩu" with
+  │                                      Badge outline `mustChangePassword` when `mustChangePassword`; with
+  │                                      `staff.disable`, full width: on ACTIVE "Khóa tài khoản" (destructive,
+  │                                      LockIcon), which opens the dialog; on DISABLED "Khôi phục tài khoản"
+  │                                      (default, RotateCcwIcon), which opens the confirmation, and "Khóa lại"
+  │                                      (outline, destructive text) with its hint `disableAgainHint` tied by
+  │                                      aria-describedby, which opens the dialog; on the user's own account no
+  │                                      action but the muted line `ownAccount`; on ANONYMIZED (Badge outline
+  │                                      `status.anonymized`) no action but the muted line `anonymized`; each
+  │                                      200 shows the account returned and a toast `disabled` or `restored`;
+  │                                      the 409s of the table above in a toast, `concurrency-conflict` also
+  │                                      reloads; the 500 of "Khóa" in the toast of *Conventions*, then
+  │                                      reloads; loading: the card with Skeleton of its title and button; on a
+  │                                      404 or a failed load it renders nothing — card, badge, button, skeleton
+  │   ├── staff-disable-dialog.tsx       Dialog: DialogTitle `disableDialog.title`, DialogDescription
+  │   │                                  `disableDialog.description`, Alert destructive (CircleAlertIcon)
+  │   │                                  `disableDialog.warning`; the Field (horizontal) Checkbox
+  │   │                                  `disableDialog.leaving` with its FieldDescription `leavingHint`; when
+  │   │                                  ticked, the Field `staff.list.columns.leftDate`: a date picker (Popover
+  │   │                                  with a Button outline showing `dd/MM/yyyy` and CalendarIcon, holding a
+  │   │                                  Calendar of one month, Monday first, `required` so that a second click
+  │   │                                  never empties it), days after today in Asia/Ho_Chi_Minh and before the
+  │   │                                  joined date disabled, its FieldDescription `leftDateHint` (or `leftDateHintToday`)
+  │   │                                  tied by aria-describedby, a 400 or 409 on `#/leftDate` in its
+  │   │                                  FieldError; an account that has a left date ("Khóa lại") opens ticked
+  │   │                                  with that date, any other opens unticked and ticking it picks today in
+  │   │                                  Asia/Ho_Chi_Minh; a joined date after today leaves no day to pick: the
+  │   │                                  checkbox is disabled with the FieldDescription `leftDateFuture`; an
+  │   │                                  error no field shows at the top in an Alert; footer "Hủy" (outline) and
+  │   │                                  "Khóa" (destructive), disabled with LoaderCircleIcon until the answer
+  │   │                                  comes; sends `{ leftDate }`, null when not ticked; closes on 200, on a
+  │   │                                  409 shown in a toast, on a 404, on a 500 and on no answer (those three
+  │   │                                  in their toast, then a reload); stays open with a field error —
+  │   │                                  dialog, alert, field, checkbox, popover, calendar, button
+  │   └── staff-restore-dialog.tsx       AlertDialog: AlertDialogTitle `restoreDialog.title`,
+  │                                      AlertDialogDescription `restoreDialog.description`; AlertDialogCancel
+  │                                      "Hủy" and "Khôi phục" (a Button default, not AlertDialogAction, which
+  │                                      would close at once), disabled with LoaderCircleIcon until the answer
+  │                                      comes; closes on 200, and on any problem after its toast (a 404, a 500
+  │                                      or no answer also reloads) — alert-dialog, button
+  └── staff-status-badge.tsx             (SCR-STF-01) presentational — gains ANONYMIZED: Badge outline
+                                         `status.anonymized` — badge
+  ```
 
 ## SCR-LOC-01 Business location
 
