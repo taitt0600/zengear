@@ -6,6 +6,7 @@ import {
   MoreHorizontalIcon,
 } from "lucide-react"
 import { useTranslations } from "next-intl"
+import { Slot } from "radix-ui"
 
 import { buttonVariants, type Button } from "@/components/ui/button"
 
@@ -39,8 +40,10 @@ function PaginationItem({ ...props }: React.ComponentProps<"li">) {
   return <li data-slot="pagination-item" {...props} />
 }
 
+// asChild renders the link as its child, such as a next/link Link, for navigation inside the app.
 type PaginationLinkProps = {
   isActive?: boolean
+  asChild?: boolean
 } & Pick<React.ComponentProps<typeof Button>, "size"> &
   React.ComponentProps<"a">
 
@@ -48,10 +51,12 @@ function PaginationLink({
   className,
   isActive,
   size = "icon",
+  asChild = false,
   ...props
 }: PaginationLinkProps) {
+  const Comp = asChild ? Slot.Root : "a"
   return (
-    <a
+    <Comp
       aria-current={isActive ? "page" : undefined}
       data-slot="pagination-link"
       data-active={isActive}
@@ -67,8 +72,11 @@ function PaginationLink({
   )
 }
 
+// With asChild, the child (a Link) becomes the link and the chevron and the text go inside it (Radix's Slottable).
 function PaginationPrevious({
   className,
+  asChild,
+  children,
   ...props
 }: React.ComponentProps<typeof PaginationLink>) {
   const t = useTranslations("ui")
@@ -77,9 +85,11 @@ function PaginationPrevious({
       aria-label={t("pagination.previous")}
       size="default"
       className={cn("gap-1 px-2.5 sm:pl-2.5", className)}
+      asChild={asChild}
       {...props}
     >
       <ChevronLeftIcon />
+      {asChild && <Slot.Slottable>{children}</Slot.Slottable>}
       <span className="hidden sm:block">{t("pagination.previous")}</span>
     </PaginationLink>
   )
@@ -87,6 +97,8 @@ function PaginationPrevious({
 
 function PaginationNext({
   className,
+  asChild,
+  children,
   ...props
 }: React.ComponentProps<typeof PaginationLink>) {
   const t = useTranslations("ui")
@@ -95,8 +107,10 @@ function PaginationNext({
       aria-label={t("pagination.next")}
       size="default"
       className={cn("gap-1 px-2.5 sm:pr-2.5", className)}
+      asChild={asChild}
       {...props}
     >
+      {asChild && <Slot.Slottable>{children}</Slot.Slottable>}
       <span className="hidden sm:block">{t("pagination.next")}</span>
       <ChevronRightIcon />
     </PaginationLink>
