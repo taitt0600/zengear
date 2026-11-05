@@ -1,11 +1,13 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
+import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Fragment } from 'react'
 import {
   Breadcrumb,
   BreadcrumbItem,
+  BreadcrumbLink,
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
@@ -17,17 +19,17 @@ import { breadcrumbOf } from '../utils/admin-menu'
 
 /**
  * The header of SCR-ADM-01: the menu button, named by what it does now, and where the page sits. A group of the menu
- * is text, the page the current item; /admin and the 404 have none.
+ * is text, an entry above the page a link, the page the current item; /admin and the 404 have none.
  */
 export function AdminHeaderSection() {
-  const t = useTranslations('admin')
+  const t = useTranslations()
   const pathname = usePathname()
   const { isMobile, state } = useSidebar()
   const label = isMobile
-    ? t('menu.open')
+    ? t('admin.menu.open')
     : state === 'expanded'
-      ? t('menu.collapse')
-      : t('menu.expand')
+      ? t('admin.menu.collapse')
+      : t('admin.menu.expand')
   const crumbs = breadcrumbOf(pathname)
 
   return (
@@ -44,13 +46,17 @@ export function AdminHeaderSection() {
           <Breadcrumb>
             <BreadcrumbList>
               {crumbs.map((crumb, index) => (
-                <Fragment key={crumb}>
+                <Fragment key={crumb.key}>
                   {index > 0 && <BreadcrumbSeparator />}
                   <BreadcrumbItem>
                     {index === crumbs.length - 1 ? (
-                      <BreadcrumbPage>{t(crumb)}</BreadcrumbPage>
+                      <BreadcrumbPage>{t(crumb.key)}</BreadcrumbPage>
+                    ) : crumb.href ? (
+                      <BreadcrumbLink asChild>
+                        <Link href={crumb.href}>{t(crumb.key)}</Link>
+                      </BreadcrumbLink>
                     ) : (
-                      t(crumb)
+                      t(crumb.key)
                     )}
                   </BreadcrumbItem>
                 </Fragment>

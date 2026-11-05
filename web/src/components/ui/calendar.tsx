@@ -7,13 +7,62 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
 } from "lucide-react"
+import { vi } from "date-fns/locale"
+import { useTranslations } from "next-intl"
 import {
   DayPicker,
   getDefaultClassNames,
+  labelDayButton,
+  labelGridcell,
   type DayButton,
+  type Labels,
+  type Modifiers,
 } from "react-day-picker"
 
 import { Button, buttonVariants } from "@/components/ui/button"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
+
+// The texts react-day-picker shows or reads out (DEC-116 (2)): the month and weekday names come from the locale `vi`
+// of date-fns, the labels it writes in English from the namespace `ui` of the message files. The labels of the week
+// numbers and the dropdowns are left: no screen shows them.
+function useCalendarTexts(): Partial<Labels> {
+  const t = useTranslations("ui.calendar")
+  // A day's name: the date as the default label formats it (asked without its English "Today" and "selected"),
+  // then the parts of the message files.
+  const named = (date: string, modifiers?: Modifiers) =>
+    [date, modifiers?.today && t("today"), modifiers?.selected && t("selected")]
+      .filter(Boolean)
+      .join(", ")
+  return {
+    labelPrevious: () => t("previousMonth"),
+    labelNext: () => t("nextMonth"),
+    labelNav: () => t("nav"),
+    labelDayButton: (date, modifiers, options, dateLib) =>
+      named(labelDayButton(date, {}, options, dateLib), modifiers),
+    labelGridcell: (date, modifiers, options, dateLib) =>
+      named(labelGridcell(date, undefined, options, dateLib), modifiers),
+  }
+}
+
+// A navigation button shows only an icon: its label also in a Tooltip (docs/SCREENS.md, Help on screen), except while
+// it cannot move (react-day-picker marks it `aria-disabled`, not `disabled`), so that the tooltip never offers it. The
+// tree stays the same either way, so that the button keeps the focus when it reaches the first or last month.
+function NavButton(props: React.ComponentProps<"button">) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button {...props} />
+      </TooltipTrigger>
+      {!props["aria-disabled"] && (
+        <TooltipContent>{props["aria-label"]}</TooltipContent>
+      )}
+    </Tooltip>
+  )
+}
 
 function Calendar({
   className,
@@ -23,14 +72,19 @@ function Calendar({
   buttonVariant = "ghost",
   formatters,
   components,
+  labels,
+  locale = vi,
   ...props
 }: React.ComponentProps<typeof DayPicker> & {
   buttonVariant?: React.ComponentProps<typeof Button>["variant"]
 }) {
   const defaultClassNames = getDefaultClassNames()
+  const texts = useCalendarTexts()
 
   return (
     <DayPicker
+      locale={locale}
+      labels={{ ...texts, ...labels }}
       showOutsideDays={showOutsideDays}
       className={cn(
         "group/calendar bg-background p-3 [--cell-size:--spacing(8)] [[data-slot=card-content]_&]:bg-transparent [[data-slot=popover-content]_&]:bg-transparent",
@@ -163,6 +217,8 @@ function Calendar({
           )
         },
         DayButton: CalendarDayButton,
+        PreviousMonthButton: NavButton,
+        NextMonthButton: NavButton,
         WeekNumber: ({ children, ...props }) => {
           return (
             <td {...props}>

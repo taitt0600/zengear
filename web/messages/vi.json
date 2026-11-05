@@ -123,9 +123,45 @@
       "noValue": "—"
     },
     "account": {
+      "title": "Tài khoản nhân viên",
+      "info": {
+        "title": "Thông tin nhân viên",
+        "description": "Thông tin ghi khi tạo tài khoản, dùng để liên hệ và phân quyền."
+      },
+      "workPhone": "SĐT công việc",
       "status": {
+        "title": "Trạng thái tài khoản",
+        "description": "Tài khoản bị khóa không đăng nhập được; khôi phục để nhân viên dùng lại.",
         "anonymized": "Đã ẩn danh"
-      }
+      },
+      "password": "Mật khẩu",
+      "mustChangePassword": "Chưa đổi mật khẩu mặc định",
+      "disable": "Khóa tài khoản",
+      "disableAgain": "Khóa lại",
+      "disableAgainHint": "Gửi lại lệnh khóa để đăng xuất nhân viên khỏi mọi thiết bị, khi lần khóa trước báo lỗi.",
+      "restore": "Khôi phục tài khoản",
+      "ownAccount": "Bạn không thể khóa tài khoản của chính mình.",
+      "anonymized": "Dữ liệu cá nhân của tài khoản này đã được ẩn danh, nên không khóa hay khôi phục được nữa.",
+      "disableDialog": {
+        "title": "Khóa tài khoản",
+        "description": "Tài khoản bị khóa không đăng nhập được cho đến khi được khôi phục.",
+        "warning": "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị ngay lập tức.",
+        "leaving": "Nhân viên nghỉ việc",
+        "leavingHint": "Đánh dấu khi nhân viên đã nghỉ, để ghi ngày làm việc cuối cùng.",
+        "leftDateHint": "Ngày làm việc cuối cùng: không sau hôm nay và không trước ngày vào làm ({joinedDate}).",
+        "leftDateHintToday": "Ngày làm việc cuối cùng: không sau hôm nay.",
+        "leftDateFuture": "Ngày vào làm sau hôm nay, nên chưa ghi được ngày nghỉ việc.",
+        "submit": "Khóa"
+      },
+      "restoreDialog": {
+        "title": "Khôi phục tài khoản?",
+        "description": "Nhân viên đăng nhập lại được bằng mật khẩu đang có, và ngày nghỉ việc được xóa.",
+        "submit": "Khôi phục"
+      },
+      "cancel": "Hủy",
+      "disabled": "Đã khóa tài khoản.",
+      "restored": "Đã khôi phục tài khoản.",
+      "backToList": "Về danh sách nhân viên"
     }
   },
   "problems": {
@@ -148,6 +184,13 @@
       "previous": "Trang trước",
       "next": "Trang sau",
       "more": "Các trang khác"
+    },
+    "calendar": {
+      "previousMonth": "Tháng trước",
+      "nextMonth": "Tháng sau",
+      "nav": "Chọn tháng",
+      "today": "hôm nay",
+      "selected": "đã chọn"
     }
   }
 }

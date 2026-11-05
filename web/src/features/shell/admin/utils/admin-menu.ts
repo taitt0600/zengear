@@ -29,22 +29,37 @@ export function visibleMenu(permissions: readonly string[]): MenuItem[] {
   })
 }
 
-/** A step of the breadcrumb, as a key of the messages `admin`. */
-export type CrumbKey = `menu.${MenuEntry['key'] | MenuGroup['key']}` | 'user.account'
+/** A step of the breadcrumb: a key of the message file, and the link of a step that is not the current page. */
+export type Crumb = {
+  key:
+    | `admin.menu.${MenuEntry['key'] | MenuGroup['key']}`
+    | 'admin.user.account'
+    | 'staff.account.title'
+  href?: string
+}
+
+// The pages under an entry, each with the title its Layout names (SCR-STF-03). SCR-STF-02 (`/admin/staff/new`) has
+// no Layout yet: its placeholder keeps the entry alone.
+const STAFF_ACCOUNT = new RegExp(`^${adminRoutes.staff}/(?!new$)[^/]+$`)
 
 /**
- * Where the page sits, for the breadcrumb of the header: the entry's group as text, then the entry; the account page
- * alone. By the exact path, so that /admin and an unknown path (the 404) have none.
+ * Where the page sits, for the breadcrumb of the header: the entry's group as text, then the entry; a page under an
+ * entry adds its title, the entry then a link; the account page alone. By the exact path, so that /admin and an
+ * unknown path (the 404) have none.
  */
-export function breadcrumbOf(pathname: string): CrumbKey[] {
-  if (pathname === adminRoutes.account) return ['user.account']
+export function breadcrumbOf(pathname: string): Crumb[] {
+  if (pathname === adminRoutes.account) return [{ key: 'admin.user.account' }]
+  if (STAFF_ACCOUNT.test(pathname)) {
+    return [{ key: 'admin.menu.staff', href: adminRoutes.staff }, { key: 'staff.account.title' }]
+  }
+  if (pathname === `${adminRoutes.staff}/new`) return [{ key: 'admin.menu.staff' }]
   for (const item of adminMenu) {
     if (!('entries' in item)) {
-      if (item.href === pathname) return [`menu.${item.key}`]
+      if (item.href === pathname) return [{ key: `admin.menu.${item.key}` }]
       continue
     }
     const entry = item.entries.find((candidate) => candidate.href === pathname)
-    if (entry) return [`menu.${item.key}`, `menu.${entry.key}`]
+    if (entry) return [{ key: `admin.menu.${item.key}` }, { key: `admin.menu.${entry.key}` }]
   }
   return []
 }
