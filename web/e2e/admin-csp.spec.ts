@@ -40,14 +40,17 @@ test('an unknown admin URL is the 404 of the admin layout, whose scripts carry t
   request,
 }) => {
   // DEC-114 (2): the catch-all of the admin layout renders it at the request instead of the prerendered 404. Its
-  // status is 200: the layout renders its pages in the browser only, so the server never meets the notFound().
+  // status is 200: the layout renders its pages in the browser only, so the server's HTML render never reaches the
+  // notFound(); the title is still the page's own metadata, rendered by the server.
   const response = await request.get('/admin/khong-ton-tai', { maxRedirects: 0 })
   expect(response.status()).toBe(200)
   const csp = cspHeaders(response.headersArray())
   expect(csp).toHaveLength(1)
   const nonce = nonceOf(csp[0])!
   expect(nonce).toBeTruthy()
-  const scripts = (await response.text()).match(/<script\b[^>]*>/g) ?? []
+  const html = await response.text()
+  expect(html).toMatch(/<title>Không tìm thấy trang này\. · ZenGear<\/title>/)
+  const scripts = html.match(/<script\b[^>]*>/g) ?? []
   expect(scripts.length).toBeGreaterThan(0)
   for (const script of scripts) {
     expect(script).toContain(`nonce="${nonce}"`)
