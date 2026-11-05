@@ -666,9 +666,9 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   │   │                                  with a Button outline showing `dd/MM/yyyy` and CalendarIcon, holding a
   │   │                                  Calendar of one month, Monday first, `required` so that a second click
   │   │                                  never empties it), days after today in Asia/Ho_Chi_Minh and before the
-  │   │                                  joined date disabled, its FieldDescription `leftDateHint` (or `leftDateHintToday`)
-  │   │                                  tied by aria-describedby, a 400 or 409 on `#/leftDate` in its
-  │   │                                  FieldError; an account that has a left date ("Khóa lại") opens ticked
+  │   │                                  joined date disabled, its FieldDescription `leftDateHint` (or
+  │   │                                  `leftDateHintToday`) tied by aria-describedby, a 400 or 409 on
+  │   │                                  `#/leftDate` in its FieldError; an account that has a left date ("Khóa lại") opens ticked
   │   │                                  with that date, any other opens unticked and ticking it picks today in
   │   │                                  Asia/Ho_Chi_Minh; a joined date after today leaves no day to pick: the
   │   │                                  checkbox is disabled with the FieldDescription `leftDateFuture`; an
