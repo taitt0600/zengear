@@ -7,6 +7,11 @@ import { useTranslations } from "next-intl"
 import { Dialog as DialogPrimitive } from "radix-ui"
 
 import { Button } from "@/components/ui/button"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 function Dialog({
   ...props
@@ -70,13 +75,19 @@ function DialogContent({
       >
         {children}
         {showCloseButton && (
-          <DialogPrimitive.Close
-            data-slot="dialog-close"
-            className="absolute top-4 right-4 rounded-xs opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
-          >
-            <XIcon />
-            <span className="sr-only">{t("close")}</span>
-          </DialogPrimitive.Close>
+          // An icon-only button: its name also in a Tooltip (docs/SCREENS.md, Help on screen).
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <DialogPrimitive.Close
+                data-slot="dialog-close"
+                className="absolute top-4 right-4 rounded-xs opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
+              >
+                <XIcon />
+                <span className="sr-only">{t("close")}</span>
+              </DialogPrimitive.Close>
+            </TooltipTrigger>
+            <TooltipContent>{t("close")}</TooltipContent>
+          </Tooltip>
         )}
       </DialogPrimitive.Content>
     </DialogPortal>

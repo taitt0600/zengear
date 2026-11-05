@@ -10,9 +10,10 @@ import {
 import { cn } from '@/lib/utils'
 
 /**
- * Presentational: what the list of SCR-STF-01 shows in place of its rows when it has none to show (no account, nothing
- * matches, a failed load), an Empty with an outline inside the card, so that the filters stay (Grouping of
- * docs/SCREENS.md). `tone="error"` is a failure: destructive, and announced.
+ * Presentational: an Empty with an outline (Grouping of docs/SCREENS.md) of the staff screens: what the list of
+ * SCR-STF-01 shows in place of its rows when it has none to show (no account, nothing matches, a failed load), inside
+ * the card so that the filters stay; and, with `heading`, the page of SCR-STF-03 when its account cannot show (a 404, a
+ * failed load), its title then the page's h1. `tone="error"` is a failure: destructive, and announced.
  */
 export function StaffListEmpty({
   icon,
@@ -20,12 +21,14 @@ export function StaffListEmpty({
   description,
   action,
   tone,
+  heading,
 }: {
   icon: ReactNode
   title: string
   description?: string
   action?: ReactNode
   tone?: 'error'
+  heading?: boolean
 }) {
   const error = tone === 'error'
   return (
@@ -34,7 +37,9 @@ export function StaffListEmpty({
         <EmptyMedia variant="icon" className={cn(error && 'text-destructive')}>
           {icon}
         </EmptyMedia>
-        <EmptyTitle className={cn(error && 'text-destructive')}>{title}</EmptyTitle>
+        <EmptyTitle className={cn(error && 'text-destructive')}>
+          {heading ? <h1>{title}</h1> : title}
+        </EmptyTitle>
         {description && <EmptyDescription>{description}</EmptyDescription>}
       </EmptyHeader>
       {action && <EmptyContent>{action}</EmptyContent>}

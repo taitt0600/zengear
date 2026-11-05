@@ -55,9 +55,12 @@ function today(): string {
  * A new Sales Consultant created by the Admin (STF-01), with a password set through the emulator: the API still holds
  * must_change_password = true, as for any new staff account. Unique per run, so the flows need no reset.
  */
-export async function newSalesConsultant(password: string): Promise<{ id: string; email: string }> {
+export async function newSalesConsultant(
+  password: string,
+  mailbox = 'e2e',
+): Promise<{ id: string; email: string }> {
   const stamp = `${Date.now()}${Math.floor(Math.random() * 1000)}`
-  const email = `e2e.${stamp}@zengear.test`
+  const email = `${mailbox}.${stamp}@zengear.test`
   const admin = await idToken(accounts.admin, PASSWORD)
   const staff = await api(admin, '/api/v1/admin/staff', {
     email,
@@ -82,12 +85,19 @@ export async function changePassword(email: string, current: string, next: strin
   })
 }
 
-/** Renames an account as its owner (PATCH /me with the ETag of GET /me), as another tab or device would. */
-export async function renameMe(email: string, password: string, name: string) {
+/** GET /api/v1/admin/me as the account, with the headers it was sent with. */
+async function getMe(email: string, password: string) {
   const headers = { Authorization: `Bearer ${await idToken(email, password)}` }
   const me = await fetch(`${API}/api/v1/admin/me`, { headers })
+  if (!me.ok) throw new Error(`GET /api/v1/admin/me: ${me.status} ${await me.text()}`)
+  return { me, headers }
+}
+
+/** Renames an account as its owner (PATCH /me with the ETag of GET /me), as another tab or device would. */
+export async function renameMe(email: string, password: string, name: string) {
+  const { me, headers } = await getMe(email, password)
   const etag = me.headers.get('etag')
-  if (!me.ok || !etag) throw new Error(`GET /api/v1/admin/me: ${me.status} ${await me.text()}`)
+  if (!etag) throw new Error('GET /api/v1/admin/me: no ETag')
   const response = await fetch(`${API}/api/v1/admin/me`, {
     method: 'PATCH',
     headers: { ...headers, 'Content-Type': 'application/json', 'If-Match': etag },
@@ -115,6 +125,12 @@ export async function staffListPage(email: string, query: string): Promise<numbe
     if (index >= 0) return Math.floor(((page - 1) * 100 + index) / 20) + 1
     if (items.length < 100) throw new Error(`${email} is not in the staff list of ${query}`)
   }
+}
+
+/** The id of an account, from its own GET /api/v1/admin/me. */
+export async function meId(email: string, password: string): Promise<string> {
+  const { me } = await getMe(email, password)
+  return ((await me.json()) as { id: string }).id
 }
 
 /** Disables a staff account as the Admin (STF-02), with today as the last working day. */

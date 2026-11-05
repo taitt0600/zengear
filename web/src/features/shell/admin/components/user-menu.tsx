@@ -22,7 +22,7 @@ import {
 } from '@/components/ui/sidebar'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { adminRoutes } from '@/features/identity/access'
-import { initials } from '../utils/initials'
+import { initials } from '@/utils/initials'
 
 function UserName({ name, email }: { name: string; email: string | null }) {
   return (
