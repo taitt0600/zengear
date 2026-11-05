@@ -62,7 +62,8 @@ only the shape of the input (required, length, format) with the limits below, wh
     Guidelines, since an ellipsis would read as part of the value), in `muted-foreground`, with a reserved example
     domain (`example.com`, RFC 2606) and never a real person or company; never instead of the label nor repeating
     it, and the hint never repeats its example; none in a password field, a field without a format, a read-only
-    field, a select or a date picker.
+    field, a select or a date picker, except the search box that filters a list, which has one, an example of a
+    value it finds (chosen by the owner on the Layout of SCR-STF-01).
 
   A Layout lists these texts with the screen's other new texts. Chosen by the owner on the Layout of SCR-ADM-01,
   the placeholder on the Layout of SCR-AUT-01; a screen built before (SCR-AUT-01, SCR-AUT-02, SCR-ACC-01) follows
@@ -439,24 +440,31 @@ A 400 means the URL was edited by hand: the list falls back to the default filte
 - **Artboards**: desktop (1440 px), where "Họ tên" sorts in Play; narrow (390 px), on the first of three pages,
   with the search hint and the tooltip of "Trang sau" open; states: loading, empty (no account), empty (nothing
   matches the filters), error. No permission is the page of SCR-ADM-01 (`RequirePermission` with `staff.read`).
+  The fixture manager is drawn locked, so that both status colours show.
 - **shadcn**: `shadcn add table badge select pagination` (the tree names them too); it must not overwrite the
   edited `button` that `pagination` depends on (DEC-116 (4)); `pagination` writes English texts, which go through
   `ui`.
+- **Theme**: each status has its colour (chosen by the owner). After the commit of the `add`, a commit adds the
+  token `--success` `oklch(0.527 0.154 150.069)` to `:root` of `app/globals.css`, with `--color-success` in
+  `@theme inline`, and the Badge variant `success`, written like `destructive` with the token (white text, 4.94:1;
+  `--destructive` under white text is 4.76:1); `globals.test.ts` checks `--success` and `--destructive` against
+  `--background` (the same white) at 4.5:1 (SC 1.4.3), and the comments at the top of both files say so. The
+  design system takes the token once that pull request merges (its freshness check).
 - **Texts** (`messages/vi.json`), new ones marked *new*, under `staff.list` unless named: the card's description
   `description` "Tài khoản nhân viên của cửa hàng, cùng vai trò và trạng thái. Mở một tài khoản để xem, khóa hoặc khôi
   phục." (*new*); `add` "Thêm nhân viên" (*new*); the columns `columns.name` "Họ tên", `columns.employeeCode` "Mã nhân
   viên", `columns.email` "Email", `columns.roles` "Vai trò", `columns.status` "Trạng thái", `columns.joinedDate` "Ngày
   vào làm", `columns.leftDate` "Ngày nghỉ việc" (*new*); `status.all` "Tất cả", `status.active` "Đang hoạt động",
   `status.disabled` "Đã khóa" (*new*; the status Field is labelled by `columns.status`); the search box's label
-  `search` "Lọc theo tên, mã hoặc email" (*new*; no placeholder, since it has no format) and its hint `searchHint`
-  "Chỉ lọc trong trang đang xem." (*new*, shown with more than one page); `empty.title` "Chưa có tài khoản nhân viên."
-  and `empty.description` "Tài khoản do quản trị viên hoặc quản lý cửa hàng tạo sẽ hiện ở đây." (*new*);
-  `noMatch.title` "Không có nhân viên phù hợp với bộ lọc.", `noMatch.description` "Thử bỏ bớt điều kiện lọc để xem
-  thêm tài khoản." and `clearFilters` "Xóa bộ lọc" (*new*); `total` "{count} nhân viên" and `page` "Trang {page} /
-  {pages}" (*new*); the table box's name `tableLabel` "Bảng nhân viên" (*new*);
-  `admin.retry` "Thử lại"; `ui.pagination.label` "Phân trang" (*new*; the nav's name), `ui.pagination.previous` "Trang
-  trước" and `ui.pagination.next` "Trang sau" (*new*; each both the visible text and the `aria-label` of its link, and
-  its tooltip on a narrow screen, where the text hides), `ui.pagination.more` "Các trang khác" (*new*). No cell is cut
+  `search` "Lọc theo tên, mã hoặc email" (*new*), its placeholder `searchPlaceholder` "an@example.com" (*new*) and its
+  hint `searchHint` "Chỉ lọc trong trang đang xem." (*new*, shown with more than one page); `empty.title` "Chưa có tài
+  khoản nhân viên." and `empty.description` "Tài khoản do quản trị viên hoặc quản lý cửa hàng tạo sẽ hiện ở đây."
+  (*new*); `noMatch.title` "Không có nhân viên phù hợp với bộ lọc.", `noMatch.description` "Thử bỏ bớt điều kiện lọc
+  để xem thêm tài khoản." and `clearFilters` "Xóa bộ lọc" (*new*); `total` "{count} nhân viên" and `page` "Trang
+  {page} / {pages}" (*new*); the table box's name `tableLabel` "Bảng nhân viên" (*new*); `admin.retry` "Thử lại";
+  `ui.pagination.label` "Phân trang" (*new*; the nav's name), `ui.pagination.previous` "Trang trước" and
+  `ui.pagination.next` "Trang sau" (*new*; each both the visible text and the `aria-label` of its link, and its
+  tooltip on a narrow screen, where the text hides), `ui.pagination.more` "Các trang khác" (*new*). No cell is cut
   short: the cells do not wrap and the table box scrolls sideways, so no text of the table needs a tooltip.
 - **Component tree** (DEC-118 (3)), under `web/src/features/identity/staff-accounts/components/`; the route
   `app/(admin)/admin/(shell)/staff/page.tsx` composes the layout with the three sections inside
@@ -469,8 +477,9 @@ A 400 means the URL was edited by hand: the list falls back to the default filte
   │                                  CardDescription `description`; CardAction: the link "Thêm nhân viên" (PlusIcon,
   │                                  a Button asChild) to SCR-STF-02, shown with `staff.create`, full width on a
   │                                  narrow screen — card, button
-  ├── staff-list-filters-section.tsx the Field `search` (InputGroup with SearchIcon, FieldDescription `searchHint`
-  │                                  with more than one page, tied by aria-describedby) and the Field `status`
+  ├── staff-list-filters-section.tsx the Field `search` (InputGroup with SearchIcon and the placeholder
+  │                                  `searchPlaceholder`, FieldDescription `searchHint` with more than one page,
+  │                                  tied by aria-describedby) and the Field `status`
   │                                  labelled `columns.status` (Select: Tất cả, Đang hoạt động, Đã khóa); status,
   │                                  sort and page in the URL, a change of status drops `page` (back to 1); the
   │                                  search text stays in the page, never in the URL (DEC-105): the route calls
@@ -500,7 +509,8 @@ A 400 means the URL was edited by hand: the list falls back to the default filte
       │                              làm", whose button sorts, with aria-sort and ArrowUpIcon (ascending),
       │                              ArrowDownIcon (descending) or ArrowUpDownIcon (not sorted) — button
       ├── staff-roles-cell.tsx       presentational — one Badge (secondary) per role name — badge
-      └── staff-status-badge.tsx     presentational — Badge: "Đang hoạt động" (default), "Đã khóa" (outline) — badge
+      └── staff-status-badge.tsx     presentational — Badge: "Đang hoạt động" (`success`, green), "Đã khóa"
+                                     (`destructive`, red) — badge
   ```
 
 ## SCR-STF-02 New staff account
