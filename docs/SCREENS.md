@@ -598,8 +598,19 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   the top of both files; a DISABLED account takes the variant `secondary` (grey), an ANONYMIZED one `outline`. The
   list of SCR-STF-01 shows the same badges (`staff-status-badge.tsx`), which the change of its Layout records in its
   own pull request; the run of STF-02, which edits that file anyway, starts once that pull request has merged and
-  builds them for both screens. The design system takes the tokens once that run's pull request merges (its freshness
-  check).
+  builds them for both screens. The buttons that lock an account ("Khóa tài khoản", "Khóa lại" and the dialog's
+  "Khóa") use a new Button variant `destructive-soft`, from the class string the owner gave (shadcn's newer styles),
+  `destructive` of new-york staying: `bg-destructive/10 text-destructive-soft-foreground hover:bg-destructive/20
+  dark:bg-destructive/20 dark:hover:bg-destructive/30`, light theme only like the rest of `:root`. Two changes from
+  the owner's string, for WCAG 2.2 AA: the text takes a new token `--destructive-soft-foreground` `oklch(0.444 0.177
+  26.899)` in `:root` and `@theme inline` (`text-destructive` there reaches only 3.99:1; the new one 7.01:1 on the 10
+  % ground, 5.82:1 on the hover's 20 %), and the focus ring stays the base one of `button.tsx`
+  (`focus-visible:ring-destructive/20` and `focus-visible:border-destructive/40` are left out: the first would draw
+  1.44:1, the second nothing). The commit of the variant adds to `globals.test.ts` a blend of `--destructive` at 10 %
+  and 20 % over `--background`, composited in gamma-encoded sRGB as the browser does, checks
+  `--destructive-soft-foreground` on both at 4.5:1, and rewrites the comments at the top of `globals.css` and
+  `globals.test.ts`. The design system takes the tokens and the variants once that run's pull request merges (its
+  freshness check).
 - **Texts** (`messages/vi.json`), new ones marked *new*, under `staff.account` unless named: the page's title and
   breadcrumb entry `title` "Tài khoản nhân viên" (*new*); the details card `info.title` "Thông tin nhân viên" and
   `info.description` "Thông tin ghi khi tạo tài khoản, dùng để liên hệ và phân quyền." (*new*); its labels
@@ -684,10 +695,10 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   ├── staff-account-status-section.tsx   Card: CardTitle `status.title`, CardDescription `status.description`;
   │                                      the row "Trạng thái" with the status badge; the row "Mật khẩu" with
   │                                      Badge outline `mustChangePassword` when `mustChangePassword`; with
-  │                                      `staff.disable`, full width: on ACTIVE "Khóa tài khoản" (destructive,
+  │                                      `staff.disable`, full width: on ACTIVE "Khóa tài khoản" (destructive-soft,
   │                                      LockIcon), which opens the dialog; on DISABLED "Khôi phục tài khoản"
   │                                      (default, RotateCcwIcon), which opens the confirmation, and "Khóa lại"
-  │                                      (destructive, LockIcon) with its hint `disableAgainHint` tied by
+  │                                      (destructive-soft, LockIcon) with its hint `disableAgainHint` tied by
   │                                      aria-describedby, which opens the dialog; on the user's own account no
   │                                      action but the muted line `ownAccount`; on ANONYMIZED (Badge outline
   │                                      `status.anonymized`) no action but the muted line `anonymized`; each
@@ -711,11 +722,11 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   │   │                                  unticked and ticking it picks today in Asia/Ho_Chi_Minh; a joined date after
   │   │                                  today leaves no day to pick: the checkbox is disabled with the FieldDescription
   │   │                                  `leftDateFuture`; an error no field shows at the top in an Alert; footer "Hủy"
-  │   │                                  (outline) and "Khóa" (destructive), disabled with LoaderCircleIcon until the
-  │   │                                  answer comes; sends `{ leftDate }`, null when not ticked; closes on 200, on a
-  │   │                                  409 shown in a toast, on a 404, on a 500 and on no answer (those three in their
-  │   │                                  toast, then a reload); stays open with a field error — dialog, alert, field,
-  │   │                                  checkbox, popover, calendar, button
+  │   │                                  (outline) and "Khóa" (destructive-soft), disabled with LoaderCircleIcon until
+  │   │                                  the answer comes; sends `{ leftDate }`, null when not ticked; closes on 200, on
+  │   │                                  a 409 shown in a toast, on a 404, on a 500 and on no answer (those three in
+  │   │                                  their toast, then a reload); stays open with a field error — dialog, alert,
+  │   │                                  field, checkbox, popover, calendar, button
   │   └── staff-restore-dialog.tsx       props: the account (`id`, `name`), `open` and `onOpenChange`, as the dialog's;
   │                                      AlertDialog: AlertDialogTitle `restoreDialog.title`, AlertDialogDescription
   │                                      `restoreDialog.description`; AlertDialogCancel "Hủy" and "Khôi phục" (a Button
