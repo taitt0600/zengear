@@ -8,6 +8,7 @@ flight, what is done and how this file changes: `CLAUDE.md`, *Work state*.
 | Key | Item | Who | Source |
 |---|---|---|---|
 | STF-02 | The design of SCR-STF-03 (`/design-screen SCR-STF-03`), then SCR-STF-03 | local | `docs/SCREENS.md`, SCR-STF-03; DEC-116 (6); DEC-119 |
+| layout-scr-stf-01 | `feat(web): add the row actions of the staff list (STF-05)`, which builds the changed Layout of SCR-STF-01 and deletes this row | local | pull request #112 (SCR-STF-01, **Layout**, **Theme**) |
 | upgrade-infra | Images, GitHub Actions, the .NET SDK band and the Postman CLI: DEC-122 (7); then Dependabot and its gate: (8), after a Decision on DEC-122 (8) for the updates of orval (its options in the source) | local, owner path | DEC-122; the Orval pull request (`refactor/orval`), *Follow-ups* |
 
 ## Waiting for a trigger
