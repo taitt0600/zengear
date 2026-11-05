@@ -661,23 +661,22 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   │   ├── staff-disable-dialog.tsx       Dialog: DialogTitle `disableDialog.title`, DialogDescription
   │   │                                  `disableDialog.description`, Alert destructive (CircleAlertIcon)
   │   │                                  `disableDialog.warning`; the Field (horizontal) Checkbox
-  │   │                                  `disableDialog.leaving` with its FieldDescription `leavingHint`; when
-  │   │                                  ticked, the Field `staff.list.columns.leftDate`: a date picker (Popover
-  │   │                                  with a Button outline showing `dd/MM/yyyy` and CalendarIcon, holding a
-  │   │                                  Calendar of one month, Monday first, `required` so that a second click
-  │   │                                  never empties it), days after today in Asia/Ho_Chi_Minh and before the
-  │   │                                  joined date disabled, its FieldDescription `leftDateHint` (or
-  │   │                                  `leftDateHintToday`) tied by aria-describedby, a 400 or 409 on
-  │   │                                  `#/leftDate` in its FieldError; an account that has a left date ("Khóa lại") opens ticked
-  │   │                                  with that date, any other opens unticked and ticking it picks today in
-  │   │                                  Asia/Ho_Chi_Minh; a joined date after today leaves no day to pick: the
-  │   │                                  checkbox is disabled with the FieldDescription `leftDateFuture`; an
-  │   │                                  error no field shows at the top in an Alert; footer "Hủy" (outline) and
-  │   │                                  "Khóa" (destructive), disabled with LoaderCircleIcon until the answer
-  │   │                                  comes; sends `{ leftDate }`, null when not ticked; closes on 200, on a
-  │   │                                  409 shown in a toast, on a 404, on a 500 and on no answer (those three
-  │   │                                  in their toast, then a reload); stays open with a field error —
-  │   │                                  dialog, alert, field, checkbox, popover, calendar, button
+  │   │                                  `disableDialog.leaving` with its FieldDescription `leavingHint`; when ticked,
+  │   │                                  the Field `staff.list.columns.leftDate`: a date picker (Popover with a Button
+  │   │                                  outline showing `dd/MM/yyyy` and CalendarIcon, holding a Calendar of one month,
+  │   │                                  Monday first, `required` so that a second click never empties it), days after
+  │   │                                  today in Asia/Ho_Chi_Minh and before the joined date disabled, its
+  │   │                                  FieldDescription `leftDateHint` (or `leftDateHintToday`) tied by
+  │   │                                  aria-describedby, a 400 or 409 on `#/leftDate` in its FieldError; an account
+  │   │                                  that has a left date ("Khóa lại") opens ticked with that date, any other opens
+  │   │                                  unticked and ticking it picks today in Asia/Ho_Chi_Minh; a joined date after
+  │   │                                  today leaves no day to pick: the checkbox is disabled with the FieldDescription
+  │   │                                  `leftDateFuture`; an error no field shows at the top in an Alert; footer "Hủy"
+  │   │                                  (outline) and "Khóa" (destructive), disabled with LoaderCircleIcon until the
+  │   │                                  answer comes; sends `{ leftDate }`, null when not ticked; closes on 200, on a
+  │   │                                  409 shown in a toast, on a 404, on a 500 and on no answer (those three in their
+  │   │                                  toast, then a reload); stays open with a field error — dialog, alert, field,
+  │   │                                  checkbox, popover, calendar, button
   │   └── staff-restore-dialog.tsx       AlertDialog: AlertDialogTitle `restoreDialog.title`,
   │                                      AlertDialogDescription `restoreDialog.description`; AlertDialogCancel
   │                                      "Hủy" and "Khôi phục" (a Button default, not AlertDialogAction, which
