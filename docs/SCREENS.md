@@ -167,13 +167,14 @@ Every admin screen except the sign-in page sits in this layout.
   2026-11-01; approved by the merge of the pull request that wrote this subsection (DEC-119). The shadcn block
   `sidebar-07` (a menu that collapses to icons, DEC-118 (5)); the page area is left empty, since every other screen
   draws its own, except on the no-permission page and the 404, which this design draws. Changed 2026-11-05 for the
-  theme switch of DEC-123, drawn with the design system of 2026-11-05 (its dark artboards from the `.dark` block of
-  `app/globals.css`, since `tokens.json` gains a dark theme only with DEC-123 (5)), approved by the merge of the
-  pull request of that change.
+  theme switch of DEC-123, drawn with the design system of 2026-11-05 (its dark artboards use the softer `.dark`
+  values of DEC-124: background `oklch(0.235 0 0)`, card, popover and sidebar `0.275`, secondary, muted, accent and
+  sidebar-accent `0.335`, the rest as `app/globals.css`; `tokens.json` gains a dark theme only with DEC-123 (5)),
+  approved by the merge of the pull request of that change.
 - **Artboards**: desktop (1440 px) with the menu expanded, which collapses to icons when the canvas plays it;
   desktop with the menu collapsed and the user menu open; narrow (390 px) with the menu closed and open; states:
   loading, error of `GET /me`, no permission, not found; for the theme: the desktop's "Giao diện" menu works in Play
-  (its dark theme drawn as the `.dark` tokens; "Theo hệ thống" drawn as light, since a canvas cannot read the
+  (its dark theme drawn with those `.dark` values; "Theo hệ thống" drawn as light, since a canvas cannot read the
   system), desktop in the dark theme with the tooltip "Giao diện" open, the error of `GET /me` in the dark theme
   (its destructive text), narrow with the user menu and its submenu "Giao diện" open. No entry: a user whose
   permissions allow no entry sees the menu without its group "Menu", only the store name and the user. SCR-AUT-01
