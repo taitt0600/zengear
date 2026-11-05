@@ -639,9 +639,10 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   its sections inside `RequirePermission` (`staff.read`) and the client `StaffAccountProvider`
   (`hooks/staff-account-context.tsx`), which holds the one call of `hooks/use-staff-account.ts`: GET
   /api/v1/admin/staff/{id}, the disable and restore mutations of `hooks/use-staff-status.ts`, which the row actions of
-  SCR-STF-01 share (by `id`; on 200 each invalidates that account's query and the queries of the staff list, so that
-  SCR-STF-01 shows the new status, `docs/FRONTEND.md`, *Data from the API*), and whether the user may act
-  (`staff.disable`, and not their own account: `id` of `useCurrentUser` from `identity/access`):
+  SCR-STF-01 share (by `id`; on 200, and on a 404, a 409 `concurrency-conflict`, a 500 or no answer, each invalidates
+  that account's query and the queries of the staff list, so that SCR-STF-01 shows the new status, `docs/FRONTEND.md`,
+  *Data from the API*), and whether the user may act (`staff.disable`, and not their own account: `id` of
+  `useCurrentUser` from `identity/access`):
 
   ```text
   staff-account-layout.tsx               slots: heading | details | status — a page of two cards, its heading
