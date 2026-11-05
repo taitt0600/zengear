@@ -168,7 +168,7 @@ Every admin screen except the sign-in page sits in this layout.
   `sidebar-07` (a menu that collapses to icons, DEC-118 (5)); the page area is left empty, since every other screen
   draws its own, except on the no-permission page and the 404, which this design draws. Changed 2026-11-05 for the
   theme switch of DEC-123, drawn with the design system of 2026-11-05 (its dark artboards use the softer `.dark`
-  values of DEC-124: background `oklch(0.235 0 0)`, card, popover and sidebar `0.275`, secondary, muted, accent and
+  values of DEC-124: background `oklch(0.235 0 0)`, card, popover and sidebar `0.255`, secondary, muted, accent and
   sidebar-accent `0.335`, the rest as `app/globals.css`; `tokens.json` gains a dark theme only with DEC-123 (5)),
   approved by the merge of the pull request of that change.
 - **Artboards**: desktop (1440 px) with the menu expanded, which collapses to icons when the canvas plays it;
