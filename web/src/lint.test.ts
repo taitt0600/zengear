@@ -1,10 +1,16 @@
 // @vitest-environment node
 import { fileURLToPath } from 'node:url'
 import { ESLint } from 'eslint'
-import { describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it } from 'vitest'
 
 // The rule of DEC-104 (6): no text written in JSX, in the children or in an attribute the user reads.
 const eslint = new ESLint({ cwd: fileURLToPath(new URL('..', import.meta.url)) })
+
+// The first lint loads the config, its plugins and the TypeScript parser: seconds while the other test files run
+// beside this one, more than the 5 s of a test. It runs once here, with a time of its own.
+beforeAll(async () => {
+  await eslint.lintText('', { filePath: 'src/features/sample/sample.tsx' })
+}, 60_000)
 
 // Only the two rules of the text check: the snippets break others (unused declarations, <img>) on purpose.
 const TEXT_RULES = ['react/jsx-no-literals', 'no-restricted-syntax']
