@@ -121,6 +121,11 @@
       "page": "Trang {page} / {pages}",
       "tableLabel": "Bảng nhân viên",
       "noValue": "—"
+    },
+    "account": {
+      "status": {
+        "anonymized": "Đã ẩn danh"
+      }
     }
   },
   "problems": {
