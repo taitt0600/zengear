@@ -87,6 +87,42 @@
       "nameTooLong": "Tên hiển thị tối đa 100 ký tự."
     }
   },
+  "staff": {
+    "list": {
+      "description": "Tài khoản nhân viên của cửa hàng, cùng vai trò và trạng thái. Mở một tài khoản để xem, khóa hoặc khôi phục.",
+      "add": "Thêm nhân viên",
+      "columns": {
+        "name": "Họ tên",
+        "employeeCode": "Mã nhân viên",
+        "email": "Email",
+        "roles": "Vai trò",
+        "status": "Trạng thái",
+        "joinedDate": "Ngày vào làm",
+        "leftDate": "Ngày nghỉ việc"
+      },
+      "status": {
+        "all": "Tất cả",
+        "active": "Đang hoạt động",
+        "disabled": "Đã khóa"
+      },
+      "search": "Lọc theo tên, mã hoặc email",
+      "searchPlaceholder": "an@example.com",
+      "searchHint": "Chỉ lọc trong trang đang xem.",
+      "empty": {
+        "title": "Chưa có tài khoản nhân viên.",
+        "description": "Tài khoản do quản trị viên hoặc quản lý cửa hàng tạo sẽ hiện ở đây."
+      },
+      "noMatch": {
+        "title": "Không có nhân viên phù hợp với bộ lọc.",
+        "description": "Thử bỏ bớt điều kiện lọc để xem thêm tài khoản."
+      },
+      "clearFilters": "Xóa bộ lọc",
+      "total": "{count} nhân viên",
+      "page": "Trang {page} / {pages}",
+      "tableLabel": "Bảng nhân viên",
+      "noValue": "—"
+    }
+  },
   "problems": {
     "network": "Không kết nối được máy chủ. Vui lòng kiểm tra mạng và thử lại.",
     "unknown": "Đã có lỗi xảy ra. Vui lòng thử lại."

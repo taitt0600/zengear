@@ -1,6 +1,12 @@
 import type { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
-import { ScreenPlaceholder } from '@/components/app/screen-placeholder'
+import {
+  StaffListFiltersSection,
+  StaffListHeaderSection,
+  StaffListLayout,
+  StaffListProvider,
+  StaffListTableSection,
+} from '@/features/identity/staff-accounts'
 import { RequirePermission } from '@/features/shell/admin'
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -8,12 +14,17 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t('staff') }
 }
 
-/** SCR-STF-01 Staff list: built with STF-05; until then the menu entry opens this page. */
-export default async function StaffPage() {
-  const t = await getTranslations('admin.menu')
+/** SCR-STF-01 Staff list (STF-05): the staff accounts, for a user who holds staff.read. */
+export default function StaffPage() {
   return (
     <RequirePermission permission="staff.read">
-      <ScreenPlaceholder title={t('staff')} />
+      <StaffListProvider>
+        <StaffListLayout
+          header={<StaffListHeaderSection />}
+          filters={<StaffListFiltersSection />}
+          list={<StaffListTableSection />}
+        />
+      </StaffListProvider>
     </RequirePermission>
   )
 }
