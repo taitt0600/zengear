@@ -4,10 +4,10 @@ import { TableCell, TableRow } from '@/components/ui/table'
 import type { StaffListItemDto } from '@/lib/api/generated/model'
 import { staffPath } from '../utils/paths'
 import { StaffRolesCell } from './staff-roles-cell'
-import { StaffStatusBadge } from './staff-status-badge'
+import { StaffStatusBadge, type StaffStatusTexts } from './staff-status-badge'
 
 /** The texts of a row: the mark of an empty value and the label of each status. */
-export type StaffRowTexts = { noValue: string; active: string; disabled: string }
+export type StaffRowTexts = { noValue: string; status: StaffStatusTexts }
 
 /**
  * Presentational: one account of SCR-STF-01, its name a link to SCR-STF-03; an empty code or joined date shows
@@ -35,10 +35,7 @@ export function StaffListRow({
         <StaffRolesCell roles={row.roles} />
       </TableCell>
       <TableCell>
-        <StaffStatusBadge
-          status={row.status}
-          label={row.status === 'ACTIVE' ? texts.active : texts.disabled}
-        />
+        <StaffStatusBadge status={row.status} texts={texts.status} />
       </TableCell>
       <TableCell className="tabular-nums">
         {row.joinedDate ? day(row.joinedDate) : texts.noValue}

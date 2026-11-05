@@ -1,21 +1,20 @@
 'use client'
 
 import { SearchXIcon, TriangleAlertIcon, UsersIcon } from 'lucide-react'
-import { useFormatter, useTranslations } from 'next-intl'
+import { useTranslations } from 'next-intl'
 import type { ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
 import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { useProblemText } from '@/hooks/use-problem-toast'
 import { useStaffListState } from '../hooks/staff-list-context'
 import { useCanCreateStaff } from '../hooks/use-can-create-staff'
-import { apiDate, sortDirection, type SortField } from '../utils/staff-list'
+import { useDay, useStaffStatusTexts } from '../hooks/use-staff-texts'
+import { sortDirection, type SortField } from '../utils/staff-list'
 import { StaffAddButton } from './staff-add-button'
 import { StaffListEmpty } from './staff-list-empty'
 import { StaffListPagination } from './staff-list-pagination'
 import { STAFF_SKELETON_ROWS, StaffListRow } from './staff-list-row'
 import { StaffSortHeader } from './staff-sort-header'
-
-const DAY = { day: '2-digit', month: '2-digit', year: 'numeric' } as const
 
 /**
  * The list of SCR-STF-01 (STF-05): the accounts of the page with their roles, status and dates, and its pages; or,
@@ -23,7 +22,8 @@ const DAY = { day: '2-digit', month: '2-digit', year: 'numeric' } as const
  */
 export function StaffListTableSection() {
   const t = useTranslations()
-  const format = useFormatter()
+  const day = useDay()
+  const statusTexts = useStaffStatusTexts()
   const list = useStaffListState()
   const problemText = useProblemText()
   const canCreate = useCanCreateStaff()
@@ -79,12 +79,7 @@ export function StaffListTableSection() {
       </>
     )
   }
-  const texts = {
-    noValue: t('staff.list.noValue'),
-    active: t('staff.list.status.active'),
-    disabled: t('staff.list.status.disabled'),
-  }
-  const day = (value: string) => format.dateTime(apiDate(value), DAY)
+  const texts = { noValue: t('staff.list.noValue'), status: statusTexts }
   return (
     <>
       <StaffTable>

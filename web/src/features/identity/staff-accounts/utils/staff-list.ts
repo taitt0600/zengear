@@ -44,6 +44,9 @@ export function pageCount(totalCount: number, pageSize = PAGE_SIZE): number {
   return Math.max(1, Math.ceil(totalCount / pageSize))
 }
 
+/** How a day shows on SCR-STF-01 and SCR-STF-03: `dd/MM/yyyy`, through `useDay`. */
+export const DAY = { day: '2-digit', month: '2-digit', year: 'numeric' } as const
+
 /** A `yyyy-MM-dd` of the API as the start of that day in Vietnam, to show it in Asia/Ho_Chi_Minh. */
 export function apiDate(value: string): Date {
   return new Date(`${value}T00:00:00+07:00`)

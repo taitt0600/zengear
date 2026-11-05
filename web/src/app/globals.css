@@ -5,8 +5,11 @@
 @custom-variant dark (&:is(.dark *));
 
 /* shadcn's neutral theme, with --input, --ring, --sidebar-ring and --muted-foreground darkened to WCAG 2.2 AA, and
-   --success for the green badge of a status (the Layout of SCR-STF-01); --success and --destructive carry white
-   text at 4.5:1, checked against --background, the same white (globals.test.ts measures the ratios). */
+   the soft tokens of the Layout of SCR-STF-03 (Theme): --success-soft with its --success-soft-foreground for the
+   badge of an active account, and --destructive-soft-foreground for the text of the button `destructive-soft` on
+   --destructive at 10 % and 20 %. --destructive carries white text at 4.5:1, checked against --background, the same
+   white; the soft pairs reach 4.5:1 too (globals.test.ts measures the ratios). Light theme only, like the rest of
+   :root. */
 :root {
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
@@ -24,7 +27,9 @@
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
-  --success: oklch(0.527 0.154 150.069);
+  --destructive-soft-foreground: oklch(0.444 0.177 26.899);
+  --success-soft: oklch(0.962 0.044 156.743);
+  --success-soft-foreground: oklch(0.448 0.119 151.328);
   --border: oklch(0.922 0 0);
   --input: oklch(0.665 0 0);
   --ring: oklch(0.556 0 0);
@@ -63,7 +68,9 @@
   --color-input: var(--input);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
-  --color-success: var(--success);
+  --color-destructive-soft-foreground: var(--destructive-soft-foreground);
+  --color-success-soft: var(--success-soft);
+  --color-success-soft-foreground: var(--success-soft-foreground);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
