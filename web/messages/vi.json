@@ -101,6 +101,12 @@
     "breadcrumb": {
       "label": "Vị trí trang",
       "more": "Xem thêm"
+    },
+    "pagination": {
+      "label": "Phân trang",
+      "previous": "Trang trước",
+      "next": "Trang sau",
+      "more": "Các trang khác"
     }
   }
 }
