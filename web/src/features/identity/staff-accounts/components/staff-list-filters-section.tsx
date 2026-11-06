@@ -33,7 +33,8 @@ export function StaffListFiltersSection() {
   const statusId = useId()
   const hint = list.pages > 1
   return (
-    <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end">
+    // Aligned at the top: the search hint, under the search box only, adds a line that must not push the status down.
+    <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-start">
       <Field className="sm:max-w-[420px] sm:flex-1">
         <FieldLabel htmlFor={searchId}>{t('search')}</FieldLabel>
         <InputGroup>
