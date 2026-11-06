@@ -48,21 +48,23 @@ flowchart TB
     cache[("Redis")]
   end
   firebase["Firebase Auth"]
+  storage["Firebase Storage"]
   misa["MISA meInvoice"]
   vnpay["VNPay"]
   resend["Resend"]
   customer --> webapp
   staff --> webapp
   webapp --> api
-  webapp -.-> firebase
+  webapp --> firebase
   api --> db
   api --> cache
   api --> firebase
+  api -.-> storage
   api -.-> misa
   api -.-> vnpay
   api -.-> resend
   classDef planned stroke-dasharray: 5 5
-  class misa,vnpay,resend planned
+  class storage,misa,vnpay,resend planned
 ```
 
 ```mermaid
@@ -80,8 +82,8 @@ Target hosting: Vercel for the web, Azure for the API and database. More in
 - **Specification first** — features, business rules and 120+ decisions in a [blueprint](docs/blueprint/README.md);
   a CI gate refuses a feature whose rules have no test.
 - **Typed contract** — the web client is generated from the API's OpenAPI document; CI fails on drift.
-- **Real infrastructure in tests** — 700+ API tests with Testcontainers (PostgreSQL, Redis), plus Vitest, Postman
-  and Playwright in CI.
+- **Real infrastructure in tests** — 700+ API tests, the integration ones on Testcontainers (PostgreSQL, Redis),
+  plus Vitest, Postman and Playwright in CI.
 - **Schema checked** — the schema built by EF Core migrations is compared in CI with a hand-written SQL specification.
 - **Security** — Firebase sign-in, role permissions cached in Redis, a nonce-based CSP, Problem Details errors.
 - **Accessibility** — WCAG 2.2 AA colour contrast measured by tests.
@@ -101,7 +103,7 @@ change before it merged. The implementation is AI-assisted (Claude Code), workin
 ## What I learned
 
 - **Writing decisions down makes changing course cheap.** When a real pull request disproved an assumption about
-  the CI gates, the record showed exactly what to revise, and the planned gate code was never written.
+  the CI gates, the written plan showed exactly which part to drop, and the planned gate code was never written.
 - **Measuring beats eyeballing.** Contrast tests caught colour pairs that looked fine but failed WCAG 2.2 AA.
 - **A generated contract turns API changes into compile errors** instead of broken screens at runtime.
 - **Small, regular upgrades beat one big catch-up** — letting versions drift turned one upgrade into six pull
@@ -109,17 +111,22 @@ change before it merged. The implementation is AI-assisted (Claude Code), workin
 
 ## Run it locally
 
-Requires Docker Desktop, the .NET SDK of `api/global.json`, Node.js of `web/.nvmrc`, PowerShell 7 and Python 3.
+Requires Docker Desktop, the .NET SDK of `api/global.json`, Node.js of `web/.nvmrc`, PowerShell 7, and Python 3 on
+PATH as `python`. First set the user-secrets of `ZenGear.Api` listed in [`api/CLAUDE.md`](api/CLAUDE.md)
+(*Local database*); the sign-in accounts are in [`docs/ACCEPTANCE.md`](docs/ACCEPTANCE.md).
 
 ```bash
 pwsh -NoProfile -File tools/env_doctor.ps1          # checks the set-up, says what to fix
 cd api && docker compose up -d postgres redis firebase && dotnet tool restore && cd ..
 pwsh -NoProfile -File tools/dev_reset.ps1           # database, seed data, development accounts
 dotnet run --project api/src/ZenGear.Api --launch-profile http
-cd web && npm ci && npm run dev                     # http://localhost:3000/admin
 ```
 
-User-secrets and sign-in accounts: [`api/CLAUDE.md`](api/CLAUDE.md) and [`docs/ACCEPTANCE.md`](docs/ACCEPTANCE.md).
+Then, in a second terminal from the repository root:
+
+```bash
+cd web && npm ci && npm run dev                     # http://localhost:3000/admin
+```
 
 ## License
 
