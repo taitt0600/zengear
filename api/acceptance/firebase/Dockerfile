@@ -1,6 +1,7 @@
 # Firebase Auth Emulator and its UI for the acceptance environment (docs/ACCEPTANCE.md). The Auth Emulator runs on
-# Node.js alone; firebase-tools is pinned so that every build runs the same emulator.
-FROM node:22-bookworm-slim
+# Node.js alone; firebase-tools is pinned so that every build runs the same emulator. The Node.js version is the one of
+# web/.nvmrc (DEC-122 (7)): change both together.
+FROM node:26.13.0-bookworm-slim
 ARG FIREBASE_TOOLS_VERSION=15.32.1
 RUN npm install --global --no-audit --no-fund "firebase-tools@${FIREBASE_TOOLS_VERSION}"
 

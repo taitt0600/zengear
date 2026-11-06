@@ -24,7 +24,7 @@ services:
       - pgdata:/var/lib/postgresql
 
   redis:
-    image: redis:7.4-alpine
+    image: redis:8.10-alpine
     # The access cache keeps version keys without TTL: Redis must never evict them (R-SEC-07).
     command: ["redis-server", "--maxmemory-policy", "volatile-lru"]
     # Published on 127.0.0.1 only: Redis runs without a password.

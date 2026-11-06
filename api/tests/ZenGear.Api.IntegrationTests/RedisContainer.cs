@@ -18,7 +18,7 @@ public sealed class RedisContainer
     [OneTimeSetUp]
     public async Task StartAsync()
     {
-        _container = new RedisBuilder("redis:7.4-alpine")
+        _container = new RedisBuilder("redis:8.10-alpine")
             .WithCommand("--maxmemory-policy", "volatile-lru")
             .Build();
         await _container.StartAsync();
