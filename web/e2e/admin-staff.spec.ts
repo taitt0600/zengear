@@ -76,6 +76,53 @@ test('on a narrow screen the way to add an account takes the full width', async 
   await page.screenshot({ path: test.info().outputPath('staff-list-narrow.png'), fullPage: true })
 })
 
+for (const [totalCount, hint] of [
+  [45, true],
+  [5, false],
+] as const) {
+  test(`the two filters keep their labels and boxes on one line, with ${totalCount} accounts`, async ({
+    page,
+  }) => {
+    // Whatever the database holds, the answer of the list says `totalCount` accounts: more than a page of 20 shows the
+    // search hint under the search box only. The body changes length, so its old length goes.
+    await page.route('**/api/v1/admin/staff?*', async (route) => {
+      const response = await route.fetch()
+      const headers = { ...response.headers() }
+      delete headers['content-length']
+      await route.fulfill({
+        response,
+        headers,
+        json: { ...(await response.json()), totalCount },
+      })
+    })
+    try {
+      await signedInAdmin(page)
+
+      // The list has answered (its rows show), so the hint is there or not because of `totalCount`.
+      await expect(table(page).getByRole('row').nth(1)).toBeVisible()
+      await expect(page.getByText('Chỉ lọc trong trang đang xem.')).toBeVisible({ visible: hint })
+      const label = (text: string) =>
+        page.locator('label').filter({
+          hasText: new RegExp(`^${text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`),
+        })
+      const [searchLabel, statusLabel, search, status] = await Promise.all(
+        [
+          label('Lọc theo tên, mã hoặc email'),
+          label('Trạng thái'),
+          searchBox(page),
+          statusFilter(page),
+        ].map((element) => element.boundingBox()),
+      )
+      expect(Math.abs(searchLabel!.y - statusLabel!.y)).toBeLessThan(2)
+      expect(Math.abs(search!.y - status!.y)).toBeLessThan(2)
+      if (hint) await page.screenshot({ path: test.info().outputPath('staff-list-filters.png') })
+    } finally {
+      // A reload of the list still in flight when the flow ends must not fail the next one.
+      await page.unrouteAll({ behavior: 'ignoreErrors' })
+    }
+  })
+}
+
 test('a disabled account shows with its status, and the filters clear', async ({ page }) => {
   const staff = await newSalesConsultant(`E2e-list-${Date.now()}`)
   await disableStaff(staff.id)
