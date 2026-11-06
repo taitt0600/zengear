@@ -24,6 +24,12 @@ const table = (page: Page) => page.getByRole('region', { name: 'Bảng nhân vi�
 const searchBox = (page: Page) => page.getByLabel('Lọc theo tên, mã hoặc email')
 const statusFilter = (page: Page) => page.getByRole('combobox', { name: 'Trạng thái' })
 
+/** Whether the page fits the window's width, with nothing to scroll sideways and nothing scrolled. */
+const noSidewaysScroll = (page: Page) =>
+  page.evaluate(
+    () => document.documentElement.scrollWidth <= window.innerWidth && window.scrollX === 0,
+  )
+
 /** A day as the list shows it: dd/MM/yyyy in Vietnam. */
 const shown = (date: Date) =>
   new Intl.DateTimeFormat('vi', {
@@ -96,7 +102,9 @@ test('a disabled account shows with its status, and the filters clear', async ({
 test('the Admin locks and restores an account from its row, and has no command on their own', async ({
   page,
 }) => {
-  const staff = await newSalesConsultant(`E2e-row-${Date.now()}`)
+  // A long email, so that the nine columns are wider than the card: the table's box scrolls sideways, the page never
+  // (the Layout), also when the focus reaches the menu button at the end of the row.
+  const staff = await newSalesConsultant(`E2e-row-${Date.now()}`, `e2e${'x'.repeat(40)}`)
   const listPage = await staffListPage(staff.email, 'sort=name')
   await signedInAdmin(page)
   if (listPage > 1) await page.goto(`/admin/staff?page=${listPage}`)
@@ -104,10 +112,15 @@ test('the Admin locks and restores an account from its row, and has no command o
   const row = table(page).getByRole('row').filter({ hasText: staff.email })
   const menuOf = (target: typeof row) => target.getByRole('button', { name: /^Thao tác cho / })
   await expect(row.getByText('Đang hoạt động')).toBeVisible()
+  expect(await noSidewaysScroll(page)).toBe(true)
   await menuOf(row).click()
   const menu = page.getByRole('menu')
   await expect(menu.getByRole('menuitem')).toHaveText(['Xem chi tiết', 'Khóa tài khoản'])
-  await page.screenshot({ path: test.info().outputPath('staff-list-row-menu.png') })
+  expect(await noSidewaysScroll(page)).toBe(true)
+  await page.screenshot({
+    path: test.info().outputPath('staff-list-row-menu.png'),
+    animations: 'disabled',
+  })
   await menu.getByRole('menuitem', { name: 'Khóa tài khoản' }).click()
   const dialog = page.getByRole('dialog', { name: 'Khóa tài khoản' })
   await dialog.getByRole('button', { name: 'Khóa', exact: true }).click()
