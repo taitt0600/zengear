@@ -24,25 +24,29 @@ import {
   FieldLabel,
 } from '@/components/ui/field'
 import { useDisableForm, type DisableAccount } from '../hooks/use-disable-form'
+import { closedFocus } from '../utils/closed-focus'
 import { StaffLeftDateField } from './staff-left-date-field'
 
 /**
  * The dialog "Khóa tài khoản" of SCR-STF-03 (STF-02; R-USR-07, R-USR-12, R-SEC-04), which a row of SCR-STF-01 opens
  * too: the warning that the person is signed out everywhere, whether they left with their last working day, and
- * "Khóa". Its content mounts at each opening, so it starts from the account's values every time.
+ * "Khóa". Its content mounts at each opening, so it starts from the account's values every time. Opened without a
+ * DialogTrigger, it focuses nothing when it closes, unless `onClosed` (a row of SCR-STF-01) puts the focus back.
  */
 export function StaffDisableDialog({
   account,
   open,
   onOpenChange,
+  onClosed,
 }: {
   account: DisableAccount
   open: boolean
   onOpenChange: (open: boolean) => void
+  onClosed?: () => void
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent onCloseAutoFocus={closedFocus(onClosed)}>
         <DisableForm account={account} onDone={() => onOpenChange(false)} />
       </DialogContent>
     </Dialog>

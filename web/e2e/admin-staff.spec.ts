@@ -2,6 +2,7 @@ import { expect, test, type Page } from '@playwright/test'
 import {
   accounts,
   disableStaff,
+  meId,
   newSalesConsultant,
   PASSWORD,
   staffListPage,
@@ -90,4 +91,50 @@ test('a disabled account shows with its status, and the filters clear', async ({
   await expect(page).not.toHaveURL(/status=/)
   await expect(searchBox(page)).toHaveValue('')
   await expect(statusFilter(page)).toHaveText('Tất cả')
+})
+
+test('the Admin locks and restores an account from its row, and has no command on their own', async ({
+  page,
+}) => {
+  const staff = await newSalesConsultant(`E2e-row-${Date.now()}`)
+  const listPage = await staffListPage(staff.email, 'sort=name')
+  await signedInAdmin(page)
+  if (listPage > 1) await page.goto(`/admin/staff?page=${listPage}`)
+
+  const row = table(page).getByRole('row').filter({ hasText: staff.email })
+  const menuOf = (target: typeof row) => target.getByRole('button', { name: /^Thao tác cho / })
+  await expect(row.getByText('Đang hoạt động')).toBeVisible()
+  await menuOf(row).click()
+  const menu = page.getByRole('menu')
+  await expect(menu.getByRole('menuitem')).toHaveText(['Xem chi tiết', 'Khóa tài khoản'])
+  await page.screenshot({ path: test.info().outputPath('staff-list-row-menu.png') })
+  await menu.getByRole('menuitem', { name: 'Khóa tài khoản' }).click()
+  const dialog = page.getByRole('dialog', { name: 'Khóa tài khoản' })
+  await dialog.getByRole('button', { name: 'Khóa', exact: true }).click()
+  await expect(page.getByText('Đã khóa tài khoản.')).toBeVisible()
+  await expect(dialog).toBeHidden()
+  await expect(row.getByText('Đã khóa', { exact: true })).toBeVisible()
+
+  // A click after the dialog: the page takes the pointer again (no layer of the menu left over it).
+  await menuOf(row).click()
+  await expect(menu.getByRole('menuitem')).toHaveText([
+    'Xem chi tiết',
+    'Khôi phục tài khoản',
+    'Khóa lại',
+  ])
+  await menu.getByRole('menuitem', { name: 'Khôi phục tài khoản' }).click()
+  await page
+    .getByRole('alertdialog')
+    .getByRole('button', { name: 'Khôi phục', exact: true })
+    .click()
+  await expect(page.getByText('Đã khôi phục tài khoản.')).toBeVisible()
+  await expect(row.getByText('Đang hoạt động')).toBeVisible()
+
+  const ownerPage = await staffListPage(accounts.admin, 'sort=name')
+  await page.goto(`/admin/staff${ownerPage > 1 ? `?page=${ownerPage}` : ''}`)
+  const owner = table(page).getByRole('row').filter({ hasText: accounts.admin })
+  await menuOf(owner).click()
+  await expect(menu.getByRole('menuitem')).toHaveText(['Xem chi tiết'])
+  await menu.getByRole('menuitem', { name: 'Xem chi tiết' }).click()
+  await expect(page).toHaveURL(new RegExp(`/admin/staff/${await meId(accounts.admin, PASSWORD)}$`))
 })
