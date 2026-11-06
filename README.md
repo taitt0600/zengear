@@ -101,5 +101,6 @@ required checks pass.
 
 ## License
 
-No license file: all rights reserved, except files that carry their own license, such as the MIT-licensed shadcn/ui
-components in `web/src/components/ui/` and Vercel's Web Interface Guidelines in `.claude/guidelines/`.
+No license file: all rights reserved, except third-party code under its own license: the shadcn/ui components in
+`web/src/components/ui/` (MIT, shadcn-ui/ui), and Vercel's Web Interface Guidelines and the shadcn skill in `.claude/`
+(MIT, with their license files beside them).
