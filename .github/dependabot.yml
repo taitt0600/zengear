@@ -40,3 +40,9 @@ updates:
     groups:
       web:
         update-types: ['minor', 'patch']
+    ignore:
+      # DEC-122 (2), (8): below 6.1 until typescript-eslint accepts it; 7 also waits for the condition of DEC-122 (2).
+      - dependency-name: typescript
+        versions: ['>=6.1.0']
+      # DEC-125 (1): orval is updated by hand, with npm run gen:api in the same pull request.
+      - dependency-name: orval
