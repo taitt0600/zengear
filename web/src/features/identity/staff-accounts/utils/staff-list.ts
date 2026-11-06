@@ -39,6 +39,18 @@ export function matchesSearch(
   )
 }
 
+/**
+ * The rows of a page with their "STT": (page − 1) × the page size (20) + their index in the page's `items`, 1 first.
+ * Numbered before the search, which then hides rows without renumbering the others.
+ */
+export function numbered<T>(
+  items: T[],
+  page: number,
+  pageSize = PAGE_SIZE,
+): (T & { number: number })[] {
+  return items.map((item, index) => ({ ...item, number: (page - 1) * pageSize + index + 1 }))
+}
+
 /** The pages of `totalCount` accounts, one at least, so that an empty list is page 1 of 1. */
 export function pageCount(totalCount: number, pageSize = PAGE_SIZE): number {
   return Math.max(1, Math.ceil(totalCount / pageSize))

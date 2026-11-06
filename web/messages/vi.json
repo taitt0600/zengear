@@ -89,16 +89,23 @@
   },
   "staff": {
     "list": {
-      "description": "Tài khoản nhân viên của cửa hàng, cùng vai trò và trạng thái. Mở một tài khoản để xem, khóa hoặc khôi phục.",
+      "description": "Tài khoản nhân viên của cửa hàng, cùng vai trò và trạng thái. Xem, khóa hoặc khôi phục một tài khoản từ cột Thao tác.",
       "add": "Thêm nhân viên",
       "columns": {
+        "number": "STT",
+        "numberFull": "Số thứ tự",
         "name": "Họ tên",
         "employeeCode": "Mã nhân viên",
         "email": "Email",
         "roles": "Vai trò",
         "status": "Trạng thái",
         "joinedDate": "Ngày vào làm",
-        "leftDate": "Ngày nghỉ việc"
+        "leftDate": "Ngày nghỉ việc",
+        "actions": "Thao tác"
+      },
+      "actions": {
+        "label": "Thao tác cho {name}",
+        "view": "Xem chi tiết"
       },
       "status": {
         "all": "Tất cả",

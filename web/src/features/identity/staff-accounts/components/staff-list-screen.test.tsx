@@ -1,15 +1,9 @@
 import { act, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
-import { CurrentUserProvider, type CurrentUser } from '@/features/identity/access'
-import type { PagedDtoOfStaffListItemDto, StaffListItemDto } from '@/lib/api/generated/model'
 import { ApiError } from '@/lib/api/problems'
 import { renderWithProviders } from '@/test/render'
-import { StaffListProvider } from '../hooks/staff-list-context'
-import { StaffListFiltersSection } from './staff-list-filters-section'
-import { StaffListHeaderSection } from './staff-list-header-section'
-import { StaffListLayout } from './staff-list-layout'
-import { StaffListTableSection } from './staff-list-table-section'
+import { manager, owner, paged, staffListScreen as staffScreen } from './staff-list.fixtures'
 
 // The mutator of the generated client, which the list's query calls (docs/FRONTEND.md, Tests and checks).
 const api = vi.hoisted(() => ({ fetch: vi.fn() }))
@@ -33,69 +27,9 @@ beforeAll(() => {
   window.HTMLElement.prototype.scrollIntoView ??= () => {}
 })
 
-const owner: StaffListItemDto = {
-  id: '0199a0f3-0000-7000-8000-000000000001',
-  name: 'Chủ cửa hàng',
-  email: 'owner@zengear.test',
-  employeeCode: null,
-  joinedDate: null,
-  leftDate: null,
-  status: 'ACTIVE',
-  roles: [{ id: '0199a000-0000-7000-8000-000000000001', name: 'Admin' }],
-}
-const manager: StaffListItemDto = {
-  id: '0199a0f3-0000-7000-8000-000000000002',
-  name: 'Quản lý (fixture)',
-  email: 'manager.fixture@zengear.test',
-  employeeCode: 'FX0001',
-  joinedDate: '2026-10-01',
-  leftDate: '2026-11-01',
-  status: 'DISABLED',
-  roles: [
-    { id: '0199a000-0000-7000-8000-000000000002', name: 'Store Manager' },
-    { id: '0199a000-0000-7000-8000-000000000004', name: 'Cashier' },
-  ],
-}
-
-const paged = (
-  items: StaffListItemDto[],
-  { page = 1, totalCount = items.length }: { page?: number; totalCount?: number } = {},
-) => {
-  const data: PagedDtoOfStaffListItemDto = { items, page, pageSize: 20, totalCount }
-  return { data, status: 200, headers: new Headers() }
-}
-
-const user = (permissions: string[]): CurrentUser => ({
-  id: '0199a0f3-0000-7000-8000-000000000009',
-  name: 'Quản lý',
-  email: 'manager@zengear.test',
-  isStaff: true,
-  mustChangePassword: false,
-  permissions,
-})
-
 // The screen as its page composes it.
 const renderScreen = (permissions = ['staff.read', 'staff.create']) =>
   renderWithProviders(staffScreen(permissions))
-
-const staffScreen = (permissions: string[]) => (
-  <CurrentUserProvider
-    value={{
-      me: user(permissions),
-      signOut: vi.fn(),
-      forbidden: false,
-      clearForbidden: () => {},
-    }}
-  >
-    <StaffListProvider>
-      <StaffListLayout
-        header={<StaffListHeaderSection />}
-        filters={<StaffListFiltersSection />}
-        list={<StaffListTableSection />}
-      />
-    </StaffListProvider>
-  </CurrentUserProvider>
-)
 
 const table = () => screen.findByRole('region', { name: 'Bảng nhân viên' })
 // The list once loaded: the region also holds the skeleton rows while it loads.
@@ -123,16 +57,37 @@ describe('the staff list', () => {
       'href',
       `/admin/staff/${owner.id}`,
     )
-    expect(ownerCells[1]).toHaveTextContent('—')
-    expect(ownerCells[2]).toHaveTextContent('owner@zengear.test')
-    expect(ownerCells[4]).toHaveTextContent('Đang hoạt động')
-    expect(ownerCells[5]).toHaveTextContent('—')
-    expect(ownerCells[6]).toHaveTextContent(/^$/)
-    expect(within(managerCells[3]).getByText('Store Manager')).toBeVisible()
-    expect(within(managerCells[3]).getByText('Cashier')).toBeVisible()
-    expect(managerCells[4]).toHaveTextContent('Đã khóa')
-    expect(managerCells[5]).toHaveTextContent('01/10/2026')
-    expect(managerCells[6]).toHaveTextContent('01/11/2026')
+    // STT first, then the seven columns of the API, then the row's actions.
+    expect(ownerCells).toHaveLength(9)
+    expect(ownerCells[0]).toHaveTextContent(/^1$/)
+    expect(managerCells[0]).toHaveTextContent(/^2$/)
+    expect(ownerCells[2]).toHaveTextContent('—')
+    expect(ownerCells[3]).toHaveTextContent('owner@zengear.test')
+    expect(ownerCells[5]).toHaveTextContent('Đang hoạt động')
+    expect(ownerCells[6]).toHaveTextContent('—')
+    expect(ownerCells[7]).toHaveTextContent(/^$/)
+    expect(within(managerCells[4]).getByText('Store Manager')).toBeVisible()
+    expect(within(managerCells[4]).getByText('Cashier')).toBeVisible()
+    expect(managerCells[5]).toHaveTextContent('Đã khóa')
+    expect(managerCells[6]).toHaveTextContent('01/10/2026')
+    expect(managerCells[7]).toHaveTextContent('01/11/2026')
+    expect(
+      within(ownerCells[8]).getByRole('button', { name: 'Thao tác cho Chủ cửa hàng' }),
+    ).toBeVisible()
+    // The nine headers in order, by their names: "STT" shows, "Số thứ tự" is what a screen reader reads.
+    const headers = [
+      'Số thứ tự',
+      'Họ tên',
+      'Mã nhân viên',
+      'Email',
+      'Vai trò',
+      'Trạng thái',
+      'Ngày vào làm',
+      'Ngày nghỉ việc',
+      'Thao tác',
+    ].map((name) => screen.getByRole('columnheader', { name }))
+    expect(screen.getAllByRole('columnheader')).toEqual(headers)
+    expect(within(headers[0]).getByText('STT')).toHaveAttribute('aria-hidden', 'true')
 
     expect(screen.getByRole('heading', { level: 1, name: 'Nhân viên' })).toBeVisible()
     expect(screen.getByRole('link', { name: 'Thêm nhân viên' })).toHaveAttribute(
@@ -262,6 +217,23 @@ describe('the staff list', () => {
     expect(searchBox()).toHaveAttribute('autocomplete', 'off')
     expect(searchBox()).toHaveAttribute('spellcheck', 'false')
     expect(searchBox()).not.toHaveAccessibleDescription()
+  })
+
+  it('numbers the rows from the page, and the search hides rows without renumbering', async () => {
+    const typing = userEvent.setup()
+    navigation.search = 'page=2'
+    api.fetch.mockResolvedValue(paged([owner, manager], { page: 2, totalCount: 22 }))
+    renderScreen()
+
+    const number = (name: string) => {
+      const row = screen.getAllByRole('row').find((r) => within(r).queryByRole('link', { name }))
+      return within(row!).getAllByRole('cell')[0]
+    }
+    await loaded()
+    expect(number('Chủ cửa hàng')).toHaveTextContent(/^21$/)
+    expect(number('Quản lý (fixture)')).toHaveTextContent(/^22$/)
+    await typing.type(searchBox(), 'fx00')
+    expect(number('Quản lý (fixture)')).toHaveTextContent(/^22$/)
   })
 
   it('keeps the hint of the search while the next page loads', async () => {
@@ -426,5 +398,10 @@ describe('the staff list', () => {
     expect(await table()).toHaveAttribute('aria-busy', 'true')
     expect(screen.getByRole('columnheader', { name: 'Họ tên' })).toBeVisible()
     expect(screen.queryByRole('link', { name: 'Chủ cửa hàng' })).toBeNull()
+    // One bar a column, the nine of the table.
+    for (const row of within(await table())
+      .getAllByRole('row')
+      .slice(1))
+      expect(within(row).getAllByRole('cell')).toHaveLength(9)
   })
 })

@@ -3,6 +3,7 @@
 import { useCurrentUser } from '@/features/identity/access'
 import { useGetApiV1AdminStaffId } from '@/lib/api/generated/staff/staff'
 import { ApiError } from '@/lib/api/problems'
+import { useCanDisableStaff } from './use-can-disable-staff'
 
 /**
  * The state of SCR-STF-03 (STF-01, STF-02): GET /api/v1/admin/staff/{id}, and whether the user may lock or restore it.
@@ -10,6 +11,7 @@ import { ApiError } from '@/lib/api/problems'
  */
 export function useStaffAccount(id: string) {
   const me = useCurrentUser()
+  const canDisable = useCanDisableStaff()
   const query = useGetApiV1AdminStaffId(id)
   const account = query.data?.data
   // A 404 wins over what the cache still holds: the account is gone (a reload after a refused command).
@@ -25,7 +27,7 @@ export function useStaffAccount(id: string) {
     loading: !account && !query.error,
     isFetching: query.isFetching,
     retry: () => void query.refetch(),
-    canDisable: me.permissions.includes('staff.disable'),
+    canDisable,
     isOwn: account?.id === me.id,
   }
 }

@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { apiDate, matchesSearch, nextSort, pageCount, sortDirection } from './staff-list'
+import { apiDate, matchesSearch, nextSort, numbered, pageCount, sortDirection } from './staff-list'
 
 describe('the sort of SCR-STF-01', () => {
   it.each([
@@ -53,6 +53,19 @@ describe('the pages of the list', () => {
     [45, 3],
   ])('%i accounts make %i pages of 20', (total, pages) => {
     expect(pageCount(total)).toBe(pages)
+  })
+
+  it.each([
+    [1, [1, 2]],
+    [3, [41, 42]],
+  ])('numbers the rows of page %i as %j', (page, numbers) => {
+    const rows = numbered([{ name: 'An' }, { name: 'Bình' }], page)
+    expect(rows.map((row) => row.number)).toEqual(numbers)
+    expect(rows.map((row) => row.name)).toEqual(['An', 'Bình'])
+  })
+
+  it('numbers by the page size the API answered', () => {
+    expect(numbered([{ name: 'An' }], 2, 10)[0].number).toBe(11)
   })
 })
 

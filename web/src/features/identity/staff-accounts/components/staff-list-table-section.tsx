@@ -2,23 +2,24 @@
 
 import { SearchXIcon, TriangleAlertIcon, UsersIcon } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import type { ReactNode } from 'react'
+import { useRef } from 'react'
 import { Button } from '@/components/ui/button'
-import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { useCurrentUser } from '@/features/identity/access'
 import { useProblemText } from '@/hooks/use-problem-toast'
 import { useStaffListState } from '../hooks/staff-list-context'
 import { useCanCreateStaff } from '../hooks/use-can-create-staff'
+import { useCanDisableStaff } from '../hooks/use-can-disable-staff'
 import { useDay, useStaffStatusTexts } from '../hooks/use-staff-texts'
-import { sortDirection, type SortField } from '../utils/staff-list'
 import { StaffAddButton } from './staff-add-button'
 import { StaffListEmpty } from './staff-list-empty'
 import { StaffListPagination } from './staff-list-pagination'
 import { STAFF_SKELETON_ROWS, StaffListRow } from './staff-list-row'
-import { StaffSortHeader } from './staff-sort-header'
+import { StaffTable } from './staff-list-table'
 
 /**
- * The list of SCR-STF-01 (STF-05): the accounts of the page with their roles, status and dates, and its pages; or,
- * in place of the rows, skeleton rows while it loads and an Empty when there is nothing to show.
+ * The list of SCR-STF-01 (STF-05): the accounts of the page, numbered, with their roles, status, dates and menu of
+ * actions, and its pages; or, in place of the rows, skeleton rows while it loads and an Empty when there is nothing to
+ * show. Whether the user may lock or restore (`staff.disable`) and their id are read once, for every row.
  */
 export function StaffListTableSection() {
   const t = useTranslations()
@@ -27,6 +28,13 @@ export function StaffListTableSection() {
   const list = useStaffListState()
   const problemText = useProblemText()
   const canCreate = useCanCreateStaff()
+  const canDisable = useCanDisableStaff()
+  const me = useCurrentUser()
+  // Where the focus goes when a row leaves the list with its dialog open (StaffRowActions): the table's box (with its
+  // rows or its skeleton rows), or "Xóa bộ lọc" when nothing matches the filters any more.
+  const region = useRef<HTMLDivElement>(null)
+  const clear = useRef<HTMLButtonElement>(null)
+  const focusList = () => (region.current ?? clear.current)?.focus()
 
   if (list.error) {
     return (
@@ -42,7 +50,13 @@ export function StaffListTableSection() {
       />
     )
   }
-  if (!list.loaded) return <StaffTable busy>{STAFF_SKELETON_ROWS}</StaffTable>
+  if (!list.loaded) {
+    return (
+      <StaffTable ref={region} busy>
+        {STAFF_SKELETON_ROWS}
+      </StaffTable>
+    )
+  }
   if (list.totalCount === 0 && !list.filtered) {
     return (
       <StaffListEmpty
@@ -70,7 +84,7 @@ export function StaffListTableSection() {
           title={t('staff.list.noMatch.title')}
           description={t('staff.list.noMatch.description')}
           action={
-            <Button variant="outline" onClick={list.clearFilters}>
+            <Button ref={clear} variant="outline" onClick={list.clearFilters}>
               {t('staff.list.clearFilters')}
             </Button>
           }
@@ -82,50 +96,20 @@ export function StaffListTableSection() {
   const texts = { noValue: t('staff.list.noValue'), status: statusTexts }
   return (
     <>
-      <StaffTable>
+      <StaffTable ref={region}>
         {list.rows.map((row) => (
-          <StaffListRow key={row.id} row={row} texts={texts} day={day} />
+          <StaffListRow
+            key={row.id}
+            row={row}
+            texts={texts}
+            day={day}
+            canDisable={canDisable}
+            meId={me.id}
+            onGone={focusList}
+          />
         ))}
       </StaffTable>
       {footer}
     </>
-  )
-}
-
-// The table's box scrolls sideways itself (not shadcn's container inside it), so that the keyboard can scroll it
-// once it has the focus; on a narrow screen it has a border.
-function StaffTable({ busy, children }: { busy?: boolean; children: ReactNode }) {
-  const t = useTranslations('staff.list')
-  const { sort, toggleSort } = useStaffListState()
-  const sorting = (field: SortField) => (
-    <StaffSortHeader
-      label={t(`columns.${field}`)}
-      direction={sortDirection(sort, field)}
-      onSort={() => toggleSort(field)}
-    />
-  )
-  return (
-    <div
-      role="region"
-      tabIndex={0}
-      aria-label={t('tableLabel')}
-      aria-busy={busy}
-      className="overflow-x-auto rounded-lg border sm:border-0 [&>[data-slot=table-container]]:overflow-visible"
-    >
-      <Table>
-        <TableHeader>
-          <TableRow>
-            {sorting('name')}
-            {sorting('employeeCode')}
-            <TableHead>{t('columns.email')}</TableHead>
-            <TableHead>{t('columns.roles')}</TableHead>
-            <TableHead>{t('columns.status')}</TableHead>
-            {sorting('joinedDate')}
-            <TableHead>{t('columns.leftDate')}</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>{children}</TableBody>
-      </Table>
-    </div>
   )
 }

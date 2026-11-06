@@ -9,6 +9,7 @@ import {
   DEFAULT_SORT,
   matchesSearch,
   nextSort,
+  numbered,
   PAGE_SIZE,
   pageCount,
   type SortField,
@@ -45,9 +46,14 @@ export function useStaffList() {
   if (pages !== knownPages) setKnownPages(pages)
 
   const [search, setSearch] = useState('')
+  // Numbered once per answer, by the page and page size the API answered; the search then only hides rows.
+  const numberedRows = useMemo(
+    () => (result ? numbered(result.items, currentPage, Number(result.pageSize)) : []),
+    [result, currentPage],
+  )
   const rows = useMemo(
-    () => result?.items.filter((row) => matchesSearch(row, search)) ?? [],
-    [result, search],
+    () => numberedRows.filter((row) => matchesSearch(row, search)),
+    [numberedRows, search],
   )
 
   const href = useCallback(
