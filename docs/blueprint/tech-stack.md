@@ -49,9 +49,9 @@
 | Testing | Playwright | — | Test luồng màn hình trên API, Firebase Auth Emulator và bản build của web; ảnh chụp cho hướng dẫn test trước merge (DEC-104) | Phase 1 |
 | Dev Tooling | Visual Studio / VS Code | — | IDE | Phase 1 |
 | Dev Tooling | pgAdmin | — | PostgreSQL GUI | Phase 1 |
-| Dev Tooling | Postman | v12 | Collection v3 lưu bằng Git gốc trong postman/, mỗi tính năng một folder; chủ dự án test trước khi merge; Postman CLI 1.69.0 chạy collection trong CI và trên API dev, không cần đăng nhập; collection đăng nhập bằng custom token của Firebase Auth Emulator (DEC-100, DEC-101) | Phase 1 |
+| Dev Tooling | Postman | v12 | Collection v3 lưu bằng Git gốc trong postman/, mỗi tính năng một folder; chủ dự án test trước khi merge; Postman CLI 1.86.0 chạy collection trong CI và trên API dev, không cần đăng nhập; collection đăng nhập bằng custom token của Firebase Auth Emulator (DEC-100, DEC-101, DEC-122) | Phase 1 |
 | Dev Tooling | Firebase Local Emulator Suite | — | Chạy Firebase local | Phase 1 |
-| Dev Tooling | Docker | image postgres:18 | Container local, khớp version Azure Database for PostgreSQL | Phase 1 |
+| Dev Tooling | Docker | image postgres:18, redis:8.10-alpine, node:26.13.0-bookworm-slim | Container local, khớp version Azure Database for PostgreSQL; Redis 8.10 cho cache; Firebase Auth Emulator chạy trên Node.js của web/.nvmrc; image API dùng tag mcr.microsoft.com/dotnet/aspnet và sdk 10.0 (DEC-122) | Phase 1 |
 | Dev Tooling | Claude Code | — | Plugin từ marketplace claude-plugins-official (csharp-lsp, feature-dev, typescript-lsp, frontend-design; security-guidance dùng thử) và MCP qua Docker MCP Toolkit (PostgreSQL, Postman) chỉ với dữ liệu dev (DEC-100, DEC-111, DEC-112) | Phase 1 |
 | Dev Tooling | Node.js + npm | 26.13.0 (npm 11.20.0) | Runtime và package manager của web; package-lock.json commit, mọi bước setup-node của CI đọc web/.nvmrc, chạy npm ci; Dependabot cooldown 7 ngày (DEC-104, DEC-122) | Phase 1 |
 | Dev Tooling | Claude Design | — | Bản vẽ màn hình chủ dự án duyệt trước khi code; design system dựng từ codebase (DEC-119) | Phase 1 |
