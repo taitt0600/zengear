@@ -28,7 +28,9 @@ export function AdminLayout({
         {t('skipToContent')}
       </a>
       {sidebar}
-      <SidebarInset>
+      {/* min-w-0: beside the menu, the page shrinks to the space left and a wide content (a table) scrolls in its
+          own box, instead of widening the page past the window. */}
+      <SidebarInset className="min-w-0">
         {header}
         <main
           id="main"
