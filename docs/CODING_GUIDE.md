@@ -215,7 +215,7 @@ STF-05 (the staff list); paths are those of section 5.
 **Offline**: build, unit tests, integration tests and the local API work without a network once everything is on the
 machine; pushing and the CI wait for the network. Before going offline, once:
 - in `api/`: `dotnet tool restore` (it brings `dotnet-ef`), `dotnet restore ZenGear.slnx`, and
-  `dotnet test ZenGear.slnx` (Testcontainers pulls `postgres:18`, `redis:7.4-alpine` and its own helper image);
+  `dotnet test ZenGear.slnx` (Testcontainers pulls `postgres:18`, `redis:8.10-alpine` and its own helper image);
 - in `api/`: `docker compose up -d postgres redis firebase`, which builds the Firebase Auth Emulator image from
   `api/acceptance/firebase` (it downloads its base image and `firebase-tools`);
 - the Postman CLI 1.69.0 installed (`postman --version`).

@@ -21,7 +21,7 @@ services:
       retries: 30
 
   redis:
-    image: redis:7.4-alpine
+    image: redis:8.10-alpine
     # The access cache keeps version keys without TTL: Redis must never evict them (R-SEC-07).
     command: ["redis-server", "--maxmemory-policy", "volatile-lru"]
     ports:
