@@ -8,8 +8,10 @@ and the API run from the branch with the launch profile `http`. Each feature has
 acceptance criterion and rule.
 
 Requirements: Docker Desktop, the .NET SDK of `api/global.json`, PowerShell 7, Python 3, the Postman app v12 and the
-Postman CLI pinned to 1.69.0 (`npm install -g postman-cli@1.69.0`; `postman --version`), and for the web Node.js of
-`web/.nvmrc` with its own npm. Every command below runs from the root of the repository.
+Postman CLI pinned to 1.86.0 (`npm install -g postman-cli@1.86.0`; `postman --version`), and for the web Node.js of
+`web/.nvmrc` with its own npm. Every command below runs from the root of the repository. The CLI prints
+`[errored] Could not read response data.` under each `pm.sendRequest` of a script (the sign-in, some reads) although
+the call worked; only the summary table and the failed tests count.
 
 ## Test a feature
 

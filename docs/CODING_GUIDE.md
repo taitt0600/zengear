@@ -218,7 +218,7 @@ machine; pushing and the CI wait for the network. Before going offline, once:
   `dotnet test ZenGear.slnx` (Testcontainers pulls `postgres:18`, `redis:8.10-alpine` and its own helper image);
 - in `api/`: `docker compose up -d postgres redis firebase`, which builds the Firebase Auth Emulator image from
   `api/acceptance/firebase` (it downloads its base image and `firebase-tools`);
-- the Postman CLI 1.69.0 installed (`postman --version`).
+- the Postman CLI 1.86.0 installed (`postman --version`).
 
 ## 7. Review questions
 
