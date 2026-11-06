@@ -7,7 +7,7 @@ flight, what is done and how this file changes: `CLAUDE.md`, *Work state*.
 
 | Key | Item | Who | Source |
 |---|---|---|---|
-| upgrade-infra | Dependabot and its gate: DEC-122 (8); orval left out of Dependabot and updated by hand, as DEC-125 says (agreed 2026-11-06, not yet in the workbook: its patch `out/dec-125.patch.json` comes from the cloud session, applied by the pull request of `docs/dec-125`, which then cites DEC-125 alone here) | local, owner path | DEC-122 (8); DEC-125 |
+| upgrade-infra | Dependabot and its gate: DEC-122 (8); orval updated by hand, as DEC-125 says | local, owner path | DEC-122 (8); DEC-125 |
 | AUT-04 | The light and dark theme of the admin: the Layout of SCR-ADM-01 (`/design-screen SCR-ADM-01`), then `feat(web): add the light and dark theme of the admin (AUT-04)` on `feat/aut-04-web`, which deletes this row | local | DEC-123 (3), (6); DEC-124 |
 | focus-scr-stf-03 | `/fix-defect STF-02`: the dialogs "Khóa tài khoản" and "Khôi phục tài khoản?" of SCR-STF-03 (`staff-account-status-section.tsx`) put the focus back on close through their `onClosed` (`utils/closed-focus.ts`), with a fallback target, since a 200 replaces the button that opened them; today it falls to the page's body | local | pull request #118, *Decisions made* and the follow-up below its *Verification* |
 
