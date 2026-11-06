@@ -117,6 +117,8 @@ test('the Admin locks and restores an account from its row, and has no command o
   const menu = page.getByRole('menu')
   await expect(menu.getByRole('menuitem')).toHaveText(['Xem chi tiết', 'Khóa tài khoản'])
   expect(await noSidewaysScroll(page)).toBe(true)
+  // The screenshot shows the destructive item under the pointer: its text on its red ground (globals.test.ts).
+  await menu.getByRole('menuitem', { name: 'Khóa tài khoản' }).hover()
   await page.screenshot({
     path: test.info().outputPath('staff-list-row-menu.png'),
     animations: 'disabled',

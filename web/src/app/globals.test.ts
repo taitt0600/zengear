@@ -6,8 +6,9 @@ import { describe, expect, it } from 'vitest'
 // border of a field and of its focus, SC 1.4.3 asks 4.5:1 for text: the white text of the badge `destructive` on
 // --destructive (measured against --background, the same white), the soft badge `success` (its text token on its
 // ground), and the button `destructive-soft`, whose text token sits on --destructive at 10 % (at rest) and 20 % (on
-// hover) over --background, blended as the browser blends (Layout of SCR-STF-03, Theme). The margin absorbs the
-// rounding of a render.
+// hover) over --background, blended as the browser blends (Layout of SCR-STF-03, Theme), and the focused destructive
+// item of a menu, its text on --destructive at 10 % over --popover (DEC-124 (3), first used by the row menu of
+// SCR-STF-01). The margin absorbs the rounding of a render.
 const MARGIN = 0.05
 
 const css = readFileSync(new URL('./globals.css', import.meta.url), 'utf8')
@@ -106,6 +107,28 @@ describe('theme tokens of :root', () => {
       )
     },
   )
+
+  it('the focused destructive item of a menu reaches 4.5:1 on its ground over --popover (SC 1.4.3)', () => {
+    // Its light classes as dropdown-menu.tsx writes them (the `dark:` ones wait for the dark theme, AUT-04); Radix
+    // focuses an item under the pointer too, so this is also its hover.
+    const item = readFileSync(
+      new URL('../components/ui/dropdown-menu.tsx', import.meta.url),
+      'utf8',
+    )
+    const text = item.match(/(?<!dark:)data-\[variant=destructive\]:focus:text-([^\s"]+)/)?.[1]
+    const alpha = item.match(
+      /(?<!dark:)data-\[variant=destructive\]:focus:bg-destructive\/(\d+)/,
+    )?.[1]
+    expect([text, alpha]).not.toContain(undefined)
+    // A token at full opacity: a text colour with an opacity (`/80`) would be lighter than the token measured here.
+    expect(text).toMatch(/^[\w-]+$/)
+    const ground = blendedLuminance('destructive', Number(alpha) / 100, 'popover')
+    expect(ratio(luminance(text!), ground)).toBeGreaterThanOrEqual(4.5 + MARGIN)
+  })
+
+  it('the resting destructive item of a menu, --destructive on --popover, reaches 4.5:1 (SC 1.4.3)', () => {
+    expect(contrast('destructive', 'popover')).toBeGreaterThanOrEqual(4.5 + MARGIN)
+  })
 
   it('keeps a focused field darker than its resting border', () => {
     expect(luminance('ring')).toBeLessThan(luminance('input'))
