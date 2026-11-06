@@ -116,4 +116,5 @@ hold only shared values that never change during a run. `.postman/` (the link to
 
 `postman collection run postman/collections/ZenGear -e postman/environments/dev.environment.yaml [-i STF-01]
 --no-report-events` runs from the files without signing in (a login or API key is needed only for a collection ID, to
-send results to Postman, or for `--output`, which 1.69.0 refuses without a login). Exit code 1 when a test fails.
+send results to Postman, or for `--output`, which 1.69.0 refuses without a login, and 1.86.0 too, checked on
+2026-11-06). Exit code 1 when a test fails.

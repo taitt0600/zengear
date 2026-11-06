@@ -26,9 +26,12 @@ the folder of that feature only.
 
    without `-i` for the whole collection, logging to `out/logs/postman-all.log`. The whole output stays in the log
    (DEC-112 (5)): read from it the summary table and the lines of the failed tests, and the rest only when they do
-   not say why a test failed. Postman CLI 1.69.0 (`postman --version`); it runs from the files without
-   signing in, and prints a notice "No authorization data found" that is not an error. `--no-report-events` keeps the
-   results on the machine. Do not add `--output`, `--postman-api-key` or `postman login`: they need a Postman account.
+   not say why a test failed. Postman CLI 1.86.0 (`postman --version`); it runs from the files without
+   signing in, and prints a notice "No authorization data found" that is not an error. Since 1.75.0 it also marks
+   each `pm.sendRequest` of a script (the emulator sign-in, the reads of a test) `[errored]` with "Could not read
+   response data." although the call worked: that is not a failure either; only the summary table and the failed
+   tests count (measured on 2026-11-06). `--no-report-events` keeps the results on the machine. Do not add `--output`,
+   `--postman-api-key` or `postman login`: they need a Postman account.
 4. **Report**: requests run, tests passed and failed (the summary table), then for each failed test: the folder and
    request, the test name, the expected and the actual value, and the status code with the Problem Details `type` of
    the response, from the log (the run prints each request, its status and each test). A failure in the collection script (sign-in)

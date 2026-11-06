@@ -410,7 +410,7 @@ jobs:
           node-version-file: web/.nvmrc
           package-manager-cache: false
       - name: Install the Postman CLI
-        run: npm install --global --no-audit --no-fund postman-cli@1.69.0
+        run: npm install --global --no-audit --no-fund postman-cli@1.86.0
       - name: Postman collection
         run: |
           postman collection run postman/collections/ZenGear -e postman/environments/ci.environment.yaml \
