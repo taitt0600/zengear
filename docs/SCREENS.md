@@ -645,11 +645,11 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
 ### Layout
 
 - **Design**: <https://claude.ai/artifact/QjTnaq2rsB49xBeN3Wkuen>, drawn 2026-11-11 with the design system of
-  2026-11-11; approved by the merge of the pull request that wrote this subsection (DEC-119). It changes the layout
-  of the page only: one centred column, with a section navigation from `xl`; the 2560 px artboard shows the column
-  centred on a 2K screen. The dialog "Khóa tài khoản", the confirmation "Khôi phục tài khoản?", the DISABLED account and the sheet "Cập nhật thông tin" keep their
-  design of <https://claude.ai/artifact/DuLX9hmqGWyyP9vmoUw6Dd> (pull request #111). The canvas shows the frame of
-  SCR-ADM-01 for context only; this Layout does not approve it.
+  2026-11-11; approved by the merge of the pull request that wrote this subsection (DEC-119). It changes the layout of
+  the page only: one centred column, with a section navigation from `xl`; the 2560 px artboard shows the column
+  centred on a 2K screen. The dialog "Khóa tài khoản", the confirmation "Khôi phục tài khoản?", the DISABLED account
+  and the sheet "Cập nhật thông tin" keep their design of <https://claude.ai/artifact/DuLX9hmqGWyyP9vmoUw6Dd> (pull
+  request #111). The canvas shows the frame of SCR-ADM-01 for context only; this Layout does not approve it.
 - **Artboards**: desktop (1440 px) of an ACTIVE account, where the section navigation works in Play; wide (2560 px),
   where the column keeps 1024 px and centres; narrow (390 px) of an account whose default password is unchanged, with
   no section navigation; dark (1440 px, DEC-123 (5): soft badges and `destructive-soft` on the dark values of
@@ -760,8 +760,8 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   │   │                                  foreground, weight 500, aria-current="location"; a click calls onSelect —
   │   │                                  no shadcn component (moves to components/app/ with SCR-ACC-01)
   │   └── ../hooks/use-active-section.ts the current id: one IntersectionObserver on the sections and the
-  │                                      sentinel `staff-account-end` of the layout (the line 24px plus a third of the viewport from the
-  │                                      top; the last id at the sentinel only when the document scrolls, else the
+  │                                      sentinel `staff-account-end` of the layout (the line 24px plus a third
+  │                                      of the viewport from the top; the last id at the sentinel only when the document scrolls, else the
   │                                      first); select: scrolls to the section (smooth unless reduced motion),
   │                                      focuses its h2 (`<id>-title`) and replaces the hash (moves to @/hooks
   │                                      with SCR-ACC-01)
