@@ -657,7 +657,8 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   Skeleton), 404 and error (an Empty in the column, no navigation). No permission is the page of SCR-ADM-01
   (`RequirePermission` with `staff.read`). The sample is the fixture manager. The photo moves from the heading into
   the details card, beside the information (owner's request): an Avatar of 160px with the initials, and "Chọn ảnh"
-  under it, drawn ahead and built once gap 8 closes, like the sheet of gap 7.
+  under it, drawn ahead and built once gap 8 closes, like the sheet of gap 7; the 390 px artboard draws the Avatar
+  at 96px above the details and "Chọn ảnh" at full width.
 - **shadcn**: no `add`. The section navigation is plain links on the tokens (shadcn has no table of contents;
   `sidebar` is the app's menu and too heavy here). It lives in this module (`components/section-nav.tsx`,
   `hooks/use-active-section.ts`) while only this screen uses it (DEC-118 (1), `docs/FRONTEND.md`, *Modules and
@@ -693,8 +694,8 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   1024px with the menu expanded the card column would be about 488px.
 - **Texts** (`messages/vi.json`), new ones marked *new*, under `staff.account` unless named:
   `admin.sectionNav.label` "Trên trang này" (*new*; the visible title of the section navigation, which names the
-  `nav`); for the photo `info.photoAlt` "Ảnh của {name}" (*new*; the name of the Avatar), and, for gap 8, not built
-  yet, `info.choosePhoto` "Chọn ảnh" and its hint `info.photoHint` "Ảnh chân dung, rõ mặt." (*new*; the formats and
+  `nav`); for gap 8, not built yet: `info.photoAlt` "Ảnh của {name}" (*new*; the alt of the photo once there is
+  one), `info.choosePhoto` "Chọn ảnh" and its hint `info.photoHint` "Ảnh chân dung, rõ mặt." (*new*; the formats and
   size limit join the hint with the Decision of gap 8); the page's title and breadcrumb entry `title` "Tài khoản
   nhân viên" (*new*); the details card
   `info.title` "Thông tin nhân viên" and `info.description` "Thông tin ghi khi tạo tài khoản, dùng để liên hệ và phân
@@ -784,27 +785,33 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   │                                      24px on the section; CardDescription `info.description`;
   │                                      CardAction "Cập nhật thông tin" (outline, PencilIcon; full width under
   │                                      the description on a narrow screen), which opens the sheet: not built
-  │                                      until gap 7 closes, so the first build shows no button; CardContent a
-  │                                      grid `minmax(0, 1fr) 160px` with a gap of 32px (from sm; one column
-  │                                      below, the photo block first, centred): on the left a description list
-  │                                      (`dl`, rows of label 136px | value, 16px apart; on a narrow screen the
-  │                                      label above its value): Email, Mã nhân viên, SĐT công việc, Vai trò (one
+  │                                      until gap 7 closes, so the first build shows no button; CardContent is
+  │                                      a `@container` sized by the card, not the viewport (the menu changes the
+  │                                      card's width): the photo block first in the DOM, centred, then the
+  │                                      description list; from `@xl` (36rem) a grid `minmax(0, 1fr) 160px` with
+  │                                      a gap of 32px, the photo block placed in the second column
+  │                                      (`col-start-2 row-start-1`), so the focus order stays the DOM order; the
+  │                                      `dl` in rows of label 136px | value, 16px apart, from `@sm` (24rem), the
+  │                                      label over value below it: Email, Mã nhân viên, SĐT công việc, Vai trò (one
   │                                      Badge secondary each), Ngày vào làm, Ngày nghỉ việc (`dd/MM/yyyy`; "—"
-  │                                      when empty); a long email wraps, never cut short; on the right the photo
-  │                                      block — loading: the card with Skeleton of its title, six rows and a
+  │                                      when empty); a long email wraps, never cut short; the photo block shows
+  │                                      "Chọn ảnh" only with the permission the Decision of gap 8 names —
+  │                                      loading: the card with Skeleton of its title, six rows and a
   │                                      round photo; on a 404 or a failed load it renders nothing (the heading
   │                                      section shows the Empty) — card, badge, skeleton, avatar, button
-  │   ├── staff-photo.tsx                presentational — an Avatar of 160px (96px narrow): AvatarFallback with
-  │   │                                  the initials (the first letter of the first and of the last word of
-  │   │                                  `name` that start with a letter; one letter for a one-word name), named by
-  │   │                                  `info.photoAlt` with the person's name (role img) since it stands for the
-  │   │                                  photo; AvatarImage once gap 8 gives one; under it, drawn ahead and not
-  │   │                                  built until gap 8 closes (a Decision on where the photo is stored, who may
-  │   │                                  change it, its formats and size, and its removal on anonymization): the
-  │   │                                  Button outline size sm "Chọn ảnh" (`info.choosePhoto`, ImageUpIcon; full
-  │   │                                  width narrow) that opens the file picker, with its FieldDescription
-  │   │                                  `info.photoHint` tied by aria-describedby; the first build shows the
-  │   │                                  Avatar alone — avatar, button
+  │   ├── staff-photo.tsx                presentational — props: `name`, `photoUrl?`, `onChoose?`; an Avatar of
+  │   │                                  160px (96px below `@xl`): AvatarFallback with the initials (the first
+  │   │                                  letter of the first and of the last word of `name` that start with a
+  │   │                                  letter; one letter for a one-word name), the Avatar `aria-hidden` while
+  │   │                                  it shows them (the name is in the h1); AvatarImage with the alt
+  │   │                                  `info.photoAlt` once gap 8 gives a photo; under it, when `onChoose` is
+  │   │                                  given, drawn ahead and not built until gap 8 closes (a Decision on where
+  │   │                                  the photo is stored, who may change it, its formats and size, and its
+  │   │                                  removal on anonymization; the section holds the upload): the Button
+  │   │                                  outline size sm "Chọn ảnh" (`info.choosePhoto`, ImageUpIcon; full width
+  │   │                                  below `@xl`) calling `onChoose`, with its FieldDescription
+  │   │                                  `info.photoHint` tied by aria-describedby; the first build passes neither
+  │   │                                  `photoUrl` nor `onChoose` and shows the Avatar alone — avatar, button
   │   └── staff-update-sheet.tsx         gap 7, not built: Sheet (right; bottom on a narrow screen): SheetTitle
   │                                      `updateSheet.title`, SheetDescription `updateSheet.description`; the
   │                                      Fields Họ tên (`nameHint`), Mã nhân viên (`employeeCodeHint`), SĐT công
