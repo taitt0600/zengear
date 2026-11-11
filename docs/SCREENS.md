@@ -615,7 +615,7 @@ The Admin (or a Store Manager holding `staff.create`) creates a staff account wi
 One staff account, with the actions to disable or restore it (UC-005, UC-006).
 
 Loaded from `GET /api/v1/admin/staff/{id}`: name, email, employee code, joined date, left date, work phone, status, roles,
-and "Chưa đổi mật khẩu mặc định" when `mustChangePassword` is true. No field is editable in Phase 1 (STF-01 creates,
+and whether the default password is changed (`mustChangePassword`). No field is editable in Phase 1 (STF-01 creates,
 STF-02 disables and restores); the action "Cập nhật thông tin" is designed ahead and waits for gap 7, the photo for
 gap 8, the password reset link for gap 9 and the activity card for gap 10.
 
@@ -719,11 +719,11 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   hoạt động", `activity.area` "Khu vực", `activity.scope` "Liên quan" with `activity.scopeAll` "Tất cả",
   `activity.scopeBy` "Do nhân viên làm" and `activity.scopeOn` "Trên tài khoản", `activity.all` "Tất cả",
   `activity.clear` "Xóa bộ lọc", `activity.filters` "Bộ lọc ({count})" (narrow) and its Sheet
-  `activity.filtersSheet.title` "Lọc hoạt động" and `activity.filtersSheet.description` "Chọn khoảng thời gian và loại
-  hoạt động cần xem.", the columns `activity.columns.time` "Thời gian", `.action` "Hoạt động", `.target` "Đối tượng",
-  `.area` "Khu vực", `activity.tableLabel` "Hoạt động của tài khoản", `activity.shown` "Đang hiện {count} hoạt động
-  mới nhất trong khoảng đã chọn.", `activity.loadMore` "Tải thêm", `activity.end` "Đã hiện hết hoạt động trong khoảng
-  đã chọn.", the Empty `activity.empty` "Không có hoạt động nào trong khoảng đã chọn." with
+  `activity.filtersSheet.title` "Lọc hoạt động" and `activity.filtersSheet.description` "Chọn khoảng thời gian, loại,
+  khu vực và phạm vi hoạt động cần xem.", the columns `activity.columns.time` "Thời gian", `.action` "Hoạt động",
+  `.target` "Đối tượng", `.area` "Khu vực", `activity.tableLabel` "Hoạt động của tài khoản", `activity.shown` "Đang
+  hiện {count} hoạt động mới nhất trong khoảng đã chọn.", `activity.loadMore` "Tải thêm", `activity.end` "Đã hiện hết
+  hoạt động trong khoảng đã chọn.", the Empty `activity.empty` "Không có hoạt động nào trong khoảng đã chọn." with
   `activity.emptyDescription` "Thử chọn khoảng thời gian rộng hơn hoặc xóa bộ lọc.", and the names of the event types
   and areas, which the Decision of gap 10 lists (*new*); the page's title and breadcrumb entry `title` "Tài khoản nhân
   viên" (*new*); the details card `info.title` "Thông tin nhân viên" and `info.description` "Thông tin ghi khi tạo tài
@@ -953,14 +953,15 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   │                                      wraps, never cut short; under it the muted line `activity.shown` in an
   │                                      `aria-live="polite"` region and the Button outline `activity.loadMore`,
   │                                      which fetches the next page by cursor and appends it (no page numbers),
-  │                                      disabled with LoaderCircleIcon while loading; at the end of the list it is
-  │                                      replaced by the muted line `activity.end` and the focus moves to the first
-  │                                      new row; no events: an Empty with EmptyTitle `activity.empty`,
-  │                                      EmptyDescription `activity.emptyDescription` and the Button
-  │                                      `activity.clear`, in place of the table so the filters stay; loading:
-  │                                      Skeleton rows; a failed load: the problem's text in an Alert inside the
-  │                                      card with "Thử lại" — card, popover, calendar, select, toggle-group, sheet,
-  │                                      table, empty, alert, button, skeleton
+  │                                      disabled with LoaderCircleIcon while loading; after each load the focus
+  │                                      moves to the first new row (rows take `tabindex="-1"`); at the end of the
+  │                                      list the button is replaced by the muted line `activity.end`; no events: an
+  │                                      Empty with EmptyTitle `activity.empty`, EmptyDescription
+  │                                      `activity.emptyDescription` and the Button `activity.clear`, in place of
+  │                                      the table so the filters stay; loading: Skeleton rows; a failed load: the
+  │                                      problem's text in an Alert inside the card with "Thử lại" — card, popover,
+  │                                      calendar, select, toggle-group, sheet, table, empty, alert, button,
+  │                                      skeleton
   └── staff-status-badge.tsx             (SCR-STF-01) presentational — ACTIVE `success` (soft green), DISABLED
                                          `secondary` (grey), and ANONYMIZED `outline` with `status.anonymized` —
                                          badge
@@ -1038,10 +1039,11 @@ A closed gap keeps its number, since other lines refer to it.
    Idempotency-Key and a rate limit per account. Needs a Decision (permission, rate limit, the email, the record).
 10. **A staff member's activity.** No table records events and no endpoint lists them: `audit_logs` keeps column
     changes with their personal values and no sign-in history (`users.last_login_at` holds the last one only). The
-    Layout of SCR-STF-03 draws the activity card ahead. The owner chose, on 2026-11-11, the long-term way: an
-    append-only table of activity events (actor, action, target, area, time, request id; no personal values),
-    written in the same transaction as each action, sign-ins included; an endpoint filtered by a required time range,
-    type, area and scope (by the staff member or on the account), paged by cursor on an index of actor or target and
-    time, partitioned by month once it grows; its own read permission within the management scope (R-SEC-12), the
-    accounts holding the Admin role hidden as R-USR-14 says, and a retention period. Needs a Decision (the event list,
-    the table, the permission, the retention).
+    Layout of SCR-STF-03 draws the activity card ahead. The owner chose, on 2026-11-11, the long-term way: an activity
+    section with full filters, built for performance, scalability, security and reliability. Proposed for the
+    Decision: an append-only table of activity events (actor, action, target, area, time, request id; no personal
+    values), written in the same transaction as each action, sign-ins included; an endpoint filtered by a required
+    time range, type, area and scope (by the staff member or on the account), paged by cursor on an index of actor or
+    target and time, partitioned by month once it grows; its own read permission within the management scope
+    (R-SEC-12), the accounts holding the Admin role hidden as R-USR-14 says, and a retention period. Needs a Decision
+    (the event list, the table, the permission, the retention).
