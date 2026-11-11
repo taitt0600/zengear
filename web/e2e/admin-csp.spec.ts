@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { nonceOf } from '@/lib/security-headers'
 
 // The CSP with a nonce of /admin and /pos and the static CSP of the other paths (DEC-113 (1), (4), (6)), against
 // next dev locally and next start in CI.
@@ -10,7 +11,6 @@ const cspHeaders = (headers: HeaderList) =>
     .filter(({ name }) => name.toLowerCase() === 'content-security-policy')
     .map(({ value }) => value)
 
-const nonceOf = (csp: string) => /'nonce-([^']+)'/.exec(csp)?.[1]
 const scriptSrc = (csp: string) => /script-src ([^;]*)/.exec(csp)?.[1] ?? ''
 
 test('every load of an admin page carries one CSP with a new nonce, which its scripts carry', async ({

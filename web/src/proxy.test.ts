@@ -2,10 +2,10 @@
 import { unstable_doesMiddlewareMatch } from 'next/experimental/testing/server'
 import { NextRequest } from 'next/server'
 import { describe, expect, it } from 'vitest'
+import { nonceOf } from './lib/security-headers'
 import { config, proxy } from './proxy'
 
 const request = (path: string) => new NextRequest(new URL(path, 'http://localhost:3000'))
-const nonceOf = (csp: string | null) => /'nonce-([^']+)'/.exec(csp ?? '')?.[1]
 
 describe('proxy', () => {
   it('sets the same CSP with a nonce on the request and on the response (DEC-113 (1))', () => {

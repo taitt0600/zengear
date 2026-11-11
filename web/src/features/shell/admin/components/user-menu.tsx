@@ -1,7 +1,8 @@
 'use client'
 
-import { ChevronsUpDownIcon, LogOutIcon, UserIcon } from 'lucide-react'
+import { ChevronsUpDownIcon, LogOutIcon, MoonIcon, SunIcon, UserIcon } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { useTheme } from 'next-themes'
 import Link from 'next/link'
 import { useRef, useState } from 'react'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -12,6 +13,9 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import {
@@ -23,6 +27,7 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { adminRoutes } from '@/features/identity/access'
 import { initials } from '@/utils/initials'
+import { ThemeOptions } from './theme-options'
 
 function UserName({ name, email }: { name: string; email: string | null }) {
   return (
@@ -44,8 +49,9 @@ const cutShort = (element: HTMLElement | null) =>
   )
 
 /**
- * The signed-in user at the foot of the menu (SCR-ADM-01), with "Tài khoản của tôi" and "Đăng xuất". Its tooltip shows
- * the name when the menu is collapsed, and the name with the email when either is cut short.
+ * The signed-in user at the foot of the menu (SCR-ADM-01), with "Tài khoản của tôi", "Giao diện" below md (where the
+ * header has no switch, DEC-123 (3)) and "Đăng xuất". Its tooltip shows the name when the menu is collapsed, and the
+ * name with the email when either is cut short.
  */
 export function UserMenu({
   name,
@@ -56,8 +62,9 @@ export function UserMenu({
   email: string | null
   onSignOut: () => void
 }) {
-  const t = useTranslations('admin.user')
+  const t = useTranslations('admin')
   const { isMobile, state, setOpenMobile } = useSidebar()
+  const { theme, resolvedTheme, setTheme } = useTheme()
   const button = useRef<HTMLButtonElement>(null)
   const [tooltip, setTooltip] = useState(false)
   const collapsed = state === 'collapsed' && !isMobile
@@ -104,12 +111,31 @@ export function UserMenu({
               <DropdownMenuItem asChild onSelect={() => isMobile && setOpenMobile(false)}>
                 <Link href={adminRoutes.account}>
                   <UserIcon aria-hidden />
-                  {t('account')}
+                  {t('user.account')}
                 </Link>
               </DropdownMenuItem>
+              {isMobile && (
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>
+                    {resolvedTheme === 'dark' ? <MoonIcon aria-hidden /> : <SunIcon aria-hidden />}
+                    {t('theme.label')}
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent>
+                    <ThemeOptions
+                      value={theme}
+                      onValueChange={setTheme}
+                      labels={{
+                        light: t('theme.light'),
+                        dark: t('theme.dark'),
+                        system: t('theme.system'),
+                      }}
+                    />
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
+              )}
               <DropdownMenuItem onSelect={onSignOut}>
                 <LogOutIcon aria-hidden />
-                {t('signOut')}
+                {t('user.signOut')}
               </DropdownMenuItem>
             </DropdownMenuGroup>
           </DropdownMenuContent>

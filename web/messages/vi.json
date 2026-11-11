@@ -51,7 +51,13 @@
     "notFound": "Không tìm thấy trang này.",
     "notFoundHint": "Đường dẫn có thể đã sai hoặc trang không còn nữa. Vui lòng chọn một mục trong menu hoặc về trang chính.",
     "home": "Về trang chính",
-    "needHelp": "Cần trợ giúp? Liên hệ quản trị viên."
+    "needHelp": "Cần trợ giúp? Liên hệ quản trị viên.",
+    "theme": {
+      "label": "Giao diện",
+      "light": "Sáng",
+      "dark": "Tối",
+      "system": "Theo hệ thống"
+    }
   },
   "changePassword": {
     "title": "Đổi mật khẩu",

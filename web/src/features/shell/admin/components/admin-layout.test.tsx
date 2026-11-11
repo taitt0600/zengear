@@ -1,4 +1,4 @@
-import { screen, waitFor, within } from '@testing-library/react'
+import { act, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { CurrentUser } from '@/features/identity/access'
@@ -10,6 +10,7 @@ import { AdminPageSection } from './admin-page-section'
 import { AdminShell } from './admin-shell'
 import { AdminSidebarSection } from './admin-sidebar-section'
 import { RequirePermission } from './no-permission'
+import { ThemeProvider } from '@/features/shell/theme'
 
 // The frame of the Layout of SCR-ADM-01 (docs/SCREENS.md): the menu that collapses to icons, its narrow sheet, the
 // header and the pages of the frame itself. The guard and the answers of the API are in admin-shell.test.tsx.
@@ -41,15 +42,18 @@ const admin: CurrentUser = {
 
 const renderFrame = (page: React.ReactNode = <p>Nội dung trang</p>, defaultOpen = true) =>
   renderWithProviders(
-    <AdminShell defaultOpen={defaultOpen}>
-      <AdminLayout
-        defaultOpen={defaultOpen}
-        sidebar={<AdminSidebarSection />}
-        header={<AdminHeaderSection />}
-      >
-        <AdminPageSection>{page}</AdminPageSection>
-      </AdminLayout>
-    </AdminShell>,
+    // As app/(admin)/admin/layout.tsx wraps the frame.
+    <ThemeProvider>
+      <AdminShell defaultOpen={defaultOpen}>
+        <AdminLayout
+          defaultOpen={defaultOpen}
+          sidebar={<AdminSidebarSection />}
+          header={<AdminHeaderSection />}
+        >
+          <AdminPageSection>{page}</AdminPageSection>
+        </AdminLayout>
+      </AdminShell>
+    </ThemeProvider>,
   )
 
 const menu = () => screen.getByRole('navigation', { name: 'Menu' })
@@ -62,6 +66,8 @@ beforeEach(() => {
   navigation.pathname = '/admin/staff'
   api.me.mockResolvedValue(admin)
   document.cookie = 'sidebar_state=; max-age=0; path=/'
+  localStorage.clear()
+  document.documentElement.removeAttribute('class')
 })
 
 afterEach(() => {
@@ -183,6 +189,78 @@ describe('on a narrow screen', () => {
     }
     await user.click(await screen.findByRole(role, { name }))
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+  })
+})
+
+// DEC-123: "Giao diện" in the header from md up, in the user menu below; the system theme by default (the matchMedia
+// of src/test/setup.ts answers light), the choice kept in localStorage.
+describe('the theme', () => {
+  const html = document.documentElement
+  const radio = (name: string) => screen.getByRole('menuitemradio', { name })
+
+  it('switches from the header on a wide screen, and the user menu has no "Giao diện"', async () => {
+    renderFrame()
+    const user = userEvent.setup()
+    const button = await screen.findByRole('button', { name: 'Giao diện' })
+    await user.hover(button)
+    expect(await screen.findByRole('tooltip', {}, { timeout: 2000 })).toHaveTextContent('Giao diện')
+
+    await user.click(button)
+    const options = await screen.findByRole('menu', { name: 'Giao diện' })
+    expect(
+      within(options)
+        .getAllByRole('menuitemradio')
+        .map((item) => item.textContent),
+    ).toEqual(['Sáng', 'Tối', 'Theo hệ thống'])
+    expect(radio('Theo hệ thống')).toHaveAttribute('aria-checked', 'true')
+    expect(html).toHaveClass('light')
+
+    await user.click(radio('Tối'))
+    await waitFor(() => expect(html).toHaveClass('dark'))
+    expect(localStorage.getItem('zengear-theme')).toBe('dark')
+    await user.click(button)
+    expect(radio('Tối')).toHaveAttribute('aria-checked', 'true')
+    await user.keyboard('{Escape}')
+
+    await user.click(screen.getByRole('button', { name: 'Chủ cửa hàng' }))
+    await screen.findByRole('menuitem', { name: 'Đăng xuất' })
+    expect(screen.queryByRole('menuitem', { name: 'Giao diện' })).not.toBeInTheDocument()
+  })
+
+  it('starts with the choice kept in the browser', async () => {
+    localStorage.setItem('zengear-theme', 'dark')
+    renderFrame()
+    const user = userEvent.setup()
+
+    await user.click(await screen.findByRole('button', { name: 'Giao diện' }))
+    expect(radio('Tối')).toHaveAttribute('aria-checked', 'true')
+    expect(html).toHaveClass('dark')
+  })
+
+  it('switches from the user menu on a narrow screen, where the header has no button', async () => {
+    window.innerWidth = 390
+    localStorage.setItem('zengear-theme', 'dark')
+    renderFrame()
+    const user = userEvent.setup()
+
+    const openMenu = await screen.findByRole('button', { name: 'Mở menu' })
+    // Before the sheet opens: then Radix hides the rest of the page from the accessibility tree.
+    expect(screen.queryByRole('button', { name: 'Giao diện' })).not.toBeInTheDocument()
+    await user.click(openMenu)
+    const sheet = await screen.findByRole('dialog', { name: 'Menu' })
+    await user.click(within(sheet).getByRole('button', { name: 'Chủ cửa hàng' }))
+    await user.click(await screen.findByRole('menuitem', { name: 'Giao diện' }))
+    expect(await screen.findByRole('menuitemradio', { name: 'Tối' })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    )
+
+    // By the keyboard: jsdom has no layout, so Radix closes a submenu as soon as the pointer leaves its trigger.
+    act(() => radio('Sáng').focus())
+    await user.keyboard('{Enter}')
+    await waitFor(() => expect(html).toHaveClass('light'))
+    expect(html).not.toHaveClass('dark')
+    expect(localStorage.getItem('zengear-theme')).toBe('light')
   })
 })
 
