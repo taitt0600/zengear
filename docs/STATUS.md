@@ -7,7 +7,6 @@ flight, what is done and how this file changes: `CLAUDE.md`, *Work state*.
 
 | Key | Item | Who | Source |
 |---|---|---|---|
-| focus-scr-stf-03 | `/fix-defect STF-02`: the dialogs "Khóa tài khoản" and "Khôi phục tài khoản?" of SCR-STF-03 (`staff-account-status-section.tsx`) put the focus back on close through their `onClosed` (`utils/closed-focus.ts`), with a fallback target, since a 200 replaces the button that opened them; today it falls to the page's body | local | pull request #118, *Decisions made* and the follow-up below its *Verification* |
 
 ## Waiting for a trigger
 

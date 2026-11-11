@@ -31,7 +31,7 @@ import { StaffLeftDateField } from './staff-left-date-field'
  * The dialog "Khóa tài khoản" of SCR-STF-03 (STF-02; R-USR-07, R-USR-12, R-SEC-04), which a row of SCR-STF-01 opens
  * too: the warning that the person is signed out everywhere, whether they left with their last working day, and
  * "Khóa". Its content mounts at each opening, so it starts from the account's values every time. Opened without a
- * DialogTrigger, it focuses nothing when it closes, unless `onClosed` (a row of SCR-STF-01) puts the focus back.
+ * DialogTrigger, it focuses nothing when it closes: `onClosed` puts the focus back.
  */
 export function StaffDisableDialog({
   account,
@@ -42,7 +42,7 @@ export function StaffDisableDialog({
   account: DisableAccount
   open: boolean
   onOpenChange: (open: boolean) => void
-  onClosed?: () => void
+  onClosed: () => void
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
