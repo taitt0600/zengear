@@ -646,7 +646,8 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
 
 - **Design**: <https://claude.ai/artifact/QjTnaq2rsB49xBeN3Wkuen>, drawn 2026-11-11 with the design system of
   2026-11-11; approved by the merge of the pull request that wrote this subsection (DEC-119). It changes the layout
-  of the page only: one centred column with a section navigation, for wide screens (2K and up). The dialog "Khóa tài
+  of the page only: one centred column, with a section navigation from `xl`; the 2560 px artboard shows the column
+  centred on a 2K screen. The dialog "Khóa tài
   khoản", the confirmation "Khôi phục tài khoản?", the DISABLED account and the sheet "Cập nhật thông tin" keep their
   design of <https://claude.ai/artifact/DuLX9hmqGWyyP9vmoUw6Dd> (pull request #111). The canvas shows the frame of
   SCR-ADM-01 for context only; this Layout does not approve it.
@@ -657,30 +658,40 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   Skeleton), 404 and error (an Empty in the column, no navigation). No permission is the page of SCR-ADM-01
   (`RequirePermission` with `staff.read`). The sample is the fixture manager. The photo is an Avatar with the
   initials until gap 8 closes.
-- **shadcn**: no `add`. The section navigation is a composition of plain links on the tokens (shadcn has no table of
-  contents; `sidebar` is the app's menu and too heavy here), in `components/app/` since SCR-ACC-01 takes the same
-  layout in its own Layout pull request.
+- **shadcn**: no `add`. The section navigation is plain links on the tokens (shadcn has no table of contents;
+  `sidebar` is the app's menu and too heavy here). It lives in this module (`components/section-nav.tsx`,
+  `hooks/use-active-section.ts`) while only this screen uses it (DEC-118 (1), `docs/FRONTEND.md`, *Modules and
+  boundaries*); the pull request that builds the Layout of SCR-ACC-01, which takes the same layout, moves both to
+  `components/app/` and `@/hooks`.
 - **Theme**: unchanged and built: the soft status badges (`success` on `success-soft`, DISABLED `secondary`,
   ANONYMIZED `outline`) and the Button variant `destructive-soft` of the previous Layout of this screen are in
   `app/globals.css` and `components/ui/` since the pull request of STF-02, with their `.dark` values since AUT-04
-  (DEC-123 (4), DEC-124). The current link of the section navigation is `accent` with `foreground` text at weight
-  500, the others `muted-foreground` (4.98:1 light, 6.72:1 dark on `background`), `accent` on hover.
-- **Section navigation** (new behaviour, so the build is a `feat(web): … (STF-02)` pull request on `feat/stf-02-web`,
-  as the paragraph under the screen list says): at `lg` and up, a `nav` labelled by its visible title "Trên trang này"
-  (`ui.sectionNav.label`) sits left of the cards in a column of 200px, sticky 80px from the top (under the header of
-  64px), and lists one link per card, in page order, with the card's title as its text (`staff.account.info.title`,
-  `.status.title`); each card is a `section` with an `id` (`info`, `status`) and `scroll-margin-top` of 80px. A click
-  scrolls to the card (smoothly, at once under `prefers-reduced-motion`), moves the focus to the card's title (`h2`
-  with `tabindex="-1"`) and replaces the URL hash without a new history entry; opening the page with `#info` or
-  `#status` scrolls there. While the page scrolls, the current link (`aria-current="location"`) is the last card whose
-  top has passed 80px plus a third of the viewport, and the last card once the page reaches its end (an
-  IntersectionObserver, no scroll handler on every frame). Below `lg` there is no navigation: the page is short and
-  the status card comes first.
-- **Width**: the page's content is one column of at most 1024px (`max-w-5xl`), centred in the page area of
-  SCR-ADM-01 (24px padding, 16px narrow); at `lg` and up it holds the heading over a grid `200px minmax(0, 1fr)` with a
-  gap of 32px (navigation | cards), so a card is about 792px wide at most, whatever the screen.
+  (DEC-123 (4), DEC-124). The current link of the section navigation is `accent` with `foreground` text at weight 500;
+  the others `muted-foreground` (4.98:1 light, 6.72:1 dark on `background`), on hover `accent` (`muted-foreground` on
+  `accent` 4.56:1 light, 4.83:1 dark).
+- **Section navigation** (new behaviour, so the build is a `feat(web): … (STF-02)` pull request on
+  `feat/stf-02-web-2`, the next free name since `feat/stf-02-web` has merged, CLAUDE.md *Workflow*; as the paragraph
+  under the screen list says): from `xl` (1280px) a `nav` labelled by its visible title "Trên trang này"
+  (`admin.sectionNav.label`, `text-xs font-medium`, `muted-foreground`) sits left of the cards in a column of 200px,
+  `sticky top-6` (24px, the page padding; the header of SCR-ADM-01 scrolls with the page) with `self-start` on its
+  grid cell, and lists one link per card, in page order, with the card's title as its text
+  (`staff.account.info.title`, `.status.title`); a link text wraps, never cut short. It is navigation, not content, so
+  it sits on the page ground like the menu of SCR-ADM-01, an exception to **Grouping**. Each card is a `section` with
+  an `id` (`info`, `status`), `aria-labelledby` its title and `scroll-margin-top` 24px; the titles are `h2` with the
+  ids `info-title` and `status-title` and `tabindex="-1"`. A click scrolls to the card (smoothly, at once under
+  `prefers-reduced-motion`), moves the focus to its `h2` and replaces the URL hash without a new history entry. While
+  the page scrolls, the current link (`aria-current="location"`) is the last card whose top has passed a line 24px
+  plus a third of the viewport from the top; when the document scrolls at all (`scrollHeight` above the viewport), the
+  last card is current once a sentinel element after it comes into view; when it does not scroll, the first card stays
+  current. One IntersectionObserver watches the sections and the sentinel; no handler on every scroll frame. A hash on
+  load (`#info`, `#status`) is applied once the account has loaded, not while the Skeleton shows. Below `xl` there is
+  no navigation: the status card comes first.
+- **Width**: the page's content is one column of at most 1024px (`max-w-5xl`), centred in the page area of SCR-ADM-01
+  (24px padding, 16px narrow); from `xl` it holds the heading over a grid `200px minmax(0, 1fr)` with a gap of 32px
+  (navigation | cards), so a card is about 792px wide at most, whatever the screen. `xl` rather than `lg`, because at
+  1024px with the menu expanded the card column would be about 488px.
 - **Texts** (`messages/vi.json`), new ones marked *new*, under `staff.account` unless named:
-  `ui.sectionNav.label` "Trên trang này" (*new*; the visible title of the section navigation, which names the
+  `admin.sectionNav.label` "Trên trang này" (*new*; the visible title of the section navigation, which names the
   `nav`); the page's title and breadcrumb entry `title` "Tài khoản nhân viên" (*new*); the details card
   `info.title` "Thông tin nhân viên" and `info.description` "Thông tin ghi khi tạo tài khoản, dùng để liên hệ và phân
   quyền." (*new*); its labels
@@ -726,23 +737,30 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   `useCurrentUser` from `identity/access`):
 
   ```text
-  staff-account-layout.tsx               slots: heading | details | status — a page of two cards, its heading
-  │                                      above them (Grouping), in one column of at most 1024px, centred (Width);
-  │                                      from lg: the heading over a grid of the SectionNav (200px, sticky top 80px)
-  │                                      and the cards stacked, details then status, each in a section with its id
-  │                                      (info, status) and scroll-margin-top 80px; below lg: no SectionNav, one
-  │                                      column, status first so that its action comes before the details; it
-  │                                      places the slots and passes SectionNav its items (id and title text)
-  ├── components/app/section-nav.tsx     (shared, SCR-ACC-01 too) presentational — props: label, items (id,
-  │                                      label); nav aria-labelledby its visible title (`ui.sectionNav.label`, ui-xs
-  │                                      medium, muted-foreground); one link per item to #id, 32px high, radius-md,
-  │                                      muted-foreground, accent on hover; the current one accent, foreground,
-  │                                      weight 500, aria-current="location"; a click scrolls (smooth unless
-  │                                      reduced motion), focuses the section's title and replaces the hash; the
-  │                                      current id from useActiveSection — no shadcn component
-  │   └── hooks/use-active-section.ts    (shared, alias @/hooks) the current id from an IntersectionObserver on the
-  │                                      sections (rootMargin from the 80px offset and a third of the viewport), the
-  │                                      last id at the end of the page, and the hash on load
+  staff-account-layout.tsx               slots: heading | nav | details | status — a page of two cards, its
+  │                                      heading above them (Grouping), in one column of at most 1024px, centred
+  │                                      (Width); from xl: the heading over a grid of the nav slot (200px, sticky
+  │                                      top-6, self-start) and the cards stacked, details then status; below xl:
+  │                                      the nav slot hidden, one column, status first so that its action comes
+  │                                      before the details; it only places the slots
+  ├── staff-account-nav-section.tsx      the nav slot: reads StaffAccountProvider; renders nothing on a 404 or a
+  │                                      failed load; while loading and once loaded it builds the items (id info
+  │                                      with `staff.account.info.title`, id status with `.status.title`), calls
+  │                                      useActiveSection with them and renders SectionNav with the label
+  │                                      `admin.sectionNav.label`, the current id and the select handler; scrolls
+  │                                      to the hash once the account has loaded
+  │   ├── section-nav.tsx                presentational — props: label, items (id, label), currentId, onSelect;
+  │   │                                  `nav` aria-labelledby its visible title (`text-xs font-medium`,
+  │   │                                  muted-foreground); one link per item to #id, 32px high, radius-md,
+  │   │                                  muted-foreground, accent on hover, text wrapping; the current one accent,
+  │   │                                  foreground, weight 500, aria-current="location"; a click calls onSelect —
+  │   │                                  no shadcn component (moves to components/app/ with SCR-ACC-01)
+  │   └── ../hooks/use-active-section.ts the current id: one IntersectionObserver on the sections and a sentinel
+  │                                      after the last one (the line 24px plus a third of the viewport from the
+  │                                      top; the last id at the sentinel only when the document scrolls, else the
+  │                                      first); select: scrolls to the section (smooth unless reduced motion),
+  │                                      focuses its h2 (`<id>-title`) and replaces the hash (moves to @/hooks
+  │                                      with SCR-ACC-01)
   ├── staff-account-heading-section.tsx  an Avatar of 64px (56px narrow), `aria-hidden` while it shows the initials
   │                                      beside the h1 that names the person: AvatarFallback with the initials (the
   │                                      first letter of the first and of the last word of `name` that start with a
@@ -756,7 +774,9 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   │                                      the page's h1, destructive, role="alert" (TriangleAlertIcon), and "Thử lại",
   │                                      disabled while the retry is pending; 401 and 403 as *Conventions* says —
   │                                      avatar, badge, skeleton, empty, button
-  ├── staff-account-details-section.tsx  Card: CardTitle `info.title`, CardDescription `info.description`;
+  ├── staff-account-details-section.tsx  Card as a `section` id info, aria-labelledby info-title; CardTitle
+  │                                      `info.title` as an h2 with id info-title and tabindex -1, scroll-margin-top
+  │                                      24px on the section; CardDescription `info.description`;
   │                                      CardAction "Cập nhật thông tin" (outline, PencilIcon; full width under
   │                                      the description on a narrow screen), which opens the sheet: not built
   │                                      until gap 7 closes, so the first build shows no button; a
@@ -775,12 +795,17 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   │                                      close button in a Tooltip `ui.close`; footer
   │                                      "Lưu" (default) and "Hủy" (outline); the rules of its endpoint come with
   │                                      the Decision of gap 7 — sheet, field, input, popover, calendar, button
-  ├── staff-account-status-section.tsx   Card: CardTitle `status.title`, CardDescription `status.description`;
-  │                                      the row "Trạng thái" with the status badge; the row "Mật khẩu" with
-  │                                      Badge outline `mustChangePassword` when `mustChangePassword`; with
-  │                                      `staff.disable`, at the end of the card (from lg aligned right at their
-  │                                      own width, since the card is wide now; full width below lg): on ACTIVE
-  │                                      "Khóa tài khoản" (destructive-soft,
+  ├── staff-account-status-section.tsx   Card as a `section` id status, aria-labelledby status-title; CardTitle
+  │                                      `status.title` as an h2 with id status-title and tabindex -1 (today's
+  │                                      tabIndex stays), scroll-margin-top 24px; CardDescription
+  │                                      `status.description`; the row "Trạng thái" with the status badge; the row
+  │                                      "Mật khẩu" with Badge outline `mustChangePassword` when
+  │                                      `mustChangePassword`; with `staff.disable`, the actions in a row at the end
+  │                                      of the card: from xl `justify-end`, each button at its own width, on
+  │                                      DISABLED "Khôi phục tài khoản" then "Khóa lại", the hint
+  │                                      `disableAgainHint` under the row aligned right; below xl each button full
+  │                                      width, stacked; the muted lines `ownAccount` and `anonymized` start-aligned
+  │                                      at every width; on ACTIVE "Khóa tài khoản" (destructive-soft,
   │                                      LockIcon), which opens the dialog; on DISABLED "Khôi phục tài khoản"
   │                                      (default, RotateCcwIcon), which opens the confirmation, and "Khóa lại"
   │                                      (destructive-soft, LockIcon) with its hint `disableAgainHint` tied by
