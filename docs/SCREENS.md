@@ -762,9 +762,9 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   │   └── ../hooks/use-active-section.ts the current id: one IntersectionObserver on the sections and the
   │                                      sentinel `staff-account-end` of the layout (the line 24px plus a third
   │                                      of the viewport from the top; the last id at the sentinel only when the
-  │                                      document scrolls, else the first); select: scrolls to the section (smooth unless reduced motion),
-  │                                      focuses its h2 (`<id>-title`) and replaces the hash (moves to @/hooks
-  │                                      with SCR-ACC-01)
+  │                                      document scrolls, else the first); select: scrolls to the section
+  │                                      (smooth unless reduced motion), focuses its h2 (`<id>-title`) and
+  │                                      replaces the hash (moves to @/hooks with SCR-ACC-01)
   ├── staff-account-heading-section.tsx  an Avatar of 64px (56px narrow), `aria-hidden` while it shows the initials
   │                                      beside the h1 that names the person: AvatarFallback with the initials (the
   │                                      first letter of the first and of the last word of `name` that start with a
