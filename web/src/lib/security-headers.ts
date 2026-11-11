@@ -41,6 +41,12 @@ export function contentSecurityPolicy(env: Env, development: boolean, nonce?: st
   ].join('; ')
 }
 
+// The nonce of a CSP that src/proxy.ts set on the request, for an inline script a layout renders (the theme of
+// DEC-123 (2)); none for the static CSP or without the header. There is no x-nonce header (DEC-113).
+export function nonceOf(csp: string | null): string | undefined {
+  return csp ? /'nonce-([^']+)'/.exec(csp)?.[1] : undefined
+}
+
 // The headers of every path besides the CSP, which next.config.ts or src/proxy.ts sets (DEC-113 (4)).
 export function securityHeaders(): { key: string; value: string }[] {
   return [

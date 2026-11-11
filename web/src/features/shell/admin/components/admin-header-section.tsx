@@ -16,10 +16,12 @@ import { Separator } from '@/components/ui/separator'
 import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { breadcrumbOf } from '../utils/admin-menu'
+import { ThemeSwitch } from './theme-switch'
 
 /**
- * The header of SCR-ADM-01: the menu button, named by what it does now, and where the page sits. A group of the menu
- * is text, an entry above the page a link, the page the current item; /admin and the 404 have none.
+ * The header of SCR-ADM-01: the menu button, named by what it does now, where the page sits, and "Giao diện" at the
+ * right end. A group of the menu is text, an entry above the page a link, the page the current item; /admin and the
+ * 404 have none.
  */
 export function AdminHeaderSection() {
   const t = useTranslations()
@@ -65,6 +67,12 @@ export function AdminHeaderSection() {
           </Breadcrumb>
         )}
       </div>
+      {/* Below md "Giao diện" sits in the user menu instead, so exactly one of them shows (DEC-123 (3)). */}
+      {!isMobile && (
+        <div className="ml-auto px-4">
+          <ThemeSwitch />
+        </div>
+      )}
     </header>
   )
 }

@@ -12,7 +12,8 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function RootLayout({ children }: LayoutProps<'/'>) {
   return (
-    <html lang={await getLocale()} className="h-full antialiased">
+    // The theme's script sets the class of <html> before React hydrates it (DEC-123 (2)).
+    <html lang={await getLocale()} className="h-full antialiased" suppressHydrationWarning>
       <body className="flex min-h-full flex-col">
         <NextIntlClientProvider>{children}</NextIntlClientProvider>
       </body>

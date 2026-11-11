@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { contentSecurityPolicy, securityHeaders } from './security-headers'
+import { contentSecurityPolicy, nonceOf, securityHeaders } from './security-headers'
 
 const production = {
   NEXT_PUBLIC_API_BASE_URL: 'https://api.zengear.vn',
@@ -80,6 +80,17 @@ describe('contentSecurityPolicy', () => {
       directives(contentSecurityPolicy(production, development, nonce))['script-src']
     expect(script(true)).toContain("'unsafe-eval'")
     expect(script(false)).not.toContain("'unsafe-eval'")
+  })
+})
+
+describe('nonceOf', () => {
+  it('reads the nonce of the CSP of an admin request, for the inline script of the theme (DEC-123 (2))', () => {
+    expect(nonceOf(contentSecurityPolicy(production, true, NONCE))).toBe(NONCE)
+  })
+
+  it('finds none in the static CSP or without the header', () => {
+    expect(nonceOf(contentSecurityPolicy(production, false))).toBeUndefined()
+    expect(nonceOf(null)).toBeUndefined()
   })
 })
 
