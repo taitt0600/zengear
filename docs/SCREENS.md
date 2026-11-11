@@ -647,8 +647,7 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
 - **Design**: <https://claude.ai/artifact/QjTnaq2rsB49xBeN3Wkuen>, drawn 2026-11-11 with the design system of
   2026-11-11; approved by the merge of the pull request that wrote this subsection (DEC-119). It changes the layout
   of the page only: one centred column, with a section navigation from `xl`; the 2560 px artboard shows the column
-  centred on a 2K screen. The dialog "Khóa tài
-  khoản", the confirmation "Khôi phục tài khoản?", the DISABLED account and the sheet "Cập nhật thông tin" keep their
+  centred on a 2K screen. The dialog "Khóa tài khoản", the confirmation "Khôi phục tài khoản?", the DISABLED account and the sheet "Cập nhật thông tin" keep their
   design of <https://claude.ai/artifact/DuLX9hmqGWyyP9vmoUw6Dd> (pull request #111). The canvas shows the frame of
   SCR-ADM-01 for context only; this Layout does not approve it.
 - **Artboards**: desktop (1440 px) of an ACTIVE account, where the section navigation works in Play; wide (2560 px),
@@ -682,10 +681,11 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   `prefers-reduced-motion`), moves the focus to its `h2` and replaces the URL hash without a new history entry. While
   the page scrolls, the current link (`aria-current="location"`) is the last card whose top has passed a line 24px
   plus a third of the viewport from the top; when the document scrolls at all (`scrollHeight` above the viewport), the
-  last card is current once a sentinel element after it comes into view; when it does not scroll, the first card stays
-  current. One IntersectionObserver watches the sections and the sentinel; no handler on every scroll frame. A hash on
-  load (`#info`, `#status`) is applied once the account has loaded, not while the Skeleton shows. Below `xl` there is
-  no navigation: the status card comes first.
+  last card is current once the sentinel after it (`staff-account-end`, an empty `aria-hidden` div of the layout)
+  comes into view; when it does not scroll, the first card stays current. One IntersectionObserver watches the
+  sections and the sentinel; no handler on every scroll frame. A hash on load (`#info`, `#status`) is applied once the
+  account has loaded, not while the Skeleton shows. Below `xl` the navigation is hidden with CSS (its section stays
+  mounted, so a hash still scrolls) and the status card comes first.
 - **Width**: the page's content is one column of at most 1024px (`max-w-5xl`), centred in the page area of SCR-ADM-01
   (24px padding, 16px narrow); from `xl` it holds the heading over a grid `200px minmax(0, 1fr)` with a gap of 32px
   (navigation | cards), so a card is about 792px wide at most, whatever the screen. `xl` rather than `lg`, because at
@@ -740,9 +740,11 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   staff-account-layout.tsx               slots: heading | nav | details | status — a page of two cards, its
   │                                      heading above them (Grouping), in one column of at most 1024px, centred
   │                                      (Width); from xl: the heading over a grid of the nav slot (200px, sticky
-  │                                      top-6, self-start) and the cards stacked, details then status; below xl:
-  │                                      the nav slot hidden, one column, status first so that its action comes
-  │                                      before the details; it only places the slots
+  │                                      top-6, self-start) and the cards stacked, details then status, then an
+  │                                      empty `aria-hidden` sentinel div (id `staff-account-end`); below xl the
+  │                                      nav slot is hidden with CSS (`hidden xl:block`, so its section stays
+  │                                      mounted and the hash still applies), one column, status first so that its
+  │                                      action comes before the details; it only places the slots
   ├── staff-account-nav-section.tsx      the nav slot: reads StaffAccountProvider; renders nothing on a 404 or a
   │                                      failed load; while loading and once loaded it builds the items (id info
   │                                      with `staff.account.info.title`, id status with `.status.title`), calls
@@ -752,11 +754,13 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   │   ├── section-nav.tsx                presentational — props: label, items (id, label), currentId, onSelect;
   │   │                                  `nav` aria-labelledby its visible title (`text-xs font-medium`,
   │   │                                  muted-foreground); one link per item to #id, 32px high, radius-md,
-  │   │                                  muted-foreground, accent on hover, text wrapping; the current one accent,
+  │   │                                  muted-foreground, accent on hover, text wrapping, focus as the base ring of
+  │   │                                  button.tsx (`outline-none focus-visible:ring-[3px]
+  │   │                                  focus-visible:ring-ring/50`); the current one accent,
   │   │                                  foreground, weight 500, aria-current="location"; a click calls onSelect —
   │   │                                  no shadcn component (moves to components/app/ with SCR-ACC-01)
-  │   └── ../hooks/use-active-section.ts the current id: one IntersectionObserver on the sections and a sentinel
-  │                                      after the last one (the line 24px plus a third of the viewport from the
+  │   └── ../hooks/use-active-section.ts the current id: one IntersectionObserver on the sections and the
+  │                                      sentinel `staff-account-end` of the layout (the line 24px plus a third of the viewport from the
   │                                      top; the last id at the sentinel only when the document scrolls, else the
   │                                      first); select: scrolls to the section (smooth unless reduced motion),
   │                                      focuses its h2 (`<id>-title`) and replaces the hash (moves to @/hooks
