@@ -617,7 +617,7 @@ One staff account, with the actions to disable or restore it (UC-005, UC-006).
 Loaded from `GET /api/v1/admin/staff/{id}`: name, email, employee code, joined date, left date, work phone, status, roles,
 and "Chưa đổi mật khẩu mặc định" when `mustChangePassword` is true. No field is editable in Phase 1 (STF-01 creates,
 STF-02 disables and restores); the action "Cập nhật thông tin" is designed ahead and waits for gap 7, the photo for
-gap 8.
+gap 8, the password reset link for gap 9 and the activity card for gap 10.
 
 **Action "Khóa tài khoản"** (with `staff.disable`, on an ACTIVE account; on a DISABLED account the same action is
 named "Khóa lại", for the case of a 500 below; not shown on the user's own account — the API refuses it anyway, R-USR-12): a dialog
@@ -646,10 +646,11 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
 
 - **Design**: <https://claude.ai/artifact/QjTnaq2rsB49xBeN3Wkuen>, drawn 2026-11-11 with the design system of
   2026-11-11; approved by the merge of the pull request that wrote this subsection (DEC-119). It changes the layout of
-  the page only: one centred column, with a section navigation from `xl`; the 2560 px artboard shows the column
-  centred on a 2K screen. The dialog "Khóa tài khoản", the confirmation "Khôi phục tài khoản?", the DISABLED account
-  and the sheet "Cập nhật thông tin" keep their design of <https://claude.ai/artifact/DuLX9hmqGWyyP9vmoUw6Dd> (pull
-  request #111). The canvas shows the frame of SCR-ADM-01 for context only; this Layout does not approve it.
+  the page (one centred column, with a section navigation from `xl`), adds the password card, whose default-password
+  row is built now, and draws gaps 9 and 10 ahead; the 2560 px artboard shows the column centred on a 2K screen. The
+  dialog "Khóa tài khoản", the confirmation "Khôi phục tài khoản?", the DISABLED account and the sheet "Cập nhật thông
+  tin" keep their design of <https://claude.ai/artifact/DuLX9hmqGWyyP9vmoUw6Dd> (pull request #111). The canvas shows
+  the frame of SCR-ADM-01 for context only; this Layout does not approve it.
 - **Artboards**: desktop (1440 px) of an ACTIVE account, where the section navigation works in Play; wide (2560 px),
   where the column keeps 1024 px and centres; narrow (390 px) of an account whose default password is unchanged, with
   no section navigation; dark (1440 px, DEC-123 (5): soft badges and `destructive-soft` on the dark values of
@@ -663,7 +664,7 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   tin" at full width. Below the status card come the password card (whether the default password is changed, and "Gửi
   link đặt lại mật khẩu" with its hint and the time of the last link, drawn ahead for gap 9) and the activity card
   (filters, a table of events, "Tải thêm"; on the narrow artboard a list and a "Bộ lọc" button; drawn ahead for gap
-  10); one more artboard draws the confirmation "Gửi link đặt lại mật khẩu?" (gap 9).
+  10); the ResetPassword artboard draws the confirmation "Gửi link đặt lại mật khẩu?" (gap 9).
 - **shadcn**: no `add` for what the first build makes; `shadcn add toggle-group` comes with the activity card of gap
   10, the only part that needs a component not installed. The section navigation is plain links on the tokens (shadcn
   has no table of contents; `sidebar` is the app's menu and too heavy here). It lives in this module
@@ -703,32 +704,35 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   "Trên trang này" (*new*; the visible title of the section navigation, which names the `nav`); for gap 8, not built
   yet: `info.photoAlt` "Ảnh của {name}" (*new*; the alt of the photo once there is one), `info.choosePhoto` "Chọn ảnh"
   and its hint `info.photoHint` "Ảnh chân dung, rõ mặt. JPG hoặc PNG, tối đa 2 MB." (*new*; the formats and the 2 MB
-  the owner chose on 2026-11-11, which the Decision of gap 8 records); the password card `password.title` "Mật khẩu",
-  `password.description` "Mật khẩu chỉ nhân viên biết. Khi nhân viên quên, gửi link để họ tự đặt mật khẩu mới.", the
-  row `password.default` "Mật khẩu mặc định" with the Badges `password.unchanged` "Chưa đổi" and `password.changed`
-  "Đã đổi" (*new*), and, for gap 9, not built yet: the row `password.lastReset` "Link đặt lại gần nhất" with
-  `password.neverReset` "Chưa gửi lần nào" or the time, `password.sendReset` "Gửi link đặt lại mật khẩu" and its hint
-  `password.sendResetHint` "Nhân viên nhận email có link đặt mật khẩu mới, hết hạn sau 1 giờ, và bị đăng xuất khỏi mọi
-  thiết bị.", the confirmation `resetDialog.title` "Gửi link đặt lại mật khẩu?", `resetDialog.description` "Hệ thống
-  gửi email tới {email} với link đặt mật khẩu mới, hết hạn sau 1 giờ. Nhân viên bị đăng xuất khỏi mọi thiết bị ngay
-  khi bạn xác nhận; mật khẩu cũ vẫn dùng được cho tới khi họ đặt mật khẩu mới.", `resetDialog.submit` "Gửi link" and
-  the toast `resetSent` "Đã gửi link đặt lại mật khẩu." (*new*); for gap 10, not built yet: `activity.title` "Hoạt
-  động", `activity.description` "Việc nhân viên đã làm trong hệ thống và những thay đổi trên tài khoản này, mới nhất
-  trước.", the filters `activity.range` "Khoảng thời gian", `activity.type` "Loại hoạt động", `activity.area` "Khu
-  vực", `activity.scope` "Liên quan" with `activity.scopeAll` "Tất cả", `activity.scopeBy` "Do nhân viên làm" and
-  `activity.scopeOn` "Trên tài khoản", `activity.all` "Tất cả", `activity.clear` "Xóa bộ lọc", `activity.filters` "Bộ
-  lọc ({count})" (narrow), the columns `activity.columns.time` "Thời gian", `.action` "Hoạt động", `.target` "Đối
-  tượng", `.area` "Khu vực", `activity.tableLabel` "Hoạt động của tài khoản", `activity.shown` "Đang hiện {count} hoạt
-  động mới nhất trong khoảng đã chọn.", `activity.loadMore` "Tải thêm", the Empty `activity.empty` "Không có hoạt động
-  nào trong khoảng đã chọn." with `activity.emptyDescription` "Thử chọn khoảng thời gian rộng hơn hoặc xóa bộ lọc.",
-  and the names of the event types and areas, which the Decision of gap 10 lists (*new*); the page's title and
-  breadcrumb entry `title` "Tài khoản nhân viên" (*new*); the details card `info.title` "Thông tin nhân viên" and
-  `info.description` "Thông tin ghi khi tạo tài khoản, dùng để liên hệ và phân quyền." (*new*); its labels
-  `staff.list.columns.email`, `.employeeCode`, `.roles`, `.joinedDate`, `.leftDate`, with `workPhone` "SĐT công việc"
-  (*new*), and `staff.list.noValue` "—" for an empty value; the status card `status.title` "Trạng thái tài khoản" and
-  `status.description` "Tài khoản bị khóa không đăng nhập được; khôi phục để nhân viên dùng lại." (*new*), its label
-  `staff.list.columns.status`, the badges `staff.list.status.active` and `.disabled`, with `status.anonymized` "Đã ẩn
-  danh" (*new*); `password` "Mật khẩu" and `mustChangePassword` "Chưa đổi mật khẩu mặc định" (*new*); the actions
+  the owner chose on 2026-11-11, which the Decision of gap 8 records); the password card `passwordCard.title` "Mật
+  khẩu", `passwordCard.description` "Khi nhân viên quên mật khẩu, gửi link để họ tự đặt mật khẩu mới.", the row
+  `passwordCard.default` "Mật khẩu mặc định" with the Badges `passwordCard.unchanged` "Chưa đổi" and
+  `passwordCard.changed` "Đã đổi" (*new*), and, for gap 9, not built yet: the row `passwordCard.lastReset` "Link đặt
+  lại gần nhất" with `passwordCard.neverReset` "Chưa gửi lần nào" or the time, `passwordCard.sendReset` "Gửi link đặt
+  lại mật khẩu" and its hint `passwordCard.sendResetHint` "Nhân viên nhận email có link đặt mật khẩu mới, hết hạn sau
+  1 giờ, và bị đăng xuất khỏi mọi thiết bị.", the confirmation `resetDialog.title` "Gửi link đặt lại mật khẩu?",
+  `resetDialog.description` "Hệ thống gửi email tới {email} với link đặt mật khẩu mới, hết hạn sau 1 giờ. Nhân viên bị
+  đăng xuất khỏi mọi thiết bị ngay khi bạn xác nhận; mật khẩu cũ vẫn dùng được cho tới khi họ đặt mật khẩu mới.",
+  `resetDialog.submit` "Gửi link" and the toast `resetSent` "Đã gửi link đặt lại mật khẩu." (*new*); for gap 10, not
+  built yet: `activity.title` "Hoạt động", `activity.description` "Việc nhân viên đã làm trong hệ thống và những thay
+  đổi trên tài khoản này, mới nhất trước.", the filters `activity.range` "Khoảng thời gian", `activity.type` "Loại
+  hoạt động", `activity.area` "Khu vực", `activity.scope` "Liên quan" with `activity.scopeAll` "Tất cả",
+  `activity.scopeBy` "Do nhân viên làm" and `activity.scopeOn` "Trên tài khoản", `activity.all` "Tất cả",
+  `activity.clear` "Xóa bộ lọc", `activity.filters` "Bộ lọc ({count})" (narrow) and its Sheet
+  `activity.filtersSheet.title` "Lọc hoạt động" and `activity.filtersSheet.description` "Chọn khoảng thời gian và loại
+  hoạt động cần xem.", the columns `activity.columns.time` "Thời gian", `.action` "Hoạt động", `.target` "Đối tượng",
+  `.area` "Khu vực", `activity.tableLabel` "Hoạt động của tài khoản", `activity.shown` "Đang hiện {count} hoạt động
+  mới nhất trong khoảng đã chọn.", `activity.loadMore` "Tải thêm", `activity.end` "Đã hiện hết hoạt động trong khoảng
+  đã chọn.", the Empty `activity.empty` "Không có hoạt động nào trong khoảng đã chọn." with
+  `activity.emptyDescription` "Thử chọn khoảng thời gian rộng hơn hoặc xóa bộ lọc.", and the names of the event types
+  and areas, which the Decision of gap 10 lists (*new*); the page's title and breadcrumb entry `title` "Tài khoản nhân
+  viên" (*new*); the details card `info.title` "Thông tin nhân viên" and `info.description` "Thông tin ghi khi tạo tài
+  khoản, dùng để liên hệ và phân quyền." (*new*); its labels `staff.list.columns.email`, `.employeeCode`, `.roles`,
+  `.joinedDate`, `.leftDate`, with `workPhone` "SĐT công việc" (*new*), and `staff.list.noValue` "—" for an empty
+  value; the status card `status.title` "Trạng thái tài khoản" and `status.description` "Tài khoản bị khóa không đăng
+  nhập được; khôi phục để nhân viên dùng lại." (*new*), its label `staff.list.columns.status`, the badges
+  `staff.list.status.active` and `.disabled`, with `status.anonymized` "Đã ẩn danh" (*new*); (the keys `password` and
+  `mustChangePassword` of the status card go, since its password row moves to the password card); the actions
   `disable` "Khóa tài khoản", `disableAgain` "Khóa lại" with its hint `disableAgainHint` "Gửi lại lệnh khóa để đăng
   xuất nhân viên khỏi mọi thiết bị, khi lần khóa trước báo lỗi.", `restore` "Khôi phục tài khoản", `ownAccount` "Bạn
   không thể khóa tài khoản của chính mình." and `anonymized` "Dữ liệu cá nhân của tài khoản này đã được ẩn danh, nên
@@ -778,23 +782,24 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   ├── staff-account-nav-section.tsx      the nav slot: reads StaffAccountProvider; renders nothing on a 404 or a
   │                                      failed load; while loading and once loaded it builds the items (id info
   │                                      with `staff.account.info.title`, id status with `.status.title`, id
-  │                                      password with `.password.title`, and id activity with `.activity.title`
-  │                                      once gap 10 is built), calls useActiveSection with them and renders
-  │                                      SectionNav with the label `admin.sectionNav.label`, the current id and the
-  │                                      select handler; scrolls to the hash once the account has loaded
-  │                                      presentational — props: label, items (id, label), currentId, onSelect;
-  │                                      `nav` aria-labelledby its visible title (`text-xs font-medium`,
-  │                                      muted-foreground); one link per item to #id, 32px high, radius-md,
-  │                                      muted-foreground, accent on hover, text wrapping, focus as the base ring of
-  │                                      button.tsx (`outline-none focus-visible:ring-[3px]
-  │                                      focus-visible:ring-ring/50`); the current one accent, foreground, weight
-  │                                      500, aria-current="location"; a click calls onSelect — no shadcn component
-  │                                      (moves to components/app/ with SCR-ACC-01) the current id: one
-  │                                      IntersectionObserver on the sections and the sentinel `staff-account-end`
-  │                                      of the layout (the line 24px plus a third of the viewport from the top; the
-  │                                      last id at the sentinel only when the document scrolls, else the first);
-  │                                      select: scrolls to the section (smooth unless reduced motion), focuses its
-  │                                      h2 (`<id>-title`) and replaces the hash (moves to @/hooks with SCR-ACC-01)
+  │                                      password with `staff.account.passwordCard.title`, and id activity with
+  │                                      `.activity.title` once gap 10 is built), calls useActiveSection with them
+  │                                      and renders SectionNav with the label `admin.sectionNav.label`, the current
+  │                                      id and the select handler; scrolls to the hash once the account has loaded
+  │   ├── section-nav.tsx                presentational — props: label, items (id, label), currentId, onSelect;
+  │   │                                  `nav` aria-labelledby its visible title (`text-xs font-medium`,
+  │   │                                  muted-foreground); one link per item to #id, 32px high, radius-md,
+  │   │                                  muted-foreground, accent on hover, text wrapping, focus as the base ring of
+  │   │                                  button.tsx (`outline-none focus-visible:ring-[3px]
+  │   │                                  focus-visible:ring-ring/50`); the current one accent,
+  │   │                                  foreground, weight 500, aria-current="location"; a click calls onSelect —
+  │   │                                  no shadcn component (moves to components/app/ with SCR-ACC-01)
+  │   └── ../hooks/use-active-section.ts the current id: one IntersectionObserver on the sections and the
+  │                                      sentinel `staff-account-end` of the layout (the line 24px plus a third
+  │                                      of the viewport from the top; the last id at the sentinel only when the
+  │                                      document scrolls, else the first); select: scrolls to the section
+  │                                      (smooth unless reduced motion), focuses its h2 (`<id>-title`) and
+  │                                      replaces the hash (moves to @/hooks with SCR-ACC-01)
   ├── staff-account-heading-section.tsx  an Avatar of 64px (56px narrow), kept at the owner's request in addition to
   │                                      the photo of the details card, `aria-hidden` always: with the initials
   │                                      (`initials` of `@/utils/initials`, as `staff-photo.tsx`) and, once gap 8
@@ -879,54 +884,53 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   │                                      of the table above in a toast, `concurrency-conflict` also reloads; the 500
   │                                      of "Khóa" in the toast of *Conventions*, then reloads; loading: the card
   │                                      with Skeleton of its title and button; on a 404 or a failed load it renders
-  │                                      nothing — card, badge, button, skeleton props: the account (`id`, `name`,
-  │                                      `joinedDate`, `leftDate`), `open` and `onOpenChange`, so that a row of
-  │                                      SCR-STF-01 opens it too; Dialog: DialogTitle `disableDialog.title`,
-  │                                      DialogDescription `disableDialog.description`, Alert destructive
-  │                                      (CircleAlertIcon) `disableDialog.warning`; the Field (horizontal) Checkbox
-  │                                      `disableDialog.leaving` with its FieldDescription `leavingHint`; when
-  │                                      ticked, the Field `staff.list.columns.leftDate`: a date picker (Popover
-  │                                      with a Button outline showing `dd/MM/yyyy` and CalendarIcon, holding a
-  │                                      Calendar of one month, Monday first, `required` so that a second click
-  │                                      never empties it), days after today in Asia/Ho_Chi_Minh and before the
-  │                                      joined date disabled, its FieldDescription `leftDateHint` (or
-  │                                      `leftDateHintToday`) tied by aria-describedby, a 400 or 409 on `#/leftDate`
-  │                                      in its FieldError; an account that has a left date ("Khóa lại") opens
-  │                                      ticked with that date, any other opens unticked and ticking it picks today
-  │                                      in Asia/Ho_Chi_Minh; a joined date after today leaves no day to pick: the
-  │                                      checkbox is disabled with the FieldDescription `leftDateFuture`; an error
-  │                                      no field shows at the top in an Alert; footer "Hủy" (outline) and "Khóa"
-  │                                      (destructive-soft), disabled with LoaderCircleIcon until the answer comes;
-  │                                      sends `{ leftDate }`, null when not ticked; closes on 200, on a 409 shown
-  │                                      in a toast, on a 404, on a 500 and on no answer (those three in their
-  │                                      toast, then a reload); stays open with a field error — dialog, alert,
-  │                                      field, checkbox, popover, calendar, button props: the account (`id`,
-  │                                      `name`), `open` and `onOpenChange`, as the dialog's; AlertDialog:
-  │                                      AlertDialogTitle `restoreDialog.title`, AlertDialogDescription
-  │                                      `restoreDialog.description`; AlertDialogCancel "Hủy" and "Khôi phục" (a
-  │                                      Button default, not AlertDialogAction, which would close at once), disabled
-  │                                      with LoaderCircleIcon until the answer comes; closes on 200, and on any
-  │                                      problem after its toast (a 404, a 500 or no answer also reloads) —
-  │                                      alert-dialog, button
+  │                                      nothing — card, badge, button, skeleton
+  │   ├── staff-disable-dialog.tsx       props: the account (`id`, `name`, `joinedDate`, `leftDate`), `open` and
+  │   │                                  `onOpenChange`, so that a row of SCR-STF-01 opens it too; Dialog: DialogTitle
+  │   │                                  `disableDialog.title`, DialogDescription `disableDialog.description`, Alert
+  │   │                                  destructive (CircleAlertIcon) `disableDialog.warning`; the Field (horizontal)
+  │   │                                  Checkbox `disableDialog.leaving` with its FieldDescription `leavingHint`; when
+  │   │                                  ticked, the Field `staff.list.columns.leftDate`: a date picker (Popover with a
+  │   │                                  Button outline showing `dd/MM/yyyy` and CalendarIcon, holding a Calendar of one
+  │   │                                  month, Monday first, `required` so that a second click never empties it), days
+  │   │                                  after today in Asia/Ho_Chi_Minh and before the joined date disabled, its
+  │   │                                  FieldDescription `leftDateHint` (or `leftDateHintToday`) tied by
+  │   │                                  aria-describedby, a 400 or 409 on `#/leftDate` in its FieldError; an account
+  │   │                                  that has a left date ("Khóa lại") opens ticked with that date, any other opens
+  │   │                                  unticked and ticking it picks today in Asia/Ho_Chi_Minh; a joined date after
+  │   │                                  today leaves no day to pick: the checkbox is disabled with the FieldDescription
+  │   │                                  `leftDateFuture`; an error no field shows at the top in an Alert; footer "Hủy"
+  │   │                                  (outline) and "Khóa" (destructive-soft), disabled with LoaderCircleIcon until
+  │   │                                  the answer comes; sends `{ leftDate }`, null when not ticked; closes on 200, on
+  │   │                                  a 409 shown in a toast, on a 404, on a 500 and on no answer (those three in
+  │   │                                  their toast, then a reload); stays open with a field error — dialog, alert,
+  │   │                                  field, checkbox, popover, calendar, button
+  │   └── staff-restore-dialog.tsx       props: the account (`id`, `name`), `open` and `onOpenChange`, as the dialog's;
+  │                                      AlertDialog: AlertDialogTitle `restoreDialog.title`, AlertDialogDescription
+  │                                      `restoreDialog.description`; AlertDialogCancel "Hủy" and "Khôi phục" (a Button
+  │                                      default, not AlertDialogAction, which would close at once), disabled with
+  │                                      LoaderCircleIcon until the answer comes; closes on 200, and on any problem
+  │                                      after its toast (a 404, a 500 or no answer also reloads) — alert-dialog, button
   ├── staff-account-password-section.tsx Card as a `section` id password, aria-labelledby password-title; CardTitle
-  │                                      `password.title` as an h2 with id password-title and tabindex -1,
-  │                                      scroll-margin-top 24px; CardDescription `password.description`; rows like
-  │                                      the details card (divided, label 136px | value from `@sm`):
-  │                                      `password.default` with Badge outline `password.unchanged` when
-  │                                      `mustChangePassword`, else Badge secondary `password.changed`; for gap 9,
-  │                                      not built until its Decision: the row `password.lastReset` (the time of the
-  │                                      last link, `dd/MM/yyyy HH:mm`, or `password.neverReset`) and, with the
-  │                                      permission the Decision names, in the account's management scope (R-SEC-12)
-  │                                      and not on the user's own account, PENDING or DISABLED: the Button outline
-  │                                      "Gửi link đặt lại mật khẩu" (KeyRoundIcon; end-aligned from `@xl`, full
-  │                                      width below) with its FieldDescription `password.sendResetHint` tied by
-  │                                      aria-describedby, which opens the confirmation; the first build shows the
-  │                                      default-password row only; loading: Skeleton of its title and two rows; on
-  │                                      a 404 or a failed load it renders nothing — card, badge, button, skeleton
+  │                                      `passwordCard.title` as an h2 with id password-title and tabindex -1,
+  │                                      scroll-margin-top 24px; CardDescription `passwordCard.description`; rows
+  │                                      like the details card (divided, label 136px | value from `@sm`):
+  │                                      `passwordCard.default` with Badge outline `passwordCard.unchanged` when
+  │                                      `mustChangePassword`, else Badge secondary `passwordCard.changed`; for gap
+  │                                      9, not built until its Decision: the row `passwordCard.lastReset` (the time
+  │                                      of the last link, `dd/MM/yyyy HH:mm`, or `passwordCard.neverReset`) and,
+  │                                      with the permission the Decision names, in the account's management scope
+  │                                      (R-SEC-12), on an ACTIVE account that is not the user's own: the Button
+  │                                      outline "Gửi link đặt lại mật khẩu" (KeyRoundIcon; end-aligned from `@xl`,
+  │                                      full width below) with its FieldDescription `passwordCard.sendResetHint`
+  │                                      tied by aria-describedby, which opens the confirmation; the first build
+  │                                      shows the default-password row only; loading: Skeleton of its title and two
+  │                                      rows; on a 404 or a failed load it renders nothing — card, badge, button,
+  │                                      skeleton
   │   └── staff-reset-password-dialog.tsx gap 9, not built: AlertDialog: AlertDialogTitle `resetDialog.title`,
   │                                      AlertDialogDescription `resetDialog.description` with the account's email;
   │                                      AlertDialogCancel "Hủy" and "Gửi link" (a Button default, disabled with
-  │                                      LoaderCircleIcon until the answer comes); the request goes out with an
+  │                                      LoaderCircleIcon until the answer comes); the request carries an
   │                                      Idempotency-Key; 202 closes it, shows the toast `resetSent` and the new
   │                                      time of the last link; a 409 or 429 shows its `detail` in a toast —
   │                                      alert-dialog, button
@@ -940,20 +944,23 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   │                                      by default; their values from the Decision), the ToggleGroup
   │                                      `activity.scope` (`scopeAll`, `scopeBy`, `scopeOn`) and the Button ghost
   │                                      `activity.clear`; below `@xl` one Button outline `activity.filters` with
-  │                                      the count of filters set, opening a Sheet (bottom) with the same fields;
-  │                                      the filters live in the URL query, so a link keeps them; then a Table
+  │                                      the count of filters set, opening a Sheet (bottom) with SheetTitle
+  │                                      `activity.filtersSheet.title`, SheetDescription
+  │                                      `activity.filtersSheet.description` and the same fields; the filters live
+  │                                      in the URL query, so a link keeps them; from `@xl` a Table
   │                                      (`activity.tableLabel`; columns time `dd/MM/yyyy HH:mm`, action, target,
-  │                                      area; it scrolls inside its box below `@xl`, where the rows become a list
-  │                                      of action · target over time · area); under it the muted line
-  │                                      `activity.shown` and the Button outline `activity.loadMore`, which fetches
-  │                                      the next page by cursor and appends it (no page numbers), disabled with
-  │                                      LoaderCircleIcon while loading and hidden at the end; no events: an Empty
-  │                                      with EmptyTitle `activity.empty`, EmptyDescription
-  │                                      `activity.emptyDescription` and the Button `activity.clear`, in place of
-  │                                      the table so the filters stay; loading: Skeleton rows; a failed load: the
-  │                                      problem's text in an Alert inside the card with "Thử lại" — card, popover,
-  │                                      calendar, select, toggle-group, sheet, table, empty, alert, button,
-  │                                      skeleton
+  │                                      area), below `@xl` a list (action · target over time · area); a long target
+  │                                      wraps, never cut short; under it the muted line `activity.shown` in an
+  │                                      `aria-live="polite"` region and the Button outline `activity.loadMore`,
+  │                                      which fetches the next page by cursor and appends it (no page numbers),
+  │                                      disabled with LoaderCircleIcon while loading; at the end of the list it is
+  │                                      replaced by the muted line `activity.end` and the focus moves to the first
+  │                                      new row; no events: an Empty with EmptyTitle `activity.empty`,
+  │                                      EmptyDescription `activity.emptyDescription` and the Button
+  │                                      `activity.clear`, in place of the table so the filters stay; loading:
+  │                                      Skeleton rows; a failed load: the problem's text in an Alert inside the
+  │                                      card with "Thử lại" — card, popover, calendar, select, toggle-group, sheet,
+  │                                      table, empty, alert, button, skeleton
   └── staff-status-badge.tsx             (SCR-STF-01) presentational — ACTIVE `success` (soft green), DISABLED
                                          `secondary` (grey), and ANONYMIZED `outline` with `status.anonymized` —
                                          badge
@@ -1021,11 +1028,14 @@ A closed gap keeps its number, since other lines refer to it.
    the initials in an Avatar until then. Needs a Decision.
 9. **Sending a staff member a password reset link.** No endpoint resets another account's password, no permission
    covers it and no column records the last link. The Layout of SCR-STF-03 draws the action, its confirmation and
-   the row of the last link ahead. The owner chose, on 2026-11-11, the long-term way: the API asks Firebase for a
-   password reset link (single use, one hour) and sends it to the account's email through the outbox (R-NOT-01, with
-   retries), revokes the account's sessions (R-SEC-04), records the time, and needs its own permission within the
-   management scope (R-SEC-12), an Idempotency-Key and a rate limit per account; nobody but the staff member ever knows
-   the password (no shared default). Needs a Decision (permission, rate limit, the email, the record).
+   the row of the last link ahead. The owner chose, on 2026-11-11, the long-term way: a reset link the staff member
+   uses to set a new password, so that the person resetting it never learns it. Proposed for the Decision: the API
+   asks Firebase for a password reset link (its single use and its one-hour expiry, which the texts promise, to be
+   checked against the Firebase documentation), generated when the email is sent and never stored (an outbox row would
+   keep it in `notifications.payload`, which R-NOT-02 keeps for Failed rows, and retries could outlast its expiry);
+   the email goes through the outbox (R-NOT-01); the account's sessions are revoked as R-SEC-04 does on disable; the
+   time is recorded; its own permission within the management scope (R-SEC-12), ACTIVE accounts only, an
+   Idempotency-Key and a rate limit per account. Needs a Decision (permission, rate limit, the email, the record).
 10. **A staff member's activity.** No table records events and no endpoint lists them: `audit_logs` keeps column
     changes with their personal values and no sign-in history (`users.last_login_at` holds the last one only). The
     Layout of SCR-STF-03 draws the activity card ahead. The owner chose, on 2026-11-11, the long-term way: an

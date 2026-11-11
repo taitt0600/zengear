@@ -7,7 +7,7 @@ flight, what is done and how this file changes: `CLAUDE.md`, *Work state*.
 
 | Key | Item | Who | Source |
 |---|---|---|---|
-| layout-scr-stf-03 | The `feat(web): … (STF-02)` pull request on `feat/stf-02-web-2` that builds the Layout of SCR-STF-03: the centred column with its section navigation and the details card with the photo block; the actions drawn ahead for gaps 7 and 8 of `docs/SCREENS.md` stay unbuilt until their Decisions | local | pull request #131 |
+| layout-scr-stf-03 | The `feat(web): … (STF-02)` pull request on `feat/stf-02-web-2` that builds the Layout of SCR-STF-03 (`docs/SCREENS.md`); what is drawn ahead for gaps 7 to 10 stays unbuilt | local | pull request #131 |
 
 ## Waiting for a trigger
 
