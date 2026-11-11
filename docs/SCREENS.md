@@ -84,6 +84,8 @@ only the shape of the input (required, length, format) with the limits below, wh
   - **Design**: <link>, drawn <yyyy-mm-dd> with the design system of <yyyy-mm-dd>; approved by the merge of the
     pull request that wrote this subsection (DEC-119).
   - **Artboards**: desktop (1440 px), narrow (390 px); states: loading, empty, error, no permission.
+    (Drawn in the light theme, with one dark artboard more when the screen has colours outside neutral, such as a
+    badge or a destructive button, DEC-123 (5).)
   - **shadcn**: the `shadcn add` of the components and blocks the design needs (the tree names them too,
     `/design-screen` step 2), with where a block's files move (DEC-116 (3)), or "no `add`".
   - **Texts** (`messages/vi.json`), new ones marked *new*: each text of **Help on screen** with its key and where
@@ -128,7 +130,8 @@ inside the layout (SCR-LOC-01), so no menu link leads to a 404; the feature repl
 built before DEC-119 — SCR-ADM-01, SCR-AUT-01, SCR-AUT-02 and SCR-ACC-01 — need a Layout only when their layout
 changes. A `refactor(web)` pull request that changes the layout of a screen (the pull request (B) of DEC-118) needs
 that screen's approved Layout first and builds it; a new Layout of a screen `web/` already has (not a placeholder
-page) is built the same way, by a `refactor(web)` pull request of a local session, which a Next row of
+page) is built the same way, by a `refactor(web)` pull request of a local session when it only changes the layout,
+or by a `feat(web): … (<Feature ID>)` pull request on `feat/<id>-web` when it adds behaviour (DEC-123), which a Next row of
 `docs/STATUS.md` keeps in view: `/design-screen` adds that row in a `docs/STATUS.md` pull request beside the Layout
 pull request, unless a Next row already names that pull request (`shell-refactor` for SCR-ADM-01 and SCR-AUT-01). A
 date picker uses the shadcn calendar with date-fns (DEC-116 (6)).
@@ -203,13 +206,14 @@ Every admin screen except the sign-in page sits in this layout.
 - **Component tree** (DEC-118 (3)), under `web/src/features/shell/admin/components/`; the route
   `app/(admin)/admin/layout.tsx` (a server component that already awaits `connection()`) puts `ThemeProvider` around
   everything it renders, `QueryProvider`, `TooltipProvider`, its children and `AppToaster` included, so that sonner
-  follows the chosen theme (DEC-123 (2)): `theme-provider.tsx` of this module, a client component around next-themes
+  follows the chosen theme (DEC-123 (2)): `theme-provider.tsx` of the module `features/shell/theme/` (DEC-126: its
+  `index.ts` exports only the provider, since exported by this module it added the whole frame to `/admin/sign-in`,
+  98.6 KB of First Load JS), a client component around next-themes
   with attribute class, defaultTheme system, enableSystem, disableTransitionOnChange, storageKey zengear-theme and a
   `nonce` prop, which the layout reads with `headers()` from the request's content-security-policy header
-  (`'nonce-…'`, parsed by a helper of `lib/security-headers.ts` shared with the tests; DEC-113, no `x-nonce`);
-  next-themes sets it only in the server render; the provider is exported so that `/admin/sign-in` does not load the
-  shell's code (the build compares its First Load JS before and after, DEC-121; if it grows, a Needs decision item,
-  since another module would depart from DEC-123 (2)); `theme-provider.tsx` is not in the tree below, since it wraps
+  (`'nonce-…'`, parsed by `nonceOf` of `lib/security-headers.ts`, shared with the tests; DEC-113, no `x-nonce`);
+  next-themes sets it only in the server render; `theme-switch.tsx` and the user menu below use only `useTheme`
+  (DEC-126 (2)); the provider is not in the tree below, since it wraps
   the layout above the frame; the `<html>` of `app/layout.tsx` gets `suppressHydrationWarning` (DEC-123 (2));
   `app/(admin)/admin/(shell)/layout.tsx` (a server component) reads the cookie `sidebar_state` with `cookies()` for
   the menu's `defaultOpen` (open when there is none) and composes `<AdminShell defaultOpen>` › `<AdminLayout
