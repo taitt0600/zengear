@@ -2,12 +2,12 @@
 
 Generated from `product-domain-blueprint-MVP.xlsx` — do not edit by hand; edit the workbook and run `tools/export_blueprint.py`.
 
-- [Actors](actors.md) — 16 rows
+- [Actors](actors.md) — 17 rows
 - [Tech Stack](tech-stack.md) — 58 rows
 - [Roadmap](roadmap.md) — 4 rows
-- [Features](features.md) — 131 rows
-- [Use Cases](use-cases.md) — 139 rows
-- [Domain Model](domain-model.md) — 77 rows
-- [Business Rules](business-rules.md) — 136 rows
-- [Decisions](decisions.md) — 126 rows
+- [Features](features.md) — 135 rows
+- [Use Cases](use-cases.md) — 141 rows
+- [Domain Model](domain-model.md) — 81 rows
+- [Business Rules](business-rules.md) — 142 rows
+- [Decisions](decisions.md) — 128 rows
 - [Technical Design](technical-design.md) — 16 rows

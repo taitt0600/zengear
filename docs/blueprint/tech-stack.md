@@ -28,12 +28,12 @@
 | Backend API | Microsoft.AspNetCore.OpenApi + Scalar | — | Sinh tài liệu OpenAPI lúc build vào api/openapi (hợp đồng cho web, DEC-093); Scalar hiển thị tài liệu API | Phase 1 |
 | Backend API | Serilog | — | Log có cấu trúc, gồm log bảo mật cho sự kiện đăng nhập (R-SEC-11); không ghi token, mật khẩu, mã OTP | Phase 1 |
 | Backend API | Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore | — | Health check kết nối database cho endpoint /health | Phase 1 |
-| Background Jobs | BackgroundService + PeriodicTimer | .NET 10 | Job nền của Scheduler (A10): hủy đơn quá hạn, gửi thông báo, phát hành hóa đơn, đối soát hằng đêm | Phase 1 |
+| Background Jobs | BackgroundService + PeriodicTimer | .NET 10 | Job nền của Scheduler (A10): hủy đơn quá hạn, gửi thông báo, phát hành hóa đơn, đối soát hằng đêm; job theo yêu cầu người dùng (khóa, khôi phục hàng loạt, xuất, import) theo R-JOB-01 (DEC-127) | Phase 1 |
 | Cache | Redis + StackExchange.Redis | — | Cache trạng thái user và quyền theo Role với key có phiên bản (R-SEC-07); maxmemory-policy volatile-* hoặc noeviction | Phase 1 |
 | Database | PostgreSQL | 18 | CSDL quan hệ; cần uuidv7() native; file SQL và DBML trong DATABASE.md là đặc tả để CI đối chiếu với kết quả migration | Phase 1 |
 | Database | btree_gist | — | Extension: exclusion constraint cho tax_rates | Phase 1 |
-| Database | unaccent + pg_trgm | — | Extension: tìm kiếm không dấu (PDS-03) | Phase 2 |
-| File Storage | Firebase Storage | — | Ảnh sản phẩm, ảnh chứng từ và bằng chứng (attachments) | Phase 1 |
+| Database | unaccent + pg_trgm | — | Extension: tìm kiếm không dấu (STF-06 từ Phase 1, PDS-03) | Phase 1 |
+| File Storage | Firebase Storage | — | Ảnh sản phẩm, ảnh chứng từ và bằng chứng (attachments); file xuất tạm, riêng tư, xóa sau 24 giờ (R-USR-16, DEC-127) | Phase 1 |
 | External Service | Firebase Authentication | — | Đăng nhập nhân viên; khách đăng nhập email, Google, SĐT + OTP ở Phase 2 cần gói Blaze (A13) | Phase 1 |
 | External Service | Resend | — | Gửi email giao dịch (A14) | Phase 1 |
 | External Service | MISA meInvoice | — | Phát hành hóa đơn bán hàng điện tử qua API tích hợp dành cho developer (A15) | Phase 1 |
