@@ -761,8 +761,8 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   │   │                                  no shadcn component (moves to components/app/ with SCR-ACC-01)
   │   └── ../hooks/use-active-section.ts the current id: one IntersectionObserver on the sections and the
   │                                      sentinel `staff-account-end` of the layout (the line 24px plus a third
-  │                                      of the viewport from the top; the last id at the sentinel only when the document scrolls, else the
-  │                                      first); select: scrolls to the section (smooth unless reduced motion),
+  │                                      of the viewport from the top; the last id at the sentinel only when the
+  │                                      document scrolls, else the first); select: scrolls to the section (smooth unless reduced motion),
   │                                      focuses its h2 (`<id>-title`) and replaces the hash (moves to @/hooks
   │                                      with SCR-ACC-01)
   ├── staff-account-heading-section.tsx  an Avatar of 64px (56px narrow), `aria-hidden` while it shows the initials
