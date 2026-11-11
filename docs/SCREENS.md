@@ -72,7 +72,7 @@ only the shape of the input (required, length, format) with the limits below, wh
 - **Accessibility**: WCAG 2.2 AA; every form works with the keyboard alone, every field has a visible label, errors
   are announced to screen readers.
 - **Design system** (DEC-119 (2)): <https://claude.ai/artifact/DAYPEgxSLaHrHYG99Tmntb>, built 2026-10-31 from
-  `web/src/app/globals.css` and `web/src/components/ui/` and updated 2026-11-05 to commit 1470612; `/design-screen`
+  `web/src/app/globals.css` and `web/src/components/ui/` and updated 2026-11-11 to commit 39485c9; `/design-screen`
   brings the system up to date when those files changed since, and then the update's date and commit.
 - **Layout** (DEC-119 (3)): the approved design of a screen, a subsection at the end of its section that
   `/design-screen <SCR-ID>` writes and the merge of its Layout pull request approves; a later change of the design is
@@ -644,49 +644,46 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
 
 ### Layout
 
-- **Design**: <https://claude.ai/artifact/DuLX9hmqGWyyP9vmoUw6Dd>, drawn 2026-11-05 with the design system of
-  2026-11-05; approved by the merge of the pull request that wrote this subsection (DEC-119). The canvas shows the
-  frame of SCR-ADM-01 for context only; this Layout does not approve it.
-- **Artboards**: desktop (1440 px) of an ACTIVE account, where "Khóa tài khoản", the dialog and "Khôi phục tài
-  khoản" work in Play; narrow (390 px) of an account whose default password is unchanged; the dialog "Khóa tài
-  khoản" with "Nhân viên nghỉ việc" ticked, the calendar and the tooltip of its close button open; a DISABLED
-  account; the confirmation of "Khôi phục"; states: loading, 404, error; the sheet "Cập nhật thông tin", drawn ahead
-  and built once gap 7 closes. No permission is the page of SCR-ADM-01 (`RequirePermission` with `staff.read`). The
-  sample is the fixture manager; its narrow artboard shows the badge of an unchanged password and its DISABLED
-  artboard a left date only to show them. The photo is an Avatar with the initials until gap 8 closes.
-- **shadcn**: `shadcn add checkbox popover calendar alert-dialog`; `calendar` brings `react-day-picker` and
-  `date-fns`, which `web/approved-packages.json` lists (DEC-116 (6)); it must not overwrite the edited `button`
-  (DEC-116 (4)). In the commits after the `add`: the texts of `calendar` (its month and weekday names through the
-  locale `vi` of `date-fns/locale`; every entry of react-day-picker's `labels` it uses from `ui.calendar`, checked
-  against the installed version; each navigation button in a Tooltip with its text) and the corner close button of
-  `dialog` in a Tooltip with `ui.close`, and that of `sheet` when gap 7 is built (*Conventions*, **Help on screen**).
-  `avatar`, `badge`, `card`, `dialog`, `sheet`, `alert`, `field`, `input`, `sonner`, `skeleton`, `empty` and `tooltip`
-  are installed.
-- **Theme**: the badges of a status are soft (chosen by the owner on this Layout: a light ground with darker text of
-  the same hue): a commit adds to `:root` of `app/globals.css` the tokens `--success-soft` `oklch(0.962 0.044
-  156.743)` and `--success-soft-foreground` `oklch(0.448 0.119 151.328)` (6.45:1), with their `--color-*` in `@theme
-  inline`, and the Badge variant `success` becomes `bg-success-soft text-success-soft-foreground` (its whole class
-  string, its ring, dark and hover classes included); it removes `--success`, `--color-success` and their row of
-  `globals.test.ts`, which nothing uses any more, checks the new pair at 4.5:1 instead, and rewrites the comments at
-  the top of both files; a DISABLED account takes the variant `secondary` (grey), an ANONYMIZED one `outline`. The
-  list of SCR-STF-01 shows the same badges (`staff-status-badge.tsx`), which the change of its Layout records in its
-  own pull request; the run of STF-02, which edits that file anyway, starts once that pull request has merged and
-  builds them for both screens. The buttons that lock an account ("Khóa tài khoản", "Khóa lại" and the dialog's
-  "Khóa") use a new Button variant `destructive-soft`, from the class string the owner gave (shadcn's newer styles),
-  `destructive` of new-york staying: `bg-destructive/10 text-destructive-soft-foreground hover:bg-destructive/20
-  dark:bg-destructive/20 dark:hover:bg-destructive/30`, light theme only like the rest of `:root`. Two changes from
-  the owner's string, for WCAG 2.2 AA: the text takes a new token `--destructive-soft-foreground` `oklch(0.444 0.177
-  26.899)` in `:root` and `@theme inline` (`text-destructive` there reaches only 3.99:1; the new one 7.01:1 on the 10
-  % ground, 5.82:1 on the hover's 20 %), and the focus ring stays the base one of `button.tsx`
-  (`focus-visible:ring-destructive/20` and `focus-visible:border-destructive/40` are left out: the first would draw
-  1.44:1, the second nothing). The commit of the variant adds to `globals.test.ts` a blend of `--destructive` at 10 %
-  and 20 % over `--background`, composited in gamma-encoded sRGB as the browser does, checks
-  `--destructive-soft-foreground` on both at 4.5:1, and rewrites the comments at the top of `globals.css` and
-  `globals.test.ts`. The design system takes the tokens and the variants once that run's pull request merges (its
-  freshness check).
-- **Texts** (`messages/vi.json`), new ones marked *new*, under `staff.account` unless named: the page's title and
-  breadcrumb entry `title` "Tài khoản nhân viên" (*new*); the details card `info.title` "Thông tin nhân viên" and
-  `info.description` "Thông tin ghi khi tạo tài khoản, dùng để liên hệ và phân quyền." (*new*); its labels
+- **Design**: <https://claude.ai/artifact/QjTnaq2rsB49xBeN3Wkuen>, drawn 2026-11-11 with the design system of
+  2026-11-11; approved by the merge of the pull request that wrote this subsection (DEC-119). It changes the layout
+  of the page only: one centred column with a section navigation, for wide screens (2K and up). The dialog "Khóa tài
+  khoản", the confirmation "Khôi phục tài khoản?", the DISABLED account and the sheet "Cập nhật thông tin" keep their
+  design of <https://claude.ai/artifact/DuLX9hmqGWyyP9vmoUw6Dd> (pull request #111). The canvas shows the frame of
+  SCR-ADM-01 for context only; this Layout does not approve it.
+- **Artboards**: desktop (1440 px) of an ACTIVE account, where the section navigation works in Play; wide (2560 px),
+  where the column keeps 1024 px and centres; narrow (390 px) of an account whose default password is unchanged, with
+  no section navigation; dark (1440 px, DEC-123 (5): soft badges and `destructive-soft` on the dark values of
+  DEC-124), with "Trạng thái tài khoản" the current section; states: loading (the navigation shows, the cards as
+  Skeleton), 404 and error (an Empty in the column, no navigation). No permission is the page of SCR-ADM-01
+  (`RequirePermission` with `staff.read`). The sample is the fixture manager. The photo is an Avatar with the
+  initials until gap 8 closes.
+- **shadcn**: no `add`. The section navigation is a composition of plain links on the tokens (shadcn has no table of
+  contents; `sidebar` is the app's menu and too heavy here), in `components/app/` since SCR-ACC-01 takes the same
+  layout in its own Layout pull request.
+- **Theme**: unchanged and built: the soft status badges (`success` on `success-soft`, DISABLED `secondary`,
+  ANONYMIZED `outline`) and the Button variant `destructive-soft` of the previous Layout of this screen are in
+  `app/globals.css` and `components/ui/` since the pull request of STF-02, with their `.dark` values since AUT-04
+  (DEC-123 (4), DEC-124). The current link of the section navigation is `accent` with `foreground` text at weight
+  500, the others `muted-foreground` (4.98:1 light, 6.72:1 dark on `background`), `accent` on hover.
+- **Section navigation** (new behaviour, so the build is a `feat(web): … (STF-02)` pull request on `feat/stf-02-web`,
+  as the paragraph under the screen list says): at `lg` and up, a `nav` labelled by its visible title "Trên trang này"
+  (`ui.sectionNav.label`) sits left of the cards in a column of 200px, sticky 80px from the top (under the header of
+  64px), and lists one link per card, in page order, with the card's title as its text (`staff.account.info.title`,
+  `.status.title`); each card is a `section` with an `id` (`info`, `status`) and `scroll-margin-top` of 80px. A click
+  scrolls to the card (smoothly, at once under `prefers-reduced-motion`), moves the focus to the card's title (`h2`
+  with `tabindex="-1"`) and replaces the URL hash without a new history entry; opening the page with `#info` or
+  `#status` scrolls there. While the page scrolls, the current link (`aria-current="location"`) is the last card whose
+  top has passed 80px plus a third of the viewport, and the last card once the page reaches its end (an
+  IntersectionObserver, no scroll handler on every frame). Below `lg` there is no navigation: the page is short and
+  the status card comes first.
+- **Width**: the page's content is one column of at most 1024px (`max-w-5xl`), centred in the page area of
+  SCR-ADM-01 (24px padding, 16px narrow); at `lg` and up it holds the heading over a grid `200px minmax(0, 1fr)` with a
+  gap of 32px (navigation | cards), so a card is about 792px wide at most, whatever the screen.
+- **Texts** (`messages/vi.json`), new ones marked *new*, under `staff.account` unless named:
+  `ui.sectionNav.label` "Trên trang này" (*new*; the visible title of the section navigation, which names the
+  `nav`); the page's title and breadcrumb entry `title` "Tài khoản nhân viên" (*new*); the details card
+  `info.title` "Thông tin nhân viên" and `info.description` "Thông tin ghi khi tạo tài khoản, dùng để liên hệ và phân
+  quyền." (*new*); its labels
   `staff.list.columns.email`, `.employeeCode`, `.roles`, `.joinedDate`, `.leftDate`, with `workPhone` "SĐT công việc"
   (*new*), and `staff.list.noValue` "—" for an empty value; the status card `status.title` "Trạng thái tài khoản" and
   `status.description` "Tài khoản bị khóa không đăng nhập được; khôi phục để nhân viên dùng lại." (*new*), its label
@@ -730,9 +727,22 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
 
   ```text
   staff-account-layout.tsx               slots: heading | details | status — a page of two cards, its heading
-  │                                      above them (Grouping); desktop: details over two thirds, status over one
-  │                                      third; narrow: one column, status first so that its action comes before
-  │                                      the details; it only places the slots
+  │                                      above them (Grouping), in one column of at most 1024px, centred (Width);
+  │                                      from lg: the heading over a grid of the SectionNav (200px, sticky top 80px)
+  │                                      and the cards stacked, details then status, each in a section with its id
+  │                                      (info, status) and scroll-margin-top 80px; below lg: no SectionNav, one
+  │                                      column, status first so that its action comes before the details; it
+  │                                      places the slots and passes SectionNav its items (id and title text)
+  ├── components/app/section-nav.tsx     (shared, SCR-ACC-01 too) presentational — props: label, items (id,
+  │                                      label); nav aria-labelledby its visible title (`ui.sectionNav.label`, ui-xs
+  │                                      medium, muted-foreground); one link per item to #id, 32px high, radius-md,
+  │                                      muted-foreground, accent on hover; the current one accent, foreground,
+  │                                      weight 500, aria-current="location"; a click scrolls (smooth unless
+  │                                      reduced motion), focuses the section's title and replaces the hash; the
+  │                                      current id from useActiveSection — no shadcn component
+  │   └── hooks/use-active-section.ts    (shared, alias @/hooks) the current id from an IntersectionObserver on the
+  │                                      sections (rootMargin from the 80px offset and a third of the viewport), the
+  │                                      last id at the end of the page, and the hash on load
   ├── staff-account-heading-section.tsx  an Avatar of 64px (56px narrow), `aria-hidden` while it shows the initials
   │                                      beside the h1 that names the person: AvatarFallback with the initials (the
   │                                      first letter of the first and of the last word of `name` that start with a
@@ -768,7 +778,9 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   ├── staff-account-status-section.tsx   Card: CardTitle `status.title`, CardDescription `status.description`;
   │                                      the row "Trạng thái" with the status badge; the row "Mật khẩu" with
   │                                      Badge outline `mustChangePassword` when `mustChangePassword`; with
-  │                                      `staff.disable`, full width: on ACTIVE "Khóa tài khoản" (destructive-soft,
+  │                                      `staff.disable`, at the end of the card (from lg aligned right at their
+  │                                      own width, since the card is wide now; full width below lg): on ACTIVE
+  │                                      "Khóa tài khoản" (destructive-soft,
   │                                      LockIcon), which opens the dialog; on DISABLED "Khôi phục tài khoản"
   │                                      (default, RotateCcwIcon), which opens the confirmation, and "Khóa lại"
   │                                      (destructive-soft, LockIcon) with its hint `disableAgainHint` tied by
