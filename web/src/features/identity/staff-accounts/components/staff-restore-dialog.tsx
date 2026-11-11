@@ -34,7 +34,7 @@ export function StaffRestoreDialog({
   account: Pick<StaffDto, 'id' | 'name'>
   open: boolean
   onOpenChange: (open: boolean) => void
-  onClosed?: () => void
+  onClosed: () => void
 }) {
   const t = useTranslations('staff.account')
   const restore = useRestoreStaff(account.id)

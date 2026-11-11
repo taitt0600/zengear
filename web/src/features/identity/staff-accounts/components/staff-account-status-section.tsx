@@ -2,7 +2,7 @@
 
 import { LockIcon, RotateCcwIcon } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import { useId, useState } from 'react'
+import { useEffect, useId, useRef, useState, type MouseEvent, type RefObject } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -23,6 +23,7 @@ export function StaffAccountStatusSection() {
   const t = useTranslations()
   const statusTexts = useStaffStatusTexts()
   const { account, error, canDisable, isOwn } = useStaffAccountState()
+  const heading = useRef<HTMLHeadingElement>(null)
   if (error) return null
 
   return (
@@ -31,7 +32,9 @@ export function StaffAccountStatusSection() {
         {account ? (
           <>
             <CardTitle>
-              <h2>{t('staff.account.status.title')}</h2>
+              <h2 ref={heading} tabIndex={-1} className="focus:outline-none">
+                {t('staff.account.status.title')}
+              </h2>
             </CardTitle>
             <CardDescription>{t('staff.account.status.description')}</CardDescription>
           </>
@@ -57,7 +60,7 @@ export function StaffAccountStatusSection() {
                 <Badge variant="outline">{t('staff.account.mustChangePassword')}</Badge>
               </div>
             )}
-            {canDisable && <StatusActions account={account} isOwn={isOwn} />}
+            {canDisable && <StatusActions account={account} isOwn={isOwn} heading={heading} />}
           </>
         ) : (
           <Skeleton className="h-9 w-full rounded-md" />
@@ -67,15 +70,41 @@ export function StaffAccountStatusSection() {
   )
 }
 
-function StatusActions({ account, isOwn }: { account: StaffDto; isOwn: boolean }) {
+type Command = 'disable' | 'restore'
+
+function StatusActions({
+  account,
+  isOwn,
+  heading,
+}: {
+  account: StaffDto
+  isOwn: boolean
+  heading: RefObject<HTMLHeadingElement | null>
+}) {
   const t = useTranslations('staff.account')
   // The id of the page's address: the commands reload the account under the key the page loaded it with, which a
   // GUID typed in capitals would not match with the API's own `account.id`.
   const { id } = useStaffAccountState()
   const target = { ...account, id }
-  const [dialog, setDialog] = useState<'disable' | 'restore' | null>(null)
+  const [dialog, setDialog] = useState<Command | null>(null)
   const hintId = useId()
-  const toggle = (name: 'disable' | 'restore') => (open: boolean) => setDialog(open ? name : null)
+  const toggle = (name: Command) => (open: boolean) => setDialog(open ? name : null)
+  // The dialogs open without a trigger, so they put the focus back themselves: on the button that opened them, or,
+  // once a 200 has replaced it (the account reloads before they close), on the card's heading.
+  const opener = useRef<HTMLButtonElement | null>(null)
+  const openWith = (name: Command, event: MouseEvent<HTMLButtonElement>) => {
+    opener.current = event.currentTarget
+    setDialog(name)
+  }
+  const focusBack = () => (opener.current?.isConnected ? opener.current : heading.current)?.focus()
+  // A reload that ends after the dialog closed (after a refusal, or "Hủy" while the command runs) can still replace
+  // the button that got the focus back: the heading takes it instead of the page's body.
+  useEffect(() => {
+    if (opener.current?.isConnected === false && document.activeElement === document.body) {
+      heading.current?.focus()
+      opener.current = null
+    }
+  }, [account.status, heading])
 
   if (isOwn || account.status === 'ANONYMIZED') {
     return (
@@ -87,7 +116,7 @@ function StatusActions({ account, isOwn }: { account: StaffDto; isOwn: boolean }
       variant="destructive-soft"
       className="w-full"
       aria-describedby={describedBy}
-      onClick={() => setDialog('disable')}
+      onClick={(event) => openWith('disable', event)}
     >
       <LockIcon data-icon="inline-start" aria-hidden />
       {label}
@@ -100,7 +129,7 @@ function StatusActions({ account, isOwn }: { account: StaffDto; isOwn: boolean }
         lock(t('disable'))
       ) : (
         <div className="flex flex-col gap-2">
-          <Button className="w-full" onClick={() => setDialog('restore')}>
+          <Button className="w-full" onClick={(event) => openWith('restore', event)}>
             <RotateCcwIcon data-icon="inline-start" aria-hidden />
             {t('restore')}
           </Button>
@@ -114,11 +143,13 @@ function StatusActions({ account, isOwn }: { account: StaffDto; isOwn: boolean }
         account={target}
         open={dialog === 'disable'}
         onOpenChange={toggle('disable')}
+        onClosed={focusBack}
       />
       <StaffRestoreDialog
         account={target}
         open={dialog === 'restore'}
         onOpenChange={toggle('restore')}
+        onClosed={focusBack}
       />
     </>
   )

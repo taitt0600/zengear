@@ -53,6 +53,43 @@ describe('the dialog "Khóa tài khoản"', () => {
     expect(await screen.findByRole('button', { name: 'Khôi phục tài khoản' })).toBeVisible()
   })
 
+  it('gives the focus to the status card once a lock has replaced its button', async () => {
+    renderAccount()
+    await open()
+    api.fetch.mockResolvedValue(ok({ ...manager, status: 'DISABLED' }))
+
+    await userEvent.click(lock())
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { level: 2, name: 'Trạng thái tài khoản' })).toHaveFocus(),
+    )
+  })
+
+  it('gives the focus back to the button that opened it when nothing changed', async () => {
+    renderAccount()
+    await open()
+
+    await userEvent.click(within(dialog()).getByRole('button', { name: 'Hủy' }))
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Khóa tài khoản' })).toHaveFocus(),
+    )
+  })
+
+  it('gives the focus back to "Khóa lại", which stays after it locks again', async () => {
+    const disabled = { ...manager, status: 'DISABLED', leftDate: '2026-11-01' } as const
+    api.fetch.mockResolvedValue(ok(disabled))
+    renderAccount()
+    await open('Khóa lại')
+
+    await userEvent.click(lock())
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Khóa lại' })).toHaveFocus())
+  })
+
   it('records the last working day, today by default, which it sends', async () => {
     renderAccount()
     await open()

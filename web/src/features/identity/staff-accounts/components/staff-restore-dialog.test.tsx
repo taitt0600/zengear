@@ -44,6 +44,31 @@ describe('the confirmation "Khôi phục tài khoản?"', () => {
     expect(await screen.findByRole('button', { name: 'Khóa tài khoản' })).toBeVisible()
   })
 
+  it('gives the focus to the status card once a restore has replaced its button', async () => {
+    renderAccount()
+    await open()
+    api.fetch.mockResolvedValue(ok(manager))
+
+    await userEvent.click(confirm())
+
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument())
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { level: 2, name: 'Trạng thái tài khoản' })).toHaveFocus(),
+    )
+  })
+
+  it('gives the focus back to the button that opened it when nothing changed', async () => {
+    renderAccount()
+    await open()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Hủy' }))
+
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument())
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Khôi phục tài khoản' })).toHaveFocus(),
+    )
+  })
+
   it('shows a refusal in a toast and closes, without reloading (R-USR-12)', async () => {
     const detail = 'Chỉ người giữ vai trò Admin mới khôi phục được tài khoản Admin.'
     renderAccount()
@@ -71,6 +96,31 @@ describe('the confirmation "Khôi phục tài khoản?"', () => {
 
     await waitFor(() => expect(toast.error).toHaveBeenCalledWith(detail))
     await waitFor(() => expect(calls(api.fetch)).toEqual([GET, RESTORE, GET]))
+  })
+
+  it('gives the focus to the status card when a reload after a refusal replaces its button', async () => {
+    renderAccount()
+    await open()
+    // Someone else restored the account first: the reload, which the confirmation does not wait for and which is held
+    // until the test answers it, brings it back ACTIVE, without the button that opened the confirmation.
+    let answer: (value: unknown) => void = () => {}
+    api.fetch
+      .mockRejectedValueOnce(
+        refused(409, { type: '/problems/concurrency-conflict', detail: 'Đã thay đổi.' }),
+      )
+      .mockImplementationOnce(() => new Promise((resolve) => (answer = resolve)))
+
+    await userEvent.click(confirm())
+
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument())
+    expect(toast.error).toHaveBeenCalledWith('Đã thay đổi.')
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Khôi phục tài khoản' })).toHaveFocus(),
+    )
+    answer(ok(manager))
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { level: 2, name: 'Trạng thái tài khoản' })).toHaveFocus(),
+    )
   })
 
   it('shows no answer with the web’s text and reloads', async () => {
