@@ -659,7 +659,8 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   its small Avatar, the details card shows the information as divided rows with "Cập nhật thông tin" under them (drawn
   ahead for gap 7, as in the previous Layout) and, beside the information, the photo: an Avatar of 160px with the
   initials, and "Chọn ảnh" under it, drawn ahead and built once gap 8 closes, like the sheet of gap 7; the 390 px
-  artboard draws the photo at 96px (the heading Avatar at 56px) above the details and "Chọn ảnh" at full width.
+  artboard draws the photo at 96px (the heading Avatar at 56px) above the details, and "Chọn ảnh" and "Cập nhật thông
+  tin" at full width.
 - **shadcn**: no `add`. The section navigation is plain links on the tokens (shadcn has no table of contents;
   `sidebar` is the app's menu and too heavy here). It lives in this module (`components/section-nav.tsx`,
   `hooks/use-active-section.ts`) while only this screen uses it (DEC-118 (1), `docs/FRONTEND.md`, *Modules and
@@ -791,24 +792,28 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   │                                      owner put the edit action under the information). CardContent is a
   │                                      `@container` sized by the card, not the viewport (the menu changes the
   │                                      card's width): the photo block first in the DOM, then the information
-  │                                      column; from `@xl` (36rem) a grid `minmax(0, 1fr) 192px` with a gap of
+  │                                      column; from `@xl` (36rem) a grid `minmax(0, 1fr) 200px` with a gap of
   │                                      32px, the photo block placed in the second column (`col-start-2
-  │                                      row-start-1`, so the focus order stays the DOM order) with a `border-l` and
-  │                                      32px of left padding, its top 12px down to line up with the first row;
-  │                                      below `@xl` one column, the photo block centred above. The information
-  │                                      column: a description list (`dl`) of rows divided by the `border` hairline
-  │                                      (`divide-y`, each row 12px above and below), each row label 136px | value
-  │                                      from `@sm` (24rem), the label over its value below it: Email, Mã nhân viên,
-  │                                      SĐT công việc, Vai trò (one Badge secondary each), Ngày vào làm, Ngày nghỉ
-  │                                      việc (`dd/MM/yyyy`; "—" when empty); a long email wraps, never cut short;
-  │                                      under the list, 20px below, the Button outline "Cập nhật thông tin"
-  │                                      (`update`, PencilIcon; start-aligned at its width, full width below `@xl`),
-  │                                      which opens the sheet: not built until gap 7 closes, so the first build
-  │                                      shows no button. The photo block shows "Chọn ảnh" only with the permission
-  │                                      the Decision of gap 8 names — loading: the card with Skeleton of its title,
-  │                                      six rows and a round photo; on a 404 or a failed load it renders nothing
-  │                                      (the heading section shows the Empty) — card, badge, skeleton, avatar,
-  │                                      button
+  │                                      row-start-1`) with `@xl:border-l @xl:pl-8 @xl:pt-3` (a hairline, 32px of
+  │                                      left padding and its top 12px down to line up with the first row); below
+  │                                      `@xl` one column, the photo block centred above the information, with no
+  │                                      border or padding. The photo block comes first in the DOM so that the
+  │                                      narrow order (photo, then details) is the reading and focus order; at
+  │                                      `@xl`, once gaps 7 and 8 are built, Tab reaches "Chọn ảnh" before "Cập nhật
+  │                                      thông tin", which is accepted (WCAG 2.4.3 holds: the order keeps the
+  │                                      meaning). The information column: a description list (`dl`) of rows divided
+  │                                      by the `border` hairline (`divide-y`, each row 12px above and below), each
+  │                                      row label 136px | value from `@sm` (24rem), the label over its value below
+  │                                      it: Email, Mã nhân viên, SĐT công việc, Vai trò (one Badge secondary each),
+  │                                      Ngày vào làm, Ngày nghỉ việc (`dd/MM/yyyy`; "—" when empty); a long email
+  │                                      wraps, never cut short; under the list, 20px below, the Button outline "Cập
+  │                                      nhật thông tin" (`update`, PencilIcon; start-aligned at its width, full
+  │                                      width below `@xl`), which opens the sheet: not built until gap 7 closes, so
+  │                                      the first build shows no button. The photo block shows "Chọn ảnh" only with
+  │                                      the permission the Decision of gap 8 names — loading: the card with
+  │                                      Skeleton of its title, six rows and a round photo; on a 404 or a failed
+  │                                      load it renders nothing (the heading section shows the Empty) — card,
+  │                                      badge, skeleton, avatar, button
   │   ├── staff-photo.tsx                presentational — props: `name`, `photoUrl?`, `onChoose?`; an Avatar of
   │   │                                  160px (96px below `@xl`): AvatarFallback with the initials (the first
   │   │                                  letter of the first and of the last word of `name` that start with a
