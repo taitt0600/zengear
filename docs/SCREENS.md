@@ -660,12 +660,16 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   ahead for gap 7, as in the previous Layout) and, beside the information, the photo: an Avatar of 160px with the
   initials, and "Chọn ảnh" under it, drawn ahead and built once gap 8 closes, like the sheet of gap 7; the 390 px
   artboard draws the photo at 96px (the heading Avatar at 56px) above the details, and "Chọn ảnh" and "Cập nhật thông
-  tin" at full width.
-- **shadcn**: no `add`. The section navigation is plain links on the tokens (shadcn has no table of contents;
-  `sidebar` is the app's menu and too heavy here). It lives in this module (`components/section-nav.tsx`,
-  `hooks/use-active-section.ts`) while only this screen uses it (DEC-118 (1), `docs/FRONTEND.md`, *Modules and
-  boundaries*); the pull request that builds the Layout of SCR-ACC-01, which takes the same layout, moves both to
-  `components/app/` and `@/hooks`.
+  tin" at full width. Below the status card come the password card (whether the default password is changed, and "Gửi
+  link đặt lại mật khẩu" with its hint and the time of the last link, drawn ahead for gap 9) and the activity card
+  (filters, a table of events, "Tải thêm"; on the narrow artboard a list and a "Bộ lọc" button; drawn ahead for gap
+  10); one more artboard draws the confirmation "Gửi link đặt lại mật khẩu?" (gap 9).
+- **shadcn**: no `add` for what the first build makes; `shadcn add toggle-group` comes with the activity card of gap
+  10, the only part that needs a component not installed. The section navigation is plain links on the tokens (shadcn
+  has no table of contents; `sidebar` is the app's menu and too heavy here). It lives in this module
+  (`components/section-nav.tsx`, `hooks/use-active-section.ts`) while only this screen uses it (DEC-118 (1),
+  `docs/FRONTEND.md`, *Modules and boundaries*); the pull request that builds the Layout of SCR-ACC-01, which takes
+  the same layout, moves both to `components/app/` and `@/hooks`.
 - **Theme**: unchanged and built: the soft status badges (`success` on `success-soft`, DISABLED `secondary`,
   ANONYMIZED `outline`) and the Button variant `destructive-soft` of the previous Layout of this screen are in
   `app/globals.css` and `components/ui/` since the pull request of STF-02, with their `.dark` values since AUT-04
@@ -678,30 +682,48 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   (`admin.sectionNav.label`, `text-xs font-medium`, `muted-foreground`) sits left of the cards in a column of 200px,
   `sticky top-6` (24px, the page padding; the header of SCR-ADM-01 scrolls with the page) with `self-start` on its
   grid cell, and lists one link per card, in page order, with the card's title as its text
-  (`staff.account.info.title`, `.status.title`); a link text wraps, never cut short. It is navigation, not content, so
-  it sits on the page ground like the menu of SCR-ADM-01, an exception to **Grouping**. Each card is a `section` with
-  an `id` (`info`, `status`), `aria-labelledby` its title and `scroll-margin-top` 24px; the titles are `h2` with the
-  ids `info-title` and `status-title` and `tabindex="-1"`. A click scrolls to the card (smoothly, at once under
-  `prefers-reduced-motion`), moves the focus to its `h2` and replaces the URL hash without a new history entry. While
-  the page scrolls, the current link (`aria-current="location"`) is the last card whose top has passed a line 24px
-  plus a third of the viewport from the top; when the document scrolls at all (`scrollHeight` above the viewport), the
-  last card is current once the sentinel after it (`staff-account-end`, an empty `aria-hidden` div of the layout)
-  comes into view; when it does not scroll, the first card stays current. One IntersectionObserver watches the
-  sections and the sentinel; no handler on every scroll frame. A hash on load (`#info`, `#status`) is applied once the
-  account has loaded, not while the Skeleton shows. Below `xl` the navigation is hidden with CSS (its section stays
-  mounted, so a hash still scrolls) and the status card comes first.
+  (`staff.account.info.title`, `.status.title`, `.password.title` and `.activity.title`; the last only once gap 10 is
+  built); a link text wraps, never cut short. It is navigation, not content, so it sits on the page ground like the
+  menu of SCR-ADM-01, an exception to **Grouping**. Each card is a `section` with an `id` (`info`, `status`,
+  `password`, `activity`), `aria-labelledby` its title and `scroll-margin-top` 24px; the titles are `h2` with the ids
+  `<id>-title` and `tabindex="-1"`. A click scrolls to the card (smoothly, at once under `prefers-reduced-motion`),
+  moves the focus to its `h2` and replaces the URL hash without a new history entry. While the page scrolls, the
+  current link (`aria-current="location"`) is the last card whose top has passed a line 24px plus a third of the
+  viewport from the top; when the document scrolls at all (`scrollHeight` above the viewport), the last card is
+  current once the sentinel after it (`staff-account-end`, an empty `aria-hidden` div of the layout) comes into view;
+  when it does not scroll, the first card stays current. One IntersectionObserver watches the sections and the
+  sentinel; no handler on every scroll frame. A hash on load (`#<id>`) is applied once the account has loaded, not
+  while the Skeleton shows. Below `xl` the navigation is hidden with CSS (its section stays mounted, so a hash still
+  scrolls) and the status card comes first.
 - **Width**: the page's content is one column of at most 1024px (`max-w-5xl`), centred in the page area of SCR-ADM-01
   (24px padding, 16px narrow); from `xl` it holds the heading over a grid `200px minmax(0, 1fr)` with a gap of 32px
   (navigation | cards), so a card is about 792px wide at most, whatever the screen. `xl` rather than `lg`, because at
   1024px with the menu expanded the card column would be about 488px.
-- **Texts** (`messages/vi.json`), new ones marked *new*, under `staff.account` unless named:
-  `admin.sectionNav.label` "Trên trang này" (*new*; the visible title of the section navigation, which names the
-  `nav`); for gap 8, not built yet: `info.photoAlt` "Ảnh của {name}" (*new*; the alt of the photo once there is
-  one), `info.choosePhoto` "Chọn ảnh" and its hint `info.photoHint` "Ảnh chân dung, rõ mặt." (*new*; the formats and
-  size limit join the hint with the Decision of gap 8); the page's title and breadcrumb entry `title` "Tài khoản
-  nhân viên" (*new*); the details card
-  `info.title` "Thông tin nhân viên" and `info.description` "Thông tin ghi khi tạo tài khoản, dùng để liên hệ và phân
-  quyền." (*new*); its labels
+- **Texts** (`messages/vi.json`), new ones marked *new*, under `staff.account` unless named: `admin.sectionNav.label`
+  "Trên trang này" (*new*; the visible title of the section navigation, which names the `nav`); for gap 8, not built
+  yet: `info.photoAlt` "Ảnh của {name}" (*new*; the alt of the photo once there is one), `info.choosePhoto` "Chọn ảnh"
+  and its hint `info.photoHint` "Ảnh chân dung, rõ mặt. JPG hoặc PNG, tối đa 2 MB." (*new*; the formats and the 2 MB
+  the owner chose on 2026-11-11, which the Decision of gap 8 records); the password card `password.title` "Mật khẩu",
+  `password.description` "Mật khẩu chỉ nhân viên biết. Khi nhân viên quên, gửi link để họ tự đặt mật khẩu mới.", the
+  row `password.default` "Mật khẩu mặc định" with the Badges `password.unchanged` "Chưa đổi" and `password.changed`
+  "Đã đổi" (*new*), and, for gap 9, not built yet: the row `password.lastReset` "Link đặt lại gần nhất" with
+  `password.neverReset` "Chưa gửi lần nào" or the time, `password.sendReset` "Gửi link đặt lại mật khẩu" and its hint
+  `password.sendResetHint` "Nhân viên nhận email có link đặt mật khẩu mới, hết hạn sau 1 giờ, và bị đăng xuất khỏi mọi
+  thiết bị.", the confirmation `resetDialog.title` "Gửi link đặt lại mật khẩu?", `resetDialog.description` "Hệ thống
+  gửi email tới {email} với link đặt mật khẩu mới, hết hạn sau 1 giờ. Nhân viên bị đăng xuất khỏi mọi thiết bị ngay
+  khi bạn xác nhận; mật khẩu cũ vẫn dùng được cho tới khi họ đặt mật khẩu mới.", `resetDialog.submit` "Gửi link" and
+  the toast `resetSent` "Đã gửi link đặt lại mật khẩu." (*new*); for gap 10, not built yet: `activity.title` "Hoạt
+  động", `activity.description` "Việc nhân viên đã làm trong hệ thống và những thay đổi trên tài khoản này, mới nhất
+  trước.", the filters `activity.range` "Khoảng thời gian", `activity.type` "Loại hoạt động", `activity.area` "Khu
+  vực", `activity.scope` "Liên quan" with `activity.scopeAll` "Tất cả", `activity.scopeBy` "Do nhân viên làm" and
+  `activity.scopeOn` "Trên tài khoản", `activity.all` "Tất cả", `activity.clear` "Xóa bộ lọc", `activity.filters` "Bộ
+  lọc ({count})" (narrow), the columns `activity.columns.time` "Thời gian", `.action` "Hoạt động", `.target` "Đối
+  tượng", `.area` "Khu vực", `activity.tableLabel` "Hoạt động của tài khoản", `activity.shown` "Đang hiện {count} hoạt
+  động mới nhất trong khoảng đã chọn.", `activity.loadMore` "Tải thêm", the Empty `activity.empty` "Không có hoạt động
+  nào trong khoảng đã chọn." with `activity.emptyDescription` "Thử chọn khoảng thời gian rộng hơn hoặc xóa bộ lọc.",
+  and the names of the event types and areas, which the Decision of gap 10 lists (*new*); the page's title and
+  breadcrumb entry `title` "Tài khoản nhân viên" (*new*); the details card `info.title` "Thông tin nhân viên" and
+  `info.description` "Thông tin ghi khi tạo tài khoản, dùng để liên hệ và phân quyền." (*new*); its labels
   `staff.list.columns.email`, `.employeeCode`, `.roles`, `.joinedDate`, `.leftDate`, with `workPhone` "SĐT công việc"
   (*new*), and `staff.list.noValue` "—" for an empty value; the status card `status.title` "Trạng thái tài khoản" and
   `status.description` "Tài khoản bị khóa không đăng nhập được; khôi phục để nhân viên dùng lại." (*new*), its label
@@ -744,34 +766,35 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   `useCurrentUser` from `identity/access`):
 
   ```text
-  staff-account-layout.tsx               slots: heading | nav | details | status — a page of two cards, its
-  │                                      heading above them (Grouping), in one column of at most 1024px, centred
-  │                                      (Width); from xl: the heading over a grid of the nav slot (200px, sticky
-  │                                      top-6, self-start) and the cards stacked, details then status, then an
-  │                                      empty `aria-hidden` sentinel div (id `staff-account-end`); below xl the
-  │                                      nav slot is hidden with CSS (`hidden xl:block`, so its section stays
-  │                                      mounted and the hash still applies), one column, status first so that its
-  │                                      action comes before the details; it only places the slots
+  staff-account-layout.tsx               slots: heading | nav | details | status | password | activity — a page of
+  │                                      up to four cards, its heading above them (Grouping), in one column of at
+  │                                      most 1024px, centred (Width); from xl: the heading over a grid of the nav
+  │                                      slot (200px, sticky top-6, self-start) and the cards stacked, details,
+  │                                      status, password, activity, then an empty `aria-hidden` sentinel div (id
+  │                                      `staff-account-end`); below xl the nav slot is hidden with CSS (`hidden
+  │                                      xl:block`, so its section stays mounted and the hash still applies), one
+  │                                      column, status first so that its action comes before the details, then
+  │                                      password and activity; it only places the slots
   ├── staff-account-nav-section.tsx      the nav slot: reads StaffAccountProvider; renders nothing on a 404 or a
   │                                      failed load; while loading and once loaded it builds the items (id info
-  │                                      with `staff.account.info.title`, id status with `.status.title`), calls
-  │                                      useActiveSection with them and renders SectionNav with the label
-  │                                      `admin.sectionNav.label`, the current id and the select handler; scrolls
-  │                                      to the hash once the account has loaded
-  │   ├── section-nav.tsx                presentational — props: label, items (id, label), currentId, onSelect;
-  │   │                                  `nav` aria-labelledby its visible title (`text-xs font-medium`,
-  │   │                                  muted-foreground); one link per item to #id, 32px high, radius-md,
-  │   │                                  muted-foreground, accent on hover, text wrapping, focus as the base ring of
-  │   │                                  button.tsx (`outline-none focus-visible:ring-[3px]
-  │   │                                  focus-visible:ring-ring/50`); the current one accent,
-  │   │                                  foreground, weight 500, aria-current="location"; a click calls onSelect —
-  │   │                                  no shadcn component (moves to components/app/ with SCR-ACC-01)
-  │   └── ../hooks/use-active-section.ts the current id: one IntersectionObserver on the sections and the
-  │                                      sentinel `staff-account-end` of the layout (the line 24px plus a third
-  │                                      of the viewport from the top; the last id at the sentinel only when the
-  │                                      document scrolls, else the first); select: scrolls to the section
-  │                                      (smooth unless reduced motion), focuses its h2 (`<id>-title`) and
-  │                                      replaces the hash (moves to @/hooks with SCR-ACC-01)
+  │                                      with `staff.account.info.title`, id status with `.status.title`, id
+  │                                      password with `.password.title`, and id activity with `.activity.title`
+  │                                      once gap 10 is built), calls useActiveSection with them and renders
+  │                                      SectionNav with the label `admin.sectionNav.label`, the current id and the
+  │                                      select handler; scrolls to the hash once the account has loaded
+  │                                      presentational — props: label, items (id, label), currentId, onSelect;
+  │                                      `nav` aria-labelledby its visible title (`text-xs font-medium`,
+  │                                      muted-foreground); one link per item to #id, 32px high, radius-md,
+  │                                      muted-foreground, accent on hover, text wrapping, focus as the base ring of
+  │                                      button.tsx (`outline-none focus-visible:ring-[3px]
+  │                                      focus-visible:ring-ring/50`); the current one accent, foreground, weight
+  │                                      500, aria-current="location"; a click calls onSelect — no shadcn component
+  │                                      (moves to components/app/ with SCR-ACC-01) the current id: one
+  │                                      IntersectionObserver on the sections and the sentinel `staff-account-end`
+  │                                      of the layout (the line 24px plus a third of the viewport from the top; the
+  │                                      last id at the sentinel only when the document scrolls, else the first);
+  │                                      select: scrolls to the section (smooth unless reduced motion), focuses its
+  │                                      h2 (`<id>-title`) and replaces the hash (moves to @/hooks with SCR-ACC-01)
   ├── staff-account-heading-section.tsx  an Avatar of 64px (56px narrow), kept at the owner's request in addition to
   │                                      the photo of the details card, `aria-hidden` always: with the initials
   │                                      (`initials` of `@/utils/initials`, as `staff-photo.tsx`) and, once gap 8
@@ -839,51 +862,98 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   ├── staff-account-status-section.tsx   Card as a `section` id status, aria-labelledby status-title; CardTitle
   │                                      `status.title` as an h2 with id status-title and tabindex -1 (today's
   │                                      tabIndex stays), scroll-margin-top 24px; CardDescription
-  │                                      `status.description`; the row "Trạng thái" with the status badge; the row
-  │                                      "Mật khẩu" with Badge outline `mustChangePassword` when
-  │                                      `mustChangePassword`; with `staff.disable`, the actions in a row at the end
-  │                                      of the card: from xl `justify-end`, each button at its own width, on
-  │                                      DISABLED "Khôi phục tài khoản" then "Khóa lại", the hint
+  │                                      `status.description`; the row "Trạng thái" with the status badge (the
+  │                                      password row moves to the password card); with `staff.disable`, the actions
+  │                                      in a row at the end of the card: from xl `justify-end`, each button at its
+  │                                      own width, on DISABLED "Khôi phục tài khoản" then "Khóa lại", the hint
   │                                      `disableAgainHint` under the row aligned right; below xl each button full
   │                                      width, stacked; the muted lines `ownAccount` and `anonymized` start-aligned
-  │                                      at every width; on ACTIVE "Khóa tài khoản" (destructive-soft,
-  │                                      LockIcon), which opens the dialog; on DISABLED "Khôi phục tài khoản"
-  │                                      (default, RotateCcwIcon), which opens the confirmation, and "Khóa lại"
+  │                                      at every width; on ACTIVE "Khóa tài khoản" (destructive-soft, LockIcon),
+  │                                      which opens the dialog; on DISABLED "Khôi phục tài khoản" (default,
+  │                                      RotateCcwIcon), which opens the confirmation, and "Khóa lại"
   │                                      (destructive-soft, LockIcon) with its hint `disableAgainHint` tied by
   │                                      aria-describedby, which opens the dialog; on the user's own account no
   │                                      action but the muted line `ownAccount`; on ANONYMIZED (Badge outline
-  │                                      `status.anonymized`) no action but the muted line `anonymized`; each
-  │                                      200 shows the account returned and a toast `disabled` or `restored`;
-  │                                      the 409s of the table above in a toast, `concurrency-conflict` also
-  │                                      reloads; the 500 of "Khóa" in the toast of *Conventions*, then
-  │                                      reloads; loading: the card with Skeleton of its title and button; on a
-  │                                      404 or a failed load it renders nothing — card, badge, button, skeleton
-  │   ├── staff-disable-dialog.tsx       props: the account (`id`, `name`, `joinedDate`, `leftDate`), `open` and
-  │   │                                  `onOpenChange`, so that a row of SCR-STF-01 opens it too; Dialog: DialogTitle
-  │   │                                  `disableDialog.title`, DialogDescription `disableDialog.description`, Alert
-  │   │                                  destructive (CircleAlertIcon) `disableDialog.warning`; the Field (horizontal)
-  │   │                                  Checkbox `disableDialog.leaving` with its FieldDescription `leavingHint`; when
-  │   │                                  ticked, the Field `staff.list.columns.leftDate`: a date picker (Popover with a
-  │   │                                  Button outline showing `dd/MM/yyyy` and CalendarIcon, holding a Calendar of one
-  │   │                                  month, Monday first, `required` so that a second click never empties it), days
-  │   │                                  after today in Asia/Ho_Chi_Minh and before the joined date disabled, its
-  │   │                                  FieldDescription `leftDateHint` (or `leftDateHintToday`) tied by
-  │   │                                  aria-describedby, a 400 or 409 on `#/leftDate` in its FieldError; an account
-  │   │                                  that has a left date ("Khóa lại") opens ticked with that date, any other opens
-  │   │                                  unticked and ticking it picks today in Asia/Ho_Chi_Minh; a joined date after
-  │   │                                  today leaves no day to pick: the checkbox is disabled with the FieldDescription
-  │   │                                  `leftDateFuture`; an error no field shows at the top in an Alert; footer "Hủy"
-  │   │                                  (outline) and "Khóa" (destructive-soft), disabled with LoaderCircleIcon until
-  │   │                                  the answer comes; sends `{ leftDate }`, null when not ticked; closes on 200, on
-  │   │                                  a 409 shown in a toast, on a 404, on a 500 and on no answer (those three in
-  │   │                                  their toast, then a reload); stays open with a field error — dialog, alert,
-  │   │                                  field, checkbox, popover, calendar, button
-  │   └── staff-restore-dialog.tsx       props: the account (`id`, `name`), `open` and `onOpenChange`, as the dialog's;
-  │                                      AlertDialog: AlertDialogTitle `restoreDialog.title`, AlertDialogDescription
-  │                                      `restoreDialog.description`; AlertDialogCancel "Hủy" and "Khôi phục" (a Button
-  │                                      default, not AlertDialogAction, which would close at once), disabled with
-  │                                      LoaderCircleIcon until the answer comes; closes on 200, and on any problem
-  │                                      after its toast (a 404, a 500 or no answer also reloads) — alert-dialog, button
+  │                                      `status.anonymized`) no action but the muted line `anonymized`; each 200
+  │                                      shows the account returned and a toast `disabled` or `restored`; the 409s
+  │                                      of the table above in a toast, `concurrency-conflict` also reloads; the 500
+  │                                      of "Khóa" in the toast of *Conventions*, then reloads; loading: the card
+  │                                      with Skeleton of its title and button; on a 404 or a failed load it renders
+  │                                      nothing — card, badge, button, skeleton props: the account (`id`, `name`,
+  │                                      `joinedDate`, `leftDate`), `open` and `onOpenChange`, so that a row of
+  │                                      SCR-STF-01 opens it too; Dialog: DialogTitle `disableDialog.title`,
+  │                                      DialogDescription `disableDialog.description`, Alert destructive
+  │                                      (CircleAlertIcon) `disableDialog.warning`; the Field (horizontal) Checkbox
+  │                                      `disableDialog.leaving` with its FieldDescription `leavingHint`; when
+  │                                      ticked, the Field `staff.list.columns.leftDate`: a date picker (Popover
+  │                                      with a Button outline showing `dd/MM/yyyy` and CalendarIcon, holding a
+  │                                      Calendar of one month, Monday first, `required` so that a second click
+  │                                      never empties it), days after today in Asia/Ho_Chi_Minh and before the
+  │                                      joined date disabled, its FieldDescription `leftDateHint` (or
+  │                                      `leftDateHintToday`) tied by aria-describedby, a 400 or 409 on `#/leftDate`
+  │                                      in its FieldError; an account that has a left date ("Khóa lại") opens
+  │                                      ticked with that date, any other opens unticked and ticking it picks today
+  │                                      in Asia/Ho_Chi_Minh; a joined date after today leaves no day to pick: the
+  │                                      checkbox is disabled with the FieldDescription `leftDateFuture`; an error
+  │                                      no field shows at the top in an Alert; footer "Hủy" (outline) and "Khóa"
+  │                                      (destructive-soft), disabled with LoaderCircleIcon until the answer comes;
+  │                                      sends `{ leftDate }`, null when not ticked; closes on 200, on a 409 shown
+  │                                      in a toast, on a 404, on a 500 and on no answer (those three in their
+  │                                      toast, then a reload); stays open with a field error — dialog, alert,
+  │                                      field, checkbox, popover, calendar, button props: the account (`id`,
+  │                                      `name`), `open` and `onOpenChange`, as the dialog's; AlertDialog:
+  │                                      AlertDialogTitle `restoreDialog.title`, AlertDialogDescription
+  │                                      `restoreDialog.description`; AlertDialogCancel "Hủy" and "Khôi phục" (a
+  │                                      Button default, not AlertDialogAction, which would close at once), disabled
+  │                                      with LoaderCircleIcon until the answer comes; closes on 200, and on any
+  │                                      problem after its toast (a 404, a 500 or no answer also reloads) —
+  │                                      alert-dialog, button
+  ├── staff-account-password-section.tsx Card as a `section` id password, aria-labelledby password-title; CardTitle
+  │                                      `password.title` as an h2 with id password-title and tabindex -1,
+  │                                      scroll-margin-top 24px; CardDescription `password.description`; rows like
+  │                                      the details card (divided, label 136px | value from `@sm`):
+  │                                      `password.default` with Badge outline `password.unchanged` when
+  │                                      `mustChangePassword`, else Badge secondary `password.changed`; for gap 9,
+  │                                      not built until its Decision: the row `password.lastReset` (the time of the
+  │                                      last link, `dd/MM/yyyy HH:mm`, or `password.neverReset`) and, with the
+  │                                      permission the Decision names, in the account's management scope (R-SEC-12)
+  │                                      and not on the user's own account, PENDING or DISABLED: the Button outline
+  │                                      "Gửi link đặt lại mật khẩu" (KeyRoundIcon; end-aligned from `@xl`, full
+  │                                      width below) with its FieldDescription `password.sendResetHint` tied by
+  │                                      aria-describedby, which opens the confirmation; the first build shows the
+  │                                      default-password row only; loading: Skeleton of its title and two rows; on
+  │                                      a 404 or a failed load it renders nothing — card, badge, button, skeleton
+  │   └── staff-reset-password-dialog.tsx gap 9, not built: AlertDialog: AlertDialogTitle `resetDialog.title`,
+  │                                      AlertDialogDescription `resetDialog.description` with the account's email;
+  │                                      AlertDialogCancel "Hủy" and "Gửi link" (a Button default, disabled with
+  │                                      LoaderCircleIcon until the answer comes); the request goes out with an
+  │                                      Idempotency-Key; 202 closes it, shows the toast `resetSent` and the new
+  │                                      time of the last link; a 409 or 429 shows its `detail` in a toast —
+  │                                      alert-dialog, button
+  ├── staff-account-activity-section.tsx gap 10, not built until its Decision, and absent from the navigation until
+  │                                      then: Card as a `section` id activity, aria-labelledby activity-title;
+  │                                      CardTitle `activity.title` as an h2 (id activity-title, tabindex -1),
+  │                                      CardDescription `activity.description`; from `@xl` a filter row that wraps:
+  │                                      the date range picker `activity.range` (Popover with a Calendar of two
+  │                                      months, default the last 30 days in Asia/Ho_Chi_Minh, a range always
+  │                                      required), the Selects `activity.type` and `activity.area` (`activity.all`
+  │                                      by default; their values from the Decision), the ToggleGroup
+  │                                      `activity.scope` (`scopeAll`, `scopeBy`, `scopeOn`) and the Button ghost
+  │                                      `activity.clear`; below `@xl` one Button outline `activity.filters` with
+  │                                      the count of filters set, opening a Sheet (bottom) with the same fields;
+  │                                      the filters live in the URL query, so a link keeps them; then a Table
+  │                                      (`activity.tableLabel`; columns time `dd/MM/yyyy HH:mm`, action, target,
+  │                                      area; it scrolls inside its box below `@xl`, where the rows become a list
+  │                                      of action · target over time · area); under it the muted line
+  │                                      `activity.shown` and the Button outline `activity.loadMore`, which fetches
+  │                                      the next page by cursor and appends it (no page numbers), disabled with
+  │                                      LoaderCircleIcon while loading and hidden at the end; no events: an Empty
+  │                                      with EmptyTitle `activity.empty`, EmptyDescription
+  │                                      `activity.emptyDescription` and the Button `activity.clear`, in place of
+  │                                      the table so the filters stay; loading: Skeleton rows; a failed load: the
+  │                                      problem's text in an Alert inside the card with "Thử lại" — card, popover,
+  │                                      calendar, select, toggle-group, sheet, table, empty, alert, button,
+  │                                      skeleton
   └── staff-status-badge.tsx             (SCR-STF-01) presentational — ACTIVE `success` (soft green), DISABLED
                                          `secondary` (grey), and ANONYMIZED `outline` with `status.anonymized` —
                                          badge
@@ -949,3 +1019,19 @@ A closed gap keeps its number, since other lines refer to it.
 8. **A staff member's photo.** Neither `users` nor `staff_profiles` holds a photo, and no endpoint uploads one; it
    is personal data (where it is stored, who sees it, its removal when an account is anonymized). SCR-STF-03 shows
    the initials in an Avatar until then. Needs a Decision.
+9. **Sending a staff member a password reset link.** No endpoint resets another account's password, no permission
+   covers it and no column records the last link. The Layout of SCR-STF-03 draws the action, its confirmation and
+   the row of the last link ahead. The owner chose, on 2026-11-11, the long-term way: the API asks Firebase for a
+   password reset link (single use, one hour) and sends it to the account's email through the outbox (R-NOT-01, with
+   retries), revokes the account's sessions (R-SEC-04), records the time, and needs its own permission within the
+   management scope (R-SEC-12), an Idempotency-Key and a rate limit per account; nobody but the staff member ever knows
+   the password (no shared default). Needs a Decision (permission, rate limit, the email, the record).
+10. **A staff member's activity.** No table records events and no endpoint lists them: `audit_logs` keeps column
+    changes with their personal values and no sign-in history (`users.last_login_at` holds the last one only). The
+    Layout of SCR-STF-03 draws the activity card ahead. The owner chose, on 2026-11-11, the long-term way: an
+    append-only table of activity events (actor, action, target, area, time, request id; no personal values),
+    written in the same transaction as each action, sign-ins included; an endpoint filtered by a required time range,
+    type, area and scope (by the staff member or on the account), paged by cursor on an index of actor or target and
+    time, partitioned by month once it grows; its own read permission within the management scope (R-SEC-12), the
+    accounts holding the Admin role hidden as R-USR-14 says, and a retention period. Needs a Decision (the event list,
+    the table, the permission, the retention).
