@@ -655,10 +655,11 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   no section navigation; dark (1440 px, DEC-123 (5): soft badges and `destructive-soft` on the dark values of
   DEC-124), with "Trạng thái tài khoản" the current section; states: loading (the navigation shows, the cards as
   Skeleton), 404 and error (an Empty in the column, no navigation). No permission is the page of SCR-ADM-01
-  (`RequirePermission` with `staff.read`). The sample is the fixture manager. The photo moves from the heading into
-  the details card, beside the information (owner's request): an Avatar of 160px with the initials, and "Chọn ảnh"
-  under it, drawn ahead and built once gap 8 closes, like the sheet of gap 7; the 390 px artboard draws the Avatar
-  at 96px above the details and "Chọn ảnh" at full width.
+  (`RequirePermission` with `staff.read`). The sample is the fixture manager. At the owner's request the heading
+  keeps its small Avatar, the details card shows its action "Cập nhật thông tin" (drawn ahead for gap 7, as in the
+  previous Layout) and, beside the information, the photo: an Avatar of 160px with the initials, and "Chọn ảnh"
+  under it, drawn ahead and built once gap 8 closes, like the sheet of gap 7; the 390 px artboard draws the photo
+  at 96px (the heading Avatar at 56px) above the details and "Chọn ảnh" at full width.
 - **shadcn**: no `add`. The section navigation is plain links on the tokens (shadcn has no table of contents;
   `sidebar` is the app's menu and too heavy here). It lives in this module (`components/section-nav.tsx`,
   `hooks/use-active-section.ts`) while only this screen uses it (DEC-118 (1), `docs/FRONTEND.md`, *Modules and
@@ -770,16 +771,20 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   │                                      document scrolls, else the first); select: scrolls to the section
   │                                      (smooth unless reduced motion), focuses its h2 (`<id>-title`) and
   │                                      replaces the hash (moves to @/hooks with SCR-ACC-01)
-  ├── staff-account-heading-section.tsx  no Avatar any more (the photo moves into the details card): the h1 `name`
-  │                                      with the status badge and a muted line `email · employeeCode` (the email
-  │                                      alone when the code is empty; it wraps, never cut short); loading:
-  │                                      Skeleton of the heading; 404: Empty, the
-  │                                      problem's `detail` in EmptyTitle as the page's h1 (UserXIcon), no description,
-  │                                      the link "Về danh sách nhân viên" (ArrowLeftIcon, a Button asChild) to
-  │                                      SCR-STF-01; any other problem: Empty with the problem's text in EmptyTitle as
-  │                                      the page's h1, destructive, role="alert" (TriangleAlertIcon), and "Thử lại",
-  │                                      disabled while the retry is pending; 401 and 403 as *Conventions* says —
-  │                                      badge, skeleton, empty, button
+  ├── staff-account-heading-section.tsx  an Avatar of 64px (56px narrow), kept at the owner's request in addition to
+  │                                      the photo of the details card, `aria-hidden` always: with the initials
+  │                                      (`initials` of `@/utils/initials`, as `staff-photo.tsx`) and, once gap 8
+  │                                      gives a photo, with AvatarImage `alt=""` (the photo of the details card
+  │                                      carries `info.photoAlt`); beside it the h1 `name` with the status badge and
+  │                                      a muted line `email · employeeCode` (the email alone when the code is
+  │                                      empty; it wraps, never cut short); loading: Skeleton of the avatar and the
+  │                                      heading; 404: Empty, the problem's `detail` in EmptyTitle as the page's h1
+  │                                      (UserXIcon), no description, the link "Về danh sách nhân viên"
+  │                                      (ArrowLeftIcon, a Button asChild) to SCR-STF-01; any other problem: Empty
+  │                                      with the problem's text in EmptyTitle as the page's h1, destructive,
+  │                                      role="alert" (TriangleAlertIcon), and "Thử lại", disabled while the retry
+  │                                      is pending; 401 and 403 as *Conventions* says — avatar, badge, skeleton,
+  │                                      empty, button
   ├── staff-account-details-section.tsx  Card as a `section` id info, aria-labelledby info-title; CardTitle
   │                                      `info.title` as an h2 with id info-title and tabindex -1, scroll-margin-top
   │                                      24px on the section; CardDescription `info.description`;
@@ -802,14 +807,14 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   │   ├── staff-photo.tsx                presentational — props: `name`, `photoUrl?`, `onChoose?`; an Avatar of
   │   │                                  160px (96px below `@xl`): AvatarFallback with the initials (the first
   │   │                                  letter of the first and of the last word of `name` that start with a
-  │   │                                  letter; one letter for a one-word name), the Avatar `aria-hidden` while
-  │   │                                  it shows them (the name is in the h1); AvatarImage with the alt
-  │   │                                  `info.photoAlt` once gap 8 gives a photo; under it, when `onChoose` is
-  │   │                                  given, drawn ahead and not built until gap 8 closes (a Decision on where
-  │   │                                  the photo is stored, who may change it, its formats and size, and its
-  │   │                                  removal on anonymization; the section holds the upload): the Button
-  │   │                                  outline size sm "Chọn ảnh" (`info.choosePhoto`, ImageUpIcon; full width
-  │   │                                  below `@xl`) calling `onChoose`, with its FieldDescription
+  │   │                                  letter; one letter for a one-word name; `initials` of `@/utils/initials`),
+  │   │                                  the Avatar `aria-hidden` while it shows them (the name is in the h1);
+  │   │                                  AvatarImage with the alt `info.photoAlt` once gap 8 gives a photo; under
+  │   │                                  it, when `onChoose` is given, drawn ahead and not built until gap 8 closes
+  │   │                                  (a Decision on where the photo is stored, who may change it, its formats
+  │   │                                  and size, and its removal on anonymization; the section holds the upload):
+  │   │                                  the Button outline size sm "Chọn ảnh" (`info.choosePhoto`, ImageUpIcon;
+  │   │                                  full width below `@xl`) calling `onChoose`, with its FieldDescription
   │   │                                  `info.photoHint` tied by aria-describedby; the first build passes neither
   │   │                                  `photoUrl` nor `onChoose` and shows the Avatar alone — avatar, button
   │   └── staff-update-sheet.tsx         gap 7, not built: Sheet (right; bottom on a narrow screen): SheetTitle
