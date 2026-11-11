@@ -655,8 +655,9 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   no section navigation; dark (1440 px, DEC-123 (5): soft badges and `destructive-soft` on the dark values of
   DEC-124), with "Trạng thái tài khoản" the current section; states: loading (the navigation shows, the cards as
   Skeleton), 404 and error (an Empty in the column, no navigation). No permission is the page of SCR-ADM-01
-  (`RequirePermission` with `staff.read`). The sample is the fixture manager. The photo is an Avatar with the
-  initials until gap 8 closes.
+  (`RequirePermission` with `staff.read`). The sample is the fixture manager. The photo moves from the heading into
+  the details card, beside the information (owner's request): an Avatar of 160px with the initials, and "Chọn ảnh"
+  under it, drawn ahead and built once gap 8 closes, like the sheet of gap 7.
 - **shadcn**: no `add`. The section navigation is plain links on the tokens (shadcn has no table of contents;
   `sidebar` is the app's menu and too heavy here). It lives in this module (`components/section-nav.tsx`,
   `hooks/use-active-section.ts`) while only this screen uses it (DEC-118 (1), `docs/FRONTEND.md`, *Modules and
@@ -692,7 +693,10 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   1024px with the menu expanded the card column would be about 488px.
 - **Texts** (`messages/vi.json`), new ones marked *new*, under `staff.account` unless named:
   `admin.sectionNav.label` "Trên trang này" (*new*; the visible title of the section navigation, which names the
-  `nav`); the page's title and breadcrumb entry `title` "Tài khoản nhân viên" (*new*); the details card
+  `nav`); for the photo `info.photoAlt` "Ảnh của {name}" (*new*; the name of the Avatar), and, for gap 8, not built
+  yet, `info.choosePhoto` "Chọn ảnh" and its hint `info.photoHint` "Ảnh chân dung, rõ mặt." (*new*; the formats and
+  size limit join the hint with the Decision of gap 8); the page's title and breadcrumb entry `title` "Tài khoản
+  nhân viên" (*new*); the details card
   `info.title` "Thông tin nhân viên" and `info.description` "Thông tin ghi khi tạo tài khoản, dùng để liên hệ và phân
   quyền." (*new*); its labels
   `staff.list.columns.email`, `.employeeCode`, `.roles`, `.joinedDate`, `.leftDate`, with `workPhone` "SĐT công việc"
@@ -765,31 +769,42 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   │                                      document scrolls, else the first); select: scrolls to the section
   │                                      (smooth unless reduced motion), focuses its h2 (`<id>-title`) and
   │                                      replaces the hash (moves to @/hooks with SCR-ACC-01)
-  ├── staff-account-heading-section.tsx  an Avatar of 64px (56px narrow), `aria-hidden` while it shows the initials
-  │                                      beside the h1 that names the person: AvatarFallback with the initials (the
-  │                                      first letter of the first and of the last word of `name` that start with a
-  │                                      letter; one letter for a one-word name), AvatarImage once gap 8 gives a photo;
-  │                                      beside it the h1 `name` with the status badge and a muted line `email ·
-  │                                      employeeCode` (the email alone when the code is empty; it wraps, never cut
-  │                                      short); loading: Skeleton of the avatar and the heading; 404: Empty, the
+  ├── staff-account-heading-section.tsx  no Avatar any more (the photo moves into the details card): the h1 `name`
+  │                                      with the status badge and a muted line `email · employeeCode` (the email
+  │                                      alone when the code is empty; it wraps, never cut short); loading:
+  │                                      Skeleton of the heading; 404: Empty, the
   │                                      problem's `detail` in EmptyTitle as the page's h1 (UserXIcon), no description,
   │                                      the link "Về danh sách nhân viên" (ArrowLeftIcon, a Button asChild) to
   │                                      SCR-STF-01; any other problem: Empty with the problem's text in EmptyTitle as
   │                                      the page's h1, destructive, role="alert" (TriangleAlertIcon), and "Thử lại",
   │                                      disabled while the retry is pending; 401 and 403 as *Conventions* says —
-  │                                      avatar, badge, skeleton, empty, button
+  │                                      badge, skeleton, empty, button
   ├── staff-account-details-section.tsx  Card as a `section` id info, aria-labelledby info-title; CardTitle
   │                                      `info.title` as an h2 with id info-title and tabindex -1, scroll-margin-top
   │                                      24px on the section; CardDescription `info.description`;
   │                                      CardAction "Cập nhật thông tin" (outline, PencilIcon; full width under
   │                                      the description on a narrow screen), which opens the sheet: not built
-  │                                      until gap 7 closes, so the first build shows no button; a
-  │                                      description list (`dl`, two columns, one on a narrow screen): Email,
-  │                                      Mã nhân viên, SĐT công việc, Vai trò (one Badge secondary each), Ngày
-  │                                      vào làm, Ngày nghỉ việc (`dd/MM/yyyy`; "—" when empty); a long email
-  │                                      wraps, never cut short; loading: the card with Skeleton of its title and
-  │                                      six fields; on a 404 or a failed load it renders nothing (the heading
-  │                                      section shows the Empty) — card, badge, skeleton, button
+  │                                      until gap 7 closes, so the first build shows no button; CardContent a
+  │                                      grid `minmax(0, 1fr) 160px` with a gap of 32px (from sm; one column
+  │                                      below, the photo block first, centred): on the left a description list
+  │                                      (`dl`, rows of label 136px | value, 16px apart; on a narrow screen the
+  │                                      label above its value): Email, Mã nhân viên, SĐT công việc, Vai trò (one
+  │                                      Badge secondary each), Ngày vào làm, Ngày nghỉ việc (`dd/MM/yyyy`; "—"
+  │                                      when empty); a long email wraps, never cut short; on the right the photo
+  │                                      block — loading: the card with Skeleton of its title, six rows and a
+  │                                      round photo; on a 404 or a failed load it renders nothing (the heading
+  │                                      section shows the Empty) — card, badge, skeleton, avatar, button
+  │   ├── staff-photo.tsx                presentational — an Avatar of 160px (96px narrow): AvatarFallback with
+  │   │                                  the initials (the first letter of the first and of the last word of
+  │   │                                  `name` that start with a letter; one letter for a one-word name), named by
+  │   │                                  `info.photoAlt` with the person's name (role img) since it stands for the
+  │   │                                  photo; AvatarImage once gap 8 gives one; under it, drawn ahead and not
+  │   │                                  built until gap 8 closes (a Decision on where the photo is stored, who may
+  │   │                                  change it, its formats and size, and its removal on anonymization): the
+  │   │                                  Button outline size sm "Chọn ảnh" (`info.choosePhoto`, ImageUpIcon; full
+  │   │                                  width narrow) that opens the file picker, with its FieldDescription
+  │   │                                  `info.photoHint` tied by aria-describedby; the first build shows the
+  │   │                                  Avatar alone — avatar, button
   │   └── staff-update-sheet.tsx         gap 7, not built: Sheet (right; bottom on a narrow screen): SheetTitle
   │                                      `updateSheet.title`, SheetDescription `updateSheet.description`; the
   │                                      Fields Họ tên (`nameHint`), Mã nhân viên (`employeeCodeHint`), SĐT công
