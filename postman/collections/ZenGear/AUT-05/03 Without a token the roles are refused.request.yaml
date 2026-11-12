@@ -1,0 +1,12 @@
+$kind: http-request
+description: |-
+  No token: 401.
+method: GET
+url: '{{baseUrl}}/api/v1/admin/roles'
+order: 3000
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 401', () => pm.response.to.have.status(401));
+      pm.test('unauthenticated', () => pm.expect(pm.response.json().type).to.eql('/problems/unauthenticated'));

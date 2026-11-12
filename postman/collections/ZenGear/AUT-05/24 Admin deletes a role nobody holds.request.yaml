@@ -1,0 +1,20 @@
+$kind: http-request
+description: |-
+  UC-003: a custom role no account holds is deleted (204), then no longer found.
+method: DELETE
+url: '{{baseUrl}}/api/v1/admin/roles/{{spareRoleId}}'
+order: 24000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 204', () => pm.response.to.have.status(204));
+      // pm.sendRequest skips the collection sign-in script, so the Authorization header is copied; it is never logged.
+      pm.sendRequest({
+        url: `${pm.variables.get('baseUrl')}/api/v1/admin/roles/${pm.variables.get('spareRoleId')}`,
+        method: 'GET',
+        header: [{ key: 'Authorization', value: pm.request.headers.get('Authorization') }],
+      }, (error, response) => pm.test('then 404', () => pm.expect(!error && response.code).to.eql(404)));

@@ -1,0 +1,30 @@
+$kind: http-request
+description: |-
+  R-SEC-12: a role outside the creator's manageable set is refused and nothing is created.
+method: POST
+url: '{{baseUrl}}/api/v1/admin/staff'
+order: 17000
+headers:
+  - key: X-ZenGear-As
+    value: '{{itSupportEmail}}'
+  - key: Content-Type
+    value: 'application/json'
+body:
+  type: json
+  content: |-
+    {
+      "email": "aut05-sm-{{run}}@zengear.test",
+      "name": "Quản lý kiểm thử",
+      "employeeCode": "{{run}}-A1",
+      "joinedDate": "2026-10-01",
+      "roleIds": ["{{roleStoreManager}}"]
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 409', () => pm.response.to.have.status(409));
+      const problem = pm.response.json();
+      pm.test('role-out-of-scope', () => pm.expect(problem.type).to.eql('/problems/role-out-of-scope'));
+      pm.test('ruleId R-SEC-12', () => pm.expect(problem.ruleId).to.eql('R-SEC-12'));
+      pm.test('#/roleIds ROLE_OUT_OF_SCOPE', () => pm.expect(problem.errors.map(e => `${e.pointer} ${e.code}`)).to.include('#/roleIds ROLE_OUT_OF_SCOPE'));

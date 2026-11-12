@@ -1,0 +1,31 @@
+$kind: http-request
+description: |-
+  DEC-095: the default roles are found by name; renaming one is refused.
+method: PUT
+url: '{{baseUrl}}/api/v1/admin/roles/{{roleStoreManager}}'
+order: 12000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+  - key: Content-Type
+    value: 'application/json'
+  - key: If-Match
+    value: '*'
+body:
+  type: json
+  content: |-
+    {
+      "name": "Quản lý cửa hàng {{run}}",
+      "permissionKeys": [],
+      "maxDiscountPercent": null,
+      "managedRoleIds": []
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 409', () => pm.response.to.have.status(409));
+      const problem = pm.response.json();
+      pm.test('default-role-not-renamable', () => pm.expect(problem.type).to.eql('/problems/default-role-not-renamable'));
+      pm.test('no ruleId', () => pm.expect(problem.ruleId).to.eql(undefined));
+      pm.test('#/name DEFAULT_ROLE_NOT_RENAMABLE', () => pm.expect(problem.errors.map(e => `${e.pointer} ${e.code}`)).to.include('#/name DEFAULT_ROLE_NOT_RENAMABLE'));

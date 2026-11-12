@@ -1,0 +1,27 @@
+$kind: http-request
+description: |-
+  R-SEC-12: a role in the creator's manageable set is accepted.
+method: POST
+url: '{{baseUrl}}/api/v1/admin/staff'
+order: 18000
+headers:
+  - key: X-ZenGear-As
+    value: '{{itSupportEmail}}'
+  - key: Content-Type
+    value: 'application/json'
+body:
+  type: json
+  content: |-
+    {
+      "email": "aut05-cashier-{{run}}@zengear.test",
+      "name": "Thu ngân kiểm thử",
+      "employeeCode": "{{run}}-A2",
+      "joinedDate": "2026-10-01",
+      "roleIds": ["{{roleCashier}}"]
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 201', () => pm.response.to.have.status(201));
+      pm.test('Cashier', () => pm.expect(pm.response.json().roles.map(r => r.name)).to.eql(['Cashier']));

@@ -1,0 +1,19 @@
+$kind: http-request
+description: |-
+  The permissions of the code the Admin grants (DEC-095), by key, each with its label.
+method: GET
+url: '{{baseUrl}}/api/v1/admin/permissions?pageSize=100'
+order: 4000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 200', () => pm.response.to.have.status(200));
+      const keys = pm.response.json().items.map(p => p.key);
+      pm.test('sorted by key', () => pm.expect(keys).to.eql([...keys].sort()));
+      pm.test('role and staff permissions listed', () => ['role.read', 'role.update', 'staff.create', 'staff.disable']
+        .forEach(k => pm.expect(keys).to.include(k)));
+      pm.test('every permission has a label', () => pm.response.json().items.forEach(p => pm.expect(p.description).to.be.a('string').and.not.empty));

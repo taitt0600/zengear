@@ -1,0 +1,32 @@
+$kind: http-request
+description: |-
+  Seed (AC, DEC-128): 10 roles, Admin and Customer system roles, the 8 others default roles, IT Support among them.
+method: GET
+url: '{{baseUrl}}/api/v1/admin/roles?pageSize=100'
+order: 1000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+scripts:
+  - type: beforeRequest
+    language: text/javascript
+    code: |-
+      pm.variables.set('run', Date.now().toString(36));
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 200', () => pm.response.to.have.status(200));
+      const byName = Object.fromEntries(pm.response.json().items.map(r => [r.name, r]));
+      const system = ['Admin', 'Customer'];
+      const defaults = ['Store Manager', 'Sales Consultant', 'Technical Support', 'Cashier', 'Warehouse Keeper', 'Purchasing',
+        'Accountant', 'IT Support'];
+      pm.test('the 10 seeded roles', () => [...system, ...defaults].forEach(n => pm.expect(byName[n], n).to.be.an('object')));
+      pm.test('Admin and Customer are system roles', () => system.forEach(n => {
+        pm.expect(byName[n].isSystemRole, n).to.eql(true);
+        pm.expect(byName[n].isDefaultRole, n).to.eql(false);
+      }));
+      pm.test('the 8 others are default roles', () => defaults.forEach(n => {
+        pm.expect(byName[n].isSystemRole, n).to.eql(false);
+        pm.expect(byName[n].isDefaultRole, n).to.eql(true);
+      }));
+      pm.test('IT Support has its fixed id', () => pm.expect(byName['IT Support'].id).to.eql(pm.variables.get('roleItSupport')));

@@ -1,0 +1,17 @@
+$kind: http-request
+description: |-
+  "Chỉ Admin được thao tác": the role.* permissions are the Admin's only (R-SEC-03).
+method: GET
+url: '{{baseUrl}}/api/v1/admin/roles'
+order: 2000
+headers:
+  - key: X-ZenGear-As
+    value: '{{managerEmail}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 403', () => pm.response.to.have.status(403));
+      const problem = pm.response.json();
+      pm.test('permission-denied', () => pm.expect(problem.type).to.eql('/problems/permission-denied'));
+      pm.test('ruleId R-SEC-03', () => pm.expect(problem.ruleId).to.eql('R-SEC-03'));

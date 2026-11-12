@@ -1,0 +1,27 @@
+$kind: http-request
+description: |-
+  Role names are unique whatever the case.
+method: POST
+url: '{{baseUrl}}/api/v1/admin/roles'
+order: 7000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+  - key: Content-Type
+    value: 'application/json'
+body:
+  type: json
+  content: |-
+    {
+      "name": "CA ĐÊM {{run}}",
+      "permissionKeys": []
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 409', () => pm.response.to.have.status(409));
+      const problem = pm.response.json();
+      pm.test('role-already-exists', () => pm.expect(problem.type).to.eql('/problems/role-already-exists'));
+      pm.test('no ruleId', () => pm.expect(problem.ruleId).to.eql(undefined));
+      pm.test('#/name ROLE_ALREADY_EXISTS', () => pm.expect(problem.errors.map(e => `${e.pointer} ${e.code}`)).to.include('#/name ROLE_ALREADY_EXISTS'));

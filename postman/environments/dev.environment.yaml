@@ -24,6 +24,10 @@ values:
     value: 'customer.fixture@zengear.test'
     enabled: true
     type: default
+  - key: itSupportEmail
+    value: 'itsupport.fixture@zengear.test'
+    enabled: true
+    type: default
   - key: roleAdmin
     value: '0199a000-0000-7000-8000-000000000001'
     enabled: true
@@ -42,6 +46,10 @@ values:
     type: default
   - key: roleCustomer
     value: '0199a000-0000-7000-8000-000000000009'
+    enabled: true
+    type: default
+  - key: roleItSupport
+    value: '0199a000-0000-7000-8000-00000000000a'
     enabled: true
     type: default
   - key: anonymizedStaffId

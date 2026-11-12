@@ -1,0 +1,18 @@
+$kind: http-request
+description: |-
+  R-SEC-12, DEC-128: the default manageable set of IT Support, inserted by the sync at the first start after the reset.
+method: GET
+url: '{{baseUrl}}/api/v1/admin/roles/{{roleItSupport}}'
+order: 14000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 200', () => pm.response.to.have.status(200));
+      const role = pm.response.json();
+      pm.test('six operational roles', () => pm.expect(role.managedRoles.map(r => r.name).sort()).to.eql(['Accountant', 'Cashier', 'Purchasing', 'Sales Consultant', 'Technical Support', 'Warehouse Keeper']));
+      pm.variables.set('itTag', pm.response.headers.get('ETag'));
+      pm.variables.set('itManaged', JSON.stringify(role.managedRoles.map(r => r.id)));

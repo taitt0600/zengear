@@ -1,0 +1,17 @@
+$kind: http-request
+description: |-
+  Set-up of 20: the id of the Store Manager fixture account.
+method: GET
+url: '{{baseUrl}}/api/v1/admin/staff?roleId={{roleStoreManager}}&pageSize=100'
+order: 19000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 200', () => pm.response.to.have.status(200));
+      const manager = pm.response.json().items.find(s => s.email === pm.variables.get('managerEmail'));
+      pm.test('the Store Manager fixture is listed', () => pm.expect(manager).to.be.an('object'));
+      pm.variables.set('managerId', manager.id);

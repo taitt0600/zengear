@@ -1,6 +1,7 @@
 -- Dev-only fixture of STF-01, run by tools/dev_reset.ps1 after the seed and bootstrap-admin, never in production.
--- The refusal of R-TX-11 needs a caller that is not Admin, holds staff.create and has no pending password change;
--- until AUT-05 (role permissions) exists, only SQL reaches that state.
+-- The refusal of R-TX-11 needs a caller that is not Admin, holds staff.create and has no pending password change.
+-- AUT-05 lets the Admin grant staff.create through PUT /api/v1/admin/roles/{id}, but the collection runs this state
+-- before any request, so SQL still sets it (DEC-101 (5): drop this fixture once a folder creates the state itself).
 --   Store Manager receives staff.create; the fixture account manager.fixture@zengear.test is a Store Manager.
 -- The permission key may not exist yet: the API creates the catalog when it starts (DEC-095), which happens after
 -- the reset. A key inserted here is not "new" to that sync, which then only sets its description; the Admin role

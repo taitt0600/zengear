@@ -1,0 +1,15 @@
+$kind: http-request
+description: |-
+  R-SEC-12: the roles IT Support may give a new account are its manageable set.
+method: GET
+url: '{{baseUrl}}/api/v1/admin/staff/assignable-roles'
+order: 16000
+headers:
+  - key: X-ZenGear-As
+    value: '{{itSupportEmail}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 200', () => pm.response.to.have.status(200));
+      pm.test('the six operational roles', () => pm.expect(pm.response.json().items.map(r => r.name).sort()).to.eql(['Accountant', 'Cashier', 'Purchasing', 'Sales Consultant', 'Technical Support', 'Warehouse Keeper']));

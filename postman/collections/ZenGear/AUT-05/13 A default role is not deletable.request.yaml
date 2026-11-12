@@ -1,0 +1,17 @@
+$kind: http-request
+description: |-
+  DEC-095: a default role is never deleted.
+method: DELETE
+url: '{{baseUrl}}/api/v1/admin/roles/{{roleStoreManager}}'
+order: 13000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 409', () => pm.response.to.have.status(409));
+      const problem = pm.response.json();
+      pm.test('role-not-deletable', () => pm.expect(problem.type).to.eql('/problems/role-not-deletable'));
+      pm.test('no ruleId', () => pm.expect(problem.ruleId).to.eql(undefined));
