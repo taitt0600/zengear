@@ -7,6 +7,7 @@ using ZenGear.Services.Catalog.Brands;
 using ZenGear.Services.Catalog.Series;
 using ZenGear.Services.Common.Models;
 using ZenGear.Services.Identity.Account;
+using ZenGear.Services.Identity.Roles;
 using ZenGear.Services.Identity.StaffAccounts;
 using ZenGear.Services.Locations.BusinessLocations;
 
@@ -37,8 +38,13 @@ public class OpenApiDocumentTests : IntegrationTestBase
         ("PUT", "/api/v1/admin/product-series/{id}", typeof(ProductSeriesUpdateRequest)),
         ("PATCH", "/api/v1/admin/me", typeof(CurrentUserUpdateRequest)),
         ("POST", "/api/v1/admin/me/change-password", typeof(CurrentUserPasswordChangeRequest)),
+        ("GET", "/api/v1/admin/permissions", typeof(PageRequest)),
+        ("GET", "/api/v1/admin/roles", typeof(PageRequest)),
+        ("POST", "/api/v1/admin/roles", typeof(RoleCreateRequest)),
+        ("PUT", "/api/v1/admin/roles/{id}", typeof(RoleUpdateRequest)),
         ("POST", "/api/v1/admin/staff", typeof(StaffCreateRequest)),
         ("GET", "/api/v1/admin/staff", typeof(StaffListRequest)),
+        ("GET", "/api/v1/admin/staff/assignable-roles", typeof(PageRequest)),
         ("POST", "/api/v1/admin/staff/{id}/disable", null),
         ("GET", "/api/v1/admin/business-locations", typeof(PageRequest)),
         ("PUT", "/api/v1/admin/business-locations/{id}", typeof(BusinessLocationUpdateRequest)),
@@ -61,6 +67,9 @@ public class OpenApiDocumentTests : IntegrationTestBase
             "PUT /api/v1/admin/business-locations/{id} 200",
             "GET /api/v1/admin/me 200",
             "PATCH /api/v1/admin/me 200",
+            "POST /api/v1/admin/roles 201",
+            "GET /api/v1/admin/roles/{id} 200",
+            "PUT /api/v1/admin/roles/{id} 200",
             "POST /api/v1/admin/brands 201",
             "GET /api/v1/admin/brands/{id} 200",
             "PUT /api/v1/admin/brands/{id} 200",

@@ -18,7 +18,8 @@ public sealed class StaffController(StaffService staff) : ControllerBase
     /// <response code="403"><c>/problems/permission-denied</c>: <c>staff.create</c> missing.</response>
     /// <response code="409">
     /// <c>/problems/role-required</c> (R-SEC-01), <c>/problems/role-not-for-staff</c> (R-USR-01),
-    /// <c>/problems/admin-role-not-assignable</c> (R-TX-11), <c>/problems/email-already-registered</c>,
+    /// <c>/problems/admin-role-not-assignable</c> (R-TX-11), <c>/problems/role-out-of-scope</c> (R-SEC-12: a role
+    /// outside the caller's manageable set), <c>/problems/email-already-registered</c>,
     /// <c>/problems/employee-code-taken</c>, <c>/problems/auth-account-exists</c>.
     /// </response>
     [HttpPost]
@@ -33,7 +34,7 @@ public sealed class StaffController(StaffService staff) : ControllerBase
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden, "application/problem+json")]
     [ProducesResponseType<ValidationProblem>(StatusCodes.Status409Conflict, "application/problem+json")]
     [ErrorCodes(StatusCodes.Status409Conflict, "EMAIL_ALREADY_REGISTERED", "AUTH_ACCOUNT_EXISTS",
-        "EMPLOYEE_CODE_TAKEN", "ROLE_REQUIRED", "ROLE_NOT_FOR_STAFF", "ADMIN_ROLE_NOT_ASSIGNABLE")]
+        "EMPLOYEE_CODE_TAKEN", "ROLE_REQUIRED", "ROLE_NOT_FOR_STAFF", "ADMIN_ROLE_NOT_ASSIGNABLE", "ROLE_OUT_OF_SCOPE")]
     public async Task<ActionResult<StaffDto>> Create(StaffCreateRequest request, CancellationToken cancellationToken)
     {
         var created = await staff.CreateAsync(request, User.GetUserId(), cancellationToken);
@@ -66,6 +67,24 @@ public sealed class StaffController(StaffService staff) : ControllerBase
         [FromQuery, Description("From 1.")] int page = 1,
         [FromQuery, Description("1 to 100.")] int pageSize = PageRequest.DefaultPageSize) =>
         staff.ListAsync(new StaffListRequest(status, roleId, sort, page, pageSize), cancellationToken);
+
+    /// <summary>
+    /// The staff roles the caller may give a new account: its manageable set (Phạm vi quản lý, R-SEC-12), every staff role
+    /// for a holder of Admin; never the Customer role (R-USR-01). By name.
+    /// </summary>
+    /// <response code="400"><c>page</c> below 1, or <c>pageSize</c> outside 1–100.</response>
+    /// <response code="403"><c>/problems/permission-denied</c>: <c>staff.create</c> missing.</response>
+    [HttpGet("assignable-roles")]
+    [RequirePermission(PermissionKeys.StaffCreate)]
+    [ProducesResponseType<PagedDto<StaffRoleDto>>(StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType<ValidationProblem>(StatusCodes.Status400BadRequest, "application/problem+json")]
+    [ErrorCodes(StatusCodes.Status400BadRequest, "PAGE_OUT_OF_RANGE", "PAGE_SIZE_OUT_OF_RANGE")]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized, "application/problem+json")]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden, "application/problem+json")]
+    public Task<PagedDto<StaffRoleDto>> AssignableRoles(CancellationToken cancellationToken,
+        [FromQuery, Description("From 1.")] int page = 1,
+        [FromQuery, Description("1 to 100.")] int pageSize = PageRequest.DefaultPageSize) =>
+        staff.ListAssignableRolesAsync(User.GetUserId(), new PageRequest(page, pageSize), cancellationToken);
 
     /// <summary>A staff account and its roles.</summary>
     /// <response code="403"><c>/problems/permission-denied</c>: <c>staff.read</c> missing.</response>

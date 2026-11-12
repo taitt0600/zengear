@@ -45,6 +45,9 @@ public class StaffStatusTests : IntegrationTestBase
             await TestRoles.GrantAsync(role, PermissionKeys.StaffRead);
         }
 
+        // The Store Manager's default set covers the default roles (R-SEC-12, DEC-128); the tests insert it, no sync runs.
+        await TestRoles.ManageAsync(_managerRole, _managerRole, _cashierRole);
+
         _adminId = await TestUsers.InsertAsync(AdminUid);
         await TestRoles.AssignAsync(_adminId, _adminRole);
         _managerId = await TestUsers.InsertAsync(ManagerUid);
@@ -52,6 +55,39 @@ public class StaffStatusTests : IntegrationTestBase
         _staffId = await TestUsers.InsertAsync(StaffUid);
         await TestRoles.AssignAsync(_staffId, _cashierRole);
         await ExecuteAsync("UPDATE staff_profiles SET joined_date = @joined WHERE user_id = @id", _staffId, JoinedDate);
+    }
+
+    [Test]
+    public async Task R_SEC_12_disable_refuses_account_outside_scope()
+    {
+        // One role in the set and one outside: every role of the account must be in the set.
+        var nightShift = await TestRoles.InsertAsync("Night Shift");
+        await TestRoles.AssignAsync(_staffId, nightShift);
+
+        var response = await DisableAsync(ManagerUid, _staffId, new { });
+
+        await response.ShouldBeProblemAsync(HttpStatusCode.Conflict, "/problems/account-out-of-scope", "R-SEC-12");
+        (await RowAsync(_staffId)).ShouldBe(new StatusRow("ACTIVE", null, null));
+        Auth.Revoked.ShouldBeEmpty();
+    }
+
+    [Test]
+    public async Task R_SEC_12_restore_refuses_account_outside_scope()
+    {
+        var nightShift = await TestRoles.InsertAsync("Night Shift");
+        await TestRoles.AssignAsync(_staffId, nightShift);
+        (await DisableAsync(AdminUid, _staffId, new { })).StatusCode.ShouldBe(HttpStatusCode.OK);
+
+        var response = await RestoreAsync(ManagerUid, _staffId);
+
+        await response.ShouldBeProblemAsync(HttpStatusCode.Conflict, "/problems/account-out-of-scope", "R-SEC-12");
+        (await RowAsync(_staffId)).Status.ShouldBe("DISABLED");
+    }
+
+    [Test]
+    public async Task R_SEC_12_store_manager_disables_an_account_in_scope()
+    {
+        (await DisableAsync(ManagerUid, _staffId, new { })).StatusCode.ShouldBe(HttpStatusCode.OK);
     }
 
     [Test]

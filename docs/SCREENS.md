@@ -113,7 +113,7 @@ only the shape of the input (required, length, format) with the limits below, wh
 | SCR-AUT-02 | Required password change | `/admin/change-password` | Admin | STF-03 | signed-in staff | |
 | SCR-ACC-01 | My account | `/admin/account` | Admin | STF-03 | signed-in staff | |
 | SCR-STF-01 | Staff list | `/admin/staff` | Admin | STF-05 | `staff.read`; actions `staff.disable` | |
-| SCR-STF-02 | New staff account | `/admin/staff/new` | Admin | STF-01 | `staff.create` | gap 2 |
+| SCR-STF-02 | New staff account | `/admin/staff/new` | Admin | STF-01 | `staff.create` | |
 | SCR-STF-03 | Staff account | `/admin/staff/[id]` | Admin | STF-01, STF-02 | `staff.read`; actions `staff.disable` | |
 | SCR-LOC-01 | Business location | `/admin/settings/business-location` | Admin | LOC-01 | `business_location.update` | gap 3 |
 
@@ -597,7 +597,7 @@ The Admin (or a Store Manager holding `staff.create`) creates a staff account wi
 | Mã nhân viên | `employeeCode` | required, at most 50 characters, no space at the start or end |
 | Ngày vào làm | `joinedDate` | required; date picker, today by default |
 | SĐT công việc | `workPhone` | optional; 8 to 15 digits, may start with + |
-| Vai trò | `roleIds` | at least one, at most 20; multi-select of the roles (gap 2), Admin included for every caller: the web never checks a role name (R-SEC-03), and the API refuses a caller who may not give it (R-TX-11, row below) |
+| Vai trò | `roleIds` | at least one, at most 20; multi-select of the roles of `GET /api/v1/admin/staff/assignable-roles` (gap 2), the caller's manageable set (R-SEC-12): the web never checks a role name (R-SEC-03), and the API refuses a role outside that set (R-TX-11, R-SEC-12, row below) |
 
 1. "Tạo tài khoản" sends `POST /api/v1/admin/staff`.
 2. 201 opens SCR-STF-03 of the new account with "Đã tạo tài khoản. Nhân viên đăng nhập bằng mật khẩu mặc định và
@@ -608,7 +608,7 @@ The Admin (or a Store Manager holding `staff.create`) creates a staff account wi
 | 400 with an item on `#/<field>` | Under the field |
 | 409 `/problems/email-already-registered`, `/problems/auth-account-exists` (item on `#/email`) | Under Email |
 | 409 `/problems/employee-code-taken` (item on `#/employeeCode`) | Under Mã nhân viên |
-| 409 `/problems/role-required`, `/problems/role-not-for-staff`, `/problems/admin-role-not-assignable` (item on `#/roleIds`) | Under Vai trò |
+| 409 `/problems/role-required`, `/problems/role-not-for-staff`, `/problems/admin-role-not-assignable`, `/problems/role-out-of-scope` (item on `#/roleIds`) | Under Vai trò |
 
 ## SCR-STF-03 Staff account
 
@@ -638,7 +638,7 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
 | 404 | Its `detail` on the page, with a link to SCR-STF-01 |
 | 400 with an item on `#/leftDate` | Under the date field |
 | 409 `/problems/left-date-before-joined-date`, `/problems/left-date-in-future` (item on `#/leftDate`) | Under the date field |
-| 409 `/problems/own-account-not-lockable`, `/problems/last-active-admin`, `/problems/admin-account-not-lockable`, `/problems/admin-account-not-restorable`, `/problems/account-anonymized` | Toast |
+| 409 `/problems/own-account-not-lockable`, `/problems/last-active-admin`, `/problems/admin-account-not-lockable`, `/problems/admin-account-not-restorable`, `/problems/account-out-of-scope`, `/problems/account-anonymized` | Toast |
 | 409 `/problems/concurrency-conflict` | Toast, and reloads |
 | 500 on "Khóa" | The account may be disabled with its sessions still open (R-SEC-04), or not disabled at all: the web's text of *Conventions* in a toast. The account is reloaded; "Khóa" (ACTIVE) or "Khóa lại" (DISABLED) sends the request again, which revokes the sessions again |
 
@@ -1004,8 +1004,11 @@ A closed gap keeps its number, since other lines refer to it.
 1. **Permissions of the signed-in user** — closed. `GET` and `PATCH /api/v1/admin/me` return `permissions`: the
    permission keys the user's roles grant, sorted, without scope or role names (AUT-04, R-SEC-03). The web uses them
    only to hide menus and buttons (`docs/FRONTEND.md`, Authentication); a change of roles shows at the next call.
-2. **Roles to choose from.** No endpoint lists the roles: SCR-STF-02 cannot offer them and SCR-STF-01 cannot filter by
-   role. Comes with AUT-05 (Manage Role & Permission).
+2. **Roles to choose from** — closed for SCR-STF-02: `GET /api/v1/admin/staff/assignable-roles` (`staff.create`)
+   lists the staff roles the caller may give, its manageable set (R-SEC-12, AUT-05); `GET /api/v1/admin/roles` lists
+   every role for `role.read`, held by the Admin only. Still open for the role filter of SCR-STF-01: a holder of
+   `staff.read` without `role.read` (the Store Manager) has no endpoint that lists the roles. Needs a feature or a
+   Decision when that filter is built.
 3. **Provinces and wards.** No endpoint lists provinces and their wards, and no feature describes one; the official
    list of Quyết định 19/2025/QĐ-TTg is not seeded (`api/seed/README.md`) and not in the repository yet; development
    has only the sample rows of `postman/fixtures/LOC-01.sql`. SCR-LOC-01 cannot offer the selects. The address

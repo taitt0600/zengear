@@ -8,10 +8,28 @@ namespace ZenGear.Services.Identity.Permissions;
 public sealed class PermissionCatalog : IPermissionCatalog
 {
     /// <summary>
-    /// The Admin role, found by name like the R-SEC-02 trigger does (<c>roles.name = 'Admin'</c>). Besides the sync,
-    /// only R-TX-11 uses it, and only to refuse: holding it never grants access (R-SEC-03).
+    /// The Admin role, found by name like the R-SEC-02 trigger does (<c>roles.name = 'Admin'</c>). Besides the sync, R-TX-11
+    /// uses it to refuse, and R-SEC-12 gives its holders every role to manage (the rule says so); it never grants a
+    /// permission (R-SEC-03).
     /// </summary>
     public const string AdminRoleName = "Admin";
+
+    private const string StoreManager = "Store Manager";
+    private const string SalesConsultant = "Sales Consultant";
+    private const string TechnicalSupport = "Technical Support";
+    private const string Cashier = "Cashier";
+    private const string WarehouseKeeper = "Warehouse Keeper";
+    private const string Purchasing = "Purchasing";
+    private const string Accountant = "Accountant";
+    private const string ItSupport = "IT Support";
+
+    /// <summary>The roles a holder of IT Support manages by default (DEC-128 (2)): not Store Manager, not IT Support.</summary>
+    private static readonly string[] OperationalRoles =
+        [SalesConsultant, TechnicalSupport, Cashier, WarehouseKeeper, Purchasing, Accountant];
+
+    /// <summary>Keys only a system role holds (AUT-05, owner's decision): see <see cref="IsAdminOnly"/>.</summary>
+    private static readonly HashSet<string> AdminOnlyKeys =
+        [PermissionKeys.RoleRead, PermissionKeys.RoleCreate, PermissionKeys.RoleUpdate, PermissionKeys.RoleDelete];
 
     private static readonly PermissionDefinition[] Definitions =
     [
@@ -25,9 +43,19 @@ public sealed class PermissionCatalog : IPermissionCatalog
         new(PermissionKeys.ProductSeriesRead, "View product series"),
         new(PermissionKeys.ProductSeriesCreate, "Create product series"),
         new(PermissionKeys.ProductSeriesUpdate, "Rename, move, retire and restore product series"),
+        new(PermissionKeys.RoleRead, "View roles, their permissions and manageable roles"),
+        new(PermissionKeys.RoleCreate, "Create roles"),
+        new(PermissionKeys.RoleUpdate, "Change the permissions, discount and manageable roles of roles"),
+        new(PermissionKeys.RoleDelete, "Delete roles no account holds"),
     ];
 
     public IReadOnlyList<PermissionDefinition> Permissions => Definitions;
+
+    /// <summary>
+    /// A key the API never grants to a role other than a system role (owner's decision for AUT-05, "Chỉ Admin được thao
+    /// tác"): with it, the holder could raise their own role's permissions. Checked by key, never by role name (R-SEC-03).
+    /// </summary>
+    public static bool IsAdminOnly(string key) => AdminOnlyKeys.Contains(key);
 
     public IReadOnlyList<RoleGrants> Roles { get; } =
     [
@@ -38,15 +66,22 @@ public sealed class PermissionCatalog : IPermissionCatalog
         // R-TX-11 still refuses the Store Manager disabling an Admin account.
         // PRD-02, the owner's decision: a Store Manager manages the brands (A02, DEC-013).
         // PRD-03, the owner's decision: a Store Manager manages the product series (UC-012, UC-013, DEC-013).
-        new("Store Manager", IsSystemRole: false,
+        // DEC-128 (2): a Store Manager manages the 8 default roles, which keeps what it could do before R-SEC-12.
+        new(StoreManager, IsSystemRole: false,
             [PermissionKeys.StaffRead, PermissionKeys.StaffDisable, PermissionKeys.BrandRead, PermissionKeys.BrandCreate,
                 PermissionKeys.BrandUpdate, PermissionKeys.ProductSeriesRead, PermissionKeys.ProductSeriesCreate,
-                PermissionKeys.ProductSeriesUpdate]),
-        new("Sales Consultant", IsSystemRole: false, []),
-        new("Technical Support", IsSystemRole: false, []),
-        new("Cashier", IsSystemRole: false, []),
-        new("Warehouse Keeper", IsSystemRole: false, []),
-        new("Purchasing", IsSystemRole: false, []),
-        new("Accountant", IsSystemRole: false, []),
+                PermissionKeys.ProductSeriesUpdate],
+            [StoreManager, ItSupport, .. OperationalRoles]),
+        new(SalesConsultant, IsSystemRole: false, []),
+        new(TechnicalSupport, IsSystemRole: false, []),
+        new(Cashier, IsSystemRole: false, []),
+        new(WarehouseKeeper, IsSystemRole: false, []),
+        new(Purchasing, IsSystemRole: false, []),
+        new(Accountant, IsSystemRole: false, []),
+        // DEC-128 (1): IT Support manages staff accounts, with no business, price or cost permission. staff.export
+        // (DEC-127) joins this list with the feature that checks it, as a key new to the database then.
+        new(ItSupport, IsSystemRole: false,
+            [PermissionKeys.StaffRead, PermissionKeys.StaffCreate, PermissionKeys.StaffDisable],
+            OperationalRoles),
     ];
 }

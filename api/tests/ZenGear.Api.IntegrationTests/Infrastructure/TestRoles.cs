@@ -29,6 +29,20 @@ public static class TestRoles
         await command.ExecuteNonQueryAsync();
     }
 
+    /// <summary>Adds <paramref name="managedRoleId"/> to the manageable set of the role (R-SEC-12): no sync runs in the tests.</summary>
+    public static async Task ManageAsync(Guid roleId, params Guid[] managedRoleIds)
+    {
+        await using var connection = await OpenAsync();
+        foreach (var managedRoleId in managedRoleIds)
+        {
+            await using var command = new NpgsqlCommand(
+                "INSERT INTO role_manageable_roles (role_id, managed_role_id) VALUES (@role, @managed)", connection);
+            command.Parameters.AddWithValue("role", roleId);
+            command.Parameters.AddWithValue("managed", managedRoleId);
+            await command.ExecuteNonQueryAsync();
+        }
+    }
+
     /// <summary>Grants <paramref name="permissionKey"/> to the role, creating the permission when missing.</summary>
     public static async Task GrantAsync(Guid roleId, string permissionKey)
     {

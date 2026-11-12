@@ -30,7 +30,8 @@ public partial class ProblemTextsTests : IntegrationTestBase
         "role-not-for-staff", "admin-role-not-assignable", "left-date-before-joined-date", "left-date-in-future",
         "own-account-not-lockable", "last-active-admin", "admin-account-not-lockable", "admin-account-not-restorable",
         "account-anonymized", "brand-already-exists", "product-series-already-exists", "brand-retired", "admin-role-missing",
-        "admin-already-exists",
+        "admin-already-exists", "role-already-exists", "system-role-not-editable", "default-role-not-renamable",
+        "role-not-deletable", "role-in-use", "role-not-manageable", "role-out-of-scope", "account-out-of-scope",
     ];
 
     /// <summary>The limits the validators give to the texts; never a value the user sent (DEC-117 (3)).</summary>
