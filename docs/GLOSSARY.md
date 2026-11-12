@@ -15,6 +15,7 @@ Class names are singular PascalCase in `ZenGear.Data/Entities/<Area>`; table nam
 | Quyền | `Permission` | `permissions` | Identity |
 | Gán vai trò (kiêm nhiệm) | `UserRole` | `user_roles` | Identity |
 | Gán quyền cho vai trò | `RolePermission` | `role_permissions` | Identity |
+| Phạm vi quản lý (các vai trò mà người giữ vai trò được quản lý tài khoản) | `RoleManageableRole` | `role_manageable_roles` | Identity |
 | Sổ địa chỉ giao hàng | `Address` | `addresses` | Customers |
 | Danh sách yêu thích | `Wishlist` | `wishlists` | Customers |
 | Quốc gia | `Country` | `countries` | Geography |
@@ -121,7 +122,7 @@ Stored as the English values below; the Vietnamese label is what the UI shows, t
 | Đối soát | reconciliation | So số liệu lưu sẵn với nguồn gốc; job đêm chỉ báo cáo, không tự sửa |
 | Đơn tạo hộ / bán tại quầy | assisted order / counter sale | Đơn do nhân viên tạo (`ASSISTED`) |
 | Vai trò hệ thống | system role | Admin và Customer (`is_system_role = true`): quyền do code quy định, ghi đè khi khởi động, không sửa qua API (DEC-095) |
-| Vai trò mặc định | default role | 7 vai trò nhân viên có sẵn: code chỉ cấp quyền mới lần đầu, sau đó Admin chỉnh; không đổi tên, không xóa (DEC-095) |
+| Vai trò mặc định | default role | 8 vai trò nhân viên có sẵn (DEC-128): code chỉ cấp quyền mới lần đầu, sau đó Admin chỉnh; không đổi tên, không xóa (DEC-095) |
 | Khách lẻ | walk-in customer | Tài khoản hệ thống cho khách không cho SĐT lẫn email (R-USR-08) |
 | Tài khoản placeholder | placeholder account | Tài khoản khách do nhân viên tạo hộ, chưa gắn Firebase (`firebase_uid` NULL) |
 | PC bộ, PC dựng sẵn | pre-built PC | SKU PC có cấu hình niêm yết; lắp sẵn (STOCK) hoặc lắp theo đơn (BUILD) |
