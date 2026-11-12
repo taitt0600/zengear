@@ -499,12 +499,18 @@ its **Layout** below.
 - **Password card**: the form on the page, in one column of at most 448px (`max-w-md`), full width of the card on a
   narrow screen, with "Đổi mật khẩu" full width below `sm` (`w-full sm:w-auto`; `SubmitButton` takes a
   `className`). Under the new password a checklist of R-USR-11, which the web checks as the user types (as the API
-  counts: Unicode characters, `zengear` in any case): "Từ 12 đến 128 ký tự", "Không chứa chữ zengear", and a line it
-  cannot check, "Không phải mật khẩu mặc định hay mật khẩu phổ biến (kiểm khi đổi)", which the API checks on the send;
-  under the repeat "Giống mật khẩu mới". A met item shows CheckIcon in `foreground`, an unmet one CircleIcon in
-  `muted-foreground`, so the two differ in shape and lightness, not hue; each item carries a visually hidden "(đạt)"
-  or "(chưa đạt)", and each list is tied to its field by `aria-describedby`; nothing is announced while typing. On
-  the send an unmet item becomes the field's FieldError, as today. R-USR-11 asks for no capital letter, digit or
+  counts: Unicode code points, `zengear` in any case): "Từ 12 đến 128 ký tự", "Không chứa chữ zengear", and a line
+  it cannot check, "Không phải mật khẩu mặc định hay mật khẩu phổ biến (kiểm khi đổi)", which the API checks on the
+  send; under the repeat "Giống mật khẩu mới". A met item shows CheckIcon in `foreground`, an unmet one CircleIcon in
+  `muted-foreground`, so the two differ in shape and lightness, not hue, and carries a visually hidden "(đạt)" or
+  "(chưa đạt)"; the server-checked line is neutral: InfoIcon in `muted-foreground`, no hidden state text, and it
+  never blocks. Each field's `aria-describedby` names the ids of its `li` items (the list itself has no
+  `aria-label`, which would replace them as the description); the new password's list is named by a visually hidden
+  heading `account.passwordRules.label` for a screen reader browsing the page, the repeat's one-item list has no
+  name. Nothing is announced while typing. Only length and match block the send, as today (`schemas.ts`, the
+  FieldErrors `changePassword.validation.length` and `.mismatch`); the zengear item only shows its state, and a
+  password that contains it is refused by the API, whose `detail` shows under the field (DEC-117 (4)), as on
+  SCR-AUT-02. R-USR-11 asks for no capital letter, digit or
   symbol (NIST SP 800-63B), so the checklist has none; adding them would be a Decision that changes R-USR-11 and the
   API.
 - **Texts** (`messages/vi.json`), new ones marked *new*: the heading `admin.user.account` "Tài khoản của tôi" (the
@@ -524,7 +530,7 @@ its **Layout** below.
   tại." and `changePassword.reauth.wrongPassword` "Mật khẩu hiện tại không đúng." (unchanged), and the other Firebase
   answers `signIn.errors.*` (unchanged, the texts of SCR-AUT-01); the new password `changePassword.newPassword` "Mật
   khẩu mới", the repeat `changePassword.confirmation` "Nhập lại mật khẩu mới" and `changePassword.validation.*`
-  (unchanged); the checklist `account.passwordRules.label` "Yêu cầu của mật khẩu mới" (the list's name),
+  (unchanged); the checklist `account.passwordRules.label` "Yêu cầu của mật khẩu mới" (its visually hidden heading),
   `account.passwordRules.length` "Từ 12 đến 128 ký tự", `account.passwordRules.noZengear` "Không chứa chữ zengear",
   `account.passwordRules.serverChecked` "Không phải mật khẩu mặc định hay mật khẩu phổ biến (kiểm khi đổi)",
   `account.passwordRules.match` "Giống mật khẩu mới", `account.passwordRules.met` "(đạt)" and
@@ -594,10 +600,12 @@ its **Layout** below.
       │                                  (Password section above). The passwords are read from the form, never
       │                                  kept as mutation variables, and the form resets after 204, then the
       │                                  sign-out of DEC-094; the button stays disabled until the page changes
-      └── password-rules.tsx             presentational — props: the items (text, met) and the list's label; a
-                                         `ul` with the `aria-label` `account.passwordRules.label`, each `li`
-                                         CheckIcon or CircleIcon (16px, aria-hidden),
-                                         the text, and a visually hidden `met`/`unmet` text; no aria-live
+      └── password-rules.tsx             presentational — props: the items (id, text, state met, unmet or
+                                         neutral) and an optional visually hidden heading; a `ul` without
+                                         `aria-label`, each `li` with its id, CheckIcon, CircleIcon or InfoIcon
+                                         (16px, aria-hidden), the text and, unless neutral, a visually hidden
+                                         `met`/`unmet` text; the field's aria-describedby lists the item ids
+                                         (Password card); no aria-live
   ```
 
   After the build, `change-password-form.tsx` serves SCR-AUT-02 alone: its `onCancel` prop and the mention of
@@ -1181,7 +1189,9 @@ A closed gap keeps its number, since other lines refer to it.
    response header of every versioned resource beside its `If-Match`, and the `enum` values of `status` and `sort` of
    `GET /api/v1/admin/staff`.
 5. **Changing a staff member's email.** No endpoint changes it, while UC-007 (2a) and R-USR-04 say the Admin does it in the
-   staff management of STF-01, whose feature row has no such criterion; SCR-ACC-01 only points the staff member to the Admin. Needs a feature or a Decision when the Admin must do it.
+   staff management of STF-01, whose feature row has no such criterion; SCR-ACC-01 shows the email read-only,
+   without a note (the owner's choice, 2026-11-12: the company issues it). Needs a feature or a Decision when the
+   Admin must do it.
 6. **Store name for every staff member.** SCR-ADM-01 shows the store name at the top of its menu, but `GET
    /api/v1/admin/business-locations` needs `business_location.update` and no endpoint every signed-in staff member may
    read returns it; the menu shows "ZenGear" (message `app.name`) until then. Needs a feature or a Decision (an
