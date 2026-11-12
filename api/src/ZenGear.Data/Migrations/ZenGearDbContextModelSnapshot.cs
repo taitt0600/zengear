@@ -491,10 +491,6 @@ namespace ZenGear.Data.Migrations
                     b.HasKey("Id")
                         .HasName("pk_roles");
 
-                    b.HasIndex("Name")
-                        .IsUnique()
-                        .HasDatabaseName("ix_roles_name");
-
                     b.ToTable("roles", null, t =>
                         {
                             t.HasCheckConstraint("ck_roles_max_discount_percent", "max_discount_percent is null or (max_discount_percent >= 0 and max_discount_percent <= 100)");
