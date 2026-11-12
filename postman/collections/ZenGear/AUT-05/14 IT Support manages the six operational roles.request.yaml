@@ -1,6 +1,6 @@
 $kind: http-request
 description: |-
-  R-SEC-12, DEC-128: the default manageable set of IT Support, inserted by the sync at the first start after the reset.
+  R-SEC-12, DEC-128, DEC-129: the default manageable set of IT Support, written by api/seed/01_roles.sql.
 method: GET
 url: '{{baseUrl}}/api/v1/admin/roles/{{roleItSupport}}'
 order: 14000

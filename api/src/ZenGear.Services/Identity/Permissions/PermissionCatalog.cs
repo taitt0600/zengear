@@ -23,10 +23,6 @@ public sealed class PermissionCatalog : IPermissionCatalog
     private const string Accountant = "Accountant";
     private const string ItSupport = "IT Support";
 
-    /// <summary>The roles a holder of IT Support manages by default (DEC-128 (2)): not Store Manager, not IT Support.</summary>
-    private static readonly string[] OperationalRoles =
-        [SalesConsultant, TechnicalSupport, Cashier, WarehouseKeeper, Purchasing, Accountant];
-
     /// <summary>Keys only a system role holds (AUT-05, owner's decision): see <see cref="IsAdminOnly"/>.</summary>
     private static readonly HashSet<string> AdminOnlyKeys =
         [PermissionKeys.RoleRead, PermissionKeys.RoleCreate, PermissionKeys.RoleUpdate, PermissionKeys.RoleDelete];
@@ -66,12 +62,11 @@ public sealed class PermissionCatalog : IPermissionCatalog
         // R-TX-11 still refuses the Store Manager disabling an Admin account.
         // PRD-02, the owner's decision: a Store Manager manages the brands (A02, DEC-013).
         // PRD-03, the owner's decision: a Store Manager manages the product series (UC-012, UC-013, DEC-013).
-        // DEC-128 (2): a Store Manager manages the 8 default roles, which keeps what it could do before R-SEC-12.
+        // The default manageable sets of Store Manager and IT Support are in api/seed/01_roles.sql (R-SEC-12, DEC-129).
         new(StoreManager, IsSystemRole: false,
             [PermissionKeys.StaffRead, PermissionKeys.StaffDisable, PermissionKeys.BrandRead, PermissionKeys.BrandCreate,
                 PermissionKeys.BrandUpdate, PermissionKeys.ProductSeriesRead, PermissionKeys.ProductSeriesCreate,
-                PermissionKeys.ProductSeriesUpdate],
-            [StoreManager, ItSupport, .. OperationalRoles]),
+                PermissionKeys.ProductSeriesUpdate]),
         new(SalesConsultant, IsSystemRole: false, []),
         new(TechnicalSupport, IsSystemRole: false, []),
         new(Cashier, IsSystemRole: false, []),
@@ -81,7 +76,6 @@ public sealed class PermissionCatalog : IPermissionCatalog
         // DEC-128 (1): IT Support manages staff accounts, with no business, price or cost permission. staff.export
         // (DEC-127) joins this list with the feature that checks it, as a key new to the database then.
         new(ItSupport, IsSystemRole: false,
-            [PermissionKeys.StaffRead, PermissionKeys.StaffCreate, PermissionKeys.StaffDisable],
-            OperationalRoles),
+            [PermissionKeys.StaffRead, PermissionKeys.StaffCreate, PermissionKeys.StaffDisable]),
     ];
 }

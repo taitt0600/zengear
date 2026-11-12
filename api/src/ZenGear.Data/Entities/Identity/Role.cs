@@ -120,22 +120,6 @@ public class Role : IAggregateRoot
         return true;
     }
 
-    /// <summary>
-    /// Adds one role to the manageable set, for the default sets of the permission sync (R-SEC-12); requires
-    /// <see cref="ManageableRoles"/> loaded.
-    /// </summary>
-    /// <returns>False when the role was already in the set.</returns>
-    public bool GrantManageableRole(Guid managedRoleId, DateTimeOffset now)
-    {
-        if (_manageableRoles.Any(m => m.ManagedRoleId == managedRoleId))
-        {
-            return false;
-        }
-
-        _manageableRoles.Add(new RoleManageableRole(Id, managedRoleId, null, now));
-        return true;
-    }
-
     private bool SetManageableRoles(IEnumerable<Guid> managedRoleIds, Guid grantedBy, DateTimeOffset now)
     {
         var wanted = managedRoleIds.ToHashSet();

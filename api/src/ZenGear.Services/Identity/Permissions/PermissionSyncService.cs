@@ -9,7 +9,9 @@ namespace ZenGear.Services.Identity.Permissions;
 
 /// <summary>
 /// Applies <see cref="IPermissionCatalog"/> to the database (DEC-095, R-SEC-03), in one transaction under an
-/// advisory lock so several API instances starting together run it one after the other.
+/// advisory lock so several API instances starting together run it one after the other. It never reads or writes
+/// <c>role_manageable_roles</c>: the default manageable sets come from <c>api/seed/01_roles.sql</c> once, so the Admin's
+/// edits survive every start (R-SEC-12, DEC-129).
 /// </summary>
 public sealed class PermissionSyncService(
     ZenGearDbContext db, IPermissionCatalog catalog, IAccessCache cache, IClock clock, ILogger<PermissionSyncService> logger)
@@ -93,20 +95,6 @@ public sealed class PermissionSyncService(
                 foreach (var key in grants.PermissionKeys.Where(newKeys.Contains))
                 {
                     role.GrantPermission(idsByKey[key]);
-                }
-            }
-        }
-
-        // 5. Default manageable sets (R-SEC-12, DEC-128), only while no role has any: a pair the Admin removed leaves no
-        //    trace, so adding the missing pairs at every start would undo that edit. A pair added to the catalog later
-        //    reaches a running database through a data migration, as an existing key does (DEC-095).
-        if (!await db.RoleManageableRoles.AnyAsync(cancellationToken))
-        {
-            foreach (var grants in catalog.Roles.Where(g => !g.IsSystemRole))
-            {
-                foreach (var managed in grants.ManagedRoleNames.Where(name => !roles[name].IsSystemRole))
-                {
-                    roles[grants.RoleName].GrantManageableRole(roles[managed].Id, clock.UtcNow);
                 }
             }
         }
