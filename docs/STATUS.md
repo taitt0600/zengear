@@ -8,7 +8,7 @@ flight, what is done and how this file changes: `CLAUDE.md`, *Work state*.
 | Key | Item | Who | Source |
 |---|---|---|---|
 | layout-scr-stf-03 | The `feat(web): … (STF-02)` pull request on `feat/stf-02-web-2` that builds the Layout of SCR-STF-03 (`docs/SCREENS.md`); what is drawn ahead for gaps 7 to 10 stays unbuilt | local | pull request #131 |
-| layout-scr-acc-01 | The `feat(web): … (STF-03)` pull request on `feat/stf-03-web-2` that builds the Layout of SCR-ACC-01 (`docs/SCREENS.md`), after the pull request of `layout-scr-stf-03`; what is drawn ahead for gaps 8 and 11 stays unbuilt | local | the pull request `docs: change the layout of SCR-ACC-01` |
+| layout-scr-acc-01 | The `feat(web): … (STF-03)` pull request on `feat/stf-03-web-2` that builds the Layout of SCR-ACC-01 (`docs/SCREENS.md`), after the pull request of `layout-scr-stf-03`; what is drawn ahead for gaps 8 and 11 stays unbuilt | local | pull request #138 |
 
 ## Waiting for a trigger
 
