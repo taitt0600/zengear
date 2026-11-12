@@ -8,7 +8,6 @@ flight, what is done and how this file changes: `CLAUDE.md`, *Work state*.
 | Key | Item | Who | Source |
 |---|---|---|---|
 | layout-scr-stf-03 | The `feat(web): … (STF-02)` pull request on `feat/stf-02-web-2` that builds the Layout of SCR-STF-03 (`docs/SCREENS.md`); what is drawn ahead for gaps 7 to 10 stays unbuilt | local | pull request #131 |
-| dec-129-code | The pull request that aligns the rest of the code of AUT-05 with DEC-129 (3): ix_roles_name on lower(name), with an `R_SEC_14_` test of the 409 on a violation of that index (the existing `R_SEC_14_` test covers only the check of the code), and the description of `#### role_manageable_roles` in docs/DATABASE.md, which still says the defaults come from code: api/seed/01_roles.sql writes them once and the sync never touches the table (DEC-129 (1) and (2) are done by the fix of R-SEC-12); in api/seed/01_roles.sql, the roles insert changes `ON CONFLICT (name) DO NOTHING` to `ON CONFLICT DO NOTHING`, since PostgreSQL matches no conflict target `(name)` to an index on `lower(name)` and every run of the seed fails (42P10), a fresh database included; `RoleSeedTests` catches it once the migration lands | local | DEC-129; review of pull request #135; PostgreSQL documentation, INSERT, *ON CONFLICT Clause* (conflict target) |
 
 ## Waiting for a trigger
 

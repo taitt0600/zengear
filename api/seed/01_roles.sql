@@ -20,7 +20,9 @@ INSERT INTO roles (id, name, scoping_type, is_system_role) VALUES
   ('0199a000-0000-7000-8000-000000000008', 'Accountant', 'NONE', false),
   ('0199a000-0000-7000-8000-000000000009', 'Customer', 'SELF', true),
   ('0199a000-0000-7000-8000-00000000000a', 'IT Support', 'NONE', false)
-ON CONFLICT (name) DO NOTHING;
+-- The conflict target is the expression of ix_roles_name (DEC-129 (3)): (name) matches no index any more, and no target
+-- at all would also skip a clash on the fixed id, which must fail.
+ON CONFLICT ((lower(name))) DO NOTHING;
 
 -- Default manageable sets (Phạm vi quản lý, R-SEC-12, DEC-129): the roles whose staff accounts a holder may create,
 -- disable, restore and approve. Store Manager manages the 8 default roles; IT Support manages the 6 operational roles

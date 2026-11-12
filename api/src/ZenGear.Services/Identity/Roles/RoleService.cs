@@ -251,8 +251,8 @@ public sealed class RoleService(
     }
 
     /// <summary>
-    /// Refuses a name another role has, whatever the case. The unique index <c>ix_roles_name</c> is case-sensitive, so on
-    /// save it only catches a parallel request with the same spelling.
+    /// Refuses a name another role has, whatever the case (R-SEC-14). The unique index <c>ix_roles_name</c> on
+    /// <c>lower(name)</c> catches on save a parallel request that took the name in any case after this check.
     /// </summary>
     private async Task EnsureNameFreeAsync(string name, Guid? exceptId, CancellationToken cancellationToken)
     {

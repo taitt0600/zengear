@@ -101,7 +101,7 @@ Ref: users.id -? staff_profiles.user_id [delete: cascade]
 
 Table roles {
   id uuid [pk, default: `uuidv7()`]
-  name varchar [not null, unique, note: 'Seed: Admin | Store Manager | Sales Consultant | Technical Support | Cashier | Warehouse Keeper | Purchasing | Accountant | Customer — admins can add roles']
+  name varchar [not null, note: 'Seed: Admin | Store Manager | Sales Consultant | Technical Support | Cashier | Warehouse Keeper | Purchasing | Accountant | Customer — admins can add roles; unique whatever the case (R-SEC-14)']
   scoping_type varchar(10) [not null, note: 'NONE | SELF']
   is_system_role boolean [not null, default: false]
   max_discount_percent numeric(5,2) [null, note: 'cap for manual discounts at the counter; NULL = not allowed']
@@ -109,6 +109,10 @@ Table roles {
   created_at timestamptz [not null, default: `now()`]
   updated_by uuid [null]
   updated_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (`lower(name)`) [unique, name: 'ix_roles_name']
+  }
 
   checks {
     `max_discount_percent is null or (max_discount_percent >= 0 and max_discount_percent <= 100)`
@@ -2087,7 +2091,7 @@ Role with a set of permissions.
 | Column | Description | Sample Data |
 |---|---|---|
 | id | Primary key | `b2c3d4e5-...` |
-| name | Role name | Store Manager |
+| name | Role name, unique whatever the case after trimming (`ix_roles_name` on `lower(name)`, R-SEC-14) | Store Manager |
 | scoping_type | Access scope | NONE, SELF |
 | is_system_role | Locked role — permissions not editable via UI | true, false |
 | max_discount_percent | Highest manual discount (% of the order after voucher) this role may give at the counter; NULL = cannot discount | 5.00, NULL |
@@ -2124,8 +2128,10 @@ Assigns permissions to roles.
 
 The roles whose staff accounts a holder of the role may create, disable, restore and approve (R-SEC-12, DEC-128). A
 person's set is the union over the roles they hold; a holder of Admin manages every role. Admin and Customer are never
-a `managed_role_id`, and a role created through the API manages none until the Admin grants it; the default roles
-receive their default set from code while the table is empty.
+a `managed_role_id`, and a role created through the API manages none until the Admin grants it. The default sets of
+Store Manager and IT Support are written once by `api/seed/01_roles.sql`, only while the table has no row; the
+permission sync at startup never reads or writes this table, and a default pair for a running database goes in a data
+migration (DEC-129).
 
 | Column | Description | Sample Data |
 |---|---|---|

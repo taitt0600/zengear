@@ -165,7 +165,7 @@ public class RoleTests : IntegrationTestBase
     [Test]
     public async Task R_SEC_14_create_refuses_a_name_another_role_has_in_any_case()
     {
-        // The check of the code; the unique index on lower(name) of DEC-129 (3) comes with its migration (docs/STATUS.md).
+        // The check of the code; RoleNameIndexTests covers the unique index on lower(name) behind it (DEC-129 (3)).
         var response = await SendAsync(HttpMethod.Post, Path, AdminUid, CreateBody(" cashier "));
 
         await response.ShouldBeProblemAsync(HttpStatusCode.Conflict, "/problems/role-already-exists", null,

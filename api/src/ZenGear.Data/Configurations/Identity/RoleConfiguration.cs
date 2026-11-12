@@ -23,7 +23,8 @@ internal sealed class RoleConfiguration : IEntityTypeConfiguration<Role>
         builder.Property(r => r.CreatedAt).HasDefaultValueSql("now()");
         builder.Property(r => r.UpdatedAt).HasDefaultValueSql("now()");
 
-        builder.HasIndex(r => r.Name).IsUnique().HasDatabaseName("ix_roles_name");
+        // ix_roles_name is unique on lower(name) (R-SEC-14, DEC-129 (3)): EF Core 10 maps no index on an expression, so
+        // the migration Phase1_Store_Identity_RoleNameLower creates it with SQL and the model leaves it out.
 
         builder.HasMany(r => r.RolePermissions)
             .WithOne()

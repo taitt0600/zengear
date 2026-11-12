@@ -94,7 +94,7 @@ CREATE TABLE roles (
   CONSTRAINT pk_roles PRIMARY KEY (id),
   CONSTRAINT ck_roles_max_discount_percent CHECK (max_discount_percent is null or (max_discount_percent >= 0 and max_discount_percent <= 100))
 );
-CREATE UNIQUE INDEX ix_roles_name ON roles (name);
+CREATE UNIQUE INDEX ix_roles_name ON roles (lower(name));
 
 CREATE TABLE permissions (
   id          uuid         NOT NULL DEFAULT uuidv7(),
