@@ -430,8 +430,13 @@ Loaded from `GET /api/v1/admin/me` (keep its `ETag`).
 
 - "Lưu" sends `PATCH /api/v1/admin/me` `{ name }` with `If-Match`; 200 shows "Đã lưu." and refreshes the name in
   the user menu.
-- "Đổi mật khẩu" opens the form of SCR-AUT-02 in a dialog, with the same answers; after 204 the user is signed out the
-  same way.
+- The password is changed on the page, in its own form (the owner's choice on the Layout of 2026-11-12, replacing the
+  dialog): the current password, then the new password typed twice with the checks and answers of SCR-AUT-02. On
+  "Đổi mật khẩu" the web checks the form, signs in again with the current password (Firebase
+  `reauthenticateWithCredential`, as the dialog of 403 `recent-login-required` does today), then sends `POST
+  /api/v1/admin/me/change-password`; a wrong current password is shown under its field and nothing is sent, and a 403
+  `recent-login-required` cannot follow. After 204 the user is signed out the same way. SCR-AUT-02 keeps its form and
+  its dialog unchanged.
 
 | Answer | Shown |
 |---|---|
@@ -441,8 +446,8 @@ Loaded from `GET /api/v1/admin/me` (keep its `ETag`).
 The form keeps the `ETag` of the values it shows: a refetch of `GET /me` in the background (the window regains
 focus) changes neither the field nor that version; the form loads again after 200, 412 and 428. Texts of the page
 that the table does not quote: the title "Tài khoản của tôi"; "Vui lòng nhập tên hiển thị." and "Tên hiển thị tối
-đa 100 ký tự." (checked by the web, counted in UTF-16 units as the API counts them); the dialog "Đổi mật khẩu" with
-the description "Sau khi đổi, bạn và mọi thiết bị đã đăng nhập phải đăng nhập lại bằng mật khẩu mới." and "Hủy".
+đa 100 ký tự." (checked by the web, counted in UTF-16 units as the API counts them); the password card's texts are in
+its **Layout** below.
 
 ### Layout
 
@@ -450,40 +455,62 @@ the description "Sau khi đổi, bạn và mọi thiết bị đã đăng nhập
   2026-11-11 (commit 39485c9, the current theme and components); approved by the merge of the pull request that wrote
   this subsection (DEC-119). The screen was built before DEC-119 (pull request #87); this Layout follows the
   conventions it predates (**Grouping**, **Help on screen**) and takes the layout of SCR-STF-03 at the owner's request
-  (a centred column with the section navigation). The canvas shows the frame of SCR-ADM-01 for context only; this
-  Layout does not approve it. The dialog "Đổi mật khẩu" keeps the form of SCR-AUT-02 and is not drawn again.
+  (a centred column with the section navigation), with, also at the owner's request, the staff member's own photo
+  (drawn ahead for gap 8) and the password change on the page instead of a dialog. The canvas shows the frame of
+  SCR-ADM-01 for context only; this Layout does not approve it.
 - **Artboards**: desktop (1440 px), signed in as the fixture manager, where the section navigation works in Play;
-  wide (2560 px), the column kept at 1024px and centred; narrow (390 px); state: loading. No error, not found or no
-  permission state: `GET /me` is the query the frame of SCR-ADM-01 loads and guards, and every signed-in staff member
-  may open the page. Light theme only: the screen has no colour outside neutral (DEC-123 (5)). No icon-only button
-  and no label cut short, so no tooltip.
+  wide (2560 px), the column kept at 1024px and centred; narrow (390 px), with the photo above the fields and the
+  current password refused; state: loading. The frame of SCR-ADM-01 shows its own skeleton until `GET /me` answers and
+  `meQuery` stays cached, so the page's loading state shows only if that query is ever refetched without data; it is
+  drawn so that the sections have one. No error, not found or no permission state: `GET /me` is the query the frame
+  loads and guards, and every signed-in staff member may open the page. Light theme only: the screen has no colour
+  outside neutral but the field error of `destructive` that every form shares (DEC-123 (5)). No icon-only button and
+  no label cut short, so no tooltip.
 - **shadcn**: no `add`: `card` and `avatar` are installed.
 - **Width and section navigation**: as the bullets **Width** and **Section navigation** of the Layout of SCR-STF-03
-  say, with the cards `profile` and `password`, the ids `profile-title` and `password-title` of their `h2`
-  (`tabindex="-1"`), and the sentinel `account-end`: a column of at most 1024px (`max-w-5xl`), centred; from `xl` the
-  heading over a grid `200px minmax(0, 1fr)` with a gap of 32px; below `xl` the navigation is hidden with CSS and the
-  cards stack, profile first. The navigation is new behaviour, so the build is a `feat(web): … (STF-03)` pull
-  request on `feat/stf-03-web-2` (`feat/stf-03-web` has merged, #87), as the paragraph under the screen list says. It
-  comes after the pull request of the Next row `layout-scr-stf-03`, which builds `section-nav.tsx` and
-  `use-active-section.ts` in the module of SCR-STF-03: this build moves them to `components/app/section-nav.tsx` and
-  `@/hooks/use-active-section.ts` (DEC-118 (1), the second screen that uses them), the hook taking the sentinel id
-  as an argument instead of `staff-account-end`, and points SCR-STF-03 at the moved files.
-- **Form width**: the fields and "Lưu" keep one column of at most 448px (`max-w-md`) inside the profile card, so a
-  name field is not 740px wide on a wide card; on a narrow screen they fill the card, and "Lưu" and "Đổi mật khẩu" are
-  as wide as the card (`w-full sm:w-auto`).
+  say, with the cards `profile` and `password` (`section`s with those ids, `aria-labelledby` their h2,
+  `scroll-margin-top` 24px), the h2 ids `profile-title` and `password-title` with `tabindex="-1"`, and the sentinel
+  `account-end`: a column of at most 1024px (`max-w-5xl`), centred; from `xl` the heading over a grid `200px
+  minmax(0, 1fr)` with a gap of 32px; below `xl` the navigation is hidden with CSS and the cards stack, profile
+  first. With the password form on the page the column is about 1,050px high and scrolls in a window of 900px, but
+  not on a tall screen: the moved hook therefore keeps a clicked id current until the next scroll moves the line, on
+  both screens (a change of the hook of SCR-STF-03, which otherwise leaves the first card current on a page that
+  does not scroll). The navigation is new behaviour, so the build is a `feat(web): … (STF-03)` pull request on
+  `feat/stf-03-web-2` (`feat/stf-03-web` has merged, #87), as the paragraph under the screen list says. It comes
+  after the pull request of the Next row `layout-scr-stf-03`, which builds `section-nav.tsx`,
+  `use-active-section.ts` and `staff-photo.tsx` in the module of SCR-STF-03: this build moves them to
+  `components/app/section-nav.tsx`, `@/hooks/use-active-section.ts` (the sentinel id an argument instead of
+  `staff-account-end`) and `components/app/profile-photo.tsx` (DEC-118 (1), the second screen that uses them), and
+  points SCR-STF-03 at the moved files.
+- **Profile card**: the information and the photo side by side, as the details card of SCR-STF-03: a `@container`
+  whose photo block comes first in the DOM; from `@xl` a grid `minmax(0, 1fr) 200px` with a gap of 32px, the fields
+  on the left and the photo block on the right (`@xl:border-l @xl:pl-8 @xl:pt-1`); below `@xl` the photo (96px)
+  above the fields, centred.
+- **Password card**: the form on the page, in one column of at most 448px (`max-w-md`), as the section above says.
+  The fields of both forms keep that width on a wide card; on a narrow screen they fill the card, and "Lưu", "Chọn
+  ảnh" and "Đổi mật khẩu" are as wide as the card (`w-full sm:w-auto`; `SubmitButton` takes a `className`).
 - **Texts** (`messages/vi.json`), new ones marked *new*: the heading `admin.user.account` "Tài khoản của tôi" (the
-  page's h1, as today) and its muted line `{name} · {email}` from `GET /me` (no key; the email alone when the name is
-  empty); `admin.sectionNav.label` "Trên trang này" (added by the build of SCR-STF-03); the profile card
+  page's h1, as today) and its muted line `{name} · {email}` from `GET /me` (no key; the name alone when `email` is
+  null); `admin.sectionNav.label` "Trên trang này" (added by the build of SCR-STF-03); the profile card
   `account.profile.title` "Thông tin tài khoản" (*new*) and its description `account.profile.description` "Tên hiển
-  thị là tên người khác thấy khi bạn dùng hệ thống. Email dùng để đăng nhập." (*new*); the hint of the name field
-  `account.nameHint` "Tối đa 100 ký tự." (*new*; the length the web checks); the email's note `account.emailNote`
-  (unchanged, gap 5); `account.name`, `account.email`, `account.save` (unchanged); the password card
-  `account.passwordCard.title` "Mật khẩu" (*new*) and its description `account.passwordCard.description` "Mật khẩu
-  dùng để đăng nhập trang quản trị. Đổi khi bạn nghĩ người khác đã biết nó." (*new*); its button
-  `account.changePassword` "Đổi mật khẩu" and the dialog's texts (unchanged). No placeholder: the name has no format,
-  and the email is read-only.
+  thị, ảnh và email đăng nhập của bạn." (*new*); the hint of the name field `account.nameHint` "Tối đa 100 ký tự."
+  (*new*; the length the web checks); the email's note `account.emailNote` (unchanged, gap 5); `account.name`,
+  `account.email`, `account.save` (unchanged); for gap 8, not built yet, `account.photoAlt` "Ảnh của bạn" (*new*; the
+  alt once there is a photo), `account.choosePhoto` "Chọn ảnh" (*new*) and its hint `account.photoHint` "Ảnh chân
+  dung, rõ mặt. JPG hoặc PNG, tối đa 2 MB." (*new*; the same text and limits as SCR-STF-03); the password card
+  `account.passwordCard.title` "Mật khẩu" (*new*) and its description `account.changePasswordNote` "Sau khi đổi, bạn
+  và mọi thiết bị đã đăng nhập phải đăng nhập lại bằng mật khẩu mới." (unchanged, the dialog's description today);
+  the current password `changePassword.reauth.password` "Mật khẩu hiện tại", `changePassword.reauth.required` "Vui
+  lòng nhập mật khẩu hiện tại." and `changePassword.reauth.wrongPassword` "Mật khẩu hiện tại không đúng."
+  (unchanged); the new password `changePassword.newPassword` "Mật khẩu mới" with its hint `changePassword.help`
+  "Tối thiểu 12 ký tự. Không dùng mật khẩu mặc định, mật khẩu phổ biến hay chữ zengear.", the repeat
+  `changePassword.confirmation` "Nhập lại mật khẩu mới" and the validation texts `changePassword.validation.*`
+  (unchanged); the button `account.changePassword` "Đổi mật khẩu" (unchanged). No placeholder: the name has no
+  format, the email is read-only, and the others are password fields. `account.changePasswordNote` is no longer a
+  `DialogDescription`, and the page has no dialog.
 - **Component tree** (DEC-118 (3)), under `web/src/features/identity/account/components/`, from `GET /me` (`meQuery`
-  of `identity/access`, the query the admin layout holds):
+  of `identity/access`, the query the admin layout holds); the route `app/(admin)/admin/(shell)/account/page.tsx`
+  passes the four slots below instead of `title`, `profile` and `password`, and `index.ts` exports the new sections:
 
   ```text
   account-layout.tsx                     slots: heading | nav | profile | password — a page of two cards, its heading
@@ -493,33 +520,54 @@ the description "Sau khi đổi, bạn và mọi thiết bị đã đăng nhập
   │                                      sentinel div (id `account-end`); below xl the nav slot is hidden with CSS
   │                                      (`hidden xl:block`, so the hash still applies) and the cards stack; it only
   │                                      places the slots (replaces the `max-w-lg` column and its Separator)
-  ├── account-heading-section.tsx        an Avatar of 64px (56px narrow), `aria-hidden`, with the initials of
-  │                                      `name` (`initials` of `@/utils/initials`); beside it the h1
-  │                                      `admin.user.account` and a muted line `name · email` that wraps, never cut
-  │                                      short; loading: Skeleton of the avatar and of the line, the h1 shown
+  ├── account-heading-section.tsx        an Avatar of 64px (56px narrow), `aria-hidden` always, with the initials of
+  │                                      `name` (`initials` of `@/utils/initials`) and, once gap 8 gives a photo,
+  │                                      AvatarImage `alt=""`; beside it the h1 `admin.user.account` and a muted
+  │                                      line `name · email` that wraps, never cut short; loading: Skeleton of the
+  │                                      avatar and of the line, the h1 shown
   ├── account-nav-section.tsx            the nav slot: builds the items (id profile with `account.profile.title`, id
   │                                      password with `account.passwordCard.title`), calls useActiveSection (from
   │                                      `@/hooks`, with the sentinel `account-end`) and renders SectionNav (from
   │                                      `@/components/app`) with the label `admin.sectionNav.label`; shown while
   │                                      loading too; scrolls to the hash once GET /me has answered
-  ├── account-profile-section.tsx        `section` id profile, aria-labelledby `profile-title` — Card: CardTitle
-  │   │                                  as the h2 `account.profile.title`, CardDescription
-  │   │                                  `account.profile.description`; CardContent with the form; loading: the
-  │   │                                  card with its title and description, the fields as Skeleton
+  ├── account-profile-section.tsx        `section` id profile, aria-labelledby `profile-title`, scroll-margin-top
+  │   │                                  24px — Card: CardTitle as the h2 `account.profile.title` (tabindex -1),
+  │   │                                  CardDescription `account.profile.description`; CardContent a `@container`
+  │   │                                  with the photo block and the form (Profile card); loading: the card with
+  │   │                                  its title and description, the fields and the photo as Skeleton
+  │   ├── profile-photo.tsx              presentational, moved from SCR-STF-03 to `components/app/` — props `name`,
+  │   │                                  `photoUrl?`, `onChoose?`, plus the texts (alt, button, hint) as props: an
+  │   │                                  Avatar of 160px (96px below `@xl`) with the initials, `aria-hidden` while
+  │   │                                  it shows them; AvatarImage with `account.photoAlt` once gap 8 gives a
+  │   │                                  photo; under it, with `onChoose`, the Button "Chọn ảnh" (outline, sm,
+  │   │                                  ImageUpIcon) and its hint `account.photoHint` tied by aria-describedby; the
+  │   │                                  first build passes neither and shows the Avatar alone
   │   └── account-profile-fields.tsx     presentational — as today (Field, Input, FieldDescription, FormProblems,
   │                                      SubmitButton), in a column of at most 448px: the name with the
   │                                      FieldDescription `account.nameHint` tied by aria-describedby (with the
   │                                      FieldError after it when invalid), the email read-only with its note,
   │                                      "Lưu" (`w-full sm:w-auto`)
-  └── account-password-section.tsx       `section` id password, aria-labelledby `password-title` — Card: CardTitle
-                                         as the h2 `account.passwordCard.title`, CardDescription
-                                         `account.passwordCard.description`; CardContent with the Dialog of today
-                                         (its trigger `account.changePassword`, outline, `w-full sm:w-auto`;
-                                         the form of SCR-AUT-02 inside, unchanged)
+  └── account-password-section.tsx       `section` id password, aria-labelledby `password-title`, scroll-margin-top
+      │                                  24px — Card: CardTitle as the h2 `account.passwordCard.title` (tabindex
+      │                                  -1), CardDescription `account.changePasswordNote`; CardContent with the
+      │                                  form; replaces the Dialog
+      └── account-password-form.tsx      the form on the page, at most 448px: a hidden `autocomplete="username"`
+                                         field with the email (as `change-password-form.tsx`); "Mật khẩu hiện tại"
+                                         (`current-password`); "Mật khẩu mới" (`new-password`) with the
+                                         FieldDescription `changePassword.help`; "Nhập lại mật khẩu mới"
+                                         (`new-password`); FormProblems at the top; SubmitButton
+                                         `account.changePassword` (`w-full sm:w-auto`). Its hook
+                                         (`hooks/use-account-password.ts`) checks the form with the schema of
+                                         SCR-AUT-02 plus the current password required, signs in again with it
+                                         (the call of `reauth-dialog.tsx`, whose answers it shows the same way: a
+                                         wrong password under the field, the other Firebase problems as there),
+                                         then sends the change as `use-change-password.ts` does (the passwords read
+                                         from the form, never kept as mutation variables; a 400 under "Mật khẩu
+                                         mới" or at the top; reset after 204, then the sign-out of DEC-094); the
+                                         button stays disabled from the send until the page changes
   ```
 
-  Left out: a photo of one's own account (gap 8 covers the photo a manager sets on SCR-STF-03; whether a staff member
-  sees or sets their own is for its Decision), and changing the email (gap 5).
+  Left out: changing the email (gap 5).
 
 ## SCR-STF-01 Staff list
 
@@ -1106,7 +1154,9 @@ A closed gap keeps its number, since other lines refer to it.
    settles the endpoint, who may use it and its rules. Needs a Decision.
 8. **A staff member's photo.** Neither `users` nor `staff_profiles` holds a photo, and no endpoint uploads one; it
    is personal data (where it is stored, who sees it, its removal when an account is anonymized). SCR-STF-03 shows
-   the initials in an Avatar until then. Needs a Decision.
+   the initials in an Avatar until then, and so does SCR-ACC-01, where the owner asked (2026-11-12) that a staff
+   member also set their own photo: the Decision covers both, the manager on SCR-STF-03 and the staff member on
+   SCR-ACC-01 (through `/me`, with the same formats and size). Needs a Decision.
 9. **Sending a staff member a password reset link.** No endpoint resets another account's password, no permission
    covers it and no column records the last link. The Layout of SCR-STF-03 draws the action, its confirmation and
    the row of the last link ahead. The owner chose, on 2026-11-11, the long-term way: a reset link the staff member
