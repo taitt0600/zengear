@@ -22,6 +22,34 @@ INSERT INTO roles (id, name, scoping_type, is_system_role) VALUES
   ('0199a000-0000-7000-8000-00000000000a', 'IT Support', 'NONE', false)
 ON CONFLICT (name) DO NOTHING;
 
+-- Default manageable sets (Phạm vi quản lý, R-SEC-12, DEC-129): the roles whose staff accounts a holder may create,
+-- disable, restore and approve. Store Manager manages the 8 default roles; IT Support manages the 6 operational roles
+-- (not Store Manager, not IT Support). Written only while role_manageable_roles has no row: running the seed again
+-- adds nothing while any pair is left, but writes every default pair again once the Admin has removed them all (the
+-- owner kept this, DEC-129). The permission sync never touches this table; a default pair for a running database (a
+-- default role added later) goes in a data migration.
+INSERT INTO role_manageable_roles (role_id, managed_role_id)
+SELECT pairs.role_id, pairs.managed_role_id
+FROM (VALUES
+  -- Store Manager
+  ('0199a000-0000-7000-8000-000000000002'::uuid, '0199a000-0000-7000-8000-000000000002'::uuid),
+  ('0199a000-0000-7000-8000-000000000002', '0199a000-0000-7000-8000-000000000003'),
+  ('0199a000-0000-7000-8000-000000000002', '0199a000-0000-7000-8000-000000000004'),
+  ('0199a000-0000-7000-8000-000000000002', '0199a000-0000-7000-8000-000000000005'),
+  ('0199a000-0000-7000-8000-000000000002', '0199a000-0000-7000-8000-000000000006'),
+  ('0199a000-0000-7000-8000-000000000002', '0199a000-0000-7000-8000-000000000007'),
+  ('0199a000-0000-7000-8000-000000000002', '0199a000-0000-7000-8000-000000000008'),
+  ('0199a000-0000-7000-8000-000000000002', '0199a000-0000-7000-8000-00000000000a'),
+  -- IT Support
+  ('0199a000-0000-7000-8000-00000000000a', '0199a000-0000-7000-8000-000000000003'),
+  ('0199a000-0000-7000-8000-00000000000a', '0199a000-0000-7000-8000-000000000004'),
+  ('0199a000-0000-7000-8000-00000000000a', '0199a000-0000-7000-8000-000000000005'),
+  ('0199a000-0000-7000-8000-00000000000a', '0199a000-0000-7000-8000-000000000006'),
+  ('0199a000-0000-7000-8000-00000000000a', '0199a000-0000-7000-8000-000000000007'),
+  ('0199a000-0000-7000-8000-00000000000a', '0199a000-0000-7000-8000-000000000008')
+) AS pairs (role_id, managed_role_id)
+WHERE NOT EXISTS (SELECT 1 FROM role_manageable_roles);
+
 -- max_discount_percent (PRM-04) is set per role by the owner in the admin UI; NULL = cannot discount.
 -- Permissions (resource.action) are defined in code and synchronized by the application at startup;
 -- the sync does nothing until all 10 roles exist, so restart the API once after the first seed.

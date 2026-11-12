@@ -4,7 +4,7 @@ Reference data needed before the first login. Run in file order after the schema
 
 | File | Content |
 |---|---|
-| `01_roles.sql` | 10 roles (actors A01–A11, A17): system roles Admin and Customer, 8 default staff roles (IT Support, DEC-128), with fixed ids that must never change (the Postman collection names them, DEC-100); permissions and the default manageable roles come from code (DEC-095, DEC-128) |
+| `01_roles.sql` | 10 roles (actors A01–A11, A17): system roles Admin and Customer, 8 default staff roles (IT Support, DEC-128), with fixed ids that must never change (the Postman collection names them, DEC-100); permissions come from code (DEC-095); the default manageable sets of Store Manager and IT Support, written only while `role_manageable_roles` has no row (R-SEC-12, DEC-129) |
 | `02_walk_in_customer.sql` | System account "Khách lẻ" (R-USR-08) |
 | `03_tax.sql` | 3 business lines and their VAT-on-revenue rates (DEC-029) |
 | `04_warehouses.sql` | MAIN, WARRANTY, DISPLAY, OUTLET |

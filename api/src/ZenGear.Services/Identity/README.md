@@ -13,8 +13,8 @@ they stay here (DEC-106). The tables this area owns are listed in `docs/ARCHITEC
 - `Account` — my account: read and change my own profile and password (STF-03).
 - `StaffAccounts` — staff accounts: create (STF-01), disable and restore (STF-02), list (STF-05), each within the
   caller's manageable set (R-SEC-12), and the first Admin of `bootstrap-admin` (DEC-096).
-- `Permissions` — the permission catalog of the code and its sync to the database at startup, with the default
-  manageable sets (DEC-095, DEC-128).
+- `Permissions` — the permission catalog of the code and its sync to the database at startup (DEC-095); the default
+  manageable sets come from the seed, never from the sync (R-SEC-12, DEC-129).
 - `Roles` — the roles of the Admin: create, change the permissions, discount and manageable set (Phạm vi quản lý,
   R-SEC-12), delete, and the permission list (AUT-05).
 

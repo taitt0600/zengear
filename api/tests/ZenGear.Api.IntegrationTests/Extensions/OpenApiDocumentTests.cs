@@ -214,17 +214,7 @@ public class OpenApiDocumentTests : IntegrationTestBase
 
     private static JsonElement ReadDocument()
     {
-        // The second copy of the root search of ZenGear.ArchitectureTests (RepositoryLayout): the test projects do not
-        // reference each other.
-        for (var dir = new DirectoryInfo(AppContext.BaseDirectory); dir is not null; dir = dir.Parent)
-        {
-            if (File.Exists(Path.Combine(dir.FullName, "api", "ZenGear.slnx")))
-            {
-                using var document = JsonDocument.Parse(File.ReadAllText(Path.Combine(dir.FullName, "api", "openapi", "ZenGear.Api.json")));
-                return document.RootElement.Clone();
-            }
-        }
-
-        throw new InvalidOperationException($"Repository root (api/ZenGear.slnx) not found above {AppContext.BaseDirectory}.");
+        using var document = JsonDocument.Parse(File.ReadAllText(RepositoryFiles.PathOf("api", "openapi", "ZenGear.Api.json")));
+        return document.RootElement.Clone();
     }
 }

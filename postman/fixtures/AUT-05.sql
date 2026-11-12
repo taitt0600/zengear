@@ -3,10 +3,10 @@
 -- through POST /api/v1/admin/staff keeps must_change_password until its owner changes the password in the web
 -- (STF-03), which the collection cannot do. Replaced when a folder can sign in an account it created itself.
 --
--- This fixture writes no row of role_manageable_roles and grants no permission: it runs before the API's first start,
--- and the permission sync inserts the default manageable sets only while that table is empty (R-SEC-12, owner's
--- decision for AUT-05). The AUT-05 folder grants IT Support its staff permissions through PUT /api/v1/admin/roles/{id}:
--- the sync cannot, since STF-01.sql and STF-02.sql insert staff.create and staff.disable before it runs.
+-- This fixture writes no row of role_manageable_roles and grants no permission: api/seed/01_roles.sql, which runs
+-- before it, has written the default manageable sets already (R-SEC-12, DEC-129). The AUT-05 folder grants IT Support
+-- its staff permissions through PUT /api/v1/admin/roles/{id}: the sync cannot, since STF-01.sql and STF-02.sql insert
+-- staff.create and staff.disable before it runs.
 
 WITH it AS (
   INSERT INTO users (firebase_uid, name, email, status)

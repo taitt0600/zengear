@@ -29,7 +29,7 @@ public static class TestRoles
         await command.ExecuteNonQueryAsync();
     }
 
-    /// <summary>Adds <paramref name="managedRoleId"/> to the manageable set of the role (R-SEC-12): no sync runs in the tests.</summary>
+    /// <summary>Adds <paramref name="managedRoleIds"/> to the manageable set of the role (R-SEC-12), for tests that run no seed.</summary>
     public static async Task ManageAsync(Guid roleId, params Guid[] managedRoleIds)
     {
         await using var connection = await OpenAsync();
@@ -58,6 +58,30 @@ public static class TestRoles
             connection);
         command.Parameters.AddWithValue("role", roleId);
         command.Parameters.AddWithValue("key", permissionKey);
+        await command.ExecuteNonQueryAsync();
+    }
+
+    /// <summary>Runs <c>api/seed/01_roles.sql</c>, as <c>tools/dev_reset.ps1</c> and the acceptance environment do.</summary>
+    public static async Task RunSeedAsync()
+    {
+        var sql = await File.ReadAllTextAsync(RepositoryFiles.PathOf("api", "seed", "01_roles.sql"));
+        await using var connection = await OpenAsync();
+        await using var command = new NpgsqlCommand(sql, connection);
+        await command.ExecuteNonQueryAsync();
+    }
+
+    /// <summary>Removes pairs from the manageable sets, as the Admin does through <c>PUT /api/v1/admin/roles/{id}</c>.</summary>
+    public static async Task UnmanageAsync(Guid? roleId = null, Guid? managedRoleId = null)
+    {
+        await using var connection = await OpenAsync();
+        await using var command = new NpgsqlCommand(
+            """
+            DELETE FROM role_manageable_roles
+            WHERE (@role::uuid IS NULL OR role_id = @role) AND (@managed::uuid IS NULL OR managed_role_id = @managed)
+            """,
+            connection);
+        command.Parameters.AddWithValue("role", (object?)roleId ?? DBNull.Value);
+        command.Parameters.AddWithValue("managed", (object?)managedRoleId ?? DBNull.Value);
         await command.ExecuteNonQueryAsync();
     }
 
