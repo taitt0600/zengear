@@ -7,6 +7,9 @@ flight, what is done and how this file changes: `CLAUDE.md`, *Work state*.
 
 | Key | Item | Who | Source |
 |---|---|---|---|
+| STF-09 | Approve Staff Accounts: until it merges, an IT Support account creates staff accounts ACTIVE without a second person; done before the first deploy | local | DEC-128 (3) |
+| STF-13 | Staff Account Activity, before STF-11 and STF-12, whose changes write activity events | local | DEC-134; DEC-132 (5); DEC-133 (4) |
+| STF-11 | Update Staff Account (information, roles, email), after the Layout pull request of SCR-STF-03 that draws the role editing and the email dialog | local | DEC-132 |
 | layout-scr-stf-03 | The `feat(web): … (STF-02)` pull request on `feat/stf-02-web-2` that builds the Layout of SCR-STF-03 (`docs/SCREENS.md`); what is drawn ahead for gaps 7 to 10 stays unbuilt | local | pull request #131 |
 | layout-scr-acc-01 | The `feat(web): … (STF-03)` pull request on `feat/stf-03-web-2` that builds the Layout of SCR-ACC-01 (`docs/SCREENS.md`), after the pull request of `layout-scr-stf-03`; what is drawn ahead for gaps 8 and 11 stays unbuilt | local | pull request #138 |
 
