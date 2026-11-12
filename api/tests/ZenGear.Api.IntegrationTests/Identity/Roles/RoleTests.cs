@@ -163,8 +163,9 @@ public class RoleTests : IntegrationTestBase
     }
 
     [Test]
-    public async Task Create_refuses_a_name_another_role_has_in_any_case()
+    public async Task R_SEC_14_create_refuses_a_name_another_role_has_in_any_case()
     {
+        // The check of the code; the unique index on lower(name) of DEC-129 (3) comes with its migration (docs/STATUS.md).
         var response = await SendAsync(HttpMethod.Post, Path, AdminUid, CreateBody(" cashier "));
 
         await response.ShouldBeProblemAsync(HttpStatusCode.Conflict, "/problems/role-already-exists", null,
@@ -173,12 +174,13 @@ public class RoleTests : IntegrationTestBase
     }
 
     [Test]
-    public async Task R_SEC_03_role_permissions_are_not_grantable_to_other_roles()
+    public async Task R_SEC_13_role_permissions_are_not_grantable_to_other_roles()
     {
-        // "Chỉ Admin được thao tác" (owner's decision): role.* stay with the Admin, whatever role holds them otherwise.
+        // "Chỉ Admin được thao tác" (DEC-129 (2)): role.* stay with the Admin, whatever role holds them otherwise.
         await (await SendAsync(HttpMethod.Post, Path, AdminUid, CreateBody("Role Clerk", [PermissionKeys.RoleRead])))
             .ShouldBeProblemAsync(HttpStatusCode.BadRequest, ValidationType, null,
                 ExpectedError.At("#/permissionKeys", "PERMISSION_NOT_GRANTABLE"));
+        (await CountAsync()).ShouldBe(4);
 
         var response = await UpdateAsync(_cashierRole, "*", UpdateBody("Cashier", [PermissionKeys.RoleUpdate]));
 
