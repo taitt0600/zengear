@@ -11,11 +11,14 @@ they stay here (DEC-106). The tables this area owns are listed in `docs/ARCHITEC
 - `Access` — signing in (AUT-01) and the access of each request: the user's status and permissions (AUT-04,
   R-SEC-04), read through the Redis access cache of the mechanism folder `AccessCache` (R-SEC-07).
 - `Account` — my account: read and change my own profile and password (STF-03).
-- `StaffAccounts` — staff accounts: create (STF-01), disable and restore (STF-02), list (STF-05), and the first
-  Admin of `bootstrap-admin` (DEC-096).
-- `Permissions` — the permission catalog of the code and its sync to the database at startup (DEC-095).
+- `StaffAccounts` — staff accounts: create (STF-01), disable and restore (STF-02), list (STF-05), each within the
+  caller's manageable set (R-SEC-12), and the first Admin of `bootstrap-admin` (DEC-096).
+- `Permissions` — the permission catalog of the code and its sync to the database at startup, with the default
+  manageable sets (DEC-095, DEC-128).
+- `Roles` — the roles of the Admin: create, change the permissions, discount and manageable set (Phạm vi quản lý,
+  R-SEC-12), delete, and the permission list (AUT-05).
 
-Planned (DEC-106): `Roles` with AUT-05, `CustomerAccounts` with AUT-02.
+Planned (DEC-106): `CustomerAccounts` with AUT-02.
 
 ## Public contract
 

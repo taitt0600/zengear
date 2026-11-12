@@ -25,8 +25,11 @@ import type {
 
 import type {
   GetApiV1AdminStaff400,
+  GetApiV1AdminStaffAssignableRoles400,
+  GetApiV1AdminStaffAssignableRolesParams,
   GetApiV1AdminStaffParams,
   PagedDtoOfStaffListItemDto,
+  PagedDtoOfStaffRoleDto,
   PostApiV1AdminStaff400,
   PostApiV1AdminStaff409,
   ProblemDetails,
@@ -287,6 +290,134 @@ export function useGetApiV1AdminStaff<TData = Awaited<ReturnType<typeof getApiV1
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetApiV1AdminStaffQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export type getApiV1AdminStaffAssignableRolesResponse200 = {
+  data: PagedDtoOfStaffRoleDto
+  status: 200
+}
+
+export type getApiV1AdminStaffAssignableRolesResponse400 = {
+  data: GetApiV1AdminStaffAssignableRoles400
+  status: 400
+}
+
+export type getApiV1AdminStaffAssignableRolesResponse401 = {
+  data: ProblemDetails
+  status: 401
+}
+
+export type getApiV1AdminStaffAssignableRolesResponse403 = {
+  data: ProblemDetails
+  status: 403
+}
+
+export type getApiV1AdminStaffAssignableRolesResponseSuccess = (getApiV1AdminStaffAssignableRolesResponse200) & {
+  headers: Headers;
+};
+export type getApiV1AdminStaffAssignableRolesResponseError = (getApiV1AdminStaffAssignableRolesResponse400 | getApiV1AdminStaffAssignableRolesResponse401 | getApiV1AdminStaffAssignableRolesResponse403) & {
+  headers: Headers;
+};
+
+export const getGetApiV1AdminStaffAssignableRolesUrl = (params?: GetApiV1AdminStaffAssignableRolesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/admin/staff/assignable-roles?${stringifiedParams}` : `/api/v1/admin/staff/assignable-roles`
+}
+
+export const getApiV1AdminStaffAssignableRoles = async (params?: GetApiV1AdminStaffAssignableRolesParams, options?: Parameters<typeof apiFetch>[1]): Promise<getApiV1AdminStaffAssignableRolesResponseSuccess> => {
+
+  return apiFetch<getApiV1AdminStaffAssignableRolesResponseSuccess>(getGetApiV1AdminStaffAssignableRolesUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetApiV1AdminStaffAssignableRolesQueryKey = (params?: GetApiV1AdminStaffAssignableRolesParams,) => {
+    return [
+    `/api/v1/admin/staff/assignable-roles`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetApiV1AdminStaffAssignableRolesQueryOptions = <TData = Awaited<ReturnType<typeof getApiV1AdminStaffAssignableRoles>>, TError = ErrorType<GetApiV1AdminStaffAssignableRoles400 | ProblemDetails>>(params?: GetApiV1AdminStaffAssignableRolesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1AdminStaffAssignableRoles>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetApiV1AdminStaffAssignableRolesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiV1AdminStaffAssignableRoles>>> = ({ signal }) => getApiV1AdminStaffAssignableRoles(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiV1AdminStaffAssignableRoles>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetApiV1AdminStaffAssignableRolesQueryResult = NonNullable<Awaited<ReturnType<typeof getApiV1AdminStaffAssignableRoles>>>
+export type GetApiV1AdminStaffAssignableRolesQueryError = ErrorType<GetApiV1AdminStaffAssignableRoles400 | ProblemDetails>
+
+
+export function useGetApiV1AdminStaffAssignableRoles<TData = Awaited<ReturnType<typeof getApiV1AdminStaffAssignableRoles>>, TError = ErrorType<GetApiV1AdminStaffAssignableRoles400 | ProblemDetails>>(
+ params: undefined |  GetApiV1AdminStaffAssignableRolesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1AdminStaffAssignableRoles>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApiV1AdminStaffAssignableRoles>>,
+          TError,
+          Awaited<ReturnType<typeof getApiV1AdminStaffAssignableRoles>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetApiV1AdminStaffAssignableRoles<TData = Awaited<ReturnType<typeof getApiV1AdminStaffAssignableRoles>>, TError = ErrorType<GetApiV1AdminStaffAssignableRoles400 | ProblemDetails>>(
+ params?: GetApiV1AdminStaffAssignableRolesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1AdminStaffAssignableRoles>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApiV1AdminStaffAssignableRoles>>,
+          TError,
+          Awaited<ReturnType<typeof getApiV1AdminStaffAssignableRoles>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetApiV1AdminStaffAssignableRoles<TData = Awaited<ReturnType<typeof getApiV1AdminStaffAssignableRoles>>, TError = ErrorType<GetApiV1AdminStaffAssignableRoles400 | ProblemDetails>>(
+ params?: GetApiV1AdminStaffAssignableRolesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1AdminStaffAssignableRoles>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetApiV1AdminStaffAssignableRoles<TData = Awaited<ReturnType<typeof getApiV1AdminStaffAssignableRoles>>, TError = ErrorType<GetApiV1AdminStaffAssignableRoles400 | ProblemDetails>>(
+ params?: GetApiV1AdminStaffAssignableRolesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1AdminStaffAssignableRoles>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetApiV1AdminStaffAssignableRolesQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

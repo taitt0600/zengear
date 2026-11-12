@@ -158,13 +158,62 @@ public class PermissionSyncTests : IntegrationTestBase
         (await ApiScope.VersionAsync(RedisAccessCache.RoleVersionKey(accountant))).ShouldBe(0);
     }
 
-    private static TestCatalog Catalog(string[] keys, string[]? customer = null, string[]? cashier = null) =>
+    [Test]
+    public async Task R_SEC_12_sync_grants_default_managed_roles_when_none_exist()
+    {
+        await SeedRolesAsync();
+
+        await SyncAsync(Catalog([], managerManages: ["Cashier", "Store Manager"]));
+
+        (await ManagedAsync("Store Manager")).ShouldBe(["Cashier", "Store Manager"], ignoreOrder: true);
+        (await ManagedAsync("Cashier")).ShouldBeEmpty();
+        (await ManagedAsync("Admin")).ShouldBeEmpty();
+    }
+
+    [Test]
+    public async Task R_SEC_12_sync_keeps_admin_edits_of_managed_roles()
+    {
+        await SeedRolesAsync();
+        var catalog = Catalog([], managerManages: ["Cashier", "Accountant"]);
+        await SyncAsync(catalog);
+        var manager = await RoleIdAsync("Store Manager");
+        var accountant = await RoleIdAsync("Accountant");
+        // The Admin takes Cashier out of the Store Manager's set (AUT-05).
+        await Factory.WithDbAsync(async db =>
+        {
+            var role = await db.Roles.Include(r => r.RolePermissions).Include(r => r.ManageableRoles)
+                .SingleAsync(r => r.Id == manager);
+            role.Update(role.Name, role.MaxDiscountPercent, role.RolePermissions.Select(rp => rp.PermissionId), [accountant],
+                Guid.CreateVersion7(), DateTimeOffset.UtcNow);
+            await db.SaveChangesAsync();
+        });
+
+        await SyncAsync(catalog);
+
+        (await ManagedAsync("Store Manager")).ShouldBe(["Accountant"]);
+    }
+
+    [Test]
+    public async Task R_SEC_12_sync_adds_no_pair_once_any_exists()
+    {
+        await SeedRolesAsync();
+        await SyncAsync(Catalog([], managerManages: ["Cashier"]));
+
+        // A pair listed later applies to a running database only through a data migration (DEC-095, DEC-128).
+        await SyncAsync(Catalog([], managerManages: ["Cashier", "Accountant"]));
+
+        (await ManagedAsync("Store Manager")).ShouldBe(["Cashier"]);
+    }
+
+    private static TestCatalog Catalog(string[] keys, string[]? customer = null, string[]? cashier = null,
+        string[]? managerManages = null) =>
         new(
             [.. keys.Select(k => new PermissionDefinition(k, $"Label of {k}"))],
             [
                 new RoleGrants("Admin", true, keys),
                 new RoleGrants("Customer", true, customer ?? []),
-                .. DefaultRoles.Select(name => new RoleGrants(name, false, name == "Cashier" ? cashier ?? [] : [])),
+                .. DefaultRoles.Select(name => new RoleGrants(name, false, name == "Cashier" ? cashier ?? [] : [],
+                    name == "Store Manager" ? managerManages ?? [] : [])),
             ]);
 
     private async Task<PermissionSyncResult> SyncAsync(IPermissionCatalog catalog)
@@ -215,6 +264,16 @@ public class PermissionSyncTests : IntegrationTestBase
             .Join(db.Permissions, x => x.PermissionId, p => p.Id, (_, p) => p.Key)
             .ToListAsync());
         return keys;
+    }
+
+    private async Task<List<string>> ManagedAsync(string roleName)
+    {
+        List<string> names = [];
+        await Factory.WithDbAsync(async db => names = await db.RoleManageableRoles
+            .Where(m => db.Roles.Any(r => r.Id == m.RoleId && r.Name == roleName))
+            .Join(db.Roles, m => m.ManagedRoleId, r => r.Id, (_, r) => r.Name)
+            .ToListAsync());
+        return names;
     }
 
     private sealed record TestCatalog(IReadOnlyList<PermissionDefinition> Permissions, IReadOnlyList<RoleGrants> Roles)

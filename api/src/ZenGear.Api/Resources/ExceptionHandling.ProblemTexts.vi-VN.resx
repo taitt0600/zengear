@@ -225,6 +225,63 @@
   <data name="admin-already-exists.detail" xml:space="preserve">
     <value>Đã có quản trị viên; không thay đổi gì. Quản trị viên tạo các tài khoản khác.</value>
   </data>
+  <data name="role-already-exists.title" xml:space="preserve">
+    <value>Tên vai trò đã có</value>
+  </data>
+  <data name="role-already-exists.detail" xml:space="preserve">
+    <value>Đã có vai trò khác mang tên này. Vui lòng chọn tên khác.</value>
+  </data>
+  <data name="system-role-not-editable.title" xml:space="preserve">
+    <value>Không sửa được vai trò hệ thống</value>
+  </data>
+  <data name="system-role-not-editable.detail" xml:space="preserve">
+    <value>Vai trò Admin và Customer chỉ đổi được mức giảm giá tối đa; tên, quyền và phạm vi quản lý của chúng do hệ thống quy định.</value>
+  </data>
+  <data name="default-role-not-renamable.title" xml:space="preserve">
+    <value>Không đổi tên được vai trò mặc định</value>
+  </data>
+  <data name="default-role-not-renamable.detail" xml:space="preserve">
+    <value>Vai trò mặc định giữ nguyên tên; bạn vẫn sửa được quyền, mức giảm giá và phạm vi quản lý của nó.</value>
+  </data>
+  <data name="role-not-deletable.title" xml:space="preserve">
+    <value>Không xóa được vai trò này</value>
+  </data>
+  <data name="role-not-deletable.detail" xml:space="preserve">
+    <value>Vai trò hệ thống và vai trò mặc định không xóa được.</value>
+  </data>
+  <data name="role-in-use.title" xml:space="preserve">
+    <value>Vai trò đang được gán</value>
+  </data>
+  <data name="role-in-use.detail" xml:space="preserve">
+    <value>Vai trò đang được gán cho tài khoản nhân viên. Hãy gỡ vai trò khỏi các tài khoản đó trước khi xóa.</value>
+  </data>
+  <data name="role-not-manageable.title" xml:space="preserve">
+    <value>Không thêm được vai trò vào phạm vi quản lý</value>
+  </data>
+  <data name="role-not-manageable.detail" xml:space="preserve">
+    <value>Vai trò Admin và Customer không bao giờ nằm trong phạm vi quản lý của vai trò khác.</value>
+  </data>
+  <data name="role-out-of-scope.title" xml:space="preserve">
+    <value>Vai trò ngoài phạm vi quản lý</value>
+  </data>
+  <data name="role-out-of-scope.detail" xml:space="preserve">
+    <value>Bạn chỉ gán được các vai trò nằm trong phạm vi quản lý của mình.</value>
+  </data>
+  <data name="account-out-of-scope.title" xml:space="preserve">
+    <value>Tài khoản ngoài phạm vi quản lý</value>
+  </data>
+  <data name="account-out-of-scope.detail" xml:space="preserve">
+    <value>Tài khoản này giữ vai trò nằm ngoài phạm vi quản lý của bạn.</value>
+  </data>
+  <data name="MANAGED_ROLE_IDS_REQUIRED" xml:space="preserve">
+    <value>Vui lòng gửi danh sách vai trò được quản lý (có thể rỗng).</value>
+  </data>
+  <data name="MAX_DISCOUNT_PERCENT_OUT_OF_RANGE" xml:space="preserve">
+    <value>Mức giảm giá tối đa phải từ 0 đến 100%.</value>
+  </data>
+  <data name="MAX_DISCOUNT_PERCENT_TOO_PRECISE" xml:space="preserve">
+    <value>Mức giảm giá tối đa có tối đa 2 chữ số thập phân.</value>
+  </data>
   <data name="NAME_REQUIRED" xml:space="preserve">
     <value>Vui lòng nhập tên.</value>
   </data>
@@ -284,6 +341,15 @@
   </data>
   <data name="JOINED_DATE_REQUIRED" xml:space="preserve">
     <value>Vui lòng nhập ngày vào làm.</value>
+  </data>
+  <data name="PERMISSION_KEYS_REQUIRED" xml:space="preserve">
+    <value>Vui lòng gửi danh sách quyền (có thể rỗng).</value>
+  </data>
+  <data name="PERMISSION_NOT_FOUND" xml:space="preserve">
+    <value>Quyền không tồn tại.</value>
+  </data>
+  <data name="PERMISSION_NOT_GRANTABLE" xml:space="preserve">
+    <value>Quyền quản lý vai trò chỉ dành cho Admin, không gán được cho vai trò khác.</value>
   </data>
   <data name="WORK_PHONE_INVALID" xml:space="preserve">
     <value>Số điện thoại công việc gồm {MinDigits} đến {MaxDigits} chữ số, có thể bắt đầu bằng dấu +.</value>

@@ -42,10 +42,88 @@ public class StaffTests : IntegrationTestBase
             await TestRoles.GrantAsync(role, PermissionKeys.StaffRead);
         }
 
+        // The Store Manager's default set covers the default roles (R-SEC-12, DEC-128); the tests insert it, no sync runs.
+        await TestRoles.ManageAsync(_managerRole, _managerRole, _cashierRole, _salesRole);
+
         _adminId = await TestUsers.InsertAsync(AdminUid);
         await TestRoles.AssignAsync(_adminId, _adminRole);
         var managerId = await TestUsers.InsertAsync(ManagerUid);
         await TestRoles.AssignAsync(managerId, _managerRole);
+    }
+
+    [Test]
+    public async Task R_SEC_12_create_staff_refuses_role_outside_scope()
+    {
+        var nightShift = await TestRoles.InsertAsync("Night Shift");
+
+        var response = await PostAsync(ManagerUid, Body("a@zengear.test", "NV0001", _cashierRole, nightShift));
+
+        await response.ShouldBeProblemAsync(HttpStatusCode.Conflict, "/problems/role-out-of-scope", "R-SEC-12",
+            ExpectedError.At("#/roleIds", "ROLE_OUT_OF_SCOPE"));
+        await ShouldHaveCreatedNothingAsync();
+    }
+
+    [Test]
+    public async Task R_SEC_12_create_staff_accepts_role_in_scope()
+    {
+        var response = await PostAsync(ManagerUid, Body("sales@zengear.test", "NV0004", _salesRole, _cashierRole));
+
+        response.StatusCode.ShouldBe(HttpStatusCode.Created);
+    }
+
+    [Test]
+    public async Task R_SEC_12_admin_manages_every_role()
+    {
+        var nightShift = await TestRoles.InsertAsync("Night Shift");
+
+        var response = await PostAsync(AdminUid, Body("night@zengear.test", "NV0005", nightShift));
+
+        response.StatusCode.ShouldBe(HttpStatusCode.Created);
+    }
+
+    [Test]
+    public async Task R_SEC_12_manageable_set_is_union_of_held_roles()
+    {
+        var hiring = await TestRoles.InsertAsync("Hiring Cashiers");
+        var hiringSales = await TestRoles.InsertAsync("Hiring Sales");
+        await TestRoles.GrantAsync(hiring, PermissionKeys.StaffCreate);
+        await TestRoles.ManageAsync(hiring, _cashierRole);
+        await TestRoles.ManageAsync(hiringSales, _salesRole);
+        var recruiter = await TestUsers.InsertAsync("uid-recruiter");
+        await TestRoles.AssignAsync(recruiter, hiring);
+        await TestRoles.AssignAsync(recruiter, hiringSales);
+
+        var response = await PostAsync("uid-recruiter", Body("both@zengear.test", "NV0006", _cashierRole, _salesRole));
+
+        response.StatusCode.ShouldBe(HttpStatusCode.Created);
+    }
+
+    [Test]
+    public async Task R_SEC_12_assignable_roles_lists_the_manageable_set()
+    {
+        await TestRoles.InsertAsync("Night Shift");
+
+        var manager = await GetAsync(ManagerUid, $"{Path}/assignable-roles");
+        var admin = await GetAsync(AdminUid, $"{Path}/assignable-roles");
+
+        manager.StatusCode.ShouldBe(HttpStatusCode.OK);
+        var managerPage = await JsonAsync(manager);
+        managerPage.GetProperty("items").EnumerateArray().Select(r => r.GetProperty("name").GetString())
+            .ShouldBe(["Cashier", "Sales Consultant", "Store Manager"]);
+        managerPage.GetProperty("totalCount").GetInt32().ShouldBe(3);
+        // The Admin manages every staff role, the Admin role included; Customer is never a staff role (R-USR-01).
+        (await JsonAsync(admin)).GetProperty("items").EnumerateArray().Select(r => r.GetProperty("name").GetString())
+            .ShouldBe(["Admin", "Cashier", "Night Shift", "Sales Consultant", "Store Manager"]);
+    }
+
+    [Test]
+    public async Task Assignable_roles_need_staff_create()
+    {
+        var cashierId = await TestUsers.InsertAsync("uid-cashier-reader");
+        await TestRoles.AssignAsync(cashierId, _cashierRole);
+
+        await (await GetAsync("uid-cashier-reader", $"{Path}/assignable-roles"))
+            .ShouldBeForbiddenProblemAsync("/problems/permission-denied", "R-SEC-03");
     }
 
     [Test]

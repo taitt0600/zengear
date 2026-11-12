@@ -97,6 +97,20 @@ public sealed class PermissionSyncService(
             }
         }
 
+        // 5. Default manageable sets (R-SEC-12, DEC-128), only while no role has any: a pair the Admin removed leaves no
+        //    trace, so adding the missing pairs at every start would undo that edit. A pair added to the catalog later
+        //    reaches a running database through a data migration, as an existing key does (DEC-095).
+        if (!await db.RoleManageableRoles.AnyAsync(cancellationToken))
+        {
+            foreach (var grants in catalog.Roles.Where(g => !g.IsSystemRole))
+            {
+                foreach (var managed in grants.ManagedRoleNames.Where(name => !roles[name].IsSystemRole))
+                {
+                    roles[grants.RoleName].GrantManageableRole(roles[managed].Id, clock.UtcNow);
+                }
+            }
+        }
+
         await db.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
 

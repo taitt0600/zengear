@@ -22,6 +22,7 @@ public sealed class StaffService(
     IAuthProvider auth,
     IValidator<StaffCreateRequest> validator,
     IValidator<StaffListRequest> listValidator,
+    IValidator<PageRequest> pageValidator,
     IClock clock,
     ILogger<StaffService> logger)
 {
@@ -45,8 +46,7 @@ public sealed class StaffService(
         var unknown = roleIds.Except(roles.Select(r => r.Id)).ToList();
         if (unknown.Count > 0)
         {
-            throw new ValidationException([
-                new ValidationFailure(nameof(StaffCreateRequest.RoleIds), RoleNotFound) { ErrorCode = RoleNotFound }]);
+            throw UnknownRole();
         }
 
         if (roles.Any(r => r.ScopingType != ScopingType.None))
@@ -58,6 +58,11 @@ public sealed class StaffService(
         if (roles.Any(r => r.Name == PermissionCatalog.AdminRoleName) && !await HoldsAdminRoleAsync(actorId, cancellationToken))
         {
             throw new BusinessRuleException("R-TX-11", "admin-role-not-assignable", nameof(StaffCreateRequest.RoleIds));
+        }
+
+        if (!(await ManageableRolesOfAsync(actorId, cancellationToken)).Covers(roleIds))
+        {
+            throw new BusinessRuleException("R-SEC-12", "role-out-of-scope", nameof(StaffCreateRequest.RoleIds));
         }
 
         var email = User.NormalizeEmail(request.Email!);
@@ -95,12 +100,24 @@ public sealed class StaffService(
         {
             db.ChangeTracker.Clear();
             await DeleteUnlinkedAccountAsync(account.Uid);
-            if (ex is not DbUpdateException { InnerException: PostgresException { SqlState: PostgresErrorCodes.UniqueViolation } unique })
+            if (ex is DbUpdateException { InnerException: PostgresException { SqlState: PostgresErrorCodes.UniqueViolation } unique })
             {
-                throw;
+                throw unique.ConstraintName == "ix_staff_profiles_employee_code" ? EmployeeCodeTaken() : EmailAlreadyRegistered();
             }
 
-            throw unique.ConstraintName == "ix_staff_profiles_employee_code" ? EmployeeCodeTaken() : EmailAlreadyRegistered();
+            // A role deleted (AUT-05) after the check above.
+            if (ex is DbUpdateException
+                {
+                    InnerException: PostgresException
+                    {
+                        SqlState: PostgresErrorCodes.ForeignKeyViolation, ConstraintName: "fk_user_roles_roles_role_id",
+                    },
+                })
+            {
+                throw UnknownRole();
+            }
+
+            throw;
         }
 
         logger.LogInformation("Staff account {UserId} created by {ActorId} with roles {RoleIds}", user.Id, actorId, roleIds);
@@ -165,8 +182,49 @@ public sealed class StaffService(
     }
 
     /// <summary>
-    /// <paramref name="userId"/> holds the Admin role, found by name like the R-SEC-02 trigger: the one test of R-TX-11
-    /// (STF-01, STF-02). It only refuses; holding the role never grants access (R-SEC-03).
+    /// The roles whose staff accounts <paramref name="actorId"/> may create, disable and restore (R-SEC-12): every role
+    /// for a holder of Admin, otherwise the union of the manageable sets of the actor's roles, never a system role.
+    /// </summary>
+    public async Task<ManageableRoleSet> ManageableRolesOfAsync(Guid actorId, CancellationToken cancellationToken)
+    {
+        if (await HoldsAdminRoleAsync(actorId, cancellationToken))
+        {
+            return ManageableRoleSet.Every;
+        }
+
+        var ids = await db.RoleManageableRoles
+            .Where(m => db.UserRoles.Any(ur => ur.UserId == actorId && ur.RoleId == m.RoleId)
+                && !db.Roles.Any(r => r.Id == m.ManagedRoleId && r.IsSystemRole))
+            .Select(m => m.ManagedRoleId)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+        return ManageableRoleSet.Of(ids);
+    }
+
+    /// <summary>
+    /// One page of the staff roles <paramref name="actorId"/> may give a new account (R-SEC-12, R-USR-01), by name.
+    /// </summary>
+    public async Task<PagedDto<StaffRoleDto>> ListAssignableRolesAsync(Guid actorId, PageRequest page,
+        CancellationToken cancellationToken)
+    {
+        await pageValidator.ValidateAndThrowAsync(page, cancellationToken);
+
+        var manageable = await ManageableRolesOfAsync(actorId, cancellationToken);
+        var roles = db.Roles.AsNoTracking().Where(r => r.ScopingType == ScopingType.None);
+        if (!manageable.EveryRole)
+        {
+            var ids = manageable.RoleIds.ToList();
+            roles = roles.Where(r => ids.Contains(r.Id));
+        }
+
+        return await PagedQuery.ToPagedDtoAsync(
+            roles.OrderBy(r => r.Name).ThenBy(r => r.Id).Select(r => new StaffRoleDto(r.Id, r.Name)), page, cancellationToken);
+    }
+
+    /// <summary>
+    /// <paramref name="userId"/> holds the Admin role, found by name like the R-SEC-02 trigger: the test of R-TX-11 (STF-01,
+    /// STF-02), which only refuses, and of R-SEC-12, whose rule gives a holder of Admin every role to manage. It never
+    /// grants a permission (R-SEC-03).
     /// </summary>
     public Task<bool> HoldsAdminRoleAsync(Guid userId, CancellationToken cancellationToken) =>
         db.UserRoles.AnyAsync(
@@ -210,6 +268,10 @@ public sealed class StaffService(
             logger.LogError(ex, "Firebase account {FirebaseUid} left without a user row: delete it in the Firebase console", uid);
         }
     }
+
+    /// <summary>A role id that names no role (400); the id is never written back.</summary>
+    private static ValidationException UnknownRole() =>
+        new([new ValidationFailure(nameof(StaffCreateRequest.RoleIds), RoleNotFound) { ErrorCode = RoleNotFound }]);
 
     private static BusinessRuleException EmailAlreadyRegistered() =>
         new(null, "email-already-registered", nameof(StaffCreateRequest.Email));

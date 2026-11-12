@@ -35,4 +35,16 @@ public static class PermissionKeys
 
     /// <summary>Rename, move to another brand, retire and restore a product series (PRD-03).</summary>
     public const string ProductSeriesUpdate = "product_series.update";
+
+    /// <summary>Read the roles, their permissions and manageable roles, and the permission list (AUT-05).</summary>
+    public const string RoleRead = "role.read";
+
+    /// <summary>Create a role (AUT-05).</summary>
+    public const string RoleCreate = "role.create";
+
+    /// <summary>Change a role's name, permissions, discount and manageable roles (AUT-05).</summary>
+    public const string RoleUpdate = "role.update";
+
+    /// <summary>Delete a role no user holds (AUT-05).</summary>
+    public const string RoleDelete = "role.delete";
 }

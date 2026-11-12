@@ -13,6 +13,7 @@ using ZenGear.Services.Identity.Access;
 using ZenGear.Services.Identity.Access.AccessCache;
 using ZenGear.Services.Identity.Account;
 using ZenGear.Services.Identity.Permissions;
+using ZenGear.Services.Identity.Roles;
 using ZenGear.Services.Identity.StaffAccounts;
 using ZenGear.Services.Locations.BusinessLocations;
 
@@ -52,6 +53,7 @@ public static class DependencyInjection
         services.AddScoped<StaffService>();
         services.AddScoped<StaffStatusService>();
         services.AddScoped<StaffBootstrapService>();
+        services.AddScoped<RoleService>();
         services.AddSingleton<IPermissionCatalog, PermissionCatalog>();
         services.AddScoped<PermissionSyncService>();
         services.AddScoped<BusinessLocationService>();

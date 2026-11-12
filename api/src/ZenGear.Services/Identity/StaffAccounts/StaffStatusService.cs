@@ -48,6 +48,8 @@ public sealed class StaffStatusService(
             throw new BusinessRuleException("R-TX-11", "admin-account-not-lockable");
         }
 
+        await EnsureManageableAsync(id, actorId, cancellationToken);
+
         if (request.LeftDate < user.StaffProfile!.JoinedDate)
         {
             throw LeftDateBeforeJoinedDate();
@@ -109,8 +111,9 @@ public sealed class StaffStatusService(
     }
 
     /// <summary>
-    /// Restores the DISABLED staff account <paramref name="id"/> (STF-02); an ACTIVE account is returned unchanged. Its
-    /// sessions were revoked on disable: the staff member signs in again.
+    /// Restores the DISABLED staff account <paramref name="id"/> (STF-02); an ACTIVE account is returned unchanged, once
+    /// the Admin (R-USR-12) and scope (R-SEC-12) checks have passed. Its sessions were revoked on disable: the staff
+    /// member signs in again.
     /// </summary>
     /// <param name="actorId">The signed-in staff member restoring the account.</param>
     /// <returns>Null when there is no staff account with this id.</returns>
@@ -129,11 +132,23 @@ public sealed class StaffStatusService(
             throw new BusinessRuleException("R-USR-12", "admin-account-not-restorable");
         }
 
+        await EnsureManageableAsync(id, actorId, cancellationToken);
+
         user.Restore(actorId, clock.UtcNow);
         await db.SaveChangesAsync(cancellationToken);
 
         logger.LogInformation("Staff account {UserId} restored by {ActorId}", id, actorId);
         return await staff.GetAsync(id, CancellationToken.None);
+    }
+
+    /// <summary>Every role of the account <paramref name="id"/> is in the actor's manageable set (R-SEC-12); 409 otherwise.</summary>
+    private async Task EnsureManageableAsync(Guid id, Guid actorId, CancellationToken cancellationToken)
+    {
+        var roleIds = await db.UserRoles.Where(ur => ur.UserId == id).Select(ur => ur.RoleId).ToListAsync(cancellationToken);
+        if (!(await staff.ManageableRolesOfAsync(actorId, cancellationToken)).Covers(roleIds))
+        {
+            throw new BusinessRuleException("R-SEC-12", "account-out-of-scope");
+        }
     }
 
     private Task<User?> FindStaffAsync(Guid id, CancellationToken cancellationToken) =>

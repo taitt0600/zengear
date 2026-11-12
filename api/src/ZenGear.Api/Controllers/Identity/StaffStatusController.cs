@@ -23,7 +23,8 @@ public sealed class StaffStatusController(StaffStatusService staffStatus) : Cont
     /// <response code="404">No staff account with this id.</response>
     /// <response code="409">
     /// <c>/problems/account-anonymized</c> (R-USR-03), <c>/problems/own-account-not-lockable</c> (R-USR-12),
-    /// <c>/problems/admin-account-not-lockable</c> (R-TX-11), <c>/problems/last-active-admin</c> (R-USR-12),
+    /// <c>/problems/admin-account-not-lockable</c> (R-TX-11), <c>/problems/account-out-of-scope</c> (R-SEC-12: a role
+    /// of the account outside the caller's manageable set), <c>/problems/last-active-admin</c> (R-USR-12),
     /// <c>/problems/left-date-before-joined-date</c> (R-USR-07), <c>/problems/left-date-in-future</c> (R-USR-07),
     /// <c>/problems/concurrency-conflict</c>.
     /// </response>
@@ -49,7 +50,7 @@ public sealed class StaffStatusController(StaffStatusService staffStatus) : Cont
     /// <response code="404">No staff account with this id.</response>
     /// <response code="409">
     /// <c>/problems/account-anonymized</c> (R-USR-03), <c>/problems/admin-account-not-restorable</c> (R-USR-12),
-    /// <c>/problems/concurrency-conflict</c>.
+    /// <c>/problems/account-out-of-scope</c> (R-SEC-12), <c>/problems/concurrency-conflict</c>.
     /// </response>
     [HttpPost("{id:guid}/restore")]
     [RequirePermission(PermissionKeys.StaffDisable)]
