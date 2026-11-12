@@ -10,7 +10,7 @@ flight, what is done and how this file changes: `CLAUDE.md`, *Work state*.
 | STF-09 | Approve Staff Accounts: until it merges, an IT Support account creates staff accounts ACTIVE without a second person; its screens wait for a Layout of their own | local | DEC-128 (3) |
 | layout-scr-stf-03 | The `feat(web): … (STF-02)` pull request on `feat/stf-02-web-2` that builds the Layout of SCR-STF-03 (`docs/SCREENS.md`); what is drawn ahead for gaps 7 to 10 stays unbuilt | local | pull request #131 |
 | STF-13 | Staff Account Activity, after `layout-scr-stf-03` (its card sits on that Layout) and before STF-11 and STF-12, whose changes write activity events | local | DEC-134 and its Consequences; DEC-132 (5); DEC-133 (4) |
-| STF-11 | Update Staff Account (information, roles, email); its web part for the role editing and the email dialog waits for a Layout pull request of SCR-STF-03 that `/design-screen SCR-STF-03` opens in a cloud session first | local | DEC-132 |
+| STF-11 | Update Staff Account (information, roles, email); its web part for the role editing and the email dialog waits for a Layout pull request of SCR-STF-03 that `/design-screen SCR-STF-03` opens in a cloud session first | local | DEC-132; the order of the features after it: pull request #141 |
 | layout-scr-acc-01 | The `feat(web): … (STF-03)` pull request on `feat/stf-03-web-2` that builds the Layout of SCR-ACC-01 (`docs/SCREENS.md`), after the pull request of `layout-scr-stf-03`; what is drawn ahead for gaps 8 and 11 stays unbuilt | local | pull request #138 |
 
 ## Waiting for a trigger
