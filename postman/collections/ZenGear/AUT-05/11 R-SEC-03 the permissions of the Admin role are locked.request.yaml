@@ -1,0 +1,30 @@
+$kind: http-request
+description: |-
+  R-SEC-03, UC-003 3a: a system role (is_system_role = true) has its permissions from code only.
+method: PUT
+url: '{{baseUrl}}/api/v1/admin/roles/{{roleAdmin}}'
+order: 11000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+  - key: Content-Type
+    value: 'application/json'
+  - key: If-Match
+    value: '*'
+body:
+  type: json
+  content: |-
+    {
+      "name": "Admin",
+      "permissionKeys": [],
+      "maxDiscountPercent": null,
+      "managedRoleIds": []
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 409', () => pm.response.to.have.status(409));
+      const problem = pm.response.json();
+      pm.test('system-role-not-editable', () => pm.expect(problem.type).to.eql('/problems/system-role-not-editable'));
+      pm.test('ruleId R-SEC-03', () => pm.expect(problem.ruleId).to.eql('R-SEC-03'));

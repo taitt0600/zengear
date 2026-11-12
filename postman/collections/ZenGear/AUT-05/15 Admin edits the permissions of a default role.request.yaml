@@ -1,0 +1,28 @@
+$kind: http-request
+description: |-
+  AC (DEC-095): the Admin edits the permissions of a default role; IT Support gets its staff permissions (DEC-128 (1)).
+method: PUT
+url: '{{baseUrl}}/api/v1/admin/roles/{{roleItSupport}}'
+order: 15000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+  - key: Content-Type
+    value: 'application/json'
+  - key: If-Match
+    value: '{{itTag}}'
+body:
+  type: json
+  content: |-
+    {
+      "name": "IT Support",
+      "permissionKeys": ["staff.read", "staff.create", "staff.disable"],
+      "maxDiscountPercent": null,
+      "managedRoleIds": {{itManaged}}
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 200', () => pm.response.to.have.status(200));
+      pm.test('staff permissions', () => pm.expect(pm.response.json().permissionKeys).to.eql(['staff.create', 'staff.disable', 'staff.read']));

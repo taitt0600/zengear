@@ -1,0 +1,26 @@
+$kind: http-request
+description: |-
+  Set-up of 22: a staff account holding the role created in 05.
+method: POST
+url: '{{baseUrl}}/api/v1/admin/staff'
+order: 21000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+  - key: Content-Type
+    value: 'application/json'
+body:
+  type: json
+  content: |-
+    {
+      "email": "aut05-night-{{run}}@zengear.test",
+      "name": "Nhân viên ca đêm",
+      "employeeCode": "{{run}}-A3",
+      "joinedDate": "2026-10-01",
+      "roleIds": ["{{customRoleId}}"]
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 201', () => pm.response.to.have.status(201));

@@ -3,3 +3,4 @@
 # emulator custom token, so no password is needed.
 uid_manager manager.fixture@zengear.test
 uid_customer customer.fixture@zengear.test
+uid_itsupport itsupport.fixture@zengear.test

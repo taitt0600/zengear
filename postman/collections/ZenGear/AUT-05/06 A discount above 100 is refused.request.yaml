@@ -1,0 +1,28 @@
+$kind: http-request
+description: |-
+  PRM-04: max_discount_percent from 0 to 100.
+method: POST
+url: '{{baseUrl}}/api/v1/admin/roles'
+order: 6000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+  - key: Content-Type
+    value: 'application/json'
+body:
+  type: json
+  content: |-
+    {
+      "name": "Giảm quá mức {{run}}",
+      "permissionKeys": [],
+      "maxDiscountPercent": 100.5
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 400', () => pm.response.to.have.status(400));
+      const problem = pm.response.json();
+      pm.test('validation', () => pm.expect(problem.type).to.eql('/problems/validation'));
+      pm.test('no ruleId', () => pm.expect(problem.ruleId).to.eql(undefined));
+      pm.test('#/maxDiscountPercent MAX_DISCOUNT_PERCENT_OUT_OF_RANGE', () => pm.expect(problem.errors.map(e => `${e.pointer} ${e.code}`)).to.include('#/maxDiscountPercent MAX_DISCOUNT_PERCENT_OUT_OF_RANGE'));

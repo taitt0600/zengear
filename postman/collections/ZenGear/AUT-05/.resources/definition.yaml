@@ -1,0 +1,20 @@
+$kind: collection
+name: AUT-05
+description: |-
+  AUT-05 — the Admin defines roles and their permissions without changing code (UC-002, UC-003; R-SEC-01, R-SEC-02,
+  R-SEC-03, R-SEC-12; DEC-095, DEC-128): 10 seeded roles, the system roles Admin and Customer locked, the default roles
+  kept by name, a discount per role, and the manageable set (Phạm vi quản lý) of each role, which bounds whose staff
+  accounts its holders create, disable and restore.
+
+  Needs tools/dev_reset.ps1 first: the Admin owner@zengear.test (bootstrap-admin, DEC-096), the permission sync of the
+  first API start after the reset (it inserts the default manageable sets while role_manageable_roles is empty) and the
+  dev-only fixtures postman/fixtures/STF-01.sql (the Store Manager manager.fixture@zengear.test) and AUT-05.sql (the IT
+  Support itsupport.fixture@zengear.test). 15 gives IT Support its staff permissions through the API (the sync cannot:
+  earlier fixtures insert staff.create and staff.disable before it runs). Role names, emails and employee codes carry
+  the run id `run`, so the folder runs again without a reset; the roles it creates stay.
+
+  20 asks IT Support to disable the Store Manager, expecting 409: should R-SEC-12 regress, that account is disabled and
+  only tools/dev_reset.ps1 brings it back. R-SEC-01 and R-SEC-02 (the triggers on user_roles) and the cached access
+  refreshed after a change of grants (R-SEC-03, R-SEC-07) are covered by the integration tests of api/tests.
+  Emulator only: the requests sign in with emulator custom tokens (see the collection description).
+order: 9000

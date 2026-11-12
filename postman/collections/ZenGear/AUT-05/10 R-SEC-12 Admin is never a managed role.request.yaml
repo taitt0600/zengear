@@ -1,0 +1,31 @@
+$kind: http-request
+description: |-
+  R-SEC-12: Admin and Customer never in a manageable set.
+method: PUT
+url: '{{baseUrl}}/api/v1/admin/roles/{{customRoleId}}'
+order: 10000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+  - key: Content-Type
+    value: 'application/json'
+  - key: If-Match
+    value: '*'
+body:
+  type: json
+  content: |-
+    {
+      "name": "Ca đêm {{run}}",
+      "permissionKeys": [],
+      "maxDiscountPercent": null,
+      "managedRoleIds": ["{{roleAdmin}}"]
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 409', () => pm.response.to.have.status(409));
+      const problem = pm.response.json();
+      pm.test('role-not-manageable', () => pm.expect(problem.type).to.eql('/problems/role-not-manageable'));
+      pm.test('ruleId R-SEC-12', () => pm.expect(problem.ruleId).to.eql('R-SEC-12'));
+      pm.test('#/managedRoleIds ROLE_NOT_MANAGEABLE', () => pm.expect(problem.errors.map(e => `${e.pointer} ${e.code}`)).to.include('#/managedRoleIds ROLE_NOT_MANAGEABLE'));
