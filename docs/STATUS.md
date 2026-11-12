@@ -8,7 +8,7 @@ flight, what is done and how this file changes: `CLAUDE.md`, *Work state*.
 | Key | Item | Who | Source |
 |---|---|---|---|
 | layout-scr-stf-03 | The `feat(web): … (STF-02)` pull request on `feat/stf-02-web-2` that builds the Layout of SCR-STF-03 (`docs/SCREENS.md`); what is drawn ahead for gaps 7 to 10 stays unbuilt | local | pull request #131 |
-| dec-129-code | The pull request that aligns the code of AUT-05 with DEC-129: the default manageable sets in api/seed/01_roles.sql, a permission sync that leaves role_manageable_roles alone, ix_roles_name on lower(name), tests R_SEC_13_ and R_SEC_14_ | local | DEC-129 |
+| dec-129-code | The pull request that aligns the rest of the code of AUT-05 with DEC-129 (3): ix_roles_name on lower(name), with an `R_SEC_14_` test of the 409 on a violation of that index (the existing `R_SEC_14_` test covers only the check of the code), and the description of `#### role_manageable_roles` in docs/DATABASE.md, which still says the defaults come from code: api/seed/01_roles.sql writes them once and the sync never touches the table (DEC-129 (1) and (2) are done by the fix of R-SEC-12) | local | DEC-129 |
 
 ## Waiting for a trigger
 
