@@ -8,6 +8,6 @@ Generated from `product-domain-blueprint-MVP.xlsx` — do not edit by hand; edit
 - [Features](features.md) — 135 rows
 - [Use Cases](use-cases.md) — 141 rows
 - [Domain Model](domain-model.md) — 81 rows
-- [Business Rules](business-rules.md) — 142 rows
-- [Decisions](decisions.md) — 128 rows
+- [Business Rules](business-rules.md) — 144 rows
+- [Decisions](decisions.md) — 129 rows
 - [Technical Design](technical-design.md) — 16 rows
