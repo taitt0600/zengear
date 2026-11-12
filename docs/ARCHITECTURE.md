@@ -54,7 +54,7 @@ Folders inside the three projects follow [Folder structure](#folder-structure); 
 
 | Area | Tables written by this area |
 |---|---|
-| `Identity` | `users`, `customer_profiles`, `staff_profiles`, `roles`, `permissions`, `user_roles`, `role_permissions` |
+| `Identity` | `users`, `customer_profiles`, `staff_profiles`, `roles`, `permissions`, `user_roles`, `role_permissions`, `role_manageable_roles` |
 | `Customers` | `addresses`, `wishlists` |
 | `Geography` | `countries`, `provinces`, `wards` |
 | `Locations` | `business_locations` |

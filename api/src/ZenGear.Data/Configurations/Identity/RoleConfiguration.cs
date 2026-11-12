@@ -31,5 +31,12 @@ internal sealed class RoleConfiguration : IEntityTypeConfiguration<Role>
             .HasConstraintName("fk_role_permissions_roles_role_id")
             .OnDelete(DeleteBehavior.Cascade);
         builder.Navigation(r => r.RolePermissions).UsePropertyAccessMode(PropertyAccessMode.Field);
+
+        builder.HasMany(r => r.ManageableRoles)
+            .WithOne()
+            .HasForeignKey(m => m.RoleId)
+            .HasConstraintName("fk_role_manageable_roles_roles_role_id")
+            .OnDelete(DeleteBehavior.Cascade);
+        builder.Navigation(r => r.ManageableRoles).UsePropertyAccessMode(PropertyAccessMode.Field);
     }
 }

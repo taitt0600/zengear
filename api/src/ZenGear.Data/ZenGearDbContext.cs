@@ -31,6 +31,8 @@ public class ZenGearDbContext : DbContext
 
     public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
 
+    public DbSet<RoleManageableRole> RoleManageableRoles => Set<RoleManageableRole>();
+
     public DbSet<Country> Countries => Set<Country>();
 
     public DbSet<Province> Provinces => Set<Province>();

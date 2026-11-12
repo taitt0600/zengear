@@ -17,7 +17,7 @@ namespace ZenGear.Data.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.12")
+                .HasAnnotation("ProductVersion", "10.0.14")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -501,6 +501,35 @@ namespace ZenGear.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("ZenGear.Data.Entities.Identity.RoleManageableRole", b =>
+                {
+                    b.Property<Guid>("RoleId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("role_id");
+
+                    b.Property<Guid>("ManagedRoleId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("managed_role_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.HasKey("RoleId", "ManagedRoleId")
+                        .HasName("pk_role_manageable_roles");
+
+                    b.HasIndex("ManagedRoleId")
+                        .HasDatabaseName("ix_role_manageable_roles_managed_role_id");
+
+                    b.ToTable("role_manageable_roles", (string)null);
+                });
+
             modelBuilder.Entity("ZenGear.Data.Entities.Identity.RolePermission", b =>
                 {
                     b.Property<Guid>("RoleId")
@@ -835,6 +864,23 @@ namespace ZenGear.Data.Migrations
                         .HasConstraintName("fk_wards_provinces_province_id");
                 });
 
+            modelBuilder.Entity("ZenGear.Data.Entities.Identity.RoleManageableRole", b =>
+                {
+                    b.HasOne("ZenGear.Data.Entities.Identity.Role", null)
+                        .WithMany()
+                        .HasForeignKey("ManagedRoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_role_manageable_roles_roles_managed_role_id");
+
+                    b.HasOne("ZenGear.Data.Entities.Identity.Role", null)
+                        .WithMany("ManageableRoles")
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_role_manageable_roles_roles_role_id");
+                });
+
             modelBuilder.Entity("ZenGear.Data.Entities.Identity.RolePermission", b =>
                 {
                     b.HasOne("ZenGear.Data.Entities.Identity.Permission", null)
@@ -891,6 +937,8 @@ namespace ZenGear.Data.Migrations
 
             modelBuilder.Entity("ZenGear.Data.Entities.Identity.Role", b =>
                 {
+                    b.Navigation("ManageableRoles");
+
                     b.Navigation("RolePermissions");
                 });
 

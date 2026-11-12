@@ -7,10 +7,12 @@ public class RolePermission
     {
     }
 
-    internal RolePermission(Guid roleId, Guid permissionId)
+    /// <param name="createdBy">The Admin granting it through the API (AUT-05); null for the permission sync.</param>
+    internal RolePermission(Guid roleId, Guid permissionId, Guid? createdBy = null)
     {
         RoleId = roleId;
         PermissionId = permissionId;
+        CreatedBy = createdBy;
     }
 
     public Guid RoleId { get; private set; }

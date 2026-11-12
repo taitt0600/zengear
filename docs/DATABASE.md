@@ -149,6 +149,18 @@ Table role_permissions {
   }
 }
 
+Table role_manageable_roles {
+  role_id uuid [not null]
+  managed_role_id uuid [not null]
+  created_by uuid [null]
+  created_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (role_id, managed_role_id) [pk]
+    managed_role_id
+  }
+}
+
 Table countries {
   id integer [pk]
   country_code varchar(2) [not null, unique, note: 'ISO 3166-1 alpha-2, e.g. VN, US']
@@ -244,6 +256,8 @@ Ref: user_roles.user_id > users.id [delete: cascade]
 Ref: user_roles.role_id > roles.id [delete: restrict]
 Ref: role_permissions.role_id > roles.id [delete: cascade]
 Ref: role_permissions.permission_id > permissions.id [delete: cascade]
+Ref: role_manageable_roles.role_id > roles.id [delete: cascade]
+Ref: role_manageable_roles.managed_role_id > roles.id [delete: cascade]
 Ref: addresses.user_id > users.id [delete: cascade]
 
 Table categories {
@@ -1936,6 +1950,7 @@ TableGroup phase1_store [note: 'Phase 1 — Store (in-store sales)'] {
   permissions
   user_roles
   role_permissions
+  role_manageable_roles
   countries
   provinces
   wards
@@ -2104,6 +2119,18 @@ Assigns permissions to roles.
 |---|---|---|
 | role_id | FK to `roles` | `b2c3d4e5-...` |
 | permission_id | FK to `permissions` | `c3d4e5f6-...` |
+
+#### role_manageable_roles
+
+The roles whose staff accounts a holder of the role may create, disable, restore and approve (R-SEC-12, DEC-128). A
+person's set is the union over the roles they hold; a holder of Admin manages every role. Admin and Customer are never
+a `managed_role_id`, and a role created through the API manages none until the Admin grants it; the default roles
+receive their default set from code while the table is empty.
+
+| Column | Description | Sample Data |
+|---|---|---|
+| role_id | FK to `roles`: the managing role | `b2c3d4e5-...` |
+| managed_role_id | FK to `roles`: a role it manages | `d4e5f6a7-...` |
 
 #### countries
 

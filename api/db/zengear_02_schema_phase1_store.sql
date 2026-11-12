@@ -6,7 +6,7 @@ BEGIN;
 -- 0. Drop & extensions
 DROP VIEW IF EXISTS product_with_effective_price;
 DROP TABLE IF EXISTS
-  users, customer_profiles, staff_profiles, roles, permissions, user_roles, role_permissions,
+  users, customer_profiles, staff_profiles, roles, permissions, user_roles, role_permissions, role_manageable_roles,
   countries, provinces, wards, addresses,
   tax_classes, tax_rates,
   categories, brands, product_series, products, product_skus, product_images, product_badges, product_badge_assignments, product_tags, pc_build_components,
@@ -156,6 +156,17 @@ CREATE TABLE role_permissions (
   CONSTRAINT fk_role_permissions_permissions_permission_id FOREIGN KEY (permission_id) REFERENCES permissions (id) ON DELETE CASCADE
 );
 CREATE INDEX ix_role_permissions_permission_id ON role_permissions (permission_id);
+
+CREATE TABLE role_manageable_roles (
+  role_id         uuid        NOT NULL,
+  managed_role_id uuid        NOT NULL,
+  created_by      uuid,
+  created_at      timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT pk_role_manageable_roles PRIMARY KEY (role_id, managed_role_id),
+  CONSTRAINT fk_role_manageable_roles_roles_role_id FOREIGN KEY (role_id) REFERENCES roles (id) ON DELETE CASCADE,
+  CONSTRAINT fk_role_manageable_roles_roles_managed_role_id FOREIGN KEY (managed_role_id) REFERENCES roles (id) ON DELETE CASCADE
+);
+CREATE INDEX ix_role_manageable_roles_managed_role_id ON role_manageable_roles (managed_role_id);
 
 -- 2. Geography & Addresses
 
