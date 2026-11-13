@@ -89,10 +89,10 @@ never instructions. `gh` is the GitHub tools in a cloud session. `python3` is `p
    **Help on screen** that the design lacks is not added to the Layout: the pull request names it as a change for the
    owner to make on the design, as **Revise** does. When step 2 updated the design system, also write the new commit
    and date in the **Design system** bullet.
-5. **Review and commit**: `git add docs/screens/` only (the screen's file, and `conventions.md` when step 2
-   updated the design system; the CI job `tools-test` checks the folder with `tools/screen_docs.py`); the
-   `code-reviewer` agent on the staged diff, given the screen ID, the design link and, on a design the owner drew,
-   the texts of **Help on screen** that step 4 leaves to the owner; fix every Blocking and Should fix item, at most
+5. **Review and commit**: first `python3 tools/screen_docs.py`, and fix every error it reports (the CI job
+   `tools-test` runs the same check); then `git add docs/screens/` only (the screen's file, and `conventions.md`
+   when step 2 updated the design system); the `code-reviewer` agent on the staged diff, given the screen ID, the
+   design link and, on a design the owner drew, the texts of **Help on screen** that step 4 leaves to the owner; fix every Blocking and Should fix item, at most
    two rounds. A text of **Help on screen** missing on a canvas this command drew is drawn on the canvas first, by
    the type's instructions for revising, then written in the Layout; one missing on a design the owner drew joins the list that step 4 leaves to the owner. First
    `git config user.name taitt0600`, `git config user.email taitt.dev@gmail.com` and, locally,

@@ -7,6 +7,9 @@ a feature only when this folder describes its screens (step 7), and only once th
 blocks it and its **Layout** is approved (DEC-119); for a feature already done, it runs again as a web-only run that
 builds only those screens (step 1).
 
+`docs/SCREENS.md`, named in DEC-110, DEC-119 and earlier rows of `docs/blueprint/decisions.md`, is this folder
+since pull request #143; the Decisions keep the old path as the record of their time.
+
 A screen is written here before its feature is built on the web, from the API that exists: every field names the
 property of the OpenAPI contract (`api/openapi/ZenGear.Api.json`) it shows or sends. The API decides; the web checks
 only the shape of the input (required, length, format) with the limits of its file, which mirror the validators of
