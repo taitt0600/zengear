@@ -1,260 +1,355 @@
 # SCR-STF-01 Staff list
 
-All staff accounts with their status and roles, to find the one to open, approve, disable or restore (STF-05,
-STF-09, DEC-105).
+All staff accounts with their status and roles, to find the one to open, approve, disable or restore, and to act on
+several at once (STF-05 to STF-09, DEC-105, DEC-127, DEC-128).
 
-Loaded from `GET /api/v1/admin/staff`. The filters, sort and page are kept in the URL (`?status=&roleId=&sort=&page=`), so a
-reload or a shared link shows the same list.
+Loaded from `GET /api/v1/admin/staff` until STF-06 merges, then from `POST /api/v1/admin/staff/search` with the
+filters in the body (DEC-127 (1)): the same paged list, whose items STF-06 adds `lastLoginAt` and `mustChangePassword`
+to. The status, the role, the ranges of dates, `mustChangePassword`, the sort, the page and the page size are kept in
+the URL (`status`, `roleId`, `joinedFrom`, `joinedTo`, `leftFrom`, `leftTo`, `lastLoginFrom`, `lastLoginTo`,
+`mustChangePassword`, `sort`, `page`, `pageSize`), so a reload or a shared link shows the same list; the search text
+`q` never goes in the URL (personal data, R-USR-14) and stays in the page.
 
 | Column | API | Shown as |
 |---|---|---|
-| STT | — | (page − 1) × 20 + the row's index in the page's `items`, 1 first; the search hides rows without renumbering |
-| Họ tên | `name` | link to SCR-STF-03, with `email` under it in muted text on the tab Chờ duyệt |
+| (checkbox) | — | with STF-07 or STF-08, for a user who holds `staff.disable` or `staff.export`; none on the user's own row and on a PENDING row of the other tabs; on the tab Chờ duyệt, only on a row whose `canApprove` is true (gap 12) |
+| STT | — | (page − 1) × the page size + the row's index in the page's `items`, 1 first |
+| Họ tên | `name`, `email` | link to SCR-STF-03, with `email` under it in muted text (the column Email goes, from the STF-09 build) |
 | Mã nhân viên | `employeeCode` | "—" when empty |
-| Email | `email` | |
 | Vai trò | `roles[].name` | one badge per role |
-| Trạng thái | `status` | badge "Đang hoạt động" (ACTIVE), "Đã khóa" (DISABLED) or "Chờ duyệt" (PENDING, STF-09) |
+| Trạng thái | `status`, `mustChangePassword` | badge "Đang hoạt động" (ACTIVE), "Đã khóa" (DISABLED) or "Chờ duyệt" (PENDING, STF-09); with STF-06, "Chưa đổi mật khẩu" under the badge of an ACTIVE account whose `mustChangePassword` is true |
 | Ngày vào làm | `joinedDate` | `dd/MM/yyyy`, "—" when empty |
+| Đăng nhập gần nhất | `lastLoginAt` | STF-06: `dd/MM/yyyy HH:mm`, "Chưa đăng nhập" (muted) when null |
 | Ngày nghỉ việc | `leftDate` | `dd/MM/yyyy`, empty while employed |
 | Thao tác | — | a menu of the row's actions (below) |
 
-- **Filters**: "Trạng thái" — since STF-09 a row of tabs instead of a select (one control that shows every status
-  and the work waiting): Tất cả (no `status`), Đang hoạt động (`ACTIVE`), Đã khóa (`DISABLED`), Chờ duyệt (`PENDING`)
-  with the number of accounts waiting (`totalCount` of `GET /api/v1/admin/staff?status=PENDING&pageSize=1`, hidden
-  at 0); "Vai trò" — every
-  role (`roleId`), shown once the roles can be listed (gap 2).
-- **Search box** "Lọc theo tên, mã hoặc email": filters the rows already loaded, in the browser; nothing is sent to
-  the API, since names and emails stay out of the query string (DEC-105). With more than one page, the box says
-  "Chỉ lọc trong trang đang xem."
-- **Sort**: clicking "Họ tên", "Mã nhân viên" or "Ngày vào làm" sends `sort=name|employeeCode|joinedDate`, a second
-  click the same with `-`; default `name` (Vietnamese order).
-- **Paging**: 20 rows a page (`pageSize=20`), with the total from `totalCount`.
-- **Button** "Thêm nhân viên" (SCR-STF-02), shown with `staff.create`.
-- **Actions of a row** (chosen by the owner on the change of this Layout): "Xem chi tiết" (SCR-STF-03); with
-  `staff.disable`, on another user's account, "Khóa tài khoản" (ACTIVE), or "Khôi phục tài khoản" and "Khóa lại"
-  (DISABLED), each opening the same dialog or confirmation as on SCR-STF-03 with the same request; a field error shows
-  in the dialog, every other problem in a toast, and a 404, a 409 `concurrency-conflict`, a 500 or no answer also
-  reload the list (`hooks/use-staff-status.ts` invalidates the list then too); the dialog closes as the tree of
-  SCR-STF-03 says; after a 200 the list reloads. A later action such as the profile update (gap 7) joins this menu.
-- **The tab Chờ duyệt** (STF-09, R-USR-17, UC-140): a line under the tabs says why the accounts wait, and the table
-  shows STT, Họ tên with the email under it, Vai trò, Người tạo (`createdBy.name`), Ngày tạo (`createdAt`, `dd/MM/yyyy
-  HH:mm`) and Thao tác: on a row whose `canApprove` is true, the buttons "Từ chối" and "Duyệt" side by side; on
-  another row, "Xem chi tiết". `canApprove`, `createdBy` and `createdAt` are fields STF-09 adds to the list item of a
-  PENDING account (null on the others): the API works out `canApprove` (the caller holds `staff.approve`, did not
-  create the account and manages all its roles, R-SEC-12), so the web never decides who may approve. On the tab Tất
-  cả a PENDING row has the badge and its menu offers "Duyệt tài khoản" and "Từ chối" under the same `canApprove`; it
-  never offers "Khóa tài khoản" (R-USR-17: 409). Each action opens a confirmation that repeats the account (name,
-  email, roles, creator and time), so the approver sees what is granted before choosing. "Duyệt" sends
-  `POST /api/v1/admin/staff/{id}/approve`, "Từ chối" sends `POST /api/v1/admin/staff/{id}/reject`; the confirm button
-  is disabled with a spinner while the request runs. After a 200 or 204 the dialog closes, a toast says "Đã duyệt tài
-  khoản {name}." with "Nhân viên đăng nhập được bằng mật khẩu mặc định." or "Đã từ chối tài khoản {name}.", and the
-  list and the count reload, so the row leaves the tab. A 404 or 409 (not PENDING any more, the caller's own request,
-  an email taken in Firebase, a role outside the caller's scope) shows its `detail` in a toast; a 500 or no answer
-  shows the texts of *Conventions*; each closes the dialog and reloads the list and the count. The tab empty:
-  "Không còn tài khoản chờ duyệt." with "Xem tất cả nhân viên".
-- **Several accounts at once** (drawn ahead for gap 12, at the owner's request): on the tab Chờ duyệt each row whose
-  `canApprove` is true has a checkbox, and the header one selects or clears all of them on the page; a selected row is
-  highlighted. With one or more selected, a bar above the table says "Đã chọn {count} tài khoản" with "Bỏ chọn", "Từ
-  chối {count}" and "Duyệt {count}"; each opens a confirmation listing the accounts with their roles and creator, and
-  then a result that lists each account as done or with its problem's text, the list and the count reloading. Changing
-  the tab or the page clears the selection. Until gap 12 closes, the first build has no checkboxes and no bar.
-- **Empty**: no account at all → "Chưa có tài khoản nhân viên."; nothing matches the filters → "Không có nhân viên
-  phù hợp với bộ lọc." with a button to clear the filters.
+- **Status** "Trạng thái" (STF-09): a row of links with a visible label, one control that shows every status and the
+  work waiting: Tất cả (no `status`), Đang hoạt động (`ACTIVE`), Đã khóa (`DISABLED`), Chờ duyệt (`PENDING`) with the
+  number of accounts waiting (`totalCount` of the list with `status=PENDING` and `pageSize=1`, hidden at 0). Each link
+  is a URL: the current one has `aria-current="page"`, and following one drops `page` and `sort` (the tab Chờ duyệt has
+  no column that sorts) and clears the selection. It replaces the status select of the STF-05 build.
+- **Search** "Tìm nhân viên" (STF-06): `q`, 2 to 100 characters, on the name, email and employee code, without case or
+  diacritics, over the whole list; sent 300 ms after the last key, never with one character. Until STF-06, the box
+  filters the rows already loaded, as the STF-05 build does.
+- **Filters** (STF-06): "Vai trò" (`roleId`, from `GET /api/v1/admin/staff/role-options`, DEC-136; "Tất cả vai trò"
+  first; no Admin for a user who does not hold it) beside the search; "Bộ lọc khác" opens a popover with the ranges
+  Ngày vào làm, Ngày nghỉ việc and Đăng nhập gần nhất (two date pickers each, "Không giới hạn" when empty) and
+  "Chưa đổi mật khẩu mặc định" (`mustChangePassword=true`); "Áp dụng" sets them all at once and drops `page`. The
+  button shows the number of these filters in use; each one in use shows as a chip under the filters, with a button
+  that removes it, and "Xóa bộ lọc" removes them all (not the status). A range whose start is after its end is refused
+  in the popover, before any request; the API still answers 400 (R-USR-14).
+- **Sort**: clicking "Họ tên", "Mã nhân viên", "Ngày vào làm" or, with STF-06, "Đăng nhập gần nhất" sends
+  `sort=name|employeeCode|joinedDate|lastLoginAt`, a second click the same with `-`; default `name` (Vietnamese
+  order); accounts never signed in come last (R-USR-14). The tab Chờ duyệt has no sort.
+- **Paging**: 20 rows a page; with STF-06, "Số dòng mỗi trang" 20, 50 or 100 (`pageSize`, a change drops `page`), the
+  numbered pages, and "Hiển thị {from}–{to} trên {total} nhân viên". A page holds at most 100 rows, the limit of a bulk
+  action, so a selection never spans pages.
+- **Buttons of the header**: "Thêm nhân viên" (SCR-STF-02) with `staff.create`; with STF-08, "Xuất CSV" with
+  `staff.export`, which exports every account that matches the filters (below).
+- **Actions of a row**: "Xem chi tiết" (SCR-STF-03); with `staff.disable`, on another user's account, "Khóa tài khoản"
+  (ACTIVE), or "Khôi phục tài khoản" and "Khóa lại" (DISABLED), each opening the same dialog or confirmation as on
+  SCR-STF-03 with the same request; a field error shows in the dialog, every other problem in a toast, and a 404, a 409
+  `concurrency-conflict`, a 500 or no answer also reload the list (`hooks/use-staff-status.ts` invalidates the list
+  then too); after a 200 the list reloads. On a PENDING row, "Duyệt tài khoản" and "Từ chối" under its `canApprove`,
+  never "Khóa tài khoản" (R-USR-17: 409). Drawn ahead for gap 7, at the owner's request: "Sửa vai trò" on an ACTIVE or
+  DISABLED row of another user, with `staff.update`, which only opens SCR-STF-03 with its role dialog open; the dialog
+  is drawn by the Layout of SCR-STF-03 for STF-11, never a second time here, and nothing edits roles in bulk.
+- **Several accounts at once** (STF-07, STF-08, DEC-127 (5)): a selected row is highlighted; the header checkbox
+  selects or clears every selectable row of the page. With one or more selected, a bar above the table says "Đã chọn
+  {count} tài khoản" with "Bỏ chọn" and, by tab and permission: "Xuất {count}" (`staff.export`), "Khôi phục {count}"
+  (`staff.disable`, tabs Tất cả and Đã khóa) and "Khóa {count}" (`staff.disable`, tabs Tất cả and Đang hoạt động); a
+  change of tab, filter, sort, page or page size clears the selection. The web never checks which selected accounts
+  may change: the job does, account by account (R-USR-15).
+  - "Khóa {count}" opens a confirmation listing the accounts with their roles, with the checkbox "Nhân viên nghỉ
+    việc" and its date picker "Ngày nghỉ việc" (not after today) as on SCR-STF-03, the date shared by all
+    (`leftDate`, null when not ticked); it sends `POST /api/v1/admin/staff/bulk-disable` `{ ids, leftDate }`.
+    "Khôi phục {count}" opens a confirmation with the list and sends `POST /api/v1/admin/staff/bulk-restore`
+    `{ ids }`.
+  - Each request carries an `Idempotency-Key` made when the confirmation opens, so a second click or a retry of the
+    same confirmation never makes a second job (R-JOB-01). A 202 opens the progress.
+- **Progress of a job** (STF-07, STF-08, R-JOB-01): a dialog polls `GET /api/v1/admin/jobs/{id}` every 1.5 s and
+  shows "Đã xử lý {done} / {count}", a progress bar and one line per account as its result comes (done, or the
+  problem's `detail`); "Chạy nền" closes it while the polling goes on as long as the page is open, and the end shows a
+  toast "Đã khóa {done} trên {count} tài khoản." (or its restore form) with "Xem kết quả", which opens the result. At
+  the end (Completed or Failed) the dialog becomes the result, and the list reloads. A 429 (two jobs already running)
+  or a 400 shows the problem's `detail` in a toast and makes no job. Leaving the page stops the polling, not the job.
+- **Export** (STF-08, R-USR-16): "Xuất CSV" of the header opens a confirmation "Xuất {count} nhân viên khớp bộ lọc?"
+  with the count (`totalCount`), the filters in use and what the file holds, then sends
+  `POST /api/v1/admin/staff/export` `{ criteria }` with the current filters and search; "Xuất {count}" of the bar sends
+  `{ ids }` without a confirmation of the count. Both carry an `Idempotency-Key`, then show the progress. A 409 (more
+  than 50,000 rows) shows its `detail`. Done: "File đã sẵn sàng" with the file's name and "Tải file CSV", which
+  downloads `GET /api/v1/admin/jobs/{id}/file` through the API client (never a public link); the file can be
+  downloaded until 24 hours after the job finished, shown as a time.
+- **The tab Chờ duyệt** (STF-09, R-USR-17, UC-140): a line under the filters says why the accounts wait, and the table
+  shows the checkbox (gap 12), STT, Họ tên with the email under it, Vai trò, Người tạo (`createdBy.name`), Ngày tạo
+  (`createdAt`, `dd/MM/yyyy HH:mm`) and Thao tác: on a row whose `canApprove` is true, the buttons "Từ chối" and
+  "Duyệt" side by side; on another row, "Xem chi tiết". `canApprove`, `createdBy` and `createdAt` are fields STF-09 adds
+  to the list item of a PENDING account (null on the others; `POST /staff/search` carries them too): the API works out
+  `canApprove` (the caller holds `staff.approve`, did not create the account and manages all its roles, R-SEC-12), so
+  the web never decides who may approve. Each action opens a confirmation that repeats the account (name, email,
+  roles, creator and time). "Duyệt" sends `POST /api/v1/admin/staff/{id}/approve`, "Từ chối" sends
+  `POST /api/v1/admin/staff/{id}/reject`; the confirm button is disabled with a spinner while the request runs. After a
+  200 or 204 the dialog closes, a toast says "Đã duyệt tài khoản {name}." with "Nhân viên đăng nhập được bằng mật khẩu
+  mặc định." or "Đã từ chối tài khoản {name}.", and the list and the count reload, so the row leaves the tab. A 404 or
+  409 (not PENDING any more, the caller's own request, an email taken in Firebase, a role outside the caller's scope)
+  shows its `detail` in a toast; a 500 or no answer shows the texts of *Conventions*; each closes the dialog and reloads
+  the list and the count. The tab empty: "Không còn tài khoản chờ duyệt." with "Xem tất cả nhân viên".
+- **Approving or rejecting several accounts** (drawn ahead for gap 12, at the owner's request): on the tab Chờ duyệt
+  the bar offers "Từ chối {count}" and "Duyệt {count}", each with a confirmation listing the accounts with their roles,
+  then the same progress and result as a job. Until gap 12 closes, the tab has no checkboxes and no bar.
+- **Accounts with the Admin role** (STF-06, R-USR-14): a user who does not hold the Admin role never sees them: not in
+  the list, the search, the role filter or an export; their page answers 404. Until STF-06 merges, the list still shows
+  them and the API refuses every change on them (R-TX-11).
+- **Empty**: no account at all → "Chưa có tài khoản nhân viên."; nothing matches the filters or the search → "Không
+  có nhân viên phù hợp với bộ lọc." with a button to clear the filters and the search.
 
-A 400 means the URL was edited by hand: the list falls back to the default filters.
+A 400 on a value of the URL means the URL was edited by hand: the list falls back to the default filters.
 
 ## Layout
 
 - **Design**: <https://claude.ai/artifact/J3zZ3ffqs7PTWEcu83nFfk>, drawn 2026-11-05 with the design system of
   2026-11-05; approved by the merge of the pull request that wrote this subsection (DEC-119); changed 2026-11-05
   (the columns STT and Thao tác, the soft badges), approved by the merge of the pull request of that change. The
-  canvas shows the frame of SCR-ADM-01 for context only; this Layout does not approve it. Changed 2026-11-13 for
-  STF-09 on <https://claude.ai/artifact/VGfMXvw1CSvzx3ptVKWHbZ>, drawn with the design system of 2026-11-11 and
-  redrawn at the owner's request for usability, consistency, visual hierarchy, feedback, accessibility and the
-  approver's needs: the status tabs with the count of accounts waiting instead of the status select, the tab Chờ duyệt
-  with its own columns and buttons on each row, confirmations that repeat the account, the feedback after an action,
-  and the selection of several accounts (drawn ahead for gap 12); approved by the merge of the pull request of that
-  change. Loading, empty and error keep the first canvas.
-- **Artboards of the STF-09 change**: desktop (1440 px), signed in as the Admin, on the tab Chờ duyệt with two
-  accounts selected and the bar of the selection (in Play, the tabs, the checkboxes and "Bỏ chọn" work); the
-  confirmations "Duyệt" and "Từ chối" of one account; after an approval, the toast and the count down to 1; the tab
-  Tất cả with the badge Chờ duyệt and the menu of a PENDING row; signed in as the fixture IT Support (no
-  `staff.approve`), the tab Chờ duyệt with "Xem chi tiết" only and no checkbox; narrow (390 px), the tab Chờ duyệt as a
-  list of blocks with full-width buttons; the tab Chờ duyệt empty; dark, the tab Chờ duyệt with the confirmation "Từ
-  chối" (DEC-123 (5)); for gap 12, the confirmations of several accounts and a result where one account of two could
-  not be approved.
-- **Artboards**: desktop (1440 px), signed in as the Admin, where "Họ tên" sorts and the menu "Thao tác" of a row
-  opens in Play (open on the locked row); narrow (390 px), on the first of three pages, with the search hint and the
-  tooltip of "Trang sau" open; states: loading, empty (no account), empty (nothing matches the filters), error. No
-  permission is the page of SCR-ADM-01 (`RequirePermission` with `staff.read`). The fixture manager is drawn locked,
-  so that both status badges show.
-- **shadcn**: `shadcn add table badge select pagination` (the tree names them too); it must not overwrite the
-  edited `button` that `pagination` depends on (DEC-116 (4)); `pagination` writes English texts, which go through
-  `ui`. The change needs no `add`: `dropdown-menu` and `tooltip` are installed. The STF-09 change: `shadcn add tabs`
-  (on the approved `radix-ui`, no new package; committed alone first, DEC-116 (1)); `alert-dialog`, `badge`,
-  `checkbox`, `dialog` and `sonner` are installed.
-- **Theme**: soft badges, as the **Theme** bullet of the Layout of SCR-STF-03 says (chosen by the owner): ACTIVE
-  `success` with `--success-soft` and `--success-soft-foreground`, DISABLED `secondary` (grey). The run of STF-02
-  builds them for both screens (it adds the tokens, changes the variant and `staff-status-badge.tsx`, and removes
-  `--success` of commit d6b6032); the pull request that builds this change, `feat(web): add the row actions of the
-  staff list (STF-05)`, adds only the two columns and comes after the web-only pull request of STF-02; it is a `feat`,
-  not the `refactor(web)` of the paragraph under the [screen list](README.md#screen-list), since it adds behaviour (chosen by the owner).
-- **Texts** (`messages/vi.json`), new ones marked *new*, under `staff.list` unless named: the card's description
-  `description` "Tài khoản nhân viên của cửa hàng, cùng vai trò và trạng thái. Xem, khóa hoặc khôi phục một tài khoản
-  từ cột Thao tác." (changed from "Mở một tài khoản để xem, khóa hoặc khôi phục."); `add` "Thêm nhân viên" (*new*);
-  the columns `columns.name` "Họ tên", `columns.employeeCode` "Mã nhân viên", `columns.email` "Email", `columns.roles`
-  "Vai trò", `columns.status` "Trạng thái", `columns.joinedDate` "Ngày vào làm", `columns.leftDate` "Ngày nghỉ việc"
-  (*new*); `status.all` "Tất cả", `status.active` "Đang hoạt động", `status.disabled` "Đã khóa" (*new*; the status
-  Field is labelled by `columns.status`); the search box's label `search` "Lọc theo tên, mã hoặc email" (*new*), its
-  placeholder `searchPlaceholder` "an@example.com" (*new*) and its hint `searchHint` "Chỉ lọc trong trang đang xem."
-  (*new*, shown with more than one page); `empty.title` "Chưa có tài khoản nhân viên." and `empty.description` "Tài
-  khoản do quản trị viên hoặc quản lý cửa hàng tạo sẽ hiện ở đây." (*new*); `noMatch.title` "Không có nhân viên phù
-  hợp với bộ lọc.", `noMatch.description` "Thử bỏ bớt điều kiện lọc để xem thêm tài khoản." and `clearFilters` "Xóa bộ
-  lọc" (*new*); `total` "{count} nhân viên" and `page` "Trang {page} / {pages}" (*new*); the table box's name
-  `tableLabel` "Bảng nhân viên" (*new*); `admin.retry` "Thử lại"; `ui.pagination.label` "Phân trang" (*new*; the nav's
-  name), `ui.pagination.previous` "Trang trước" and `ui.pagination.next` "Trang sau" (*new*; each both the visible
-  text and the `aria-label` of its link, and its tooltip on a narrow screen, where the text hides),
-  `ui.pagination.more` "Các trang khác" (*new*); for the change: the columns `columns.number` "STT" with its sr-only
-  `columns.numberFull` "Số thứ tự" and `columns.actions` "Thao tác" (*new*; the second is also the tooltip of each
-  row's menu button), the button's `aria-label` `actions.label` "Thao tác cho {name}" and the item `actions.view` "Xem
-  chi tiết" (*new*), the items `staff.account.disable`, `staff.account.restore` and `staff.account.disableAgain` and
-  the texts of the dialog and the confirmation of SCR-STF-03. No cell is cut short: the cells do not wrap and the
-  table box scrolls sideways, so no text of the table needs a tooltip. For the STF-09 change, under `staff.list`
-  unless named: `description` "Tài khoản nhân viên của cửa hàng, cùng vai trò và trạng thái. Xem, duyệt, khóa hoặc
-  khôi phục một tài khoản từ cột Thao tác." (changed: "duyệt" added); `status.pending` "Chờ duyệt" (*new*; the tab and
-  the badge) and the tabs' name `status.label` "Trạng thái" (*new*; `columns.status` stays the column's); the count's
-  sr text `status.pendingCount` "{count} tài khoản" (*new*); the line of the tab `pending.description` "Nhân viên chưa
-  đăng nhập được cho tới khi tài khoản được duyệt. Kiểm tra vai trò và người tạo trước khi duyệt." (*new*); the
-  columns `columns.createdBy` "Người tạo" and `columns.createdAt` "Ngày tạo" (*new*); the row buttons
-  `staff.account.approve` "Duyệt" and `staff.account.reject` "Từ chối" with their `aria-label`s
-  `actions.approveLabel` "Duyệt {name}" and `actions.rejectLabel` "Từ chối {name}" (*new*), and the menu items
-  `actions.approve` "Duyệt tài khoản" and `actions.reject` "Từ chối" (*new*); the confirmations
-  `staff.account.approveDialog.title` "Duyệt tài khoản này?", `.description` "Tài khoản được kích hoạt với mật khẩu
-  mặc định. Nhân viên phải đổi mật khẩu ở lần đăng nhập đầu tiên." and `.submit` "Duyệt",
-  `staff.account.rejectDialog.title` "Từ chối tài khoản này?", `.description` "Tài khoản chờ duyệt bị xóa cùng hồ sơ
-  và vai trò, không hoàn tác được. Muốn dùng lại email này, hãy tạo tài khoản mới." and `.submit` "Từ chối tài khoản"
-  (*new*), their rows `staff.account.summary.name` "Họ tên", `.email` "Email", `.roles` "Vai trò" and `.createdBy`
-  "Người tạo" (*new*), and `staff.account.cancel` "Hủy" (existing); the toasts `staff.account.approved` "Đã duyệt tài
-  khoản {name}." with `staff.account.approvedHint` "Nhân viên đăng nhập được bằng mật khẩu mặc định." and
-  `staff.account.rejected` "Đã từ chối tài khoản {name}." (*new*); the empty tab `pendingEmpty.title` "Không còn tài
-  khoản chờ duyệt.", `pendingEmpty.description` "Tài khoản mới do người không có quyền duyệt tạo sẽ hiện ở đây." and
-  `pendingEmpty.showAll` "Xem tất cả nhân viên" (*new*). For gap 12, not built yet: `bulk.label` "Thao tác với tài
-  khoản đã chọn", `bulk.selected` "Đã chọn {count} tài khoản", `bulk.clear` "Bỏ chọn", `bulk.approve` "Duyệt {count}",
-  `bulk.reject` "Từ chối {count}", `bulk.selectAll` "Chọn mọi tài khoản duyệt được trong trang", `bulk.select` "Chọn
-  {name}", the confirmations `bulk.approveDialog.title` "Duyệt {count} tài khoản?", `.description` "Các tài khoản được
-  kích hoạt với mật khẩu mặc định. Hệ thống duyệt từng tài khoản; tài khoản nào không duyệt được sẽ giữ trạng thái Chờ
-  duyệt và có lý do trong kết quả.", `.submit` "Duyệt {count} tài khoản", `bulk.rejectDialog.title` "Từ chối {count}
-  tài khoản?", `.description` "Các tài khoản chờ duyệt bị xóa cùng hồ sơ và vai trò, không hoàn tác được.",
-  `.submit` "Từ chối {count} tài khoản", and the result `bulk.result.title` "Đã duyệt {done} trên {count} tài khoản",
-  `bulk.result.description` "Tài khoản không duyệt được vẫn ở tab Chờ duyệt. Xem lý do bên dưới.", `bulk.result.done`
-  "Đã duyệt", `bulk.result.close` "Đóng" (*new*).
+  canvas shows the frame of SCR-ADM-01 for context only; this Layout does not approve it. Changed 2026-11-13 on
+  <https://claude.ai/artifact/VGfMXvw1CSvzx3ptVKWHbZ>, drawn with the design system of 2026-11-13, for the whole page
+  at the owner's request (usability, consistency, visual hierarchy, feedback, accessibility, the approver's needs):
+  the status links with the count waiting, the search and filters of STF-06, the selection, bar, progress and result
+  of STF-07 and STF-08, the export, the tab Chờ duyệt of STF-09, the role action and the approval of several accounts
+  drawn ahead (gaps 7 and 12); approved by the merge of the pull request of that change. Loading and error keep the
+  first canvas.
+- **Builds**: the screen exists in `web/`, so each feature's run builds its part of this Layout in its `feat` pull
+  request, in the order of `docs/STATUS.md`: STF-09 the status links, the tab Chờ duyệt, the column Email moved under
+  the name, the badge Chờ duyệt and the PENDING items of the row menu; STF-06 the search over the API, the filters, the
+  chips, the column Đăng nhập gần nhất, "Chưa đổi mật khẩu", the page size and the numbered pages; STF-07 the checkbox
+  column, the bar with "Khóa" and "Khôi phục", the progress and the result; STF-08 "Xuất CSV", "Xuất {count}" and the
+  file dialog. "Sửa vai trò" waits for STF-11 and the Layout of SCR-STF-03 that draws its dialog; the approval of
+  several accounts waits for gap 12.
+- **Artboards of the 2026-11-13 change**: desktop (1440 px), signed in as the Admin: the tab Tất cả with two rows
+  selected and the bar (in Play, the status links, the checkboxes, "Bỏ chọn" and "Bộ lọc khác" work); the popover
+  "Bộ lọc khác" open; the confirmation of "Khóa 2"; the progress at 2 of 3 with one refusal; the result with the
+  toast of a job that ran in the background; the confirmation of an export by the filters with two chips in use; the
+  file ready; the menu of an ACTIVE row with "Sửa vai trò"; the menu of a PENDING row; the tab Chờ duyệt with two
+  selected; the confirmations "Duyệt" and "Từ chối" of one account; after an approval, the toast and the count down to
+  1; for gap 12 the confirmations of several accounts and a result where one of two could not be approved. Signed in
+  as the fixture Store Manager: no Admin row, no "Xuất CSV" and no "Thêm nhân viên", with filters in use. Signed in as
+  the fixture IT Support: the tab Chờ duyệt with "Xem chi tiết" only. Narrow (390 px): the tab Tất cả as a list of
+  blocks with checkboxes and the bar stuck to the bottom; the tab Chờ duyệt as blocks with full-width buttons. The
+  tab Chờ duyệt empty. Dark: the tab Chờ duyệt with the confirmation "Từ chối" (DEC-123 (5)).
+- **Artboards of the first canvas** (still the design of these states): desktop and narrow at 2026-11-05; loading,
+  empty (no account), empty (nothing matches the filters), error. No permission is the page of SCR-ADM-01
+  (`RequirePermission` with `staff.read`).
+- **shadcn**: the first build added `table badge select pagination`; `dropdown-menu`, `tooltip`, `alert-dialog`,
+  `checkbox`, `dialog`, `popover`, `calendar`, `field`, `input-group`, `empty`, `skeleton` and `sonner` are installed.
+  The change adds only `shadcn add progress` (STF-07, on the approved `radix-ui`, no new package; committed alone
+  first, DEC-116 (1)). The status links are links styled like shadcn's segmented control (`bg-muted` track, the current
+  one `bg-background` with a shadow), not `tabs`: they change the URL and have no panel.
+- **Theme**: soft badges, as the **Theme** bullet of the Layout of SCR-STF-03 says: ACTIVE `success` with
+  `--success-soft` and `--success-soft-foreground`, DISABLED `secondary` (grey), PENDING `outline` with ClockIcon
+  (the text tells it from ANONYMIZED, which no list shows); the count of the tab Chờ duyệt a Badge `default`.
+- **Texts** (`messages/vi.json`): the keys of `staff.list` and `staff.account` that the STF-05 build wrote stay; new
+  ones are marked *new*, under `staff.list` unless named.
+  - STF-09: `description` "Tài khoản nhân viên của cửa hàng, cùng vai trò và trạng thái. Tìm và lọc trên toàn bộ danh
+    sách, chọn nhiều tài khoản để khóa, khôi phục hoặc xuất, và duyệt tài khoản mới ở tab Chờ duyệt." (changed; each
+    later run keeps it); `status.label` "Trạng thái" (*new*, the visible label of the links), `status.pending` "Chờ
+    duyệt" (*new*; the link and the badge) and the count's sr text `status.pendingCount` ", {count} tài khoản"
+    (*new*; the visible number is `aria-hidden`); `pending.description` "Nhân viên chưa đăng nhập được cho tới khi tài
+    khoản được duyệt. Kiểm tra vai trò và người tạo trước khi duyệt." (*new*); `columns.createdBy` "Người tạo",
+    `columns.createdAt` "Ngày tạo" (*new*); the narrow block's `pending.createdBy` "Tạo bởi {name} · {time}" (*new*);
+    the row buttons `staff.account.approve` "Duyệt" and `staff.account.reject` "Từ chối" with their `aria-label`s
+    `actions.approveLabel` "Duyệt {name}" and `actions.rejectLabel` "Từ chối {name}" (*new*), and the menu items
+    `actions.approve` "Duyệt tài khoản" and `actions.reject` "Từ chối" (*new*); `staff.account.approveDialog.title`
+    "Duyệt tài khoản này?", `.description` "Tài khoản được kích hoạt với mật khẩu mặc định. Nhân viên phải đổi mật
+    khẩu ở lần đăng nhập đầu tiên." and `.submit` "Duyệt"; `staff.account.rejectDialog.title` "Từ chối tài khoản
+    này?", `.description` "Tài khoản chờ duyệt bị xóa cùng hồ sơ và vai trò, không hoàn tác được. Muốn dùng lại email
+    này, hãy tạo tài khoản mới." and `.submit` "Từ chối tài khoản" (*new*); the rows `staff.account.summary.name` "Họ
+    tên", `.email` "Email", `.roles` "Vai trò", `.createdBy` "Người tạo" and its value `.createdByValue` "{name} ·
+    {time}" (*new*); `staff.account.cancel` "Hủy" (existing); the toasts `staff.account.approved` "Đã duyệt tài khoản
+    {name}." with `staff.account.approvedHint` "Nhân viên đăng nhập được bằng mật khẩu mặc định." and
+    `staff.account.rejected` "Đã từ chối tài khoản {name}." (*new*); `pendingEmpty.title` "Không còn tài khoản chờ
+    duyệt.", `pendingEmpty.description` "Tài khoản mới do người không có quyền duyệt tạo sẽ hiện ở đây." and
+    `pendingEmpty.showAll` "Xem tất cả nhân viên" (*new*).
+  - STF-06: `search` "Tìm nhân viên" (changed from "Lọc theo tên, mã hoặc email"), its placeholder `searchPlaceholder`
+    "an@example.com" (kept) and its hint `searchHint` "Tên, email hoặc mã nhân viên, từ 2 ký tự; tìm trên toàn bộ danh
+    sách, không phân biệt dấu." (changed, always shown); `role.label` "Vai trò", `role.all` "Tất cả vai trò" (*new*);
+    `filters.open` "Bộ lọc khác", its count's sr text `filters.count` ", {count} đang dùng", `filters.title` "Bộ lọc
+    khác", `filters.description` "Ngày theo giờ Việt Nam, gồm cả ngày đầu và ngày cuối. Để \"Không giới hạn\" ở một
+    đầu để không chặn đầu đó.", `filters.joined` "Ngày vào làm", `filters.left` "Ngày nghỉ việc", `filters.lastLogin`
+    "Đăng nhập gần nhất" with its hint `filters.lastLoginHint` "Không gồm tài khoản chưa đăng nhập lần nào.",
+    `filters.from` "Từ ngày", `filters.to` "Đến ngày", `filters.anyDate` "Không giới hạn", `filters.rangeOrder` "Ngày
+    bắt đầu phải trước hoặc bằng ngày kết thúc.", `filters.mustChangePassword` "Chưa đổi mật khẩu mặc định" with its
+    hint `filters.mustChangePasswordHint` "Tài khoản chưa đặt mật khẩu riêng sau khi được tạo.", `filters.clearDates`
+    "Xóa các ngày", `filters.apply` "Áp dụng" (*new*); the chips `filters.chip.joined` "Ngày vào làm: {range}",
+    `filters.chip.left` "Ngày nghỉ việc: {range}", `filters.chip.lastLogin` "Đăng nhập gần nhất: {range}",
+    `filters.chip.range` "{from} – {to}", `filters.chip.mustChangePassword` "Chưa đổi mật khẩu mặc định",
+    `filters.chip.remove` "Bỏ lọc {name}" (*new*, the chip button's `aria-label` and tooltip), `filters.active` "Bộ lọc
+    đang áp dụng" (*new*, the chips' group name); `clearFilters` "Xóa bộ lọc" (existing); `columns.lastLogin` "Đăng
+    nhập gần nhất", `neverSignedIn` "Chưa đăng nhập", `mustChangePassword` "Chưa đổi mật khẩu" (*new*); `pageSize` "Số
+    dòng mỗi trang", `range` "Hiển thị {from}–{to} trên {total} nhân viên" (*new*; `total` and `page` stay for the
+    narrow pager).
+  - STF-07: `bulk.label` "Thao tác với tài khoản đã chọn", `bulk.selected` "Đã chọn {count} tài khoản", `bulk.clear`
+    "Bỏ chọn", `bulk.select` "Chọn {name}", `bulk.selectAll` "Chọn mọi tài khoản trong trang", `bulk.disable` "Khóa
+    {count}", `bulk.restore` "Khôi phục {count}" (*new*); `bulk.disableDialog.title` "Khóa {count} tài khoản?",
+    `.description` "Nhân viên bị đăng xuất ngay và không đăng nhập được cho tới khi được khôi phục. Hệ thống khóa từng
+    tài khoản; tài khoản nào không khóa được sẽ giữ nguyên và có lý do trong kết quả.", `.leavingHint` "Đánh dấu khi
+    các nhân viên đã nghỉ, để ghi một ngày làm việc cuối cùng chung cho cả nhóm.", `.leftDateHint` "Không sau hôm nay.
+    Tài khoản có ngày vào làm sau ngày này sẽ không khóa được và có lý do trong kết quả.", `.submit` "Khóa {count} tài
+    khoản", `.list` "Tài khoản sẽ khóa" (*new*; the checkbox and the field reuse `disableDialog.leaving` and
+    `columns.leftDate`); `bulk.restoreDialog.title` "Khôi phục {count} tài khoản?", `.description` "Nhân viên đăng nhập
+    lại được bằng mật khẩu đang có, và ngày nghỉ việc được xóa. Tài khoản nào không khôi phục được sẽ có lý do trong
+    kết quả.", `.submit` "Khôi phục {count} tài khoản", `.list` "Tài khoản sẽ khôi phục" (*new*); the job, under
+    `jobs` (*new*): `progress.disable` "Đang khóa {count} tài khoản", `progress.restore` "Đang khôi phục {count} tài
+    khoản", `progress.export` "Đang xuất danh sách", `progress.approve` "Đang duyệt {count} tài khoản",
+    `progress.reject` "Đang từ chối {count} tài khoản", `progress.description` "Hệ thống xử lý từng tài khoản. Bạn có
+    thể đóng hộp này: việc vẫn chạy và có thông báo khi xong.", `progress.count` "Đã xử lý {done} / {count}",
+    `progress.list` "Tiến độ từng tài khoản", `progress.running` "Đang xử lý…", `progress.background` "Chạy nền";
+    `result.disable` "Đã khóa {done} trên {count} tài khoản", `result.restore` "Đã khôi phục {done} trên {count} tài
+    khoản", `result.approve` "Đã duyệt {done} trên {count} tài khoản", `result.reject` "Đã từ chối {done} trên {count}
+    tài khoản" (each also the toast, with a final "."), `result.description` "Tài khoản không xử lý được vẫn giữ
+    nguyên. Xem lý do bên dưới.", `result.list` "Kết quả từng tài khoản", `result.done.disable` "Đã khóa",
+    `result.done.restore` "Đã khôi phục", `result.done.approve` "Đã duyệt", `result.done.reject` "Đã từ chối",
+    `result.failed` "Không xử lý được: {detail}", `result.failedJob` "Việc dừng giữa chừng. Các tài khoản chưa có kết
+    quả giữ nguyên.", `result.show` "Xem kết quả", `result.close` "Đóng".
+  - STF-08: `export.open` "Xuất CSV", `bulk.export` "Xuất {count}" (*new*); `export.confirm.title` "Xuất {count} nhân
+    viên khớp bộ lọc?", `.description` "File CSV gồm họ tên, email, mã nhân viên, trạng thái, vai trò, ngày vào làm,
+    ngày nghỉ việc và lần đăng nhập gần nhất; không có số điện thoại. Mỗi lần xuất được ghi lại với tên bạn.",
+    `.limits` "File chỉ bạn tải được, trong 24 giờ sau khi xong. Tối đa 50.000 nhân viên mỗi lần.", `.submit` "Xuất
+    CSV", the rows `export.confirm.status`, `.role`, `.joined`, `.left`, `.lastLogin`, `.password` "Mật khẩu"
+    (*new*; the others reuse the filter labels, a filter not in use shows "Tất cả" or is left out); `export.ready.title`
+    "File đã sẵn sàng", `.description` "{count} nhân viên. Chỉ bạn tải được file này, tới {time}.", `.format` "CSV
+    UTF-8, mở được bằng Excel", `.download` "Tải file CSV", `.close` "Đóng" (*new*).
+  - Gap 7, drawn ahead: `actions.editRoles` "Sửa vai trò" (*new*, written by the run of STF-11).
+  - Gap 12, drawn ahead (not built until the Decision): `bulk.approve` "Duyệt {count}", `bulk.reject` "Từ chối
+    {count}", `bulk.selectAllPending` "Chọn mọi tài khoản duyệt được trong trang", `bulk.approveDialog.title` "Duyệt
+    {count} tài khoản?", `.description` "Các tài khoản được kích hoạt với mật khẩu mặc định. Hệ thống duyệt từng tài
+    khoản; tài khoản nào không duyệt được sẽ giữ trạng thái Chờ duyệt và có lý do trong kết quả.", `.submit` "Duyệt
+    {count} tài khoản", `bulk.rejectDialog.title` "Từ chối {count} tài khoản?", `.description` "Các tài khoản chờ duyệt
+    bị xóa cùng hồ sơ và vai trò, không hoàn tác được.", `.submit` "Từ chối {count} tài khoản" (*new*); the result
+    uses `jobs.result.*`.
+
+  No cell is cut short on a wide screen (the cells do not wrap and the table box scrolls sideways); the icon-only
+  buttons (a row's menu, a chip's remove button, the narrow pager) have a Tooltip with their name.
 - **Component tree** (DEC-118 (3)), under `web/src/features/identity/staff-accounts/components/`; the route
-  `app/(admin)/admin/(shell)/staff/page.tsx` composes the layout with the three sections inside
-  `RequirePermission` (`staff.read`):
+  `app/(admin)/admin/(shell)/staff/page.tsx` composes the layout with the sections inside `RequirePermission`
+  (`staff.read`); the feature of each new or changed piece is in parentheses:
 
   ```text
-  staff-list-layout.tsx              slots: header | filters | list — one Card (a one-card page: the h1 in
-  │                                  CardTitle); narrow: the filters stack and the table's box gets a border
-  ├── staff-list-header-section.tsx  CardHeader: CardTitle with the h1 "Nhân viên" (admin.menu.staff),
-  │                                  CardDescription `description`; CardAction: the link "Thêm nhân viên" (PlusIcon,
-  │                                  a Button asChild) to SCR-STF-02, shown with `staff.create`, full width on a
-  │                                  narrow screen — card, button
-  ├── staff-list-filters-section.tsx (STF-09) the Tabs of `status.label` first, on one line with the Field `search`
-  │                                  on a wide screen (the line wraps): Tất cả, Đang hoạt động, Đã khóa, Chờ duyệt
-  │                                  with the count of `staff-pending-count` (a Badge, `primary`, its number with the
-  │                                  sr text `status.pendingCount`; hidden at 0); a tab sets `status` and drops
-  │                                  `page`; the Tabs scroll sideways on a narrow screen; they replace the status
-  │                                  Select below; then the Field `search` (InputGroup with SearchIcon and the
-  │                                  placeholder
-  │                                  `searchPlaceholder`, FieldDescription `searchHint` with more than one page,
-  │                                  tied by aria-describedby) and the Field `status`
-  │                                  labelled `columns.status` (Select: Tất cả, Đang hoạt động, Đã khóa); status,
-  │                                  sort and page in the URL, a change of status drops `page` (back to 1); the
-  │                                  search text stays in the page, never in the URL (DEC-105): the route calls
-  │                                  `hooks/use-staff-list.ts` once and gives its state to this section and the
-  │                                  table section; the role filter left out (gap 2) — tabs, field, input-group
-  │   └── ../hooks/use-pending-count.ts (STF-09) the query GET /api/v1/admin/staff?status=PENDING&pageSize=1 and its
-  │                                  `totalCount`, invalidated with the list after any approval or rejection
-  └── staff-list-table-section.tsx   renders what `hooks/use-staff-list.ts` gives (the query GET /api/v1/admin/staff
-      │                              with the URL's status, sort and page, pageSize 20, the search over the page's rows,
-      │                              and the URL changes, so the section stays under 150 lines): the Table of the nine
-      │                              columns, in a box with role="region", tabIndex 0 and aria-label `tableLabel` at
-      │                              every width, its cells not wrapped; its rows `staff-list-row.tsx`, to which it
-      │                              passes whether the user may act (`staff.disable` in `permissions`) and the user's
-      │                              `id` (`useCurrentUser`), worked out once; "Họ tên" a link to SCR-STF-03; footer:
-      │                              `total` and the Pagination named `ui.pagination.label` ("Trang trước", `page`,
-      │                              "Trang sau"; on page 1 and on the last page the link that leads nowhere has no
-      │                              href, aria-disabled and opacity 50%; on a narrow screen the two links show only
-      │                              their icon, each in a Tooltip with its text); loading: three rows of Skeleton;
-      │                              empty (`totalCount` 0 with the default filters): Empty `empty.*` (UsersIcon) with
-      │                              "Thêm nhân viên" when `staff.create`; nothing matches (`totalCount` 0 with a
-      │                              status, or the search hides every row of the page): Empty `noMatch.*` (SearchXIcon)
-      │                              with "Xóa bộ lọc" (outline), which clears the search and `status`; a page past the
-      │                              end (`items` empty, `totalCount` above 0) goes back to page 1; a 400 resets the URL
-      │                              to the default filters; any other problem: Empty with the problem's text in
-      │                              EmptyTitle, destructive, role="alert" (TriangleAlertIcon), and "Thử lại", disabled
-      │                              while the retry is pending; each Empty in place of the rows, inside the card, so
-      │                              that the filters stay — table, tooltip, empty, skeleton, pagination. With
-      │                              STF-09, on the tab Chờ duyệt: the line `pending.description` above the table,
-      │                              the columns STT, Họ tên (`email` under it, muted), Vai trò, Người tạo, Ngày tạo
-      │                              and Thao tác, its rows `staff-pending-row.tsx`; empty: Empty `pendingEmpty.*`
-      │                              (CircleCheckIcon) with "Xem tất cả nhân viên" (outline), which sets the tab Tất
-      │                              cả; on a narrow screen the tab is a list of blocks (`staff-pending-row.tsx` in
-      │                              its block form), not a table, so that the buttons stay in view
-      ├── staff-pending-row.tsx      (STF-09) presentational — one PENDING account: its cells, or its block on a
-      │                              narrow screen (name and email, the role Badges and "Tạo bởi {createdBy} ·
-      │                              {createdAt}", the two buttons side by side full width); Thao tác: when
-      │                              `canApprove`, Button `destructive-soft` sm "Từ chối" and Button outline sm
-      │                              "Duyệt" (CheckIcon), each with its `aria-label` naming the account, opening
-      │                              `staff-reject-dialog.tsx` and `staff-approve-dialog.tsx`; otherwise the link
-      │                              "Xem chi tiết" (outline sm) — button
-      ├── staff-approve-dialog.tsx   (STF-09) AlertDialog: AlertDialogTitle `approveDialog.title`,
-      │                              AlertDialogDescription `approveDialog.description`, a `dl` of the account
-      │                              (`summary.*`: name, email, role Badges, creator and time), "Hủy" and the
-      │                              submit (default), disabled with LoaderCircleIcon while the request of
-      │                              `hooks/use-staff-approval.ts` runs; shared with SCR-STF-03 — alert-dialog
+  staff-list-layout.tsx              slots: header | filters | list — one Card (the h1 in CardTitle); narrow: the
+  │                                  filters stack and the list is blocks (STF-07 changes the narrow list)
+  ├── staff-list-header-section.tsx  CardHeader: CardTitle h1 "Nhân viên", CardDescription `description`; CardAction:
+  │   │                              "Xuất CSV" (STF-08) and "Thêm nhân viên" — card, button
+  │   ├── staff-add-button.tsx       the link to SCR-STF-02 with `staff.create`, full width on a narrow screen
+  │   └── staff-export-button.tsx    (STF-08) Button outline (DownloadIcon) with `staff.export`, opening
+  │                                  `staff-export-dialog.tsx` with the criteria of `hooks/use-staff-list.ts`
+  ├── staff-list-filters-section.tsx the status links, the search, the role select, "Bộ lọc khác" and the chips; the
+  │   │                              route calls `hooks/use-staff-list.ts` once and gives its state here and to the
+  │   │                              table section — field, input-group, select
+  │   ├── staff-status-nav.tsx       (STF-09) a `nav` labelled by the visible `status.label` (aria-labelledby): four
+  │   │                              Links in a `bg-muted` track, the current one `aria-current="page"`; the count a
+  │   │                              Badge `default` with its number `aria-hidden` and `status.pendingCount` sr-only,
+  │   │                              hidden at 0, from `hooks/use-pending-count.ts`; scrolls sideways on a narrow
+  │   │                              screen, the current link scrolled into view; a link drops `page` and `sort`
+  │   ├── ../hooks/use-pending-count.ts (STF-09) the list query with `status=PENDING&pageSize=1` and its
+  │   │                              `totalCount`, invalidated with the list after an approval, a rejection or a job
+  │   ├── staff-search-field.tsx     the Field `search` (InputGroup with SearchIcon, placeholder `searchPlaceholder`,
+  │   │                              FieldDescription `searchHint`); STF-06: debounced 300 ms, sent from 2 characters,
+  │   │                              kept in the page only — field, input-group
+  │   ├── staff-role-filter.tsx      (STF-06) the Field `role.label`: Select of `role.all` and the role options of
+  │   │                              `GET /staff/role-options`, setting `roleId` and dropping `page` — select, field
+  │   ├── staff-more-filters.tsx     (STF-06) Button outline (SlidersHorizontalIcon) `filters.open` with the count
+  │   │                              Badge, opening a Popover (align start, 380 px): PopoverHeader `filters.title` and
+  │   │                              its description, three fieldsets of two `staff-date-picker.tsx` each, the Checkbox
+  │   │                              `filters.mustChangePassword` with its FieldDescription, then "Xóa các ngày" (ghost)
+  │   │                              and "Áp dụng" (default); a range whose start is after its end shows
+  │   │                              `filters.rangeOrder` under its fieldset (FieldError) and "Áp dụng" sends nothing —
+  │   │                              popover, checkbox, field, button
+  │   ├── staff-date-picker.tsx      (STF-06) presentational — the Popover and Calendar of `staff-left-date-field.tsx`
+  │   │                              moved here, with optional bounds and the empty text `filters.anyDate`; the left
+  │   │                              date field and the bulk dialog use it too — popover, calendar, button
+  │   └── staff-filter-chips.tsx     (STF-06) a group named `filters.active`: one chip per filter in use (an outline
+  │                                  Badge with a Button ghost icon-xs XIcon named `filters.chip.remove`, in a
+  │                                  Tooltip) and "Xóa bộ lọc" (Button link) — badge, button, tooltip
+  └── staff-list-table-section.tsx   renders what `hooks/use-staff-list.ts` gives: the query (GET /staff, from STF-06
+      │                              `POST /staff/search` with the URL's filters and the page's `q`), the selection
+      │                              (STF-07, cleared on any change of the query) and the URL changes; under 150
+      │                              lines, it only picks the child of the tab and the state — empty, skeleton
+      ├── staff-bulk-bar.tsx         (STF-07) a toolbar named `bulk.label` while a row is selected: `bulk.selected`
+      │                              (aria-live polite), "Bỏ chọn" (ghost), then by tab and permission "Xuất {count}"
+      │                              (outline, STF-08), "Khôi phục {count}" (outline, RotateCcwIcon) and "Khóa {count}"
+      │                              (`destructive-soft`, LockIcon); on the tab Chờ duyệt (gap 12) "Từ chối {count}"
+      │                              (`destructive-soft`) and "Duyệt {count}" (default); on a narrow screen stuck to the
+      │                              bottom, its buttons in a grid — button
+      ├── staff-bulk-dialog.tsx      (STF-07) AlertDialog of a bulk action: title and description of its action, the
+      │                              list of the accounts with their role Badges (`.list`, scrolls past 240 px); for
+      │                              "Khóa" the Checkbox `disableDialog.leaving` with `.leavingHint` and, when ticked,
+      │                              `staff-date-picker.tsx` labelled `columns.leftDate` with `.leftDateHint` (not after
+      │                              today); "Hủy" and the submit, disabled with LoaderCircleIcon while it is sent; the
+      │                              approval of gap 12 uses it too — alert-dialog, checkbox, field
+      ├── staff-job-dialog.tsx       (STF-07) Dialog of a job: while running `jobs.progress.*` with the Progress
+      │                              (`aria-labelledby` its count) and `jobs.progress.list`, then `jobs.result.*`: one
+      │                              line per account, CircleCheckIcon and its done text, or CircleAlertIcon
+      │                              (destructive) and `jobs.result.failed` with the item's `detail`; "Chạy nền"
+      │                              (outline) while running, "Đóng" at the end; for an export the end is
+      │                              `staff-export-ready.tsx` — dialog, progress, button
+      ├── ../hooks/use-staff-job.ts  (STF-07) starts a job (the request of its action with an `Idempotency-Key` from
+      │                              `newIdempotencyKey`, made once per confirmation), polls `GET /jobs/{id}` every
+      │                              1.5 s until Completed or Failed while the page is open, then invalidates the list
+      │                              and the count and, if the dialog was closed, shows the toast `jobs.result.*` with
+      │                              the action `jobs.result.show`; a 400 or 429 (or 409 for an export) shows the
+      │                              problem's `detail` in a toast and starts nothing
+      ├── staff-export-dialog.tsx    (STF-08) AlertDialog `export.confirm.*` with the count and a `dl` of the filters in
+      │                              use, "Hủy" and "Xuất CSV" — alert-dialog
+      ├── staff-export-ready.tsx     (STF-08) the end of an export in `staff-job-dialog.tsx`: `export.ready.*`, the
+      │                              file's name from Content-Disposition, `export.ready.format`, the expiry time
+      │                              (finished + 24 h, Asia/Ho_Chi_Minh), "Đóng" and "Tải file CSV" (default,
+      │                              DownloadIcon), which fetches `GET /jobs/{id}/file` through the generated client and
+      │                              saves the blob — button
+      ├── staff-list-table.tsx       the Table of the tabs Tất cả, Đang hoạt động and Đã khóa in a box with
+      │                              role="region", tabIndex 0 and aria-label `tableLabel` on a wide screen: the header
+      │                              checkbox (STF-07, `bulk.selectAll`), STT, Họ tên, Mã nhân viên, Vai trò, Trạng
+      │                              thái, Ngày vào làm, Đăng nhập gần nhất (STF-06), Ngày nghỉ việc and the sr-only
+      │                              `columns.actions`; its rows `staff-list-row.tsx`; on a narrow screen (STF-07) the
+      │                              same rows as a list of blocks with "Chọn cả trang" above — table, checkbox
+      ├── staff-pending-table.tsx    (STF-09) the same box for the tab Chờ duyệt: `pending.description` above, the
+      │                              columns STT, Họ tên, Vai trò, Người tạo, Ngày tạo and Thao tác (the checkbox of gap
+      │                              12 later), no sort; its rows `staff-pending-row.tsx`; on a narrow screen a list of
+      │                              blocks; empty: Empty `pendingEmpty.*` (CircleCheckIcon) with "Xem tất cả nhân viên"
+      │                              (outline), the link Tất cả — table, empty
+      ├── staff-pending-row.tsx      (STF-09) presentational — one PENDING account: its cells, or its block on a narrow
+      │                              screen (name and email, the role Badges and `pending.createdBy`, the two buttons
+      │                              side by side full width); when `canApprove`, Button `destructive-soft` sm "Từ chối"
+      │                              and Button outline sm "Duyệt" (CheckIcon), each with its `aria-label`, opening the
+      │                              two dialogs below; otherwise the link "Xem chi tiết" (outline sm) — button
+      ├── staff-approve-dialog.tsx   (STF-09) AlertDialog `approveDialog.*` with a `dl` of the account (`summary.*`:
+      │                              name, email, role Badges, `createdByValue`), "Hủy" and the submit (default),
+      │                              disabled with LoaderCircleIcon while the request of `hooks/use-staff-approval.ts`
+      │                              runs; reusable by SCR-STF-03 once its Layout draws the approval — alert-dialog
       ├── staff-reject-dialog.tsx    (STF-09) the same with `rejectDialog.*` and the submit `destructive-soft`
       │                              — alert-dialog
       ├── ../hooks/use-staff-approval.ts (STF-09) the two requests; on 200 or 204: closes the dialog, a toast
       │                              (`approved` with `approvedHint`, or `rejected`) and invalidates the list and the
       │                              count; on 404 or 409 the problem's `detail` in a toast, on 500 or no answer the
       │                              texts of *Conventions*, each closing the dialog and invalidating both
-      ├── staff-bulk-bar.tsx         (gap 12, not built yet) a toolbar named `bulk.label` above the table while one
-      │                              or more rows are selected: `bulk.selected` (aria-live polite), "Bỏ chọn"
-      │                              (ghost), "Từ chối {count}" (`destructive-soft`) and "Duyệt {count}" (default),
-      │                              opening the confirmations of several accounts (an AlertDialog with the list of
-      │                              accounts, their roles and creator) and then `staff-bulk-result-dialog.tsx`;
-      │                              the checkboxes (Checkbox, `bulk.select` and `bulk.selectAll`) sit in a first
-      │                              column of the rows whose `canApprove` is true; a selected row is highlighted
-      │                              (`bg-muted`); the tab or the page changing clears the selection — checkbox,
-      │                              alert-dialog, button
-      ├── staff-bulk-result-dialog.tsx (gap 12, not built yet) Dialog `bulk.result.*`: one line per account,
-      │                              CircleCheckIcon and `bulk.result.done`, or CircleAlertIcon (destructive) and
-      │                              the problem's text; "Đóng" — dialog
-      ├── staff-sort-header.tsx      presentational — the header cell of "Họ tên", "Mã nhân viên" or "Ngày vào
-      │                              làm", whose button sorts, with aria-sort and ArrowUpIcon (ascending),
-      │                              ArrowDownIcon (descending) or ArrowUpDownIcon (not sorted) — button
+      ├── staff-list-pagination.tsx  footer: `range` (STF-06; `total` until then), the Field `pageSize` (Select 20, 50,
+      │                              100; STF-06) and the Pagination with numbered pages (STF-06); on a narrow screen
+      │                              "Trước", `page`, "Sau" — pagination, select
+      ├── staff-sort-header.tsx      presentational — a header cell whose button sorts, with aria-sort and its arrow;
+      │                              "Đăng nhập gần nhất" sorts with STF-06
       ├── staff-roles-cell.tsx       presentational — one Badge (secondary) per role name — badge
-      ├── staff-status-badge.tsx     presentational — Badge: "Đang hoạt động" (`success`, soft green), "Đã khóa"
-      │                              (`secondary`, grey), built by the run of STF-02, and with STF-09 "Chờ duyệt"
-      │                              (`outline` with ClockIcon 12px, aria-hidden) — badge
-      └── staff-list-row.tsx         presentational — the nine cells of one account: STT first (right-aligned,
-          │                          tabular-nums, its header "STT" `aria-hidden` with an sr-only `columns.numberFull`),
-          │                          then the seven of the API and the actions; its skeleton row has nine bars
-          └── staff-row-actions.tsx  holds behaviour (the menu's open state and the dialogs): a Button ghost size
-                                     icon (MoreHorizontalIcon) named `actions.label`, in a Tooltip
-                                     `columns.actions` (shorter than the name on purpose: the name contains it),
-                                     opening a DropdownMenu (align end): "Xem chi tiết" (EyeIcon, a link to
-                                     SCR-STF-03); when the row says the user may act and the account is not the
-                                     user's own, a separator, then on ACTIVE "Khóa tài khoản" (variant
-                                     destructive, LockIcon), on DISABLED "Khôi phục tài khoản" (RotateCcwIcon)
-                                     and "Khóa lại" (variant destructive, LockIcon); they open
-                                     `staff-disable-dialog.tsx` and `staff-restore-dialog.tsx` of SCR-STF-03
-                                     with the row's account as props, whose requests come from
-                                     `hooks/use-staff-status.ts`; so this change is built after the web-only pull
-                                     request of STF-02 (`feat(web): … (STF-02)`) — dropdown-menu, tooltip, button;
-                                     with STF-09, on a PENDING row (never "Khóa tài khoản"): when the row's
-                                     `canApprove` is true, a separator, `actions.approve` (CheckIcon) and
-                                     `actions.reject` (variant destructive, XIcon), opening the two dialogs of
-                                     the tab Chờ duyệt
+      ├── staff-status-badge.tsx     presentational — Badge "Đang hoạt động", "Đã khóa", and (STF-09) "Chờ duyệt"
+      │                              (`outline` with ClockIcon 12px, aria-hidden); (STF-06) "Chưa đổi mật khẩu" under
+      │                              it, muted, with KeyRoundIcon — badge
+      └── staff-list-row.tsx         presentational — one account's cells: the checkbox (STF-07, `bulk.select`, none
+          │                          on the user's own row or a PENDING row), STT, Họ tên with `email` under it
+          │                          (STF-09), the others and the actions; the selected row `bg-muted`
+          │                          (aria-selected); its skeleton row has a bar per cell
+          └── staff-row-actions.tsx  a Button ghost icon (MoreHorizontalIcon) named `actions.label`, in a Tooltip
+                                     `columns.actions`, opening a DropdownMenu (align end): "Xem chi tiết" (EyeIcon);
+                                     (gap 7, built by STF-11) "Sửa vai trò" (UserCogIcon) with `staff.update` on an
+                                     ACTIVE or DISABLED row of another user, a link to SCR-STF-03 that opens its role
+                                     dialog; with `staff.disable`, on another user's account, a separator, then on
+                                     ACTIVE "Khóa tài khoản" (variant destructive), on DISABLED "Khôi phục tài
+                                     khoản" and "Khóa lại", opening `staff-disable-dialog.tsx` and
+                                     `staff-restore-dialog.tsx` of SCR-STF-03; (STF-09) on a PENDING row, when its
+                                     `canApprove` is true, `actions.approve` (CheckIcon) and `actions.reject`
+                                     (variant destructive, XIcon) — dropdown-menu, tooltip, button
   ```

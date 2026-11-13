@@ -29,7 +29,8 @@ gap is built once the gap is closed. A closed gap keeps its number, since other 
 7. **Updating a staff account's profile.** No endpoint changes a staff member's name, employee code, work phone,
    joined date or roles. The Layout of SCR-STF-03 draws the action and its information sheet ahead, at the owner's
    request. Settled by DEC-132 (`staff.update`); closes when STF-11 merges. The role editing needs a Layout pull
-   request of SCR-STF-03 first.
+   request of SCR-STF-03 first; the Layout of SCR-STF-01 draws ahead a row action "Sửa vai trò" that only opens that
+   dialog on SCR-STF-03.
 8. **A staff member's photo.** Neither `users` nor `staff_profiles` holds a photo, and no endpoint uploads one.
    SCR-STF-03 and SCR-ACC-01 show the initials in an Avatar until then. Settled by DEC-130 (the manager with
    `staff.pii.update` on SCR-STF-03, the staff member through `/me` on SCR-ACC-01) and DEC-131 (the private storage);
@@ -52,7 +53,9 @@ gap is built once the gap is closed. A closed gap keeps its number, since other 
 12. **Approving or rejecting several accounts at once.** STF-09 approves and rejects one account per request
     (`POST /api/v1/admin/staff/{id}/approve`, `…/reject`); no endpoint takes several, while the owner asked
     (2026-11-13) for a selection on the tab Chờ duyệt of SCR-STF-01 with "Duyệt" and "Từ chối" for all the selected
-    accounts, which the Layout of SCR-STF-01 draws ahead. Proposed for the Decision: the bulk pattern of STF-07
-    (DEC-127): a background job (R-JOB-01) with an Idempotency-Key, at most 100 accounts, each account approved or
-    rejected on its own under the checks of R-USR-17 and R-SEC-12, and a result per account (done, or the problem's
-    `detail`). Needs a Decision (a criterion of STF-09 or STF-07, the endpoint, the limit).
+    accounts, which the Layout of SCR-STF-01 draws ahead with the checkbox column, the bar, the progress and the
+    result that STF-07 and STF-08 build for disabling, restoring and exporting (DEC-127 (5)). Proposed for the
+    Decision: the bulk pattern of STF-07 (DEC-127): a background job (R-JOB-01) with an Idempotency-Key, at most 100
+    accounts, each account approved or rejected on its own under the checks of R-USR-17 and R-SEC-12, and a result per
+    account (done, or the problem's `detail`). Needs a Decision (a criterion of STF-09 or STF-07, the endpoint, the
+    limit), before the run of STF-07, which builds the shared selection.
