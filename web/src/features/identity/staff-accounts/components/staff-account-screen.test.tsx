@@ -3,7 +3,8 @@ import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ADMIN_ID, calls, manager, ok, refused, renderAccount } from './staff-account.fixtures'
 
-// SCR-STF-03 Staff account (docs/SCREENS.md): what the page shows of an account, by its status and the user's rights.
+// SCR-STF-03 Staff account (docs/screens/SCR-STF-03.md): what the page shows of an account, by its status and the
+// user's rights.
 
 const api = vi.hoisted(() => ({ fetch: vi.fn() }))
 vi.mock('@/lib/api/api', () => ({ apiFetch: api.fetch }))

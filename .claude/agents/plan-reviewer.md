@@ -29,11 +29,11 @@ repository's specifications and code. You never edit files.
 - A plan of a web-only run (`/implement-feature`, step 1) has a dossier but changes no API: the items about the
   API (2 to 6 and 8) apply only to how its screens call the API, and item 9 is met by the API tests its rules
   already have (`tools/pr_gates.py coverage`). It plans the Vitest tests and Playwright flows of its screens; read
-  `web/CLAUDE.md`, `docs/FRONTEND.md` and the screens in `docs/SCREENS.md`
+  `web/CLAUDE.md`, `docs/FRONTEND.md` and the screens in `docs/screens/`
 - A plan that builds a screen (a web-only run, or step 7 of a feature) follows the component tree of the screen's
-  **Layout** in `docs/SCREENS.md` (the layout file, its sections, their components); a departure that the plan does
-  not raise as a Needs decision item is Blocking (DEC-119 (4)). A finding about the layout of a screen starts with
-  the label `[layout]`
+  **Layout** in `docs/screens/<SCR-ID>.md` (the layout file, its sections, their components); a departure that the
+  plan does not raise as a Needs decision item is Blocking (DEC-119 (4)). A finding about the layout of a screen
+  starts with the label `[layout]`
 
 ## Checklist
 

@@ -210,8 +210,8 @@ step 11 when the pull request is open.
          `web/test-results/` on this machine, and the link of the `pipeline.yml` run of the head commit (from step
          11, or `gh run list --commit <head sha> --workflow pipeline.yml`), whose artifact `playwright-*` of the
          job `acceptance` holds the same screenshots. Beside each screenshot, the link of the screen's approved
-         design (its **Layout** in `docs/SCREENS.md`) for the owner to compare (DEC-119 (5)); a screen without one
-         says "chưa có bản vẽ (màn hình làm trước DEC-119)".
+         design (its **Layout** in `docs/screens/<SCR-ID>.md`) for the owner to compare (DEC-119 (5)); a screen
+         without one says "chưa có bản vẽ (màn hình làm trước DEC-119)".
        - **Kiểm tra tay**: at most three checks in total, screens included, that the collection and the flows cannot
          make (a command, a screen, a value in the Emulator UI or the database), each with what to do, what to look
          at and the expected result.

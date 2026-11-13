@@ -3,7 +3,7 @@ import type { CurrentUser } from '../api/me'
 import { adminRoutes } from './routes'
 
 /**
- * Why a user is signed out when no problem of the API says it, each with its text on the sign-in page (docs/SCREENS.md,
+ * Why a user is signed out when no problem of the API says it, each with its text on the sign-in page (docs/screens/,
  * SCR-AUT-01, SCR-ADM-01): Firebase disabled the account, or GET /me answered 200 with isStaff false.
  */
 export type SignOutReason = 'account-disabled' | 'not-staff'
@@ -66,7 +66,7 @@ const SESSION_ENDED = new Set([
 ])
 
 /**
- * What a signed-in user's API answer means for the session (docs/SCREENS.md, Conventions for every screen): the one
+ * What a signed-in user's API answer means for the session (docs/screens/conventions.md): the one
  * mapping used by the sign-in page, the admin layout and the error handler of every query. The Firebase errors come
  * from getIdToken() in the API client. Returns undefined for an error that is not about the session, which the screen
  * shows itself.

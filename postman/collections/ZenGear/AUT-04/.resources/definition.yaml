@@ -3,7 +3,7 @@ name: AUT-04
 description: |-
   AUT-04 — `GET /api/v1/admin/me` gives the signed-in user's own permission keys (`permissions`), which the web uses
   only to hide the menus and buttons the user may not use; the API still checks every permission (R-SEC-03). Gap 1
-  of docs/SCREENS.md.
+  of docs/screens/gaps.md.
 
   Needs tools/dev_reset.ps1 first: the Admin owner@zengear.test (bootstrap-admin, DEC-096), the Store Manager
   manager.fixture@zengear.test (postman/fixtures/STF-01.sql) and the customer customer.fixture@zengear.test

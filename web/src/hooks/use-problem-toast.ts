@@ -21,7 +21,7 @@ export function useProblemText(): (error: unknown) => string {
 }
 
 /**
- * Shows in a toast a failed call that neither a form field nor a session rule takes (docs/SCREENS.md, Conventions),
+ * Shows in a toast a failed call that neither a form field nor a session rule takes (docs/screens/conventions.md),
  * with the text of useProblemText.
  */
 export function useProblemToast(): (error: unknown) => void {

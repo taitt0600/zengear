@@ -14,7 +14,7 @@ import { changeMyPassword, changePasswordKey } from '../api/me'
 import { passwordChangeSchema } from '../schemas'
 
 /**
- * The password change of SCR-AUT-02 (docs/SCREENS.md): the new password typed twice, sent to POST
+ * The password change of SCR-AUT-02 (docs/screens/SCR-AUT-02.md): the new password typed twice, sent to POST
  * /me/change-password (DEC-094), and the sign-in again of 403 recent-login-required. After a 204 every session is
  * revoked, so `onChanged` signs the user out.
  */

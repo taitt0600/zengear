@@ -14,6 +14,7 @@ REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO / 'tools'))
 
 import feature_context  # noqa: E402  (imported after the path is set)
+import screen_docs  # noqa: E402
 
 HEADERS = {
     'features.md': '| Feature ID | Feature | Rules | Entities | Depends On |',
@@ -169,6 +170,66 @@ class WorkStateTests(unittest.TestCase):
         self.assertIn(r'| POS-01 | a \| b | local | x |', out)
 
 
+SCREEN_LIST = ('# Screens\n\n## Screen list\n\n### Admin\n\n'
+               '| ID | Screen | Route | Feature | Permission | Blocked by |\n|---|---|---|---|---|---|\n'
+               '| [SCR-POS-01](SCR-POS-01.md) | Sale | `/pos` | POS-01 | — | |\n'
+               '| [SCR-POS-02](SCR-POS-02.md) | Other | `/pos/x` | POS-010 | — | |\n')
+
+
+class ScreenTests(unittest.TestCase):
+    """The files of the feature's screens, found through the screen list of docs/screens/README.md."""
+
+    def setUp(self):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        self.root = Path(tmp.name)
+        write_docs(self.root, {'features.md': ['| POS-01 | Sell at counter | — | — | — |']},
+                   glossary='## Entities\n\n| Thuật ngữ | Entity | Table | Area |\n|---|---|---|---|\n')
+        self.folder = self.root / 'docs' / 'screens'
+
+    def write_screens(self):
+        self.folder.mkdir()
+        (self.folder / 'README.md').write_text(SCREEN_LIST, encoding='utf-8')
+        (self.folder / 'SCR-POS-01.md').write_text(
+            '# SCR-POS-01 Sale\n\nThe sale.\n\n## Layout\n\n````markdown\n## Layout\n```text\n# not a heading\n```\n'
+            '````\n\n### After\n', encoding='utf-8')
+        (self.folder / 'SCR-POS-02.md').write_text('# SCR-POS-02 Other\n\nOther screen, gap 1.\n', encoding='utf-8')
+        (self.folder / 'conventions.md').write_text('# Conventions for every screen\n\n- **Errors**: rule.\n',
+                                                    encoding='utf-8')
+        (self.folder / 'gaps.md').write_text('# Known gaps\n\n1. **One.** Text one.\n2. **Two.** Text two\n'
+                                             '   wrapped.\n', encoding='utf-8')
+
+    def test_adds_the_conventions_and_only_the_gaps_its_screens_name(self):
+        self.write_screens()
+        path = self.folder / 'SCR-POS-01.md'
+        path.write_text(path.read_text(encoding='utf-8') + '\nWaits for gap 2.\n', encoding='utf-8')
+        out = feature_context.build('POS-01', self.root)
+        self.assertIn('### Conventions for every screen\n\n- **Errors**: rule.', out)
+        self.assertIn('### Known gaps that these screens name (docs/screens/gaps.md)\n\n2. **Two.** Text two\n'
+                      '   wrapped.', out)
+        self.assertNotIn('Text one', out)  # gap 1 is named only by a screen of another feature
+
+    def test_adds_the_row_and_the_file_of_each_screen_last(self):
+        self.write_screens()
+        out = feature_context.build('POS-01', self.root)
+        section = out[out.index('## Screens (docs/screens/)'):]
+        self.assertGreater(out.index('## Screens'), out.index('## Tables'))
+        self.assertIn('| [SCR-POS-01](SCR-POS-01.md) | Sale | `/pos` | POS-01 | — |  | Admin |', section)
+        self.assertIn('### SCR-POS-01 Sale\n\nThe sale.\n\n#### Layout', section)
+        self.assertNotIn('Other screen', out)  # POS-010 is not POS-01
+
+    def test_demotes_headings_outside_code_fences_only(self):
+        self.write_screens()
+        out = feature_context.build('POS-01', self.root)
+        self.assertIn('````markdown\n## Layout\n```text\n# not a heading\n```\n````\n\n##### After', out)
+
+    def test_no_screens_folder_and_no_screen_give_no_section(self):
+        self.assertNotIn('## Screens', feature_context.build('POS-01', self.root))
+        self.write_screens()
+        (self.folder / 'README.md').write_text(SCREEN_LIST.replace('| POS-01 |', '| POS-03 |'), encoding='utf-8')
+        self.assertNotIn('## Screens', feature_context.build('POS-01', self.root))
+
+
 class RealSpecTests(unittest.TestCase):
     """Every feature of docs/blueprint/features.md gives a dossier that holds each rule it lists."""
 
@@ -182,6 +243,15 @@ class RealSpecTests(unittest.TestCase):
                 self.assertNotIn('Rules not found', out)
                 for rule_id in set(re.findall(r'\bR-[A-Z]+-\d+\b', row.get('Rules', ''))):
                     self.assertRegex(out, rf'\b{re.escape(rule_id)}\b')
+
+    def test_every_screen_is_in_the_dossier_of_each_of_its_features(self):
+        rows = screen_docs.screen_list(REPO / 'docs' / 'screens')
+        self.assertGreater(len(rows), 0)
+        for row in rows:
+            screen = screen_docs.row_id(row)
+            for feature_id in screen_docs.features(row):
+                with self.subTest(screen=screen, feature=feature_id):
+                    self.assertIn(f'\n### {screen} {row["Screen"]}\n', feature_context.build(feature_id, REPO))
 
 
 if __name__ == '__main__':

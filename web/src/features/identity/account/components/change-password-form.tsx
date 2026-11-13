@@ -11,7 +11,7 @@ import { ReauthDialog } from './reauth-dialog'
 import { SubmitButton } from './submit-button'
 
 /**
- * The form of SCR-AUT-02 (docs/SCREENS.md), also opened in a dialog by SCR-ACC-01 with the same answers: the new
+ * The form of SCR-AUT-02 (docs/screens/), also opened in a dialog by SCR-ACC-01 with the same answers: the new
  * password typed twice, sent to POST /me/change-password (DEC-094). After a 204 every session is revoked, so
  * `onChanged` signs the user out; `onCancel`, given only in a dialog, closes it. `email` names the account to password
  * managers in a field the user does not see.

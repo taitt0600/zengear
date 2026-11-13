@@ -77,7 +77,7 @@ The page in `app/` composes the layout with the sections; when one piece of clie
 - React Hook Form with a Zod schema per form; the schema checks input shape only (required, format, length) and mirrors the column limits in `docs/DATABASE.md`.
 - The web shows the API's texts and decides nothing about an error (DEC-117 (4)): the `detail` of each item of `errors` goes under the field whose name its `pointer` (`#/name`) or `parameter` (`roleId`) gives, and an item no field shows goes in an alert at the top of the form (`fieldErrors` of `lib/api/problems.ts`, `components/app/form-problems.tsx`); any other problem shows its `detail` in a toast or on the page (`problemText`). The web never maps a `type`, a `code` or a status to a text of its own; `ruleId` is for logs, never shown.
 - For an answer of the API, `messages/vi.json` holds only two texts of the web itself: `problems.network` (no answer) and `problems.unknown` (an answer that cannot be read, or a 500, which has no `detail`). Errors of Firebase Authentication happen in the browser and never reach the API: they are mapped by the `auth/*` codes Firebase publishes. Zod checks only the shape of the input before sending (DEC-104) and gives no text to an error the API answers.
-- `type` and `code` only choose a behaviour: a 412 or 428 shows its `detail` and reloads the record; 401 signs the user out; a 403 by its `type` (`/problems/permission-denied` shows a no-permission page, `/problems/recent-login-required` signs the user in again and retries (DEC-094), the others as the Conventions of `docs/SCREENS.md` say).
+- `type` and `code` only choose a behaviour: a 412 or 428 shows its `detail` and reloads the record; 401 signs the user out; a 403 by its `type` (`/problems/permission-denied` shows a no-permission page, `/problems/recent-login-required` signs the user in again and retries (DEC-094), the others as `docs/screens/conventions.md` says).
 
 ## Text and languages
 
@@ -120,4 +120,4 @@ Vitest with Testing Library (jsdom; Vite compiles TSX itself, so no React plugin
 
 ## Screens
 
-Screen list, per-screen fields and flows: `docs/SCREENS.md` (written before web work starts).
+Screen list, per-screen fields and flows: `docs/screens/` (written before web work starts): the screen list in `README.md`, one file per screen, `conventions.md` and `gaps.md`.

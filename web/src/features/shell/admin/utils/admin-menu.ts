@@ -1,7 +1,7 @@
 import { adminRoutes } from '@/features/identity/access'
 
-// The menu of SCR-ADM-01 (docs/SCREENS.md): each entry with the permission of the screen it opens. An entry the
-// user's permissions do not allow is hidden (never by role name, R-SEC-03); the API still answers 403.
+// The menu of SCR-ADM-01 (docs/screens/SCR-ADM-01.md): each entry with the permission of the screen it opens. An entry
+// the user's permissions do not allow is hidden (never by role name, R-SEC-03); the API still answers 403.
 export type MenuEntry = { key: 'staff' | 'businessLocation'; href: string; permission: string }
 export type MenuGroup = { key: 'settings'; entries: MenuEntry[] }
 export type MenuItem = MenuEntry | MenuGroup

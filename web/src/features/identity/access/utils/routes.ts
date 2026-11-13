@@ -1,4 +1,4 @@
-// The routes of the admin part (docs/SCREENS.md, Screen list).
+// The routes of the admin part (docs/screens/README.md, Screen list).
 export const adminRoutes = {
   signIn: '/admin/sign-in',
   changePassword: '/admin/change-password',

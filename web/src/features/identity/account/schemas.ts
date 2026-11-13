@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-// The input shapes of SCR-AUT-02 and SCR-ACC-01 (docs/SCREENS.md). The web checks only what these rules list; the API
+// The input shapes of SCR-AUT-02 and SCR-ACC-01 (docs/screens/). The web checks only what these rules list; the API
 // decides (R-USR-11 also refuses the default password, the blocklist and "zengear"; R-USR-04 the display name).
 
 /** R-USR-11: in Unicode code points, as the API counts them. */

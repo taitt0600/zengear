@@ -2,8 +2,9 @@ import { expect, test, type Locator, type Page } from '@playwright/test'
 import { accounts, meId, newSalesConsultant, PASSWORD } from './support/backend'
 import { failOnCspViolations, signIn } from './support/pages'
 
-// SCR-STF-03 Staff account (docs/SCREENS.md, STF-02) against the API, the Firebase Auth Emulator and the web: the
-// Admin locks a new account with a last working day and restores it. Each flow makes its own account, so no reset.
+// SCR-STF-03 Staff account (docs/screens/SCR-STF-03.md, STF-02) against the API, the Firebase Auth Emulator and the
+// web: the Admin locks a new account with a last working day and restores it. Each flow makes its own account, so no
+// reset.
 
 failOnCspViolations()
 

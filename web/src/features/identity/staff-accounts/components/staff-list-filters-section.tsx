@@ -23,7 +23,7 @@ const STATUSES = { all: 'all', ACTIVE: 'active', DISABLED: 'disabled' } as const
 
 /**
  * The filters of SCR-STF-01: the search over the rows of the page, which stays in the browser (DEC-105), and the
- * status, kept in the URL. The role filter waits for an endpoint that lists the roles (docs/SCREENS.md, gap 2).
+ * status, kept in the URL. The role filter waits for an endpoint that lists the roles (docs/screens/gaps.md, gap 2).
  */
 export function StaffListFiltersSection() {
   const t = useTranslations('staff.list')

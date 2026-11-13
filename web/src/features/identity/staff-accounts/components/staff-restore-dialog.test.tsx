@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { calls, manager, ok, refused, renderAccount } from './staff-account.fixtures'
 
-// The confirmation "Khôi phục tài khoản?" of SCR-STF-03 (docs/SCREENS.md; R-USR-03, R-USR-12).
+// The confirmation "Khôi phục tài khoản?" of SCR-STF-03 (docs/screens/SCR-STF-03.md; R-USR-03, R-USR-12).
 
 const api = vi.hoisted(() => ({ fetch: vi.fn() }))
 vi.mock('@/lib/api/api', () => ({ apiFetch: api.fetch }))

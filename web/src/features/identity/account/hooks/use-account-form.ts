@@ -15,7 +15,7 @@ import { updateMe } from '../api/me'
 import { accountSchema } from '../schemas'
 
 /**
- * The display name of SCR-ACC-01, sent with the ETag of the values the form loaded (docs/SCREENS.md, Conventions,
+ * The display name of SCR-ACC-01, sent with the ETag of the values the form loaded (docs/screens/conventions.md,
  * Edits with an ETag): a background refetch of GET /me changes neither the field nor that version, so "Lưu" never
  * overwrites a change the form did not show. The form loads again after a 200, a 412 or a 428.
  */

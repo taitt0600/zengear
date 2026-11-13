@@ -28,7 +28,7 @@ export type StaffSession =
     }
 
 /**
- * The guard of the admin part (docs/SCREENS.md, SCR-ADM-01 and Conventions for every screen): without a Firebase
+ * The guard of the admin part (docs/screens/SCR-ADM-01.md and conventions.md): without a Firebase
  * session every admin route goes to the sign-in page with the path kept as ?next=; GET /api/v1/admin/me then decides,
  * through the one mapping of me-outcome.ts. `mode` is the page: the layout lets staff in and sends a pending password
  * change to SCR-AUT-02; the password change page does the reverse. A failed call anywhere follows the same rules, and

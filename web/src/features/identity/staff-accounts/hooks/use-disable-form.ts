@@ -21,7 +21,7 @@ export type DisableAccount = Pick<StaffDto, 'id' | 'name' | 'joinedDate' | 'left
  * The form of the dialog "Khóa tài khoản" (SCR-STF-03): an account that has a left date opens ticked with it, any
  * other unticked; ticking picks today in Vietnam. It sends `{ leftDate }`, null when not ticked. A 400, or a 409 about
  * the left date, stays in the dialog (under the field, or at its top); every other problem goes to a toast and `onDone`
- * closes the dialog, and the answers about the session go to the admin layout's rules (docs/SCREENS.md, Conventions).
+ * closes the dialog, and the answers about the session go to the admin layout's rules (docs/screens/conventions.md).
  */
 export function useDisableForm(account: DisableAccount, onDone: () => void) {
   const t = useTranslations('staff.account')

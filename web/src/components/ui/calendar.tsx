@@ -48,9 +48,10 @@ function useCalendarTexts(): Partial<Labels> {
   }
 }
 
-// A navigation button shows only an icon: its label also in a Tooltip (docs/SCREENS.md, Help on screen), except while
-// it cannot move (react-day-picker marks it `aria-disabled`, not `disabled`), so that the tooltip never offers it. The
-// tree stays the same either way, so that the button keeps the focus when it reaches the first or last month.
+// A navigation button shows only an icon: its label also in a Tooltip (docs/screens/conventions.md, Help on screen),
+// except while it cannot move (react-day-picker marks it `aria-disabled`, not `disabled`), so that the tooltip never
+// offers it. The tree stays the same either way, so that the button keeps the focus when it reaches the first or last
+// month.
 function NavButton(props: React.ComponentProps<"button">) {
   return (
     <Tooltip>

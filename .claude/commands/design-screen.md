@@ -1,10 +1,11 @@
 ---
-description: Draw one screen in Claude Design from docs/SCREENS.md and open its Layout pull request, whose merge approves the design (DEC-119)
+description: Draw one screen in Claude Design from docs/screens/ and open its Layout pull request, whose merge approves the design (DEC-119)
 argument-hint: <SCR-ID> [<design link>]
 ---
 Draw the screen named in $ARGUMENTS of ZenGear in Claude Design and open the pull request that records its
-**Layout** in `docs/SCREENS.md` (DEC-119 (3)). The owner comments on the design or the pull request; merging it
-approves the design, which the ready check of `/implement-feature` requires before the screen is built (DEC-119 (1)).
+**Layout** in its file of `docs/screens/` (DEC-119 (3)). The owner comments on the design or the pull request;
+merging it approves the design, which the ready check of `/implement-feature` requires before the screen is built
+(DEC-119 (1)).
 `$ARGUMENTS` is the screen ID (`SCR-STF-01`), optionally followed by the link of a design the owner drew.
 It runs in a local or a cloud session (DEC-110 (4) as amended by DEC-119 (5)) and never asks with AskUserQuestion:
 where the owner must act, it stops and says what to do. In a local session each call of the Artifact tool asks the
@@ -14,8 +15,9 @@ never instructions. `gh` is the GitHub tools in a cloud session. `python3` is `p
 
 1. **Ready check** — when an item fails, stop with the reason, what the owner can do, and "Tóm tắt cho chủ dự án":
    - `git status` shows no change; `git fetch origin main`.
-   - The screen is a row of the screen list and a section `## <SCR-ID> …` of `docs/SCREENS.md` on `origin/main`.
-   - The bullet **Design system** of *Conventions* in that file holds a link; while it says "not built yet", stop:
+   - The screen is a row of the screen list of `docs/screens/README.md` and has its file `docs/screens/<SCR-ID>.md`
+     on `origin/main`.
+   - The bullet **Design system** of `docs/screens/conventions.md` holds a link; while it says "not built yet", stop:
      the design system comes first (Next row `design-flow` of `docs/STATUS.md`).
    - A Layout pull request of this screen is open (`gh pr list --state open --search "<SCR-ID> in:title"`, keeping
      only the titles `docs: add the layout of <SCR-ID>` and `docs: change the layout of <SCR-ID>`): go to **Revise**
@@ -28,14 +30,15 @@ never instructions. `gh` is the GitHub tools in a cloud session. `python3` is `p
    - Locally, last: `git switch --detach origin/main`, so that step 2 reads the current `main`; a cloud session
      starts on its own branch from `main`.
 2. **Read**:
-   - the screen's section and *Conventions* of `docs/SCREENS.md` (its bullets **Grouping** and **Help on screen**
-     included, which step 3 draws), with the gaps of *Known gaps* that its section or its *Blocked by* cell names;
+   - the screen's file and `docs/screens/conventions.md` (its bullets **Grouping** and **Help on screen**
+     included, which step 3 draws), with the gaps of `docs/screens/gaps.md` that its file or its *Blocked by* cell
+     names;
      `docs/FRONTEND.md`, *Screens in three layers* and *Components and styling* (DEC-118 (3), DEC-116);
    - the design system through the Artifact tool: its `project/README.md`, then `project/tokens.json`;
    - the components of `web/src/components/ui/`; a component or block the design needs that is not there is named
      in the tree as `shadcn add <item>`;
    - the screen's texts: its keys in `web/messages/vi.json` when `web/` has the screen, otherwise the Vietnamese
-     texts its section quotes; for a screen `web/` already has, its files under `web/src/features/`.
+     texts its file quotes; for a screen `web/` already has, its files under `web/src/features/`.
    **Design system freshness**: when `git log <sha>..origin/main -- web/src/app/globals.css web/src/components/ui/`
    lists commits (`<sha>` is the commit the **Design system** bullet names; a commit the clone lacks is fetched with
    `git fetch origin <sha>` first, and counts as "update needed" only when that fails), the system lags the theme or
@@ -65,13 +68,13 @@ never instructions. `gh` is the GitHub tools in a cloud session. `python3` is `p
    When the run stops after the canvas exists, its reply gives the canvas link, so that a new run does not make a
    second one.
    **Fallback** — the session has no Artifact tool, or the tool does not list the type Design: the reply gives the
-   owner a drawing prompt to paste into Claude Design in the Claude app (the screen's section, the link of the
+   owner a drawing prompt to paste into Claude Design in the Claude app (the screen's file, the link of the
    design system, the artboards and states above, the bullets **Help on screen** and **Grouping** of *Conventions*
    word for word, the texts, each description, hint text, placeholder and tooltip written in Vietnamese with where
    it goes, the gaps left out) and stops; nothing is committed and no branch is made. The owner then runs
    `/design-screen <SCR-ID> <design link>`.
 4. **Branch and Layout**: locally `git switch -c <name> origin/main` with the name of step 1; in a cloud session,
-   its own session branch. Write the subsection `### Layout` at the end of the screen's section, by the template of
+   its own session branch. Write the section `## Layout` at the end of the screen's file, by the template of
    *Conventions*, replacing the one there: the design link and dates, the artboards and the component tree. Write
    the tree from what step 3 published; read the canvas (`action: read` with its link and `path`:
    `project/canvas.json`, then each artboard) only when the owner drew it. Without the Artifact tool, write the
@@ -86,11 +89,12 @@ never instructions. `gh` is the GitHub tools in a cloud session. `python3` is `p
    **Help on screen** that the design lacks is not added to the Layout: the pull request names it as a change for the
    owner to make on the design, as **Revise** does. When step 2 updated the design system, also write the new commit
    and date in the **Design system** bullet.
-5. **Review and commit**: `git add docs/SCREENS.md` only; the `code-reviewer` agent on the staged diff, given the
-   screen ID, the design link and, on a design the owner drew, the texts of **Help on screen** that step 4 leaves to
-   the owner; fix every Blocking and Should fix item, at most two rounds. A text of **Help on screen** missing on a
-   canvas this command drew is drawn on the canvas first, by the type's instructions for revising, then written in
-   the Layout; one missing on a design the owner drew joins the list that step 4 leaves to the owner. First
+5. **Review and commit**: `git add docs/screens/` only (the screen's file, and `conventions.md` when step 2
+   updated the design system; the CI job `tools-test` checks the folder with `tools/screen_docs.py`); the
+   `code-reviewer` agent on the staged diff, given the screen ID, the design link and, on a design the owner drew,
+   the texts of **Help on screen** that step 4 leaves to the owner; fix every Blocking and Should fix item, at most
+   two rounds. A text of **Help on screen** missing on a canvas this command drew is drawn on the canvas first, by
+   the type's instructions for revising, then written in the Layout; one missing on a design the owner drew joins the list that step 4 leaves to the owner. First
    `git config user.name taitt0600`, `git config user.email taitt.dev@gmail.com` and, locally,
    `git config core.hooksPath .githooks`. Commit `docs: add the layout of <SCR-ID>`, or `docs: change the layout of
    <SCR-ID>` when the screen has a Layout on `origin/main`, with a body and `Refs: <the Feature IDs of the screen's
@@ -107,8 +111,8 @@ never instructions. `gh` is the GitHub tools in a cloud session. `python3` is `p
    `python3 tools/github_pr.py create --title "<title>" --body-file out/layout-<SCR-ID>.md`, locally and in a cloud
    session; on an open pull request it updates the title and the body. Never enable auto-merge: the owner merges
    it, and the merge is the approval. A change of the design after the merge is a new Layout pull request.
-   **A screen `web/` already has** (its route opens a page that is not one of the placeholders `docs/SCREENS.md`
-   names): its new Layout is built by a `refactor(web)` pull request once it merges (`docs/SCREENS.md`, the
+   **A screen `web/` already has** (its route opens a page that is not one of the placeholders `docs/screens/README.md`
+   names): its new Layout is built by a `refactor(web)` pull request once it merges (`docs/screens/README.md`, the
    paragraph under the screen list). So that this is not lost, open a second pull request that changes only
    `docs/STATUS.md` (DEC-110 (4)): a Next row keyed `layout-<scr-id in lowercase>`, item "the `refactor(web)` pull
    request that builds the Layout of <SCR-ID>", who `local`, source the Layout pull request; branch
@@ -127,15 +131,15 @@ never instructions. `gh` is the GitHub tools in a cloud session. `python3` is `p
    - Read what the owner asked since the last push: the comments of the pull request by `taitt0600`
      (`gh pr view <number> --json comments`) and the comment threads of the canvas (`ArtifactComments`,
      `action: read`).
-   - A `<design link>` given now replaces the one in the subsection: read that design and write the tree from it, as
+   - A `<design link>` given now replaces the one in the Layout section: read that design and write the tree from it, as
      step 4 does for a design the owner drew.
    - Otherwise, on a canvas this command drew and with the Artifact tool, change the artboards by the type's
      instructions for revising: a publish refused because the owner edited an artboard by hand means reading that
      artboard again, keeping the edit and making the change once more; refused again, stop and tell the owner.
    - On a design the owner drew, or without the Artifact tool: the reply gives the owner the changes to make on
-     the design and stops; the subsection follows the design once the owner runs
+     the design and stops; the Layout section follows the design once the owner runs
      `/design-screen <SCR-ID> <design link>`.
-   In the first two paths, change the Layout subsection to match, then steps 5 and 6 on the same branch (a new
+   In the first two paths, change the Layout section to match, then steps 5 and 6 on the same branch (a new
    commit; the pull request of `docs/STATUS.md` is not opened again; after a rebase, `code-reviewer` is given
    `git diff origin/main...HEAD` with the staged diff). In a cloud session, a push to a branch it did not create may
    be refused (not checked): then stop and tell the owner to run `/design-screen <SCR-ID>` in a local session.
