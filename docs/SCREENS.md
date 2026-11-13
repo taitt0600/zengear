@@ -1178,57 +1178,41 @@ A closed gap keeps its number, since other lines refer to it.
 2. **Roles to choose from** — closed for SCR-STF-02: `GET /api/v1/admin/staff/assignable-roles` (`staff.create`)
    lists the staff roles the caller may give, its manageable set (R-SEC-12, AUT-05); `GET /api/v1/admin/roles` lists
    every role for `role.read`, held by the Admin only. Still open for the role filter of SCR-STF-01: a holder of
-   `staff.read` without `role.read` (the Store Manager) has no endpoint that lists the roles. Needs a feature or a
-   Decision when that filter is built.
-3. **Provinces and wards.** No endpoint lists provinces and their wards, and no feature describes one; the official
-   list of Quyết định 19/2025/QĐ-TTg is not seeded (`api/seed/README.md`) and not in the repository yet; development
-   has only the sample rows of `postman/fixtures/LOC-01.sql`. SCR-LOC-01 cannot offer the selects. The address
-   book (ACC-02) and the checkout will need the same list. Needs a Decision.
+   `staff.read` without `role.read` (the Store Manager) has no endpoint that lists the roles. Settled by DEC-136
+   (`GET /api/v1/admin/staff/role-options`); closes when STF-06 merges.
+3. **Provinces and wards.** No endpoint lists provinces and their wards; the official list of Quyết định
+   19/2025/QĐ-TTg is not seeded (`api/seed/README.md`) and not in the repository yet; development has only the sample
+   rows of `postman/fixtures/LOC-01.sql`. SCR-LOC-01 cannot offer the selects. The address book (ACC-02) and the
+   checkout will need the same list. Settled by DEC-135; closes when LOC-05 merges.
 4. **Contract for the web** (DEC-104 (9)) — closed. CORS lets the origins of `Cors:AllowedOrigins` call every route
    and read `ETag` and `Location` (`docs/API_CONVENTIONS.md`, CORS); the OpenAPI document declares the `ETag`
    response header of every versioned resource beside its `If-Match`, and the `enum` values of `status` and `sort` of
    `GET /api/v1/admin/staff`.
-5. **Changing a staff member's email.** No endpoint changes it, while UC-007 (2a) and R-USR-04 say the Admin does it in the
-   staff management of STF-01, whose feature row has no such criterion; SCR-ACC-01 shows the email read-only,
-   without a note (the owner's choice, 2026-11-12: the company issues it). Needs a feature or a Decision when the
-   Admin must do it.
+5. **Changing a staff member's email.** No endpoint changes it; SCR-ACC-01 shows the email read-only, without a note
+   (the owner's choice, 2026-11-12: the company issues it). Settled by DEC-132 (3) (`staff.email.update`, the Admin by
+   default); closes when STF-11 merges. Its dialog on SCR-STF-03 needs a Layout pull request first.
 6. **Store name for every staff member.** SCR-ADM-01 shows the store name at the top of its menu, but `GET
    /api/v1/admin/business-locations` needs `business_location.update` and no endpoint every signed-in staff member may
-   read returns it; the menu shows "ZenGear" (message `app.name`) until then. Needs a feature or a Decision (an
-   anonymous `GET /api/v1/shop/business-locations` exists, but admin pages call admin endpoints, `docs/FRONTEND.md`).
-7. **Updating a staff account's profile.** No endpoint changes a staff member's name, employee code, work phone or
-   joined date, and no feature asks for it (Phase 1 only creates, disables and restores). The Layout of SCR-STF-03
-   draws the action and its sheet ahead, at the owner's request; they are built once a feature or a Decision
-   settles the endpoint, who may use it and its rules. Needs a Decision.
-8. **A staff member's photo.** Neither `users` nor `staff_profiles` holds a photo, and no endpoint uploads one; it
-   is personal data (where it is stored, who sees it, its removal when an account is anonymized). SCR-STF-03 shows
-   the initials in an Avatar until then, and so does SCR-ACC-01, where the owner asked (2026-11-12) that a staff
-   member also set their own photo: the Decision covers both, the manager on SCR-STF-03 and the staff member on
-   SCR-ACC-01 (through `/me`, with the same formats and size), and amends R-USR-04 and the STF-03 row, which let a
-   staff member change only the display name and the password today. Needs a Decision.
+   read returns it; the menu shows "ZenGear" (message `app.name`) until then. Settled by DEC-136 (`GET
+   /api/v1/admin/store`, added to AUT-04); closes when the pull request of AUT-04 that builds it merges.
+7. **Updating a staff account's profile.** No endpoint changes a staff member's name, employee code, work phone,
+   joined date or roles. The Layout of SCR-STF-03 draws the action and its information sheet ahead, at the owner's
+   request. Settled by DEC-132 (`staff.update`); closes when STF-11 merges. The role editing needs a Layout pull
+   request of SCR-STF-03 first.
+8. **A staff member's photo.** Neither `users` nor `staff_profiles` holds a photo, and no endpoint uploads one.
+   SCR-STF-03 and SCR-ACC-01 show the initials in an Avatar until then. Settled by DEC-130 (the manager with
+   `staff.pii.update` on SCR-STF-03, the staff member through `/me` on SCR-ACC-01) and DEC-131 (the private storage);
+   closes when STF-10 merges.
 9. **Sending a staff member a password reset link.** No endpoint resets another account's password, no permission
    covers it and no column records the last link. The Layout of SCR-STF-03 draws the action, its confirmation and
-   the row of the last link ahead. The owner chose, on 2026-11-11, the long-term way: a reset link the staff member
-   uses to set a new password, so that the person resetting it never learns it. Proposed for the Decision: the API
-   asks Firebase for a password reset link (its single use and its one-hour expiry, which the texts promise, to be
-   checked against the Firebase documentation), generated when the email is sent and never stored (an outbox row would
-   keep it in `notifications.payload`, which R-NOT-02 keeps for Failed rows, and retries could outlast its expiry);
-   the email goes through the outbox (R-NOT-01); the account's sessions are revoked as R-SEC-04 does on disable; the
-   time is recorded; its own permission within the management scope (R-SEC-12), ACTIVE accounts only, an
-   Idempotency-Key and a rate limit per account. Needs a Decision (permission, rate limit, the email, the record).
+   the row of the last link ahead. Settled by DEC-133: a one-time token generated by ZenGear, valid 60 minutes, and a
+   new public screen SCR-AUT-03 where the staff member sets the password (not the Firebase link first proposed here);
+   closes when STF-12 merges.
 10. **A staff member's activity.** No table records events and no endpoint lists them: `audit_logs` keeps column
     changes with their personal values and no sign-in history (`users.last_login_at` holds the last one only). The
-    Layout of SCR-STF-03 draws the activity card ahead. The owner chose, on 2026-11-11, the long-term way: an activity
-    section with full filters, built for performance, scalability, security and reliability. Proposed for the
-    Decision: an append-only table of activity events (actor, action, target, area, time, request id; no personal
-    values), written in the same transaction as each action, sign-ins included; an endpoint filtered by a required
-    time range, type, area and scope (by the staff member or on the account), paged by cursor on an index of actor or
-    target and time, partitioned by month once it grows; its own read permission within the management scope
-    (R-SEC-12), the accounts holding the Admin role hidden as R-USR-14 says, and a retention period. Needs a Decision
-    (the event list, the table, the permission, the retention).
+    Layout of SCR-STF-03 draws the activity card ahead. Settled by DEC-134 (`activity_events`, `staff.activity.read`,
+    kept two years); closes when STF-13 merges.
 11. **A staff member's own work details.** `GET /api/v1/admin/me` returns `id`, `name`, `email`, `isStaff`,
     `mustChangePassword` and `permissions`, not the employee code, roles, work phone or joined date that SCR-ACC-01
-    shows read-only at the owner's request (2026-11-12); `GET /api/v1/admin/staff/{id}` returns them but needs
-    `staff.read`. Adding them to the answer of `/me` (read-only, the staff member's own data, no new permission)
-    changes the API contract of STF-03; until then SCR-ACC-01 shows the email alone in its details. Needs a Decision
-    or a feature row.
+    shows read-only at the owner's request (2026-11-12); until then SCR-ACC-01 shows the email alone in its details.
+    Settled by DEC-130 (2); closes when STF-10 merges.
