@@ -1,6 +1,6 @@
 # ZenGear Web
 
-Next.js with TypeScript, Tailwind CSS, shadcn/ui, TanStack Query, Zustand, React Hook Form + Zod, next-intl, Firebase JS SDK — hosted on Vercel (Root Directory `web`). Read `../docs/FRONTEND.md` before adding code and `../docs/SCREENS.md` for the screens. All commands below run from `web/`. Decision: DEC-104, DEC-116, DEC-118.
+Next.js with TypeScript, Tailwind CSS, shadcn/ui, TanStack Query, Zustand, React Hook Form + Zod, next-intl, Firebase JS SDK — hosted on Vercel (Root Directory `web`). Read `../docs/FRONTEND.md` before adding code and `../docs/screens/` for the screens. All commands below run from `web/`. Decision: DEC-104, DEC-116, DEC-118.
 
 ## Rules that must not be broken
 

@@ -128,9 +128,9 @@ repeat those. Check what no test sees:
        - a tool that writes back into tracked files (the Postman app, generators, formatters) leaves `git status`
          clean;
        - a secret never reaches a log, a file, an annotation or a command line.
-    7. **Layout** (DEC-119 (3)), for a diff that adds or changes a `### Layout` of `docs/SCREENS.md`, by
-       **Help on screen** of its *Conventions*; a missing item is Should fix, except one that the caller names as
-       a change for the owner to make on a design the owner drew:
+    7. **Layout** (DEC-119 (3)), for a diff that adds or changes a `## Layout` of a file of `docs/screens/`, by
+       **Help on screen** of `docs/screens/conventions.md`; a missing item is Should fix, except one that the caller
+       names as a change for the owner to make on a design the owner drew:
        - each card, dialog, sheet and Empty of the component tree has a description, except an Empty whose title is
          the text of an API problem;
        - each field has the hint text and the placeholder that bullet asks for, and none where it forbids them;
@@ -152,7 +152,7 @@ repeat those. Check what no test sees:
       as in `web/eslint.config.mjs`. A file above it is Should fix. An ESLint error of
       `import/no-restricted-paths` is Blocking (the module boundaries of DEC-118 (2)); they are not reviewed by
       hand otherwise.
-    - Layout (DEC-119 (4)): a screen with a **Layout** in `docs/SCREENS.md` has the layout file and the sections of
+    - Layout (DEC-119 (4)): a screen with a **Layout** in `docs/screens/` has the layout file and the sections of
       its component tree, with the components it names, and shows every description, hint text, placeholder and
       tooltip its Layout lists; a departure, a missing one of these included, is Blocking, since
       `/implement-feature` step 4 allows none. A finding about the layout of a screen starts with the label `[layout]`.

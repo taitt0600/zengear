@@ -18,7 +18,7 @@ export default async function AdminLayout({ children }: LayoutProps<'/admin'>) {
     <ThemeProvider nonce={nonce}>
       <QueryProvider>
         {/* The one provider of every tooltip of the part: the first opens after 700 ms, the next ones at once
-            (docs/SCREENS.md, Help on screen). */}
+            (docs/screens/conventions.md, Help on screen). */}
         <TooltipProvider delayDuration={700} skipDelayDuration={300}>
           {children}
           <AppToaster />

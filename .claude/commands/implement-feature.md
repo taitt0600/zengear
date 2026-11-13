@@ -29,12 +29,12 @@ DEC-099 marked **Checkpoint** below (two here, one in `/finish-feature`); withou
      `(<ID>)`: `gh pr list --state merged --search "<ID> in:title" --json number,title` gives candidates only; keep
      the titles that match `^feat(\([^)]*\))?!?:.*\(<ID>\)$`. And `python3 tools/pr_gates.py coverage <ID>` exits 0,
      which is necessary, not sufficient (DEC-110 (1)).
-   - The feature itself, by the same test: a done feature stops here, unless `docs/SCREENS.md` describes a screen
-     of it whose cell in the column *Blocked by* is empty, that has an approved design (its subsection **Layout**,
+   - The feature itself, by the same test: a done feature stops here, unless `docs/screens/` describes a screen
+     of it whose cell in the column *Blocked by* is empty, that has an approved design (its section **Layout**,
      which the merge of its Layout pull request approves, DEC-119 (1); without it the screen is blocked as by that
      cell, also for this web-only run, and the stop names `/design-screen <SCR-ID>` as the next step) and that
      `web/` does not have yet (its route has no page, or still opens one of the placeholders that the paragraph
-     under the screen list of `docs/SCREENS.md` names).
+     under the screen list of `docs/screens/README.md` names).
      Then the run is a **web-only run**: the plan, the tests and the code cover only those screens, and steps 5 and
      6 are skipped; it changes no API, migration or Postman folder (a screen that needs one is a Needs decision
      item, step 4); its branch is `feat/<id in lowercase>-web` and its pull request title
@@ -56,10 +56,11 @@ DEC-099 marked **Checkpoint** below (two here, one in `/finish-feature`); withou
    its rows of `docs/STATUS.md` (section *Work state*: a Next row keyed by its ID, a Waiting row triggered
    `before <ID>`), its use cases, every rule of its Rules column (implementation rules — R-DB-, R-TX-, R-NOT-,
    R-AUD-, R-SEC-07, R-ORD-12, R-REC- — from `docs/blueprint/technical-design.md`, section 8), the decisions they
-   cite, its rows of `docs/GLOSSARY.md` and the `docs/DATABASE.md` section of each table its rules touch. Then read the owning area of
-   each table in `docs/ARCHITECTURE.md`. Open a source document only for what the dossier does not hold; a rule the
-   dossier reports as not found is a Needs decision item (step 4). When the code the feature touches is unfamiliar,
-   the agent `feature-dev:code-explorer` may map it first (entry points, call paths, the tests that cover it).
+   cite, its rows of `docs/GLOSSARY.md`, the `docs/DATABASE.md` section of each table its rules touch and, when the
+   feature has screens, the file of each (`docs/screens/`), `docs/screens/conventions.md` and the gaps of
+   `docs/screens/gaps.md` they name. Then read the owning area of each table in `docs/ARCHITECTURE.md`. Open a
+   source document only for what the dossier does not hold; a rule the dossier reports as not found is a Needs
+   decision item (step 4). When the code the feature touches is unfamiliar, the agent `feature-dev:code-explorer` may map it first (entry points, call paths, the tests that cover it).
 3. **Plan**: endpoints (per `docs/API_CONVENTIONS.md`), service methods, entity methods, migrations if any, one or
    more tests per rule, the Postman scenarios (one per acceptance criterion, a refusal per rule), how each row of
    the dossier's *Work state* section is handled (done in this pull request, or a Needs decision item of step 4)
@@ -153,7 +154,7 @@ DEC-099 marked **Checkpoint** below (two here, one in `/finish-feature`); withou
    (one request per acceptance criterion, a refusal per rule, tests on status, Problem Details `type` and fields,
    values unique to the run, dev-only fixtures for a state the API cannot reach yet) and runs it twice with skill
    `api-run`. A request that fails because the code is wrong is a failed test of step 5: fix the code first.
-7. **Web**, following `web/CLAUDE.md` — only for the screens of this feature that `docs/SCREENS.md` describes,
+7. **Web**, following `web/CLAUDE.md` — only for the screens of this feature that `docs/screens/` describes,
    whose cell in the column *Blocked by* of its screen list is empty and that have an approved **Layout**
    (DEC-119 (1)); a screen `web/` already has, built before DEC-119, needs one only when the run changes its layout.
    The report names every other screen of the feature as not built, with what blocks it (a missing Layout: "design

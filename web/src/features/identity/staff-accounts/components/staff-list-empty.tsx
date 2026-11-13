@@ -10,10 +10,10 @@ import {
 import { cn } from '@/lib/utils'
 
 /**
- * Presentational: an Empty with an outline (Grouping of docs/SCREENS.md) of the staff screens: what the list of
- * SCR-STF-01 shows in place of its rows when it has none to show (no account, nothing matches, a failed load), inside
- * the card so that the filters stay; and, with `heading`, the page of SCR-STF-03 when its account cannot show (a 404, a
- * failed load), its title then the page's h1. `tone="error"` is a failure: destructive, and announced.
+ * Presentational: an Empty with an outline (Grouping of docs/screens/conventions.md) of the staff screens: what the
+ * list of SCR-STF-01 shows in place of its rows when it has none to show (no account, nothing matches, a failed load),
+ * inside the card so that the filters stay; and, with `heading`, the page of SCR-STF-03 when its account cannot show (a
+ * 404, a failed load), its title then the page's h1. `tone="error"` is a failure: destructive, and announced.
  */
 export function StaffListEmpty({
   icon,

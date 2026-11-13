@@ -12,8 +12,9 @@ import { AdminSidebarSection } from './admin-sidebar-section'
 import { RequirePermission } from './no-permission'
 import { ThemeProvider } from '@/features/shell/theme'
 
-// The frame of the Layout of SCR-ADM-01 (docs/SCREENS.md): the menu that collapses to icons, its narrow sheet, the
-// header and the pages of the frame itself. The guard and the answers of the API are in admin-shell.test.tsx.
+// The frame of the Layout of SCR-ADM-01 (docs/screens/SCR-ADM-01.md): the menu that collapses to icons, its narrow
+// sheet, the header and the pages of the frame itself. The guard and the answers of the API are in
+// admin-shell.test.tsx.
 
 const navigation = vi.hoisted(() => ({ replace: vi.fn(), pathname: '/admin/staff' }))
 vi.mock('next/navigation', () => ({

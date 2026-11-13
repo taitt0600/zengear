@@ -1,5 +1,5 @@
 // The failed queries and mutations of the app, reported by the query cache to the admin layout, which applies the
-// session and permission rules of docs/SCREENS.md (Conventions) wherever a call fails.
+// session and permission rules of docs/screens/conventions.md wherever a call fails.
 type Listener = (error: unknown) => void
 
 const listeners = new Set<Listener>()

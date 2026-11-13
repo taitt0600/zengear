@@ -2,7 +2,7 @@ import { expect, test, type Page } from '@playwright/test'
 import { accounts, disableStaff, newSalesConsultant, PASSWORD } from './support/backend'
 import { failOnCspViolations, signIn } from './support/pages'
 
-// SCR-AUT-01, SCR-AUT-02 and SCR-ADM-01 (docs/SCREENS.md) against the API, the Firebase Auth Emulator and the web.
+// SCR-AUT-01, SCR-AUT-02 and SCR-ADM-01 (docs/screens/) against the API, the Firebase Auth Emulator and the web.
 
 failOnCspViolations()
 

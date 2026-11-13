@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-// The input shape of SCR-AUT-01 (docs/SCREENS.md). Firebase and the API decide the rest (UC-001).
+// The input shape of SCR-AUT-01 (docs/screens/SCR-AUT-01.md). Firebase and the API decide the rest (UC-001).
 
 /** The company email, trimmed, and the password exactly as typed: Firebase compares what is typed (DEC-102). */
 export function signInSchema(messages: {

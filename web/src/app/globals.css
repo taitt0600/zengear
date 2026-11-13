@@ -111,7 +111,7 @@ body {
    (`dark:bg-input/30`) over a card; the soft tokens in the same band (DEC-124 (5)), where --destructive-soft-foreground
    is also the text of the focused destructive item of a menu on --destructive at 20 % (DEC-124 (3)). A muted text on
    `dark:hover:bg-input/50` (a select placeholder) would be about 3.6:1; none exists, since the Help on screen of
-   docs/SCREENS.md gives a select no placeholder. */
+   docs/screens/conventions.md gives a select no placeholder. */
 .dark {
   --background: oklch(0.235 0 0);
   --foreground: oklch(0.985 0 0);

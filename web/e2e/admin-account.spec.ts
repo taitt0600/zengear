@@ -2,8 +2,9 @@ import { expect, test, type Page } from '@playwright/test'
 import { changePassword, newSalesConsultant, renameMe } from './support/backend'
 import { failOnCspViolations, signIn } from './support/pages'
 
-// SCR-ACC-01 My account (docs/SCREENS.md, STF-03) against the API, the Firebase Auth Emulator and the web. Each flow
-// has a Sales Consultant of its own, whose password is already changed: the account page is their landing page.
+// SCR-ACC-01 My account (docs/screens/SCR-ACC-01.md, STF-03) against the API, the Firebase Auth Emulator and the web.
+// Each flow has a Sales Consultant of its own, whose password is already changed: the account page is their landing
+// page.
 
 failOnCspViolations()
 

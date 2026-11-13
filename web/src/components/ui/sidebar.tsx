@@ -127,7 +127,8 @@ function SidebarProvider({
   )
 
   // No TooltipProvider of its own: the one of the part (app/(admin)/admin/layout.tsx) sets the delays of every
-  // tooltip, so that the first opens after a delay and the next ones at once (docs/SCREENS.md, Help on screen).
+  // tooltip, so that the first opens after a delay and the next ones at once (docs/screens/conventions.md, Help
+  // on screen).
   return (
     <SidebarContext.Provider value={contextValue}>
       <div

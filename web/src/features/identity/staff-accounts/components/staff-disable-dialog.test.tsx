@@ -3,8 +3,8 @@ import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { body, calls, manager, ok, refused, renderAccount } from './staff-account.fixtures'
 
-// The dialog "Khóa tài khoản" of SCR-STF-03 (docs/SCREENS.md; R-USR-07, R-USR-12, R-SEC-04): what it sends, and where
-// each answer of the API shows.
+// The dialog "Khóa tài khoản" of SCR-STF-03 (docs/screens/SCR-STF-03.md; R-USR-07, R-USR-12, R-SEC-04): what it sends,
+// and where each answer of the API shows.
 
 const api = vi.hoisted(() => ({ fetch: vi.fn() }))
 vi.mock('@/lib/api/api', () => ({ apiFetch: api.fetch }))

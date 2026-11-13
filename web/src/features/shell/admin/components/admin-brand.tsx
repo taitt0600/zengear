@@ -14,7 +14,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 
 /**
  * The store name at the top of the menu (sidebar-07's team-switcher), a link to /admin: "ZenGear" until gap 6 of
- * docs/SCREENS.md gives the store's own. On a narrow screen the sheet's close button sits beside it.
+ * docs/screens/gaps.md gives the store's own. On a narrow screen the sheet's close button sits beside it.
  */
 export function AdminBrand() {
   const t = useTranslations()

@@ -5,7 +5,9 @@ Usage: python3 tools/feature_context.py <Feature ID> [--out out/feature-<ID>.md]
 The dossier holds the feature row of docs/blueprint/features.md, its rows of docs/STATUS.md (a Next row keyed by
 its ID, a Waiting row triggered "before <ID>"; DEC-110 (5)), its rules (docs/blueprint/business-rules.md,
 or docs/blueprint/technical-design.md for implementation rules), its use cases, the decisions they cite,
-the glossary rows of its entities and tables, and the docs/DATABASE.md section of every table its rules touch.
+the glossary rows of its entities and tables, the docs/DATABASE.md section of every table its rules touch, and, when
+it has screens, the file of each (docs/screens/, found by its ID through the screen list of docs/screens/README.md,
+with its headings two levels down), docs/screens/conventions.md and the items of docs/screens/gaps.md they name.
 /implement-feature, /fix-defect and the reviewer agents read it instead of searching the documents one by one.
 
 Read-only on docs/ and deterministic: the same commit gives the same dossier. --out writes only under out/
@@ -16,18 +18,15 @@ import re
 import sys
 from pathlib import Path
 
+import screen_docs
+
 RULE_ID = re.compile(r'\bR-[A-Z]+-\d+\b')
 DEC_ID = re.compile(r'\bDEC-\d{3}\b')
 FEATURE_ID = re.compile(r'^[A-Z]{3}-\d{2}$')
-HEADING = re.compile(r'^(#{1,6})\s+(.*\S)')
+HEADING = screen_docs.HEADING
+split_row = screen_docs.split_row
 # Tables of docs/STATUS.md: (heading, column, value of that column in a row that names the feature).
 WORK_STATE = (('Next', 'Key', '{}'), ('Waiting for a trigger', 'Trigger', 'before {}'))
-
-
-def split_row(line):
-    """Cells of a Markdown table row; an escaped pipe (\\|) stays inside its cell."""
-    cells = re.split(r'(?<!\\)\|', line.strip())
-    return [cell.strip() for cell in cells[1:-1]]
 
 
 def read_table(path, after_heading=None):
@@ -93,6 +92,43 @@ def work_state(status_md, feature_id):
     return tables
 
 
+def demote(markdown, levels=2):
+    """The text with every heading outside a code fence moved down by <levels>, so that a screen file sits under the
+    dossier's own headings."""
+    out, fence = [], None
+    for line in markdown.splitlines():
+        marker = re.match(r'^\s*(`{3,}|~{3,})', line)
+        if marker and (fence is None or marker.group(1).startswith(fence)):
+            fence = marker.group(1) if fence is None else None
+        elif fence is None and HEADING.match(line):
+            line = '#' * levels + line
+        out.append(line)
+    return '\n'.join(out)
+
+
+def screens(folder, feature_id):
+    """The rows of the feature in the screen list, the text of their files, then conventions.md and the items of
+    gaps.md that those files or rows name, which the screen files rely on; nothing when the folder has no README.md
+    (a repository before the screens) or the feature has no screen."""
+    if not (folder / 'README.md').is_file():
+        return []
+    rows = [row for row in screen_docs.screen_list(folder) if feature_id in screen_docs.features(row)]
+    if not rows:
+        return []
+    texts = [(folder / f'{screen_docs.row_id(row)}.md').read_text(encoding='utf-8').strip()
+             for row in rows if screen_docs.row_id(row)]
+    parts = [markdown_table(rows), *(demote(text) for text in texts)]
+    conventions = folder / 'conventions.md'
+    if conventions.is_file():
+        parts.append(demote(conventions.read_text(encoding='utf-8').strip()))
+    named = screen_docs.gap_refs('\n'.join(texts + [row.get('Blocked by', '') for row in rows]))
+    items = screen_docs.gap_items(folder) if (folder / 'gaps.md').is_file() else {}
+    if named & set(items):
+        parts += ['### Known gaps that these screens name (docs/screens/gaps.md)',
+                  *(items[number] for number in sorted(named & set(items)))]
+    return parts
+
+
 def names(cell):
     """Comma-separated names of a cell, without backticks."""
     return [name.strip().strip('`') for name in cell.split(',') if name.strip()]
@@ -151,6 +187,9 @@ def build(feature_id, root):
     if my_glossary:
         parts += ['## Glossary (docs/GLOSSARY.md)', markdown_table(my_glossary)]
     parts += ['## Tables (docs/DATABASE.md)', table_sections(root / 'docs' / 'DATABASE.md', tables) or '(none)']
+    my_screens = screens(root / 'docs' / 'screens', feature_id)
+    if my_screens:
+        parts += ['## Screens (docs/screens/)', *my_screens]
     return '\n\n'.join(parts) + '\n'
 
 

@@ -6,8 +6,8 @@ import { renderWithProviders } from '@/test/render'
 import { body, calls, ok, refused } from './staff-account.fixtures'
 import { manager, owner, paged, staffListScreen } from './staff-list.fixtures'
 
-// The menu "Thao tác" of a row of SCR-STF-01 (docs/SCREENS.md, Actions of a row; R-USR-03, R-USR-12): what it offers
-// to whom, and the dialogs of SCR-STF-03 it opens, after which the list loads again.
+// The menu "Thao tác" of a row of SCR-STF-01 (docs/screens/SCR-STF-01.md, Actions of a row; R-USR-03, R-USR-12): what
+// it offers to whom, and the dialogs of SCR-STF-03 it opens, after which the list loads again.
 
 const api = vi.hoisted(() => ({ fetch: vi.fn() }))
 vi.mock('@/lib/api/api', () => ({ apiFetch: api.fetch }))

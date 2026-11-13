@@ -1,9 +1,9 @@
 import type { ReactNode } from 'react'
 
 /**
- * The layout of SCR-STF-03 Staff account (DEC-118 (3), its Layout in docs/SCREENS.md): a page of two cards, its heading
- * above them. From `lg`, the details over two thirds and the status over one third; below, one column with the status
- * first, so that its action comes before the details. It only places the slots.
+ * The layout of SCR-STF-03 Staff account (DEC-118 (3), its Layout in docs/screens/SCR-STF-03.md): a page of two cards,
+ * its heading above them. From `lg`, the details over two thirds and the status over one third; below, one column with
+ * the status first, so that its action comes before the details. It only places the slots.
  */
 export function StaffAccountLayout({
   heading,

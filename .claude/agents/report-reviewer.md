@@ -25,9 +25,9 @@ facts you are given. You never edit files.
   posts; it is expected, not a finding.
 - The folder `postman/collections/ZenGear/<ID>/`: its `*.request.yaml` files (description, account in
   `X-ZenGear-As`, body, `afterResponse` tests) and `.resources/definition.yaml`; `postman/environments/` and
-  `postman/fixtures/`. When the branch changes `web/`, also the flows of `web/e2e/` and, in `docs/SCREENS.md`, the
-  paragraph under the screen list (the screens built before DEC-119) and the **Layout** subsection of each screen of
-  the guide.
+  `postman/fixtures/`. When the branch changes `web/`, also the flows of `web/e2e/` and, in `docs/screens/`, the
+  paragraph under the screen list of `README.md` (the screens built before DEC-119) and the **Layout** section of the
+  file of each screen of the guide.
 - `.claude/commands/finish-feature.md` (step 13: the guide; step 14: the report sections; steps 2 to 8, 11 and 13:
   what "Đã kiểm tra" reports), `.claude/commands/implement-feature.md` (step 4: the decision policy),
   `docs/ACCEPTANCE.md`, and `docs/API_CONVENTIONS.md` for status codes and Problem Details types.
@@ -52,9 +52,9 @@ facts you are given. You never edit files.
    with (its password only by reference to `docs/ACCEPTANCE.md`, *Accounts*), and each screen with a Playwright
    screenshot of the expected result, given by its path under `web/test-results/` and the link of the CI run of the
    head commit, whose artifact `playwright-*` of the job `acceptance` holds it (a comment cannot embed a local
-   image). Beside each screenshot, the link of the screen's approved design, the one its **Layout** subsection
-   gives (DEC-119 (5)); a screen without a Layout says so, and is Blocking unless `docs/SCREENS.md` names it among
-   the screens built before DEC-119.
+   image). Beside each screenshot, the link of the screen's approved design, the one its **Layout** section
+   gives (DEC-119 (5)); a screen without a Layout says so, and is Blocking unless `docs/screens/README.md` names it
+   among the screens built before DEC-119.
 6. **Defect**: a guide about a defect gives the steps that showed it, with the result now expected.
 7. **Owner's time**: no step the environment or Claude has already done; the steps are few and in order.
 8. **Commands run as written**: every command of the guide and its appendix exists in the repository and runs as

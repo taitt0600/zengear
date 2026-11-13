@@ -15,7 +15,7 @@ requests of `/design-screen` (DEC-119), which never get auto-merge.
    whose *Depends On* features are done) runs with `/implement-feature <Feature ID>` in Claude Code
    (`--checkpoints` to also approve the plan, the failing tests and the diff, as in DEC-099); when it stops after
    the tests and the Postman folder, type `/clear`, then `/finish-feature <Feature ID>` (DEC-112 (4)). A feature
-   already done whose screens `docs/SCREENS.md` no longer blocks and that have an approved design runs
+   already done whose screens `docs/screens/` no longer blocks and that have an approved design runs
    `/implement-feature <Feature ID>` again: a web-only run that builds only those screens, on `feat/<id>-web`,
    titled `feat(web): … (<Feature ID>)` (`/implement-feature`, step 1). A screen is designed first (DEC-119):
    `/design-screen <SCR-ID>`, in a local or a cloud session, draws it in Claude Design and opens a Layout pull
@@ -59,7 +59,7 @@ requests of `/design-screen` (DEC-119), which never get auto-merge.
 | Step | Mechanism | Where it lives |
 |---|---|---|
 | Plan, tests, code, Postman folder, verification, commits, pull request, CI, test guide, report | `/implement-feature`, then `/clear` and `/finish-feature`, which reads `out/handoff-<ID>.md` (`/fix-defect` runs in one session); for a branch that changes `web/` (or the OpenAPI contract) they also run the web checks (`npm run gen:api`, `lint`, `format`, `typecheck`, `test`, `build`) and, in `/finish-feature`, the Playwright flows of `web/e2e/`; with the `plan-reviewer`, `code-reviewer` and `report-reviewer` agents, `/code-review` and the skills `api-collection` and `api-run`; they stop only for Needs decision items, the merge of a package approval and the owner's test (and at the three checkpoints with `--checkpoints`) | Repository |
-| Design of a screen | `/design-screen`, with the Artifact tool (types Design and Design System) in the owner's Claude account: the drawing, the Layout subsection of `docs/SCREENS.md`, `code-reviewer`, the Layout pull request; the owner's merge approves it (DEC-119) | Repository; claude.ai |
+| Design of a screen | `/design-screen`, with the Artifact tool (types Design and Design System) in the owner's Claude account: the drawing, the Layout section of the screen's file of `docs/screens/`, `code-reviewer`, the Layout pull request; the owner's merge approves it (DEC-119) | Repository; claude.ai |
 | Merge | Auto-merge, enabled when the owner answers **Đạt**, once the required checks of `main` pass (`tools/github_pr.py`) | GitHub |
 | Notify the owner, log the numbers | Routines **ZenGear PR merged** (pull request merged) and **ZenGear PR needs decision** (pull request opened as a draft), on GitHub events | The owner's claude.ai account |
 | Turn a defect issue into a fix | Routine **ZenGear fix defects** — **disabled since 2026-10-02** (DEC-100); the owner runs `/fix-defect` locally | The owner's claude.ai account |
@@ -175,8 +175,9 @@ When the owner has to remind Claude of an item already discussed, or an old item
 evaluated (DEC-110 (7)), Claude takes M3 and M4 from `git log -p origin/main -- docs/STATUS.md` after `git fetch`.
 
 The measures of DEC-119 are read by hand, since the routines copy none of them to issue #24: the share of screens
-with an approved design before their code (target 100%), from `git log origin/main -- docs/SCREENS.md` (the Layout
-of each screen merged before the pull request that builds or changes it opened); the **Có lỗi** rounds and review
+with an approved design before their code (target 100%), from `git log origin/main -- docs/screens/ docs/SCREENS.md`
+(the Layout of each screen merged before the pull request that builds or changes it opened; `docs/SCREENS.md` before
+it was split into `docs/screens/`); the **Có lỗi** rounds and review
 findings caused by layout, from the line `Bố cục (DEC-119)` of **Đã kiểm tra** in each report (`/finish-feature`,
 step 14); the owner's minutes per design, from the comment `Phút duyệt: <minutes>` on each Layout pull request.
 

@@ -75,7 +75,7 @@ function DialogContent({
       >
         {children}
         {showCloseButton && (
-          // An icon-only button: its name also in a Tooltip (docs/SCREENS.md, Help on screen).
+          // An icon-only button: its name also in a Tooltip (docs/screens/conventions.md, Help on screen).
           <Tooltip>
             <TooltipTrigger asChild>
               <DialogPrimitive.Close

@@ -13,7 +13,8 @@ import {
 
 /**
  * A page of the frame that has nothing to show (no permission, not found): an Empty with an outline filling the page
- * slot, after shadcn's 404 example, its title the page's heading and one way out (Grouping of docs/SCREENS.md).
+ * slot, after shadcn's 404 example, its title the page's heading and one way out (Grouping of
+ * docs/screens/conventions.md).
  */
 export function AdminPageStatus({
   icon,

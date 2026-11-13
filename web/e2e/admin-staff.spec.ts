@@ -9,8 +9,8 @@ import {
 } from './support/backend'
 import { failOnCspViolations, signIn } from './support/pages'
 
-// SCR-STF-01 Staff list (docs/SCREENS.md, STF-05) against the API, the Firebase Auth Emulator and the web. The
-// development database keeps the accounts of earlier runs: a flow opens the page that holds the row it looks for.
+// SCR-STF-01 Staff list (docs/screens/SCR-STF-01.md, STF-05) against the API, the Firebase Auth Emulator and the web.
+// The development database keeps the accounts of earlier runs: a flow opens the page that holds the row it looks for.
 
 failOnCspViolations()
 

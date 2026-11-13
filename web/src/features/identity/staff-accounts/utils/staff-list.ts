@@ -1,6 +1,7 @@
 import type { GetApiV1AdminStaffSort, StaffListItemDto } from '@/lib/api/generated/model'
 
-// The rows of a page of SCR-STF-01 (docs/SCREENS.md) and the sort the API takes when the URL names none (DEC-105).
+// The rows of a page of SCR-STF-01 (docs/screens/SCR-STF-01.md) and the sort the API takes when the URL names none
+// (DEC-105).
 export const PAGE_SIZE = 20
 export const DEFAULT_SORT = 'name'
 
