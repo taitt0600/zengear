@@ -59,8 +59,8 @@
 - **Accessibility**: WCAG 2.2 AA; every form works with the keyboard alone, every field has a visible label, errors
   are announced to screen readers.
 - **Design system** (DEC-119 (2)): <https://claude.ai/artifact/DAYPEgxSLaHrHYG99Tmntb>, built 2026-10-31 from
-  `web/src/app/globals.css` and `web/src/components/ui/` and updated 2026-11-11 to commit 39485c9 (commit 563a162 of
-  2026-11-13 changed only comments there, nothing to sync); `/design-screen`
+  `web/src/app/globals.css` and `web/src/components/ui/` and updated 2026-11-13 to commit 563a162 (from 39485c9:
+  comments only, nothing to sync); `/design-screen`
   brings the system up to date when those files changed since, and then the update's date and commit.
 - **Layout** (DEC-119 (3)): the approved design of a screen, a section `## Layout` at the end of its file that
   `/design-screen <SCR-ID>` writes and the merge of its Layout pull request approves; a later change of the design is

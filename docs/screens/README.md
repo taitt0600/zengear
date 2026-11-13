@@ -36,7 +36,7 @@ the API.
 | [SCR-AUT-01](SCR-AUT-01.md) | Staff sign-in | `/admin/sign-in` | AUT-01 | — | |
 | [SCR-AUT-02](SCR-AUT-02.md) | Required password change | `/admin/change-password` | STF-03 | signed-in staff | |
 | [SCR-ACC-01](SCR-ACC-01.md) | My account | `/admin/account` | STF-03 | signed-in staff | |
-| [SCR-STF-01](SCR-STF-01.md) | Staff list | `/admin/staff` | STF-05 | `staff.read`; actions `staff.disable` | |
+| [SCR-STF-01](SCR-STF-01.md) | Staff list | `/admin/staff` | STF-05, STF-09 | `staff.read`; actions `staff.disable`, `staff.approve` | |
 | [SCR-STF-02](SCR-STF-02.md) | New staff account | `/admin/staff/new` | STF-01 | `staff.create` | |
 | [SCR-STF-03](SCR-STF-03.md) | Staff account | `/admin/staff/[id]` | STF-01, STF-02 | `staff.read`; actions `staff.disable` | |
 | [SCR-LOC-01](SCR-LOC-01.md) | Business location | `/admin/settings/business-location` | LOC-01 | `business_location.update` | gap 3 |
