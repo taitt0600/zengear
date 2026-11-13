@@ -59,3 +59,12 @@ gap is built once the gap is closed. A closed gap keeps its number, since other 
     accounts, each account approved or rejected on its own under the checks of R-USR-17 and R-SEC-12, and a result per
     account (done, or the problem's `detail`). Needs a Decision (a criterion of STF-09 or STF-07, the endpoint, the
     limit), before the run of STF-07, which builds the shared selection.
+13. **Who may approve a PENDING account, and who created it, in the list.** The list item of STF-05 has no field that
+    says whether the caller may approve a PENDING account or who created it and when; DEC-128 (3) adds only
+    `staff_profiles.created_by`, and the web cannot work out the approval itself (the caller's manageable set,
+    R-SEC-12, and the creator, R-USR-17). The Layout of SCR-STF-01 draws the columns Người tạo and Ngày tạo, the
+    creator in the confirmations and buttons only where the caller may approve. Proposed for the Decision: the list
+    item of a PENDING account carries `canApprove` (the caller holds `staff.approve`, did not create the account and
+    manages all its roles), `createdBy` (`id`, `name`) and `createdAt`, null on the other statuses, on `GET /staff` and
+    `POST /staff/search`. Until then the buttons show for a holder of `staff.approve` and the API's 409 says why one
+    cannot be approved. Needs a Decision (STF-09's criteria), best before the run of STF-09.
