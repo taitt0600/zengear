@@ -57,8 +57,8 @@ gap is built once the gap is closed. A closed gap keeps its number, since other 
     result that STF-07 and STF-08 build for disabling, restoring and exporting (DEC-127 (5)). Proposed for the
     Decision: the bulk pattern of STF-07 (DEC-127): a background job (R-JOB-01) with an Idempotency-Key, at most 100
     accounts, each account approved or rejected on its own under the checks of R-USR-17 and R-SEC-12, and a result per
-    account (done, or the problem's `detail`). Needs a Decision (a criterion of STF-09 or STF-07, the endpoint, the
-    limit), before the run of STF-07, which builds the shared selection.
+    account (done, or the problem's `detail`). Settled by DEC-137 (2) (`bulk-approve` and `bulk-reject` in STF-07);
+    closes when STF-07 merges.
 13. **Who may approve a PENDING account, and who created it, in the list.** The list item of STF-05 has no field that
     says whether the caller may approve a PENDING account or who created it and when; DEC-128 (3) adds only
     `staff_profiles.created_by`, and the web cannot work out the approval itself (the caller's manageable set,
@@ -67,4 +67,4 @@ gap is built once the gap is closed. A closed gap keeps its number, since other 
     item of a PENDING account carries `canApprove` (the caller holds `staff.approve`, did not create the account and
     manages all its roles), `createdBy` (`id`, `name`) and `createdAt`, null on the other statuses, on `GET /staff` and
     `POST /staff/search`. Until then the buttons show for a holder of `staff.approve` and the API's 409 says why one
-    cannot be approved. Needs a Decision (STF-09's criteria), best before the run of STF-09.
+    cannot be approved. Settled by DEC-137 (1) (a criterion of STF-09); closes when STF-09 merges.
