@@ -49,3 +49,10 @@ gap is built once the gap is closed. A closed gap keeps its number, since other 
     `mustChangePassword` and `permissions`, not the employee code, roles, work phone or joined date that SCR-ACC-01
     shows read-only at the owner's request (2026-11-12); until then SCR-ACC-01 shows the email alone in its details.
     Settled by DEC-130 (2); closes when STF-10 merges.
+12. **Approving or rejecting several accounts at once.** STF-09 approves and rejects one account per request
+    (`POST /api/v1/admin/staff/{id}/approve`, `…/reject`); no endpoint takes several, while the owner asked
+    (2026-11-13) for a selection on the tab Chờ duyệt of SCR-STF-01 with "Duyệt" and "Từ chối" for all the selected
+    accounts, which the Layout of SCR-STF-01 draws ahead. Proposed for the Decision: the bulk pattern of STF-07
+    (DEC-127): a background job (R-JOB-01) with an Idempotency-Key, at most 100 accounts, each account approved or
+    rejected on its own under the checks of R-USR-17 and R-SEC-12, and a result per account (done, or the problem's
+    `detail`). Needs a Decision (a criterion of STF-09 or STF-07, the endpoint, the limit).
