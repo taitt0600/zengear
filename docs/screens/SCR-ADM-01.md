@@ -47,7 +47,7 @@ Every admin screen except the sign-in page sits in this layout.
   approved by the merge of the pull request of that change. Changed 2026-11-14 on the page
   "Submenu Nhân viên · 14/11/2026" of this canvas (artboard `S152-SubmenuNhanVien`; first drawn on the canvas of
   SCR-STF-02, whose artboards draw the frame with it, and moved here on 2026-11-14 at the owner's request), drawn
-  with the design system of 2026-11-13, for the submenu "Nhân viên" (**Menu** above); approved by the merge of the
+  with the design system of 2026-11-13 (commit 563a162), for the submenu "Nhân viên" (**Menu** above); approved by the merge of the
   Layout pull request of SCR-STF-02, which carries this change at the owner's request. It is built by the web part of
   STF-09 (the Next row STF-09 of `docs/STATUS.md`, which this screen's Feature cell names), so no other row is
   needed; until then the menu keeps the single entry "Nhân viên".
@@ -58,7 +58,11 @@ Every admin screen except the sign-in page sits in this layout.
   system), desktop in the dark theme with the tooltip "Giao diện" open, the error of `GET /me` in the dark theme
   (its destructive text), narrow with the user menu and its submenu "Giao diện" open. No entry: a user whose
   permissions allow no entry sees the menu without its group "Menu", only the store name and the user. SCR-AUT-01
-  and SCR-AUT-02, outside the frame, follow the chosen theme too, with no switch of their own.
+  and SCR-AUT-02, outside the frame, follow the chosen theme too, with no switch of their own. On the page "Submenu
+  Nhân viên · 14/11/2026", the artboard `S152-SubmenuNhanVien` draws the menu three times: on SCR-STF-01 and
+  SCR-STF-03 ("Danh sách nhân viên" current, "Chờ duyệt" with its count), on the tab Chờ duyệt ("Chờ duyệt" current,
+  "Cài đặt" open), and collapsed to icons with the tooltip "Nhân viên" open; the narrow and dark artboards above
+  keep the menu of 2026-11-01, since the submenu changes neither.
 - **shadcn**: `shadcn add sidebar-07` brings `sidebar`, `collapsible`, `tooltip`, `avatar`, `breadcrumb` and
   `hooks/use-mobile.ts`; it must not overwrite the edited `sheet`, `dropdown-menu`, `button`, `separator`,
   `skeleton` and `input` (DEC-116 (4)). Its files move here (DEC-116 (3)): `app-sidebar` → admin-sidebar-section,
