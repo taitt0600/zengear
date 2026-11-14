@@ -38,7 +38,7 @@ the API.
 | [SCR-ACC-01](SCR-ACC-01.md) | My account | `/admin/account` | STF-03 | signed-in staff | |
 | [SCR-STF-01](SCR-STF-01.md) | Staff list | `/admin/staff` | STF-05, STF-06, STF-07, STF-08, STF-09 | `staff.read`; actions `staff.disable`, `staff.export`, `staff.approve` | |
 | [SCR-STF-02](SCR-STF-02.md) | New staff account | `/admin/staff/new` | STF-01, STF-09 | `staff.create`; the notice without `staff.approve` | |
-| [SCR-STF-03](SCR-STF-03.md) | Staff account | `/admin/staff/[id]` | STF-01, STF-02, STF-09, STF-10 | `staff.read`; actions `staff.disable`, `staff.approve`, `staff.pii.read`, `staff.pii.update` | |
+| [SCR-STF-03](SCR-STF-03.md) | Staff account | `/admin/staff/[id]` | STF-01, STF-02, STF-09, STF-10, STF-14 | `staff.read`; actions `staff.disable`, `staff.approve`, `staff.create` (withdraw), `staff.anonymize`, `staff.pii.read`, `staff.pii.update` | |
 | [SCR-LOC-01](SCR-LOC-01.md) | Business location | `/admin/settings/business-location` | LOC-01 | `business_location.update` | gap 3 |
 
 The order of DEC-111 (7), which split the one tooling pull request of DEC-104: the API pull request for the web (gaps 1
