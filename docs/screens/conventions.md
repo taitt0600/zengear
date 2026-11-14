@@ -58,6 +58,24 @@
 - **Dates** `yyyy-MM-dd` from the API are shown `dd/MM/yyyy`; timestamps are shown in Asia/Ho_Chi_Minh.
 - **Accessibility**: WCAG 2.2 AA; every form works with the keyboard alone, every field has a visible label, errors
   are announced to screen readers.
+- **Design principles** (the owner's standing instruction of 2026-11-14, `CLAUDE.md`, *Recommendations, designs and
+  requests*): every design and its Layout fit how the store really works and hold in the long run (reuse the pattern
+  of an approved screen before inventing one; draw what a gap withholds only as drawn ahead), and follow:
+  - **Usability**: the main task of the screen takes the fewest steps; an action sits next to what it changes; the
+    default of every choice is the safe one;
+  - **Consistency**: the same thing looks and behaves the same on every screen (components, dialogs, badges, texts,
+    the place of an edit action); a screen that differs says why in its Layout;
+  - **Visual hierarchy**: one primary action per view; the work waiting (an approval, a problem) comes first; a
+    destructive action stays soft until it is confirmed;
+  - **Feedback**: every action shows that it is busy, that it succeeded and why it failed (**States**, **Errors**);
+    a change of state is announced to screen readers;
+  - **Accessibility**: the bullets **Accessibility** and **Help on screen**;
+  - **User-centricity**: designed from the role and the task of its user (the approver, the cashier, the staff
+    member), with the information grouped as that user thinks of it; for staff, by the staff profile: Hồ sơ nhân
+    viên (the work details), Tài khoản (signing in) and Hồ sơ nhân sự (personal data, DEC-130).
+
+  The Layout pull request has a table of the six with how the design meets each, and names any trade-off between
+  them.
 - **Design system** (DEC-119 (2)): <https://claude.ai/artifact/DAYPEgxSLaHrHYG99Tmntb>, built 2026-10-31 from
   `web/src/app/globals.css` and `web/src/components/ui/` and updated 2026-11-13 to commit 563a162 (from 39485c9:
   comments only, nothing to sync); `/design-screen`
