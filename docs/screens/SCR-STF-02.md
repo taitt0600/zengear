@@ -1,6 +1,6 @@
 # SCR-STF-02 New staff account
 
-The Admin (or a Store Manager holding `staff.create`) creates a staff account with one or more roles (UC-005).
+A holder of `staff.create` (the Admin, and by default the Store Manager and the IT Support, DEC-128 (1)) creates a staff account with one or more roles (UC-005).
 
 | Field | API | Rule (web) |
 |---|---|---|
@@ -23,9 +23,10 @@ lack `staff.approve`, the form shows a notice before its fields, "Tài khoản b
 since the API sets the status. The account then appears on the tab Chờ duyệt of SCR-STF-01.
 
 **Not on this screen**: the HR profile (Hồ sơ nhân sự of STF-10: identity document, birth date, personal contact,
-contract, documents). The staff member creates it on SCR-ACC-01 when confirming the notice on personal data
-(DEC-130 (7)), and the Admin completes "Công việc và hợp đồng" on SCR-STF-03; this form takes only the staff profile
-and the sign-in account.
+contract, documents). The staff member confirms the notice on personal data and enters their contact data on
+SCR-ACC-01 (DEC-130 (2), (7)); a user with `staff.pii.update` enters the rest on SCR-STF-03 (DEC-130 (2), (3)). This
+form takes only the staff profile and the sign-in account, collecting no personal data the account does not need
+(DEC-130 (1)).
 
 | Answer | Shown |
 |---|---|
@@ -79,15 +80,16 @@ and the sign-in account.
   LoaderCircleIcon and the fields stay as typed. A 201 opens SCR-STF-03 of the new account (`Location`, or the `id` of
   the body) with the toast of its `status`. An error moves the focus to the first field that shows one; items no
   field shows go in `FormProblems` (`components/app/form-problems.tsx`) at the top of the card's content, under the
-  notice, which takes the focus when no field shows an error, as on the other admin forms.
+  notice; `FormProblems` takes the focus when no field shows an error, as on the other admin forms.
 - **Wording**: the hints say the limits only (no "Không bắt buộc", which the ` *` of the other fields now carries);
   the sheet "Cập nhật thông tin" of SCR-STF-03, drawn ahead for gap 7, takes the same hints and marks with its next
   Layout.
 - **Texts** (`messages/vi.json`), new ones marked *new*, under `staff.create` unless named: the page's title, breadcrumb
   entry and `CardTitle` `staff.list.add` "Thêm nhân viên"; the `CardDescription` `description` "Tạo tài khoản đăng
   nhập cho nhân viên mới và gán vai trò. Nhân viên đăng nhập bằng mật khẩu mặc định và phải đổi mật khẩu ngay lần
-  đầu." (*new*), then `ui.requiredNote` "Trường có dấu * là bắt buộc." (*new*, **Required fields**) with
-  `ui.requiredMark` "sao" (*new*, the visually hidden word in place of the `*`); the legends `profile.title` "Hồ sơ
+  đầu." (*new*), then `admin.requiredNote` "Trường có dấu <mark>*</mark> là bắt buộc." (*new*, **Required fields**; a rich text,
+  `t.rich`, whose `mark` renders the `*` `aria-hidden`) with `admin.requiredMark` "sao" (*new*, the visually hidden
+  word in place of the `*`); the legends `profile.title` "Hồ sơ
   nhân viên" (*new*, the words of SCR-STF-03, under a key of its own so this page does not wait for the build of
   `layout-scr-stf-03`, which renames `staff.account.info.title`) with the `FieldDescription` `profile.description`
   "Thông tin của nhân viên tại cửa hàng, dùng để liên hệ trong công việc." (*new*) and `account.title` "Tài khoản"
@@ -101,8 +103,9 @@ and the sign-in account.
   các vai trò bạn được phép gán."; the placeholders (*new*) `workPhonePlaceholder` "0901234567" and `emailPlaceholder`
   "an@example.com" (none in Họ tên, Mã nhân viên, which has no fixed pattern, or the date picker); the calendar's
   `ui.calendar.previousMonth` "Tháng trước" and `.nextMonth` "Tháng sau" (each the `aria-label` and the tooltip of its
-  button), `.nav`, `.today` and `.selected` (existing), and a key of `ui.calendar` for the labels of the month and
-  year dropdowns if the installed version reads one (*new* then); the checks of the web (*new*)
+  button), `.nav`, `.today` and `.selected` (existing), and `ui.calendar.monthDropdown` "Chọn tháng" and
+  `.yearDropdown` "Chọn năm" (*new*, the labels of the two dropdowns, which `components/ui/calendar.tsx` leaves out
+  while no screen shows them); the checks of the web (*new*)
   `validation.nameRequired` "Vui lòng nhập họ tên.", `.nameTooLong` "Họ tên tối đa 100 ký tự.",
   `.employeeCodeRequired` "Vui lòng nhập mã nhân viên.", `.employeeCodeTooLong` "Mã nhân viên tối đa 50 ký tự.",
   `.employeeCodeSpaces` "Mã nhân viên không có khoảng trắng ở đầu hoặc cuối.", `.workPhoneInvalid` "SĐT công việc
@@ -127,7 +130,7 @@ and the sign-in account.
   │                                       notice | problems | profile | account | actions; narrow: the page's 16px
   │                                       padding, the roles in one column, the actions stacked
   ├── staff-create-header-section.tsx     CardHeader: CardTitle `staff.list.add` as the page's h1;
-  │                                       CardDescription `staff.create.description`, then `ui.requiredNote`
+  │                                       CardDescription `staff.create.description`, then `admin.requiredNote`
   ├── staff-create-pending-notice.tsx     (STF-09) Alert default with ClockIcon, its role set to `status` in place
   │                                       of shadcn's `role="alert"` (as the notice of SCR-STF-03), AlertTitle
   │                                       `pendingNotice.title`, AlertDescription `pendingNotice.description`; only
@@ -142,14 +145,15 @@ and the sign-in account.
   │                                       the hint; the ` *` a span `aria-hidden` inside FieldLabel
   │   └── staff-joined-date-field.tsx     presentational — Popover with Calendar (date-fns, locale `vi`, Monday first,
   │                                       today marked, `captionLayout="dropdown"`, 50 years back to 1 year ahead)
-  │                                       behind a Button `outline` w-60 (full width narrow, `aria-required`)
+  │                                       behind a Button `outline` w-60 (full width narrow; never empty, so no
+  │                                       `aria-required`)
   │                                       showing `dd/MM/yyyy` beside CalendarIcon; `required`; FieldDescription
   │                                       `joinedDateHint`; the month buttons in the calendar's own Tooltips
   ├── staff-create-account-section.tsx    FieldSeparator, then FieldSet: FieldLegend `account.title`, FieldDescription
   │                                       `account.description`; FieldGroup of: Email công ty * (Input
   │                                       `type="email"`, `required`, `spellCheck=false`, placeholder
   │                                       `emailPlaceholder`, FieldDescription `emailHint`), Vai trò *
-  │   └── staff-create-roles-field.tsx    presentational — FieldSet (`aria-required`) with FieldLegend
+  │   └── staff-create-roles-field.tsx    presentational — FieldSet (its hint says it is required) with FieldLegend
   │                                       `staff.list.columns.roles` and its ` *` (variant label), FieldDescription
   │                                       `rolesHint`, FieldError, and a grid of Field orientation horizontal with
   │                                       Checkbox and FieldLabel per role (`grid-cols-1 sm:grid-cols-2`); loading:
