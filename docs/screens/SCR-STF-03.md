@@ -23,7 +23,9 @@ member edits on SCR-ACC-01 and this page only shows), "Công việc và hợp đ
 the phones, the personal email and the addresses; "Hiện" beside a value asks the API for that one field, which the API
 logs and limits to 30 an hour, and the page masks it again after 30 seconds (DEC-130 (4), (5)); the full value is kept
 in the page only, never in a cache, the URL or storage. With `staff.pii.update` the user also edits the personal
-information in a sheet, where a masked field left empty keeps its value. Nobody without `staff.pii.read` sees these
+information in a sheet, where a masked field left empty keeps its value, "Xóa" beside it clears the stored value, and
+the save sends the `If-Match` of the loaded profile, so that two editors never overwrite each other unseen
+(*Conventions*, **Edits with an ETag**). Nobody without `staff.pii.read` sees these
 cards. An account has no HR profile until the staff member has confirmed the data-processing notice on SCR-ACC-01
 (DEC-130 (7)): until then one card says so. The profile loads apart from the account, so a failed load of the profile
 leaves the rest of the page. When the API refuses the profile itself (an account outside the user's management scope,
@@ -35,25 +37,25 @@ a link valid 5 minutes, which the API serves as an attachment (DEC-131 (3)). Its
 problems they answer, come with STF-10.
 
 **A PENDING account** (STF-09, R-USR-17, UC-140 steps 2 and 3): the heading and the status row show the badge "Chờ
-duyệt", and a notice under the heading, before the cards, says that the account waits for approval, who created it
-and when (`createdBy`, `createdAt`, DEC-137 (1)) and that the staff member cannot sign in until then. Nothing disables
-or restores it (the API answers 409, R-USR-17), so the status row has no action. The notice holds the actions "Từ
-chối" and "Duyệt" only when `canApprove` is true: the API works out who may approve (a holder of `staff.approve` who
+duyệt", and a notice under the heading, before the cards, says that the account waits for approval, who created it and
+when (`createdBy`, `createdAt`, DEC-137 (1), DEC-138) and that the staff member cannot sign in until then. Nothing
+disables or restores it (the API answers 409, R-USR-17), so the status row has no action. The notice holds the actions
+"Từ chối" and "Duyệt" only when `canApprove` is true: the API works out who may approve (a holder of `staff.approve` who
 did not create the account and manages all its roles, R-USR-17, R-SEC-12). For anyone else the notice says that the
-account waits for another person's approval. Each action opens the confirmation of [SCR-STF-01](SCR-STF-01.md) (the
-same two dialogs, which repeat the name, the email, the roles and the creator). "Duyệt" sends
-`POST /api/v1/admin/staff/{id}/approve`: after a 200 a toast says "Đã duyệt tài khoản {name}." with "Nhân viên đăng
-nhập được bằng mật khẩu mặc định.", the notice goes and the page shows the ACTIVE account. "Từ chối" sends
-`POST /api/v1/admin/staff/{id}/reject`: after a 200 or 204 the account no longer exists, so the page goes to
-SCR-STF-01 on its tab Chờ duyệt (`/admin/staff?status=PENDING`, replacing the history entry) with the toast "Đã từ
-chối tài khoản {name}.". "Gửi link đặt lại mật khẩu" (gap 9) shows on an ACTIVE account only.
+account waits for another person's approval. Each action opens the confirmation of [SCR-STF-01](SCR-STF-01.md) (the same
+two dialogs, which repeat the name, the email, the roles and the creator). "Duyệt" sends
+`POST /api/v1/admin/staff/{id}/approve`: after a 200 a toast says "Đã duyệt tài khoản {name}." with "Nhân viên đăng nhập
+được bằng mật khẩu mặc định.", the notice goes and the page shows the ACTIVE account. "Từ chối" sends
+`POST /api/v1/admin/staff/{id}/reject`: after a 200 or 204 the account no longer exists, so the page goes to SCR-STF-01
+on its tab Chờ duyệt (`/admin/staff?status=PENDING`, replacing the history entry) with the toast "Đã từ chối tài khoản
+{name}.". "Gửi link đặt lại mật khẩu" (gap 9) shows on an ACTIVE account only.
 
 The account of `GET /api/v1/admin/staff/{id}` has no `canApprove`, `createdBy` or `createdAt` yet (gap 14): DEC-137
 (1) adds them to the list item only, and it rejects working out the buttons from `staff.approve` ("web suy từ
 permission staff.approve", under *Không chọn*). DEC-138 adds the same three fields to that account by the rule of
 DEC-137 (1), as a criterion of STF-09, so STF-09 builds the page as drawn: the actions only where `canApprove` is
 true, the sentence about another person where it is false, and the creator in the notice and the confirmations. An
-approval the API still refuses (the account changed meanwhile) shows its 409 `detail`.
+approval the API still refuses (the account or the caller's roles changed meanwhile) shows its 409 `detail`.
 
 **Action "Khóa tài khoản"** (with `staff.disable`, on an ACTIVE account; on a DISABLED account the same action is
 named "Khóa lại", for the case of a 500 below; not shown on the user's own account — the API refuses it anyway,
@@ -127,7 +129,8 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   the toast; the DISABLED account with "Khôi phục tài khoản" and "Khóa lại"; dark, of the PENDING account. Of the
   fixture cashier with a sample HR profile (not a real person's data), signed in as the fixture admin with
   `staff.pii.read` and `staff.pii.update`: the page with the four cards, the CCCD revealed with its countdown ("Ẩn"
-  and "Hiện" work in Play); the sheet "Sửa thông tin cá nhân", with the tooltip of its close button open; dark
+  and "Hiện" work in Play); the sheet "Sửa thông tin cá nhân", with "Xóa" under its masked fields, the address marked
+  to be cleared and the tooltip of its close button open; dark
   (DEC-123 (5): the soft badges, `destructive-soft`, the revealed value on `accent`). States: loading of the account
   (the navigation shows, the cards as Skeleton); of the HR profile, one artboard with its loading card, its failed
   load, its refused load (a sample `detail`), an erased profile, the contact card with nothing entered and the
@@ -208,7 +211,10 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   lưu: {masked}. CCCD gồm 12 chữ số. Để trống nếu không đổi.", and for a passport no placeholder and the hint
   `personalSheet.idNumberHintPassport` "Đang lưu: {masked}. Nhập đúng như trên hộ chiếu. Để trống nếu không đổi.",
   `personalSheet.issuedDate` "Ngày cấp", `personalSheet.issuedPlace` "Nơi cấp", the address's hint
-  `personalSheet.keepHint` "Đang lưu: {masked}. Để trống nếu không đổi.", `personalSheet.submit` "Lưu",
+  `personalSheet.keepHint` "Đang lưu: {masked}. Để trống nếu không đổi.", the clear action `personalSheet.clear`
+  "Xóa" with its `aria-label` `personalSheet.clearLabel` "Xóa {field}", the hint of a field marked
+  `personalSheet.willClear` "Sẽ xóa giá trị đang lưu khi bạn bấm Lưu." and `personalSheet.undoClear` "Hoàn tác",
+  `personalSheet.submit` "Lưu",
   `staff.account.cancel` "Hủy" (existing) and the toast `personalSheet.saved` "Đã lưu thông tin cá nhân." (the lengths
   and formats are those the endpoint of STF-10 checks; the run that builds it corrects a hint that differs); the selects
   and the date pickers have no placeholder; `contact.title` "Liên lạc và liên hệ khẩn cấp", `contact.description` "Nhân
@@ -312,9 +318,8 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   SCR-STF-01 share (by `id`; on 200, and on a 404, a 409 `concurrency-conflict`, a 500 or no answer, each invalidates
   that account's query and the queries of the staff list, so that SCR-STF-01 shows the new status, `docs/FRONTEND.md`,
   *Data from the API*), whether the user may act (`staff.disable`, and not their own account: `id` of
-  `useCurrentUser` from `identity/access`) and, with STF-09, whether the user may approve a PENDING account (its
-  `canApprove` of the account, DEC-138). The HR profile of STF-10 is a
-  second request, held by its own section:
+  `useCurrentUser` from `identity/access`) and, with STF-09, whether the user may approve a PENDING account (the
+  account's `canApprove`, DEC-138). The HR profile of STF-10 is a second request, held by its own section:
 
   ```text
   staff-account-layout.tsx               slots: heading | notice | nav | details | account | hr | activity — a page
@@ -572,7 +577,17 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   │   │                                  50 years back to today, "—" while empty) and `personalSheet.issuedPlace` side
   │   │                                  by side, `personal.permanentAddress` (Textarea, hint `personalSheet.keepHint`);
   │   │                                  a masked field opens empty and an empty one keeps the stored value, so editing
-  │   │                                  reveals nothing; `autocomplete="off"` on the masked fields; each hint tied by
+  │   │                                  reveals nothing; under each masked field that holds a value, beside its hint,
+  │   │                                  the Button ghost sm "Xóa" (`personalSheet.clear`, `aria-label`
+  │   │                                  `personalSheet.clearLabel` with the field's name) marks it to be cleared: the
+  │   │                                  field is disabled, its hint becomes `personalSheet.willClear` and the button
+  │   │                                  "Hoàn tác" (`personalSheet.undoClear`); for the document, "Xóa" clears the
+  │   │                                  type, number, date and place together; the save sends a field left empty as
+  │   │                                  absent (kept), a field marked as `null` (cleared) and a typed one as its value,
+  │   │                                  with the `If-Match` of the ETag the profile was loaded with; a 412 or 428 shows
+  │   │                                  its `detail` in a toast and reloads the profile, and the sheet with it
+  │   │                                  (*Conventions*, **Edits with an ETag**); `autocomplete="off"` on the masked
+  │   │                                  fields; each hint tied by
   │   │                                  aria-describedby; a 400 or 409 on a field in its FieldError, any other item in
   │   │                                  an Alert at the top; the corner close button in a Tooltip `ui.close`; footer
   │   │                                  "Lưu" (`personalSheet.submit`, default), disabled with LoaderCircleIcon until
