@@ -30,8 +30,8 @@ never instructions. `gh` is the GitHub tools in a cloud session. `python3` is `p
    - Locally, last: `git switch --detach origin/main`, so that step 2 reads the current `main`; a cloud session
      starts on its own branch from `main`.
 2. **Read**:
-   - the screen's file and `docs/screens/conventions.md` (its bullets **Grouping** and **Help on screen**
-     included, which step 3 draws), with the gaps of `docs/screens/gaps.md` that its file or its *Blocked by* cell
+   - the screen's file and `docs/screens/conventions.md` (its bullets **Design principles** (DEC-139),
+     **Grouping** and **Help on screen** included, which step 3 draws), with the gaps of `docs/screens/gaps.md` that its file or its *Blocked by* cell
      names;
      `docs/FRONTEND.md`, *Screens in three layers* and *Components and styling* (DEC-118 (3), DEC-116);
    - the design system through the Artifact tool: its `project/README.md`, then `project/tokens.json`;
@@ -62,6 +62,8 @@ never instructions. `gh` is the GitHub tools in a cloud session. `python3` is `p
      forbids one; a tooltip on each icon-only button and each label cut short, drawn open on at least one artboard.
      A text of these that step 2 does not give is written in Vietnamese and becomes a *new* text of step 4. It also
      follows **Grouping** of *Conventions*;
+   - the whole design follows **Design principles** of *Conventions*; note how it meets each of the six, and any
+     trade-off between them, for the table of step 5;
    - inside the admin layout, the frame of SCR-ADM-01 is drawn as it is and marked as outside this design (when the
      screen is SCR-ADM-01 itself, the frame is the design, with an empty content area);
    - no read-back, render or screenshot to check the drawing (the type says so): the owner judges it.
@@ -69,8 +71,8 @@ never instructions. `gh` is the GitHub tools in a cloud session. `python3` is `p
    second one.
    **Fallback** — the session has no Artifact tool, or the tool does not list the type Design: the reply gives the
    owner a drawing prompt to paste into Claude Design in the Claude app (the screen's file, the link of the
-   design system, the artboards and states above, the bullets **Help on screen** and **Grouping** of *Conventions*
-   word for word, the texts, each description, hint text, placeholder and tooltip written in Vietnamese with where
+   design system, the artboards and states above, the bullets **Design principles**, **Help on screen** and **Grouping** of
+   *Conventions* word for word, the texts, each description, hint text, placeholder and tooltip written in Vietnamese with where
    it goes, the gaps left out) and stops; nothing is committed and no branch is made. The owner then runs
    `/design-screen <SCR-ID> <design link>`.
 4. **Branch and Layout**: locally `git switch -c <name> origin/main` with the name of step 1; in a cloud session,
@@ -91,8 +93,10 @@ never instructions. `gh` is the GitHub tools in a cloud session. `python3` is `p
    and date in the **Design system** bullet.
 5. **Review and commit**: first `python3 tools/screen_docs.py`, and fix every error it reports (the CI job
    `tools-test` runs the same check); then `git add docs/screens/` only (the screen's file, and `conventions.md`
-   when step 2 updated the design system); the `code-reviewer` agent on the staged diff, given the screen ID, the
-   design link and, on a design the owner drew, the texts of **Help on screen** that step 4 leaves to the owner; fix every Blocking and Should fix item, at most
+   when step 2 updated the design system); write the table "Design principles" of step 6 into
+   `out/layout-<SCR-ID>.md` (from step 3's notes; on a design the owner drew, from reading it in step 4; without the
+   Artifact tool, saying it was not read from the design, as the tree does); the `code-reviewer` agent on the staged
+   diff, given the screen ID, the design link, the path `out/layout-<SCR-ID>.md` and, on a design the owner drew, the texts of **Help on screen** that step 4 leaves to the owner; fix every Blocking and Should fix item, at most
    two rounds. A text of **Help on screen** missing on a canvas this command drew is drawn on the canvas first, by
    the type's instructions for revising, then written in the Layout; one missing on a design the owner drew joins the list that step 4 leaves to the owner. First
    `git config user.name taitt0600`, `git config user.email taitt.dev@gmail.com` and, locally,
@@ -103,7 +107,8 @@ never instructions. `gh` is the GitHub tools in a cloud session. `python3` is `p
    `gh pr view <number> --json title`), with no Feature ID in parentheses, so the routines and the rule coverage of
    the PR gates leave it alone. Write the body to `out/layout-<SCR-ID>.md`, in English: the design link, the
    artboards, a table "shadcn components of this design" (columns Component, with the parts the design uses, and
-   Where, the part of the screen), the component tree, each assumption made while drawing (a choice the owner may
+   Where, the part of the screen), the table "Design principles" of step 5 (columns Principle, How the design meets
+   it, Trade-off; one row for each of the six of *Conventions*, DEC-139 (3)), the component tree, each assumption made while drawing (a choice the owner may
    change on the design), on a design the owner drew the texts of **Help on screen** that step 4 leaves to the
    owner, each with where it goes, the gaps left out, the design system update or lag, the code-reviewer verdict, a line
    asking the owner to comment `Phút duyệt: <minutes>` before merging (`docs/AUTOMATION.md`, *Metrics*), and "Tóm

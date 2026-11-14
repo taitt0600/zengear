@@ -24,9 +24,12 @@ in Vietnamese; every cell of the row is in Vietnamese, in the style of the rows 
    drafting. Never invent a tax rate, a legal duty or a price.
 4. **The row**, as a table with the columns of the sheet:
    Decision ID | Topic | Context | Decision | Consequences | Source | Phase | Status
-   - Topic: at most about eight words. Context: the problem, the constraints and the options compared, with the facts
-     behind them. Decision: what is chosen, stated so that code and tests can follow it, ending with "Không chọn: …"
-     for each rejected option and why. Consequences: for the code, the data, the operations and the users, costs
+   - Topic: at most about eight words. Context: the problem, the constraints and the options compared on performance,
+     scalability (at the scale of the specification), security and reliability (`CLAUDE.md`, *Recommendations,
+     designs and requests*), with the facts behind them. Decision: what is chosen, stated so that code and tests can
+     follow it, ending with "Không chọn: …" for each rejected option, why, and which of the four it loses. A
+     shortcut or a temporary patch is never the recommended option, and is neither offered nor chosen unless the
+     owner asked for that one (DEC-139 (2)); then Consequences calls it temporary and gives its long-term fix. Consequences: for the code, the data, the operations and the users, costs
      included. Source: law, documentation, a product, the owner. Phase: as in the other rows. Status: `Accepted` when
      the owner agreed, otherwise `Proposed`.
    - Every cell without the character `|`, which splits a cell in the export. In the table and the tab line every

@@ -25,7 +25,7 @@ repository's specifications and code. You never edit files.
 - A plan of a change that is not a feature (tooling, CI, documents) has no dossier. Read instead the files it
   changes and the documents that describe them: `docs/AUTOMATION.md`, `docs/ACCEPTANCE.md`, the `CLAUDE.md` files
   and the Decisions it cites (`docs/blueprint/decisions.md`). Apply items 3, 7, 10, 11 and 13 where they apply,
-  and item 12 in full
+  and items 12 and 14 in full
 - A plan of a web-only run (`/implement-feature`, step 1) has a dossier but changes no API: the items about the
   API (2 to 6 and 8) apply only to how its screens call the API, and item 9 is met by the API tests its rules
   already have (`tools/pr_gates.py coverage`). It plans the Vitest tests and Playwright flows of its screens; read
@@ -120,6 +120,16 @@ repository's specifications and code. You never edit files.
     5. Is the code in its area and module, and does it change another area's data only through that area's public
        services?
     A finding of questions 1 to 3 starts with the label `[over-engineering]` (1 and 2) or `[duplication]` (3).
+14. **Long-term and safe** (DEC-139; `CLAUDE.md`, *Recommendations, designs and requests*), for every plan:
+    - the plan assesses its design as a whole, and each Needs decision item each of its options, on performance,
+      scalability (at the scale of the specification), security and reliability, or says why one does not apply;
+      missing: Should fix;
+    - Blocking: a recommended option that is a shortcut (it skips a rule, a check or a part of the specification)
+      or a temporary patch; such an option offered when the owner did not ask for it; a stopgap that skips a rule, a check or a
+      part of the specification, or lacks its long-term fix or its Waiting row (`/implement-feature` step 4,
+      **Long-term and safe**);
+    - an extension point for a need no feature has yet (`docs/CODING_GUIDE.md`, section 1) is Should fix, judged and
+      labelled by item 13, question 2.
 
 ## Output
 

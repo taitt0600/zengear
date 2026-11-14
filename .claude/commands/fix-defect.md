@@ -30,7 +30,8 @@ output to `out/logs/` and bring only a summary into the context, as **Output** o
 2. **Understand**: the feature dossier (`python3 tools/feature_context.py <Feature ID> --out
    out/feature-<Feature ID>.md`, skill `feature-context`) and the code and tests the defect goes through. Decide
    whether the code breaks the specification, or the specification itself is wrong or silent. The second is a Needs
-   decision item: ask it at once (AskUserQuestion, options with consequences, recommendation first) and go on with
+   decision item: ask it at once (AskUserQuestion, options with consequences and the four qualities, recommendation
+   first, as `/implement-feature` step 3 says) and go on with
    the answer when it does not change a specification; otherwise draft the Decision with `/decision-draft` and stop
    with the report of `/finish-feature` (step 14), without a pull request.
 3. **Reproduce** first, with a test that fails for the reason described: named after the rule it breaks
@@ -54,7 +55,9 @@ output to `out/logs/` and bring only a summary into the context, as **Output** o
    Once the cause is stated, look for it in the other services of the area and list what you find: fix it here, with
    its own failing test first, only when it breaks the same rule of the same feature; otherwise it is a follow-up in
    the report.
-5. **Fix** the code, the smallest change that makes the tests pass without weakening another test, then
+5. **Fix** the code, the smallest change that makes the tests pass without weakening another test and that is
+   long-term and safe (`/implement-feature` step 4, **Long-term and safe**: no skipped or weakened test, relaxed
+   check or rule of the specification left out; a stopgap only as that bullet says), then
    `dotnet build ZenGear.slnx`, `dotnet test ZenGear.slnx` and the drift check from `api/`, then the web checks of
    `/finish-feature` (step 2) when they apply. A fix that would depart from a screen's approved design, or change
    the layout of a screen without a Layout, is a Needs decision item (`/implement-feature` step 4; DEC-119 (1),

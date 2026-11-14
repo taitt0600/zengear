@@ -6,7 +6,9 @@ Finish the feature named in $ARGUMENTS of ZenGear (CLAUDE.md, Workflow; DEC-100)
 stops only to ask a Needs decision item, to wait for the owner to merge a package approval (**Package approval**
 below), for the owner's test before merge (step 13), and, with `--checkpoints` in $ARGUMENTS, at **Checkpoint 3**
 (step 9). When a step fails, fix it and run the steps it depends on again; what
-cannot be fixed under the policy of `/implement-feature` (step 4) becomes a Needs decision item, asked at once.
+cannot be fixed under the policy of `/implement-feature` (step 4) becomes a Needs decision item, asked at once as its
+step 3 says (each option with the four qualities, DEC-139). Every fix of this command, of a review finding, a failed
+check or a defect, follows `/implement-feature` step 4, **Long-term and safe**.
 A command, skill or agent run inside a step (`/code-review`, `/security-review`, `api-run`, `api-collection`, the
 reviewer agents) returns its report to this run: keep its numbers for the report of step 14 and go on with the run
 (the fixes of that step, or the next step) in the same turn. It never ends the run; only the stops above do.
@@ -16,8 +18,8 @@ reviewer agents) returns its report to this run: keep its numbers for the report
 command after `/clear`. Read that file first, unless `/fix-defect` runs this command (it passes its facts in the same
 session): the branch, the plan-reviewer verdict and its counts of `[over-engineering]`, `[duplication]` and
 `[layout]` findings, for each screen built whether its design was read or only its Layout tree,
-the Needs decision items answered or left open, how each Work state row is handled, the decisions made, the
-deviations from the plan, whether the run is web-only (then the pull request title it names) and the results of the
+the Needs decision items answered or left open, how each Work state row is handled, the decisions made, each
+stopgap with its long-term fix and its Waiting row, the deviations from the plan, whether the run is web-only (then the pull request title it names) and the results of the
 build, the tests, the Postman runs and the web checks. A file whose branch is not
 `git branch --show-current` counts as missing. Without it, work from the branch: `git status` and `git diff` of the
 working tree (right after `/implement-feature` the branch holds at most the commits of a `shadcn add`),
@@ -108,7 +110,8 @@ step 11 when the pull request is open.
    - the built-in `/code-review` on the diff;
    - the `code-reviewer` agent, given the feature ID, the branch, `out/feature-<ID>.md` (write it first with
      `python3 tools/feature_context.py <ID> --out out/feature-<ID>.md` when it is missing), how the plan handled
-     each Work state row, and the rows of `docs/STATUS.md` this run added for a deferred item or an owner's comment.
+     each Work state row, and the rows of `docs/STATUS.md` this run added for a deferred item or an owner's comment,
+     and each stopgap with its long-term fix and its Waiting row (`/implement-feature` step 4).
    Fix every Blocking and Should fix item of the agent and every finding of `/code-review` you confirm, then run
    steps 2–3 and review again, at most three rounds (DEC-112 (1)): in the later rounds the `code-reviewer` agent
    reviews what was fixed, and `/code-review` runs once more, only once in the run, in the round after the first fix
@@ -166,7 +169,7 @@ step 11 when the pull request is open.
     - `git push -u origin HEAD`.
     - Write the body to `out/pr-body.md` (ignored by git), in English: summary, rules covered, decisions made (yours,
       and the owner's answers), a section "Needs decision" with each item still open, its options and the recommended
-      one first, how it was verified (steps 2–8, the plan and code-reviewer verdicts with the Blocking items found and
+      one first, each with the four qualities and its cost (`/implement-feature` step 3), how it was verified (steps 2–8, the plan and code-reviewer verdicts with the Blocking items found and
       fixed, the security review findings or why it was skipped, the Postman runs, and the web checks and the flows
       when the branch changes `web/`). The body ends with the section "Tóm tắt cho chủ dự án" in Vietnamese
       (`CLAUDE.md`, Workflow); its part "Bạn cần quyết định" points to the section "Needs decision" instead of
@@ -275,8 +278,9 @@ step 11 when the pull request is open.
       result (kept apart, since the routine "ZenGear PR merged" counts the Postman lines); a web-only run says that
       the rules of the feature are covered by its earlier pull request. Then the manual checks of the guide. A defect
       repeats the steps that showed it, with the result now expected.
-    - **Rule đã có test**, **Quyết định Claude đã tự chọn**, **Quyết định của bạn** (the owner's answers),
-      **Cần bạn quyết định** (each item still open with its options and their consequences), **Đã kiểm tra** (steps
+    - **Rule đã có test**, **Quyết định Claude đã tự chọn** (each stopgap named temporary, with its long-term fix
+      and its Waiting row), **Quyết định của bạn** (the owner's answers), **Cần bạn quyết định** (each item still
+      open with its options and their consequences, each option with the four qualities and its cost), **Đã kiểm tra** (steps
       2–8, the web checks and the flows of step 7 included when the branch changes `web/`, CI and the owner's
       test, with the numbers kept above, "Phát hiện riêng" and the labelled findings of each reviewer included;
       while the trial of the plugin `security-guidance` runs (item (3)
