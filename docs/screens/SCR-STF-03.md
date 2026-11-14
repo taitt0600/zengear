@@ -16,25 +16,24 @@ in the row it changes: "Khóa tài khoản", "Khôi phục tài khoản" and "Kh
 
 **The HR profile** (Hồ sơ nhân sự, STF-10, DEC-130, R-USR-18, R-SEC-15): for a user whose `permissions` hold
 `staff.pii.read`, four cards follow the card "Tài khoản": "Thông tin cá nhân" (the name on the identity document, the
-birth date, the gender, the CCCD or passport with its date and place of issue, the permanent address), "Liên lạc và
-liên hệ khẩn cấp" (personal phone, personal email, current address and at most 2 emergency contacts, which the staff
-member edits on SCR-ACC-01 and this page only shows), "Công việc và hợp đồng" (job title, direct manager, contract) and
-"Hồ sơ số" (the documents, with their status). The API sends the masked form of the document number, the birth date,
-the phones, the personal email and the addresses; "Hiện" beside a value asks the API for that one field, which the API
-logs and limits to 30 an hour, and the page masks it again after 30 seconds (DEC-130 (4), (5)); the full value is kept
-in the page only, never in a cache, the URL or storage. With `staff.pii.update` the user also edits the personal
-information in a sheet, where a masked field left empty keeps its value, "Xóa" beside it clears the stored value, and
-the save sends the `If-Match` of the loaded profile, so that two editors never overwrite each other unseen
-(*Conventions*, **Edits with an ETag**). Nobody without `staff.pii.read` sees these
-cards. An account has no HR profile until the staff member has confirmed the data-processing notice on SCR-ACC-01
-(DEC-130 (7)): until then one card says so. The profile loads apart from the account, so a failed load of the profile
-leaves the rest of the page. When the API refuses the profile itself (an account outside the user's management scope,
-R-SEC-12, or one holding the Admin role, R-USR-14, DEC-130 (3)), one card shows the problem's text, neutral and with
-no retry, since a retry cannot succeed. A DISABLED account whose profile the retention job erased (R-USR-19) and an
-ANONYMIZED account show that the profile was erased, not that it waits for the notice. A pending document is approved
-here ("Duyệt", DEC-130 (2)); rejecting one is not in DEC-130 and is not drawn. "Tải xuống" fetches a document through
-a link valid 5 minutes, which the API serves as an attachment (DEC-131 (3)). Its endpoints, and the texts of the
-problems they answer, come with STF-10.
+birth date, the gender, the CCCD or passport with its date and place of issue, the permanent address), "Liên lạc và liên
+hệ khẩn cấp" (personal phone, personal email, current address and at most 2 emergency contacts, which the staff member
+edits on SCR-ACC-01 and this page only shows), "Công việc và hợp đồng" (job title, direct manager, contract) and "Hồ sơ
+số" (the documents, with their status). The API sends the masked form of the document number, the birth date, the
+phones, the personal email and the addresses; "Hiện" beside a value asks the API for that one field, which the API logs
+and limits to 30 an hour, and the page masks it again after 30 seconds (DEC-130 (4), (5)); the full value is kept in the
+page only, never in a cache, the URL or storage. With `staff.pii.update` the user also edits the personal information in
+a sheet, where a masked field left empty keeps its value, "Xóa" under a masked field holding a value clears the stored
+value, and the save sends the `If-Match` of the loaded profile, so that two editors never overwrite each other unseen
+(*Conventions*, **Edits with an ETag**). Nobody without `staff.pii.read` sees these cards. An account has no HR profile
+until the staff member has confirmed the data-processing notice on SCR-ACC-01 (DEC-130 (7)): until then one card says
+so. The profile loads apart from the account, so a failed load of the profile leaves the rest of the page. When the API
+refuses the profile itself (an account outside the user's management scope, R-SEC-12, or one holding the Admin role,
+R-USR-14, DEC-130 (3)), one card shows the problem's text, neutral and with no retry, since a retry cannot succeed. A
+DISABLED account whose profile the retention job erased (R-USR-19) and an ANONYMIZED account show that the profile was
+erased, not that it waits for the notice. A pending document is approved here ("Duyệt", DEC-130 (2)); rejecting one is
+not in DEC-130 and is not drawn. "Tải xuống" fetches a document through a link valid 5 minutes, which the API serves as
+an attachment (DEC-131 (3)). Its endpoints, and the texts of the problems they answer, come with STF-10.
 
 **A PENDING account** (STF-09, R-USR-17, UC-140 steps 2 and 3): the heading and the status row show the badge "Chờ
 duyệt", and a notice under the heading, before the cards, says that the account waits for approval, who created it and
@@ -213,7 +212,11 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   `personalSheet.issuedDate` "Ngày cấp", `personalSheet.issuedPlace` "Nơi cấp", the address's hint
   `personalSheet.keepHint` "Đang lưu: {masked}. Để trống nếu không đổi.", the clear action `personalSheet.clear`
   "Xóa" with its `aria-label` `personalSheet.clearLabel` "Xóa {field}", the hint of a field marked
-  `personalSheet.willClear` "Sẽ xóa giá trị đang lưu khi bạn bấm Lưu." and `personalSheet.undoClear` "Hoàn tác",
+  `personalSheet.willClear` "Sẽ xóa giá trị đang lưu khi bạn bấm Lưu.", `personalSheet.undoClear` "Hoàn tác" with its
+  `aria-label` `personalSheet.undoClearLabel` "Hoàn tác xóa {field}", the announcement `personalSheet.clearUndone`
+  "Đã hoàn tác, giữ giá trị đang lưu.", and for the document `personalSheet.clearDocumentLabel` "Xóa giấy tờ tùy
+  thân", `personalSheet.undoClearDocumentLabel` "Hoàn tác xóa giấy tờ tùy thân" and `personalSheet.willClearDocument`
+  "Sẽ xóa loại, số, ngày cấp và nơi cấp khi bạn bấm Lưu.",
   `personalSheet.submit` "Lưu",
   `staff.account.cancel` "Hủy" (existing) and the toast `personalSheet.saved` "Đã lưu thông tin cá nhân." (the lengths
   and formats are those the endpoint of STF-10 checks; the run that builds it corrects a hint that differs); the selects
@@ -576,24 +579,35 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   │   │                                  `personalSheet.issuedDate` (date picker with the same dropdowns, the year from
   │   │                                  50 years back to today, "—" while empty) and `personalSheet.issuedPlace` side
   │   │                                  by side, `personal.permanentAddress` (Textarea, hint `personalSheet.keepHint`);
-  │   │                                  a masked field opens empty and an empty one keeps the stored value, so editing
-  │   │                                  reveals nothing; under each masked field that holds a value, beside its hint,
-  │   │                                  the Button ghost sm "Xóa" (`personalSheet.clear`, `aria-label`
-  │   │                                  `personalSheet.clearLabel` with the field's name) marks it to be cleared: the
-  │   │                                  field is disabled, its hint becomes `personalSheet.willClear` and the button
-  │   │                                  "Hoàn tác" (`personalSheet.undoClear`); for the document, "Xóa" clears the
-  │   │                                  type, number, date and place together; the save sends a field left empty as
-  │   │                                  absent (kept), a field marked as `null` (cleared) and a typed one as its value,
-  │   │                                  with the `If-Match` of the ETag the profile was loaded with; a 412 or 428 shows
-  │   │                                  its `detail` in a toast and reloads the profile, and the sheet with it
+  │   │                                  a masked field opens empty and is sent only when typed in, so editing reveals
+  │   │                                  nothing; a field that is not masked (the legal name, the gender, and the date
+  │   │                                  and place of issue) opens filled in and is sent with its current value; under
+  │   │                                  each masked field holding a value, beside its hint, one Button ghost sm toggles
+  │   │                                  between "Xóa" (`personalSheet.clear`, `aria-label` `personalSheet.clearLabel`
+  │   │                                  with the field's name) and "Hoàn tác" (`personalSheet.undoClear`, `aria-label`
+  │   │                                  `personalSheet.undoClearLabel` with the field's name), the focus staying on it;
+  │   │                                  "Xóa" disables the field and keeps what was typed for "Hoàn tác" to bring back;
+  │   │                                  the button's `aria-describedby` is the hint, which becomes
+  │   │                                  `personalSheet.willClear`, and the change is announced once in a polite live
+  │   │                                  region (`personalSheet.willClear` or `personalSheet.clearUndone`); for the
+  │   │                                  document, one such button under the number, labelled
+  │   │                                  `personalSheet.clearDocumentLabel` and `personalSheet.undoClearDocumentLabel`,
+  │   │                                  disables the type, the number, the date and the place together and shows
+  │   │                                  `personalSheet.willClearDocument`; the save sends an untouched masked field as
+  │   │                                  absent (kept), a field marked as `null` (cleared; the four of the document
+  │   │                                  together) and a typed one as its value, with the `If-Match` of the ETag the
+  │   │                                  profile was loaded with: this three-state body (absent, `null`, value) is a
+  │   │                                  requirement on the update endpoint of STF-10, whose run raises a Needs decision
+  │   │                                  if the endpoint cannot meet it, rather than read `null` as "keep"; a 412 or 428
+  │   │                                  shows its `detail` in a toast and reloads the profile, and the sheet with it
   │   │                                  (*Conventions*, **Edits with an ETag**); `autocomplete="off"` on the masked
-  │   │                                  fields; each hint tied by
-  │   │                                  aria-describedby; a 400 or 409 on a field in its FieldError, any other item in
-  │   │                                  an Alert at the top; the corner close button in a Tooltip `ui.close`; footer
-  │   │                                  "Lưu" (`personalSheet.submit`, default), disabled with LoaderCircleIcon until
-  │   │                                  the answer comes, and "Hủy" (`staff.account.cancel`, outline); 200 closes it,
-  │   │                                  shows the toast `personalSheet.saved` and the card with the masked values
-  │   │                                  returned — sheet, field, input, textarea, select, popover, calendar, button
+  │   │                                  fields; each hint tied by aria-describedby; a 400 or 409 on a field in its
+  │   │                                  FieldError, any other item in an Alert at the top; the corner close button in a
+  │   │                                  Tooltip `ui.close`; footer "Lưu" (`personalSheet.submit`, default), disabled
+  │   │                                  with LoaderCircleIcon until the answer comes, and "Hủy"
+  │   │                                  (`staff.account.cancel`, outline); 200 closes it, shows the toast
+  │   │                                  `personalSheet.saved` and the card with the masked values returned — sheet,
+  │   │                                  field, input, textarea, select, popover, calendar, button
   │   ├── staff-hr-contact-card.tsx      Card as a `section` id contact: CardTitle `contact.title`, CardDescription
   │   │                                  `contact.description`; no CardAction (the staff member edits these on
   │   │                                  SCR-ACC-01, R-USR-18); MaskedField rows `contact.personalPhone`,
