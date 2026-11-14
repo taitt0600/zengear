@@ -123,7 +123,7 @@ A 400 on a value of the URL means the URL was edited by hand: the list falls bac
 
 ## Layout
 
-- **Design**: <https://claude.ai/artifact/J3zZ3ffqs7PTWEcu83nFfk>, drawn 2026-11-05 with the design system of
+- **Design**: drawn 2026-11-05 with the design system of
   2026-11-05; approved by the merge of the pull request that wrote this subsection (DEC-119); changed 2026-11-05
   (the columns STT and Thao tác, the soft badges), approved by the merge of the pull request of that change. The
   canvas shows the frame of SCR-ADM-01 for context only; this Layout does not approve it. Changed 2026-11-13 on
@@ -131,11 +131,12 @@ A 400 on a value of the URL means the URL was edited by hand: the list falls bac
   at the owner's request (usability, consistency, visual hierarchy, feedback, accessibility, the approver's needs):
   the status links with the count waiting, the search and filters of STF-06, the selection, bar, progress and result
   of STF-07 and STF-08, the export, the tab Chờ duyệt of STF-09, the role action and the approval of several accounts
-  drawn ahead (gaps 7 and 12); approved by the merge of the pull request of that change. Loading and error keep the
-  first canvas.
-- **Change of 2026-11-14** (DEC-140): "Thu hồi" on the creator's PENDING rows, drawn on the page "DEC-140 · 14/11/2026" of the canvas of this
-  screen (<https://claude.ai/artifact/VGfMXvw1CSvzx3ptVKWHbZ>, artboard `D140-ListPending`; the confirmation is on
-  the canvas of SCR-STF-03); approved by the merge of
+  drawn ahead (gaps 7 and 12); approved by the merge of the pull request of that change. Loading and error, kept from the
+  first design, were moved onto this canvas on 2026-11-14 (artboards `Loading` and `Error`, **Design canvas** of
+  *Conventions*), unchanged, and the first canvas deleted.
+- **Change of 2026-11-14** (DEC-140): "Thu hồi" on the creator's PENDING rows, drawn on the one page of the canvas of this
+  screen, canvas version `1794684833-cd42` (artboard `NoApprove`, changed in place and named `[Đổi 14/11/2026 ·
+  #155]`, a view of `Main`; the confirmation is on the canvas of SCR-STF-03); approved by the merge of
   the pull request that wrote this bullet, built by STF-09. Tree additions: `staff-pending-row.tsx` shows, when
   `canWithdraw` is true, Button `destructive-soft` sm `staff.account.withdraw` (Undo2Icon) with its `aria-label`
   `actions.withdrawLabel` "Thu hồi {name}" (*new*) and the link "Xem chi tiết"; `staff-pending-actions.tsx` adds
