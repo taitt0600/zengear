@@ -44,7 +44,7 @@ form takes only the staff profile and the sign-in account, collecting no persona
   shows the frame of SCR-ADM-01 as its Layout has it (the group "Menu", "Cài đặt" with its submenu closed, the user
   menu at the foot, the theme switch in the header), for context only; its submenu "Nhân viên"
   is context here too, and what the pull request of this Layout approved at the owner's request is that submenu as
-  drawn on the canvas of SCR-ADM-01 (artboards `Main` and `NarrowMenu`), recorded in
+  drawn on the canvas of SCR-ADM-01 (artboard `SubmenuStates`), recorded in
   [SCR-ADM-01](SCR-ADM-01.md) (**Menu**, *Layout*). The breadcrumb of this page is "Nhân viên ›
   Thêm nhân viên", the group as text, then the entry `admin.menu.staffNew` (SCR-ADM-01, *Layout*). It draws the PENDING account of STF-09 (above): the notice
   and the toast of a 201 whose `status` is `PENDING`. At the owner's request (2026-11-14) the required fields carry

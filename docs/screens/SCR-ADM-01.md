@@ -45,13 +45,13 @@ Every admin screen except the sign-in page sits in this layout.
   values of DEC-124: background `oklch(0.235 0 0)`, card, popover and sidebar `0.255`, secondary, muted, accent and
   sidebar-accent `0.335`, the rest as `app/globals.css`; `tokens.json` gains a dark theme only with DEC-123 (5)),
   approved by the merge of the pull request of that change. Changed 2026-11-14 on the one page of
-  this canvas, canvas version `1794685263-7da7` (the version approved before it: `1793887693-d76f`): the artboard
-  `SubmenuStates` is the design #152 approved (its three states: on SCR-STF-01 and SCR-STF-03, on the tab Chờ duyệt
-  with "Cài đặt" open, and collapsed with the tooltip "Nhân viên" open; first drawn on the canvas of SCR-STF-02 and
-  moved here), and `Main` and `NarrowMenu` redraw it in place in this canvas's own style, approved by the merge of
-  #155; all three are named `[Đổi 14/11/2026 · #152]`), drawn
-  with the design system of 2026-11-13 (commit 563a162), for the submenu "Nhân viên" (**Menu** above); approved by the merge of the
-  Layout pull request of SCR-STF-02, which carries this change at the owner's request. It is built by the web part of
+  this canvas, canvas version `1794685376-aa45` (the version approved before it: `1793887693-d76f`), drawn with the design system
+  of 2026-11-13 (commit 563a162), for the submenu "Nhân viên" (**Menu** above): the artboard `SubmenuStates`, named
+  `[Đổi 14/11/2026 · #152]`, is the design approved by the merge of the Layout pull request of SCR-STF-02 (#152), at
+  the owner's request (its three states: on SCR-STF-01 and SCR-STF-03, on the tab Chờ duyệt with "Cài đặt" open, and
+  collapsed with the tooltip "Nhân viên" open; first drawn on the canvas of SCR-STF-02 and moved here); `Main` and
+  `NarrowMenu`, named `[Đổi 14/11/2026 · #155]`, redraw it in place in this canvas's own style, approved by the merge
+  of #155. It is built by the web part of
   STF-09 (the Next row STF-09 of `docs/STATUS.md`, which this screen's Feature cell names), so no other row is
   needed; until then the menu keeps the single entry "Nhân viên".
 - **Artboards**: desktop (1440 px) with the menu expanded, which collapses to icons when the canvas plays it;
