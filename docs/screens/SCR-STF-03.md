@@ -4,8 +4,7 @@ One staff account: its staff profile (Hồ sơ nhân viên) and its sign-in acco
 it while it waits for approval (UC-140) and to disable or restore it (UC-005, UC-006).
 
 Loaded from `GET /api/v1/admin/staff/{id}`: name, email, employee code, joined date, left date, work phone, status,
-roles,
-and whether the default password is changed (`mustChangePassword`). No field of this account is editable yet
+roles, and whether the default password is changed (`mustChangePassword`). No field of this account is editable yet
 (STF-01 creates, STF-02 disables and restores, STF-09 approves and rejects; STF-10 edits the HR profile below); the
 action "Cập nhật thông tin" is designed ahead and waits for gap 7, the photo for gap 8 (STF-10), the password reset link
 for gap 9 and the activity card for gap 10.
@@ -96,13 +95,12 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   card it changes, every card's edit action in its header; and, on a PENDING account, a notice with the approval
   before the cards. The four cards of the HR profile and what each shows, masks and lets edit follow the field
   classification the owner approved on <https://claude.ai/artifact/1YzxwMAsQ2gS2qL5MQ2tVi> (its artboard "Admin"). It
-  keeps, from the Layout of 2026-11-11
-  (<https://claude.ai/artifact/QjTnaq2rsB49xBeN3Wkuen>, pull request #131, not built yet): the centred column with the
-  section navigation, the heading with its small Avatar, the photo in the first card, the
-  activity card, the 404 and error artboards and the confirmation "Gửi link đặt lại mật khẩu?"; and, from
-  <https://claude.ai/artifact/DuLX9hmqGWyyP9vmoUw6Dd> (pull request #111), the dialog "Khóa tài khoản", the
-  confirmation "Khôi phục tài khoản?" and the sheet "Cập nhật thông tin". The two confirmations of the approval, the
-  badge "Chờ duyệt" and the toasts are those of the Layout of [SCR-STF-01](SCR-STF-01.md)
+  keeps, from the Layout of 2026-11-11 (<https://claude.ai/artifact/QjTnaq2rsB49xBeN3Wkuen>, pull request #131, not
+  built yet): the centred column with the section navigation, the heading with its small Avatar, the photo in the first
+  card, the activity card, the 404 and error artboards and the confirmation "Gửi link đặt lại mật khẩu?"; and, from
+  <https://claude.ai/artifact/DuLX9hmqGWyyP9vmoUw6Dd> (pull request #111), the dialog "Khóa tài khoản", the confirmation
+  "Khôi phục tài khoản?" and the sheet "Cập nhật thông tin". The two confirmations of the approval, the badge "Chờ
+  duyệt" and the toasts are those of the Layout of [SCR-STF-01](SCR-STF-01.md)
   (<https://claude.ai/artifact/VGfMXvw1CSvzx3ptVKWHbZ>), drawn again only to show them on this page. The canvas shows
   the frame of SCR-ADM-01 for context only; this Layout does not approve it.
 - **Builds**, each part by its feature, on the page as it is then:
@@ -136,21 +134,20 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   (DEC-123 (5): the soft badges, `destructive-soft`, the revealed value on `accent`). States: loading of the account
   (the navigation shows, the cards as Skeleton); of the HR profile, one artboard with its loading card, its failed
   load, its refused load (a sample `detail`), an erased profile, the contact card with nothing entered and the
-  documents card without a document. Narrow (390 px): the
-  PENDING account (no section navigation, the notice first with its two buttons side by side, the card's edit action
-  under its description at full width) and the four cards of the HR profile (the label over the value, "Hiện" at the
-  end of the value's line, the documents as a list). 404 and error of the account keep the canvas of 2026-11-11 (an
-  Empty in the column, no navigation), and the wide screen its 2560 px artboard (the column keeps 1024 px and
-  centres). No permission is the page of SCR-ADM-01 (`RequirePermission` with `staff.read`). After a rejection the
-  page is SCR-STF-01, not drawn again. Drawn ahead and not built until their features: "Cập nhật thông tin" (gap 7),
-  the row of the last reset link with "Gửi link đặt lại mật khẩu" (gap 9) and the activity card (gap 10). The only
-  icon-only button is the corner close button of the sheet, drawn with its tooltip open.
+  documents card without a document. Narrow (390 px): the PENDING account (no section navigation, the notice first with
+  its two buttons side by side, the card's edit action under its description at full width) and the four cards of the HR
+  profile (the label over the value, "Hiện" at the end of the value's line, the documents as a list). 404 and error of
+  the account keep the canvas of 2026-11-11 (an Empty in the column, no navigation), and the wide screen its 2560 px
+  artboard (the column keeps 1024 px and centres). No permission is the page of SCR-ADM-01 (`RequirePermission` with
+  `staff.read`). After a rejection the page is SCR-STF-01, not drawn again. Drawn ahead and not built until their
+  features: "Cập nhật thông tin" (gap 7), the row of the last reset link with "Gửi link đặt lại mật khẩu" (gap 9) and
+  the activity card (gap 10). The only icon-only button is the corner close button of the sheet, drawn with its tooltip
+  open (an empty date picker shows "—", not an icon alone).
 - **shadcn**: no `add` for what the first build makes (the notice is the installed `alert`); `shadcn add toggle-group`
-  comes with the activity card of gap
-  10, the only part that needs a component not installed. The section navigation is plain links on the tokens (shadcn
-  has no table of contents; `sidebar` is the app's menu and too heavy here). It lives in this module
-  (`components/section-nav.tsx`, `hooks/use-active-section.ts`) while only this screen uses it (DEC-118 (1),
-  `docs/FRONTEND.md`, *Modules and boundaries*); the pull request that builds the Layout of SCR-ACC-01, which takes
+  comes with the activity card of gap 10, the only part that needs a component not installed. The section navigation is
+  plain links on the tokens (shadcn has no table of contents; `sidebar` is the app's menu and too heavy here). It lives
+  in this module (`components/section-nav.tsx`, `hooks/use-active-section.ts`) while only this screen uses it (DEC-118
+  (1), `docs/FRONTEND.md`, *Modules and boundaries*); the pull request that builds the Layout of SCR-ACC-01, which takes
   the same layout, moves both to `components/app/` and `@/hooks`.
 - **Theme**: unchanged and built: the soft status badges (`success` on `success-soft`, DISABLED `secondary`,
   ANONYMIZED `outline`) and the Button variant `destructive-soft` of the previous Layout of this screen are in
@@ -158,35 +155,31 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   (DEC-123 (4), DEC-124). The PENDING badge is `outline` with ClockIcon, as on SCR-STF-01. On this page "Duyệt" is
   the Button `default` (the main action of the view, as the submit of its confirmation), where the rows of
   SCR-STF-01 use `outline`; "Từ chối" is `destructive-soft` on both. The current link of the section navigation is
-  `accent` with `foreground` text at weight 500;
-  the others `muted-foreground` (4.98:1 light, 6.72:1 dark on `background`), on hover `accent` (`muted-foreground` on
-  `accent` 4.56:1 light, 4.83:1 dark).
+  `accent` with `foreground` text at weight 500; the others `muted-foreground` (4.98:1 light, 6.72:1 dark on
+  `background`), on hover `accent` (`muted-foreground` on `accent` 4.56:1 light, 4.83:1 dark).
 - **Section navigation** (new behaviour, so the build is a `feat(web): … (STF-02)` pull request on
   `feat/stf-02-web-2`, the next free name since `feat/stf-02-web` has merged, CLAUDE.md *Workflow*; as the paragraph
   under the [screen list](README.md#screen-list) says): from `xl` (1280px) a `nav` labelled by its visible title "Trên
-  trang này"
-  (`admin.sectionNav.label`, `text-xs font-medium`, `muted-foreground`) sits left of the cards in a column of 200px,
-  `sticky top-6` (24px, the page padding; the header of SCR-ADM-01 scrolls with the page) with `self-start` on its
-  grid cell, and lists one link per card, in page order, with the card's title as its text
-  (`staff.account.info.title`, `.accountCard.title`, with STF-10 the titles of the HR profile's cards for a holder
-  of `staff.pii.read`, and `.activity.title`; the last only once gap 10 is built); a link text wraps, never cut short.
-  It is navigation, not content, so it sits on the page ground like the
-  menu of SCR-ADM-01, an exception to **Grouping**. Each card is a `section` with an `id` (`info`, `account`, `hr` or
-  `personal`, `contact`, `work` and `documents`,
-  `activity`), `aria-labelledby` its title and `scroll-margin-top` 24px; the titles are `h2` with the ids
-  `<id>-title` and `tabindex="-1"`. A click scrolls to the card (smoothly, at once under `prefers-reduced-motion`),
-  moves the focus to its `h2` and replaces the URL hash without a new history entry. While the page scrolls, the
-  current link (`aria-current="location"`) is the last card whose top has passed a line 24px plus a third of the
-  viewport from the top; when the document scrolls at all (`scrollHeight` above the viewport), the last card is
-  current once the sentinel after it (`staff-account-end`, an empty `aria-hidden` div of the layout) comes into view;
-  when it does not scroll, the first card stays current (from the build of SCR-ACC-01, a clicked card stays current
-  until the next scroll moves the line, see its Layout). One IntersectionObserver watches the sections and the
-  sentinel; no handler on every scroll frame. A hash on load (`#<id>`) is applied once the account has loaded, not
-  while the Skeleton shows; a hash of a card of the HR profile (`#personal`, `#contact`, `#work`, `#documents`) once
-  that profile has loaded too, and `#hr` when it has none. Below `xl` the navigation is hidden with CSS (its section
-  stays mounted, so a hash still
-  scrolls) and the cards keep their order: on a PENDING account the notice, which holds the approval, comes before
-  them at every width. The notice is no card of the navigation.
+  trang này" (`admin.sectionNav.label`, `text-xs font-medium`, `muted-foreground`) sits left of the cards in a column of
+  200px, `sticky top-6` (24px, the page padding; the header of SCR-ADM-01 scrolls with the page) with `self-start` on
+  its grid cell, and lists one link per card, in page order, with the card's title as its text
+  (`staff.account.info.title`, `.accountCard.title`, with STF-10 the titles of the HR profile's cards for a holder of
+  `staff.pii.read`, and `.activity.title`; the last only once gap 10 is built); a link text wraps, never cut short. It
+  is navigation, not content, so it sits on the page ground like the menu of SCR-ADM-01, an exception to **Grouping**.
+  Each card is a `section` with an `id` (`info`, `account`, `hr` or `personal`, `contact`, `work` and `documents`,
+  `activity`), `aria-labelledby` its title and `scroll-margin-top` 24px; the titles are `h2` with the ids `<id>-title`
+  and `tabindex="-1"`. A click scrolls to the card (smoothly, at once under `prefers-reduced-motion`), moves the focus
+  to its `h2` and replaces the URL hash without a new history entry. While the page scrolls, the current link
+  (`aria-current="location"`) is the last card whose top has passed a line 24px plus a third of the viewport from the
+  top; when the document scrolls at all (`scrollHeight` above the viewport), the last card is current once the sentinel
+  after it (`staff-account-end`, an empty `aria-hidden` div of the layout) comes into view; when it does not scroll, the
+  first card stays current (from the build of SCR-ACC-01, a clicked card stays current until the next scroll moves the
+  line, see its Layout). One IntersectionObserver watches the sections and the sentinel; no handler on every scroll
+  frame. A hash on load (`#<id>`) is applied once the account has loaded, not while the Skeleton shows; a hash of a card
+  of the HR profile (`#personal`, `#contact`, `#work`, `#documents`) once that profile has loaded too, and `#hr` when it
+  has none. Below `xl` the navigation is hidden with CSS (its section stays mounted, so a hash still scrolls) and the
+  cards keep their order: on a PENDING account the notice, which holds the approval, comes before them at every width.
+  The notice is no card of the navigation.
 - **Width**: the page's content is one column of at most 1024px (`max-w-5xl`), centred in the page area of SCR-ADM-01
   (24px padding, 16px narrow); from `xl` it holds the heading over a grid `200px minmax(0, 1fr)` with a gap of 32px
   (navigation | cards), so a card is about 792px wide at most, whatever the screen. `xl` rather than `lg`, because at
@@ -198,51 +191,49 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   Tài khoản của tôi.", or, for a DISABLED account whose profile was erased (R-USR-19) and an ANONYMIZED one,
   `hr.erased` "Hồ sơ nhân sự đã xóa" with `hr.erasedDescription` "Dữ liệu đã được xóa theo thời hạn lưu sau ngày
   nghỉ việc, hoặc khi dữ liệu cá nhân của tài khoản được ẩn danh."; `edit` "Sửa"; the reveal `reveal.show` "Hiện" and
-  `reveal.hide` "Ẩn" with their `aria-label`s
-  `reveal.showLabel` "Hiện {field}" and `reveal.hideLabel` "Ẩn {field}", `reveal.countdown` "Tự che sau {seconds}
-  giây", the announcements `reveal.shown` "Đã hiện {field}." and `reveal.hidden` "Đã che {field}.", and `reveal.limit`
-  "Bạn hiện được tối đa 30 lần mỗi giờ; mỗi lần bấm Hiện tính một lần. Giá trị tự che lại sau 30 giây để không ai
-  khác nhìn thấy." (the 30 seconds are a security limit of DEC-130 (4), an exception of WCAG 2.2.1 that the text
-  names; "Hiện" again counts against the 30 an hour); `personal.title` "Thông tin cá nhân",
-  `personal.description` "Theo giấy tờ tùy thân. Giá trị được che; mỗi lần bấm Hiện được ghi lại và nhân viên xem
-  được.", `personal.legalName` "Họ tên theo giấy tờ", `personal.birthDate` "Ngày sinh", `personal.gender` "Giới tính"
-  with `personal.genderValue.*` (the values of STF-10), `personal.idType.cccd` "CCCD" and `.passport` "Hộ chiếu",
-  `personal.idNumber` "số {type}" (the field's name in an `aria-label`), `personal.issued` "Ngày cấp, nơi cấp",
-  `personal.permanentAddress` "Địa chỉ thường trú"; the sheet `personalSheet.title` "Sửa thông tin cá nhân",
-  `personalSheet.description` "Nhập theo giấy tờ tùy thân của {name}. Ô đang che để trống thì giữ nguyên giá trị cũ.",
-  the hint `personalSheet.legalNameHint` "Viết đủ dấu, đúng như trên giấy tờ. Tối đa 100 ký tự.", the birth date's
-  hint `personalSheet.birthDateHint` "Đang lưu: {masked}. Chỉ chọn khi cần đổi." (an empty date picker shows no text,
-  only its CalendarIcon), `personalSheet.idType` "Loại giấy tờ", `personalSheet.idNumber` "Số giấy tờ" with, for a
-  CCCD, its placeholder `personalSheet.idNumberPlaceholder` "012345678901" and its hint
-  `personalSheet.idNumberHintCccd` "Đang lưu: {masked}. CCCD gồm 12 chữ số. Để trống nếu không đổi.", and for a
-  passport no placeholder and the hint `personalSheet.idNumberHintPassport` "Đang lưu: {masked}. Nhập đúng như trên hộ
-  chiếu. Để trống nếu không đổi.", `personalSheet.issuedDate` "Ngày cấp", `personalSheet.issuedPlace` "Nơi
-  cấp", the address's hint `personalSheet.keepHint` "Đang lưu: {masked}. Để trống nếu không đổi.",
-  `personalSheet.submit` "Lưu", `staff.account.cancel` "Hủy" (existing) and the toast `personalSheet.saved` "Đã lưu
-  thông tin cá nhân." (the lengths and
-  formats are those the endpoint of STF-10 checks; the run that builds it corrects a hint that differs); the selects
-  and the date pickers have no placeholder; `contact.title` "Liên lạc và liên hệ khẩn cấp", `contact.description`
-  "Nhân viên tự cập nhật trong Tài khoản của tôi; ở đây chỉ xem.", `contact.personalPhone` "SĐT cá nhân",
-  `contact.personalEmail` "Email cá nhân", `contact.currentAddress` "Chỗ ở hiện tại", `contact.emergency` "Liên hệ
-  khẩn cấp" with `contact.emergencyValue` "{name} · {relation}", `contact.emergencyPhoneLabel` "SĐT của {name}" and
+  `reveal.hide` "Ẩn" with their `aria-label`s `reveal.showLabel` "Hiện {field}" and `reveal.hideLabel` "Ẩn {field}",
+  `reveal.countdown` "Tự che sau {seconds} giây", the announcements `reveal.shown` "Đã hiện {field}." and
+  `reveal.hidden` "Đã che {field}.", and `reveal.limit` "Bạn hiện được tối đa 30 lần mỗi giờ; mỗi lần bấm Hiện tính một
+  lần. Giá trị tự che lại sau 30 giây để không ai khác nhìn thấy." (the 30 seconds are a security limit of DEC-130 (4),
+  the Essential exception of WCAG 2.2.1, which the text names; "Hiện" again counts against the 30 an hour);
+  `personal.title` "Thông tin cá nhân", `personal.description` "Theo giấy tờ tùy thân. Giá trị được che; mỗi lần bấm
+  Hiện được ghi lại và nhân viên xem được.", `personal.legalName` "Họ tên theo giấy tờ", `personal.birthDate` "Ngày
+  sinh", `personal.gender` "Giới tính" with `personal.genderValue.*` (the values of STF-10), `personal.idType.cccd`
+  "CCCD" and `.passport` "Hộ chiếu", `personal.idNumber` "số {type}" (the field's name in an `aria-label`),
+  `personal.issued` "Ngày cấp, nơi cấp", `personal.permanentAddress` "Địa chỉ thường trú"; the sheet
+  `personalSheet.title` "Sửa thông tin cá nhân", `personalSheet.description` "Nhập theo giấy tờ tùy thân của {name}. Ô
+  đang che để trống thì giữ nguyên giá trị cũ.", the hint `personalSheet.legalNameHint` "Viết đủ dấu, đúng như trên giấy
+  tờ. Tối đa 100 ký tự.", the birth date's hint `personalSheet.birthDateHint` "Đang lưu: {masked}. Chỉ chọn khi cần
+  đổi." (an empty date picker shows the muted `staff.list.noValue` "—" beside its CalendarIcon, a value as on the rest
+  of the page, not a placeholder, so it is never a button with only an icon; the year dropdown runs from 100 years back
+  to today), `personalSheet.idType` "Loại giấy tờ", `personalSheet.idNumber` "Số giấy tờ" with, for a CCCD, its
+  placeholder `personalSheet.idNumberPlaceholder` "012345678901" and its hint `personalSheet.idNumberHintCccd` "Đang
+  lưu: {masked}. CCCD gồm 12 chữ số. Để trống nếu không đổi.", and for a passport no placeholder and the hint
+  `personalSheet.idNumberHintPassport` "Đang lưu: {masked}. Nhập đúng như trên hộ chiếu. Để trống nếu không đổi.",
+  `personalSheet.issuedDate` "Ngày cấp", `personalSheet.issuedPlace` "Nơi cấp", the address's hint
+  `personalSheet.keepHint` "Đang lưu: {masked}. Để trống nếu không đổi.", `personalSheet.submit` "Lưu",
+  `staff.account.cancel` "Hủy" (existing) and the toast `personalSheet.saved` "Đã lưu thông tin cá nhân." (the lengths
+  and formats are those the endpoint of STF-10 checks; the run that builds it corrects a hint that differs); the selects
+  and the date pickers have no placeholder; `contact.title` "Liên lạc và liên hệ khẩn cấp", `contact.description` "Nhân
+  viên tự cập nhật trong Tài khoản của tôi; ở đây chỉ xem.", `contact.personalPhone` "SĐT cá nhân",
+  `contact.personalEmail` "Email cá nhân", `contact.currentAddress` "Chỗ ở hiện tại", `contact.emergency` "Liên hệ khẩn
+  cấp" with `contact.emergencyValue` "{name} · {relation}", `contact.emergencyPhoneLabel` "SĐT của {name}" and
   `contact.noEmergency` "Nhân viên chưa thêm người liên hệ khẩn cấp."; `work.title` "Công việc và hợp đồng",
-  `work.description` "Chức danh, quản lý trực tiếp và hợp đồng hiện hành.", `work.jobTitle` "Chức danh",
-  `work.manager` "Quản lý trực tiếp", `work.contract` "Hợp đồng" with `work.contractValue` "{type} · {start} – {end}",
-  or, without
-  an end date, `work.contractValueOpen` "{type} · từ {start}",
-  and the types `work.contractType.probation` "Thử việc", `.fixedTerm` "Xác định thời hạn" and `.indefinite` "Không
-  xác định thời hạn"; `documents.title` "Hồ sơ số", `documents.description` "Hợp đồng, giấy tờ và bằng cấp. Mỗi lần mở
-  tệp được ghi lại; đường dẫn mở tệp hết hạn sau 5 phút.", `documents.upload` "Tải lên tài liệu",
-  `documents.tableLabel` "Hồ sơ số của nhân viên", the columns `documents.columns.name` "Tài liệu", `.type` "Loại",
-  `.uploadedAt` "Ngày tải lên", `.status` "Trạng thái" and `.actions` "Thao tác", the types `documents.type.contract`
-  "Hợp đồng", `.appendix` "Phụ lục", `.decision` "Quyết định", `.identity` "Giấy tờ tùy thân", `.resume` "Sơ yếu lý
-  lịch" and `.certificate` "Bằng cấp, chứng chỉ", the Badges `documents.status.approved` "Đã duyệt" and `.pending`
-  "Chờ duyệt", `documents.download` "Tải xuống" and `documents.approve` "Duyệt" with their `aria-label`s
-  `documents.downloadLabel` "Tải xuống {file}" and `documents.approveLabel` "Duyệt {file}", and the Empty
-  `documents.empty` "Chưa có tài liệu nào" with `documents.emptyDescription` "Hợp đồng, quyết định, giấy tờ tùy thân và
-  bằng cấp của nhân viên sẽ hiện ở đây." (for every viewer; the upload's formats and size go with its dialog); the
-  card of a refused profile takes the problem's text as its EmptyTitle and no description; `admin.retry` and
-  `ui.close` (existing).
+  `work.description` "Chức danh, quản lý trực tiếp và hợp đồng hiện hành.", `work.jobTitle` "Chức danh", `work.manager`
+  "Quản lý trực tiếp", `work.contract` "Hợp đồng" with `work.contractValue` "{type} · {start} – {end}", or, without an
+  end date, `work.contractValueOpen` "{type} · từ {start}", and the types `work.contractType.probation` "Thử việc",
+  `.fixedTerm` "Xác định thời hạn" and `.indefinite` "Không xác định thời hạn"; `documents.title` "Hồ sơ số",
+  `documents.description` "Hợp đồng, giấy tờ và bằng cấp. Mỗi lần tải xuống được ghi lại; đường dẫn tải xuống hết hạn
+  sau 5 phút.", `documents.upload` "Tải lên tài liệu", `documents.tableLabel` "Hồ sơ số của nhân viên", the columns
+  `documents.columns.name` "Tài liệu", `.type` "Loại", `.uploadedAt` "Ngày tải lên", `.status` "Trạng thái" and
+  `.actions` "Thao tác", the types `documents.type.contract` "Hợp đồng", `.appendix` "Phụ lục", `.decision` "Quyết
+  định", `.identity` "Giấy tờ tùy thân", `.resume` "Sơ yếu lý lịch" and `.certificate` "Bằng cấp, chứng chỉ", the Badges
+  `documents.status.approved` "Đã duyệt" and `.pending` "Chờ duyệt", `documents.download` "Tải xuống" and
+  `documents.approve` "Duyệt" with their `aria-label`s `documents.downloadLabel` "Tải xuống {file}" and
+  `documents.approveLabel` "Duyệt {file}", and the Empty `documents.empty` "Chưa có tài liệu nào" with
+  `documents.emptyDescription` "Hợp đồng, quyết định, giấy tờ tùy thân và bằng cấp của nhân viên sẽ hiện ở đây." (for
+  every viewer; the upload's formats and size go with its dialog); the card of a refused profile takes the problem's
+  text as its EmptyTitle and no description; `admin.retry` and `ui.close` (existing).
 - **Texts** (`messages/vi.json`), new ones marked *new*, under `staff.account` unless named: for the PENDING account
   (STF-09): the notice's title `pendingNotice.title` "Tài khoản đang chờ duyệt" (*new*) and the sentences of its
   description, in this order: `pendingNotice.createdBy` "{name} tạo lúc {time}." (*new*; gap 14; the time `dd/MM/yyyy
@@ -254,67 +245,64 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   `staff.list.status.pending` "Chờ duyệt", the buttons `approve` "Duyệt" and `reject` "Từ chối", the confirmations
   `approveDialog.title`, `.description` and `.submit`, `rejectDialog.title`, `.description` and `.submit` with the
   rows `summary.name`, `.email`, `.roles`, `.createdBy` and `.createdByValue`, and the toasts `approved` with
-  `approvedHint` and `rejected`; `admin.sectionNav.label`
-  "Trên trang này" (*new*; the visible title of the section navigation, which names the `nav`); for gap 8, not built
-  yet: `info.photoAlt` "Ảnh của {name}" (*new*; the alt of the photo once there is one), `info.choosePhoto` "Chọn ảnh"
-  and its hint `info.photoHint` "Ảnh chân dung, rõ mặt. JPG hoặc PNG, tối đa 2 MB." (*new*; the formats and the 2 MB
-  the owner chose on 2026-11-11, which the Decision of gap 8 records); the password rows of the account card (the keys
-  `passwordCard.title` and
-  `passwordCard.description` of the Layout of 2026-11-11 are not added, since the password card is gone): the row
-  `passwordCard.default` "Mật khẩu mặc định" with the Badges `passwordCard.unchanged` "Chưa đổi" and
-  `passwordCard.changed` "Đã đổi" (*new*), and, for gap 9, not built yet: the row `passwordCard.lastReset` "Link đặt
-  lại gần nhất" with `passwordCard.neverReset` "Chưa gửi lần nào" or the time, `passwordCard.sendReset` "Gửi link đặt
-  lại mật khẩu" and its hint `passwordCard.sendResetHint` "Nhân viên nhận email có link đặt mật khẩu mới, hết hạn sau
-  1 giờ, và bị đăng xuất khỏi mọi thiết bị.", the confirmation `resetDialog.title` "Gửi link đặt lại mật khẩu?",
-  `resetDialog.description` "Hệ thống gửi email tới {email} với link đặt mật khẩu mới, hết hạn sau 1 giờ. Nhân viên bị
-  đăng xuất khỏi mọi thiết bị ngay khi bạn xác nhận; mật khẩu cũ vẫn dùng được cho tới khi họ đặt mật khẩu mới.",
-  `resetDialog.submit` "Gửi link" and the toast `resetSent` "Đã gửi link đặt lại mật khẩu." (*new*); for gap 10, not
-  built yet: `activity.title` "Hoạt động", `activity.description` "Việc nhân viên đã làm trong hệ thống và những thay
-  đổi trên tài khoản này, mới nhất trước.", the filters `activity.range` "Khoảng thời gian", `activity.type` "Loại
-  hoạt động", `activity.area` "Khu vực", `activity.scope` "Liên quan" with `activity.scopeAll` "Tất cả",
-  `activity.scopeBy` "Do nhân viên làm" and `activity.scopeOn` "Trên tài khoản", `activity.all` "Tất cả",
-  `activity.clear` "Xóa bộ lọc", `activity.filters` "Bộ lọc ({count})" (narrow) and its Sheet
+  `approvedHint` and `rejected`; `admin.sectionNav.label` "Trên trang này" (*new*; the visible title of the section
+  navigation, which names the `nav`); for gap 8, not built yet: `info.photoAlt` "Ảnh của {name}" (*new*; the alt of the
+  photo once there is one), `info.choosePhoto` "Chọn ảnh" and its hint `info.photoHint` "Ảnh chân dung, rõ mặt. JPG hoặc
+  PNG, tối đa 2 MB." (*new*; the formats and the 2 MB the owner chose on 2026-11-11, which the Decision of gap 8
+  records); the password rows of the account card (the keys `passwordCard.title` and `passwordCard.description` of the
+  Layout of 2026-11-11 are not added, since the password card is gone): the row `passwordCard.default` "Mật khẩu mặc
+  định" with the Badges `passwordCard.unchanged` "Chưa đổi" and `passwordCard.changed` "Đã đổi" (*new*), and, for gap 9,
+  not built yet: the row `passwordCard.lastReset` "Link đặt lại gần nhất" with `passwordCard.neverReset` "Chưa gửi lần
+  nào" or the time, `passwordCard.sendReset` "Gửi link đặt lại mật khẩu" and its hint `passwordCard.sendResetHint` "Nhân
+  viên nhận email có link đặt mật khẩu mới, hết hạn sau 1 giờ, và bị đăng xuất khỏi mọi thiết bị.", the confirmation
+  `resetDialog.title` "Gửi link đặt lại mật khẩu?", `resetDialog.description` "Hệ thống gửi email tới {email} với link
+  đặt mật khẩu mới, hết hạn sau 1 giờ. Nhân viên bị đăng xuất khỏi mọi thiết bị ngay khi bạn xác nhận; mật khẩu cũ vẫn
+  dùng được cho tới khi họ đặt mật khẩu mới.", `resetDialog.submit` "Gửi link" and the toast `resetSent` "Đã gửi link
+  đặt lại mật khẩu." (*new*); for gap 10, not built yet: `activity.title` "Hoạt động", `activity.description` "Việc nhân
+  viên đã làm trong hệ thống và những thay đổi trên tài khoản này, mới nhất trước.", the filters `activity.range`
+  "Khoảng thời gian", `activity.type` "Loại hoạt động", `activity.area` "Khu vực", `activity.scope` "Liên quan" with
+  `activity.scopeAll` "Tất cả", `activity.scopeBy` "Do nhân viên làm" and `activity.scopeOn` "Trên tài khoản",
+  `activity.all` "Tất cả", `activity.clear` "Xóa bộ lọc", `activity.filters` "Bộ lọc ({count})" (narrow) and its Sheet
   `activity.filtersSheet.title` "Lọc hoạt động" and `activity.filtersSheet.description` "Chọn khoảng thời gian, loại,
   khu vực và phạm vi hoạt động cần xem.", the columns `activity.columns.time` "Thời gian", `.action` "Hoạt động",
-  `.target` "Đối tượng", `.area` "Khu vực", `activity.tableLabel` "Hoạt động của tài khoản", `activity.shown` "Đang
-  hiện {count} hoạt động mới nhất trong khoảng đã chọn.", `activity.loadMore` "Tải thêm", `activity.end` "Đã hiện hết
-  hoạt động trong khoảng đã chọn.", the Empty `activity.empty` "Không có hoạt động nào trong khoảng đã chọn." with
+  `.target` "Đối tượng", `.area` "Khu vực", `activity.tableLabel` "Hoạt động của tài khoản", `activity.shown` "Đang hiện
+  {count} hoạt động mới nhất trong khoảng đã chọn.", `activity.loadMore` "Tải thêm", `activity.end` "Đã hiện hết hoạt
+  động trong khoảng đã chọn.", the Empty `activity.empty` "Không có hoạt động nào trong khoảng đã chọn." with
   `activity.emptyDescription` "Thử chọn khoảng thời gian rộng hơn hoặc xóa bộ lọc.", and the names of the event types
   and areas, which the Decision of gap 10 lists (*new*); the page's title and breadcrumb entry `title` "Tài khoản nhân
-  viên" (*new*); the details card `info.title` "Hồ sơ nhân viên" (changed from "Thông tin nhân viên": the
-  term of `docs/GLOSSARY.md`) and `info.description` "Thông tin của nhân viên tại cửa hàng, dùng để liên hệ trong
-  công việc." (changed from "Thông tin ghi khi tạo tài khoản, dùng để liên hệ và phân quyền."); its
-  labels `staff.list.columns.name`, `.employeeCode`, `.joinedDate`, `.leftDate`, with `workPhone` "SĐT công việc",
-  and `staff.list.noValue` "—" for an empty value; the account card `accountCard.title` "Tài khoản" and
+  viên" (*new*); the details card `info.title` "Hồ sơ nhân viên" (changed from "Thông tin nhân viên": the term of
+  `docs/GLOSSARY.md`) and `info.description` "Thông tin của nhân viên tại cửa hàng, dùng để liên hệ trong công việc."
+  (changed from "Thông tin ghi khi tạo tài khoản, dùng để liên hệ và phân quyền."); its labels
+  `staff.list.columns.name`, `.employeeCode`, `.joinedDate`, `.leftDate`, with `workPhone` "SĐT công việc", and
+  `staff.list.noValue` "—" for an empty value; the account card `accountCard.title` "Tài khoản" and
   `accountCard.description` "Email đăng nhập, vai trò, trạng thái và mật khẩu của tài khoản." (*new*), its labels
-  `accountCard.email` "Email đăng nhập" (*new*), `staff.list.columns.roles` and `staff.list.columns.status`, the
-  badges `staff.list.status.active` and `.disabled`, with `status.anonymized` "Đã ẩn danh", and the hint of the
-  status row `status.description` "Tài khoản bị khóa không đăng nhập được; khôi phục để nhân viên dùng lại." (on
-  ACTIVE and DISABLED; it was the description of the status card) or `status.pendingDescription` (PENDING); (the key
-  `status.title` goes with the status card, and the keys `password` and `mustChangePassword` since the password row
-  takes `passwordCard.default`); the actions
-  `disable` "Khóa tài khoản", `disableAgain` "Khóa lại" with its hint `disableAgainHint` "Gửi lại lệnh khóa để đăng
-  xuất nhân viên khỏi mọi thiết bị, khi lần khóa trước báo lỗi.", `restore` "Khôi phục tài khoản", `ownAccount` "Bạn
-  không thể khóa tài khoản của chính mình." and `anonymized` "Dữ liệu cá nhân của tài khoản này đã được ẩn danh, nên
-  không khóa hay khôi phục được nữa." (*new*); the dialog `disableDialog.title` "Khóa tài khoản",
-  `disableDialog.description` "Tài khoản bị khóa không đăng nhập được cho đến khi được khôi phục.",
-  `disableDialog.warning` "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị ngay lập tức.", `disableDialog.leaving` "Nhân
-  viên nghỉ việc" with its hint `disableDialog.leavingHint` "Đánh dấu khi nhân viên đã nghỉ, để ghi ngày làm việc cuối
-  cùng.", the date's hint `disableDialog.leftDateHint` "Ngày làm việc cuối cùng: không sau hôm nay và không trước ngày
-  vào làm ({joinedDate})." or, without a joined date, `disableDialog.leftDateHintToday` "Ngày làm việc cuối cùng:
-  không sau hôm nay.", `disableDialog.submit` "Khóa" (*new*; the date's label is `staff.list.columns.leftDate`); the
-  confirmation `restoreDialog.title` "Khôi phục tài khoản?", `restoreDialog.description` "Nhân viên đăng nhập lại được
-  bằng mật khẩu đang có, và ngày nghỉ việc được xóa." and `restoreDialog.submit` "Khôi phục" (*new*); `cancel` "Hủy"
-  (*new*); the toasts `disabled` "Đã khóa tài khoản." and `restored` "Đã khôi phục tài khoản." (*new*); `backToList`
-  "Về danh sách nhân viên" (*new*); `admin.retry` "Thử lại"; `ui.calendar.previousMonth` "Tháng trước" and
-  `ui.calendar.nextMonth` "Tháng sau" (*new*; each both the `aria-label` of its button and its tooltip),
-  `ui.calendar.nav` "Chọn tháng" (the nav's name), `ui.calendar.today` "hôm nay" and `ui.calendar.selected` "đã chọn"
-  (the parts a day button's name adds) (*new*), and a key of the same namespace for any other label the installed
-  version reads; `ui.close` "Đóng" (the tooltip of the close button of the dialog and of the sheet);
-  `disableDialog.leftDateFuture` "Ngày vào làm sau hôm nay, nên chưa ghi được ngày nghỉ việc." (*new*); for gap 7, not
-  built yet: `update` "Cập nhật thông tin", `updateSheet.title` "Cập nhật thông tin nhân viên",
-  `updateSheet.description` "Sửa họ tên, mã, số điện thoại và ngày vào làm. Email và vai trò chưa đổi được ở đây.",
-  the labels `staff.list.columns.name`, `.employeeCode`, `workPhone`, `staff.list.columns.joinedDate`, the hints
+  `accountCard.email` "Email đăng nhập" (*new*), `staff.list.columns.roles` and `staff.list.columns.status`, the badges
+  `staff.list.status.active` and `.disabled`, with `status.anonymized` "Đã ẩn danh", and the hint of the status row
+  `status.description` "Tài khoản bị khóa không đăng nhập được; khôi phục để nhân viên dùng lại." (on ACTIVE and
+  DISABLED; it was the description of the status card) or `status.pendingDescription` (PENDING); (the key `status.title`
+  goes with the status card, and the keys `password` and `mustChangePassword` since the password row takes
+  `passwordCard.default`); the actions `disable` "Khóa tài khoản", `disableAgain` "Khóa lại" with its hint
+  `disableAgainHint` "Gửi lại lệnh khóa để đăng xuất nhân viên khỏi mọi thiết bị, khi lần khóa trước báo lỗi.",
+  `restore` "Khôi phục tài khoản", `ownAccount` "Bạn không thể khóa tài khoản của chính mình." and `anonymized` "Dữ liệu
+  cá nhân của tài khoản này đã được ẩn danh, nên không khóa hay khôi phục được nữa." (*new*); the dialog
+  `disableDialog.title` "Khóa tài khoản", `disableDialog.description` "Tài khoản bị khóa không đăng nhập được cho đến
+  khi được khôi phục.", `disableDialog.warning` "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị ngay lập tức.",
+  `disableDialog.leaving` "Nhân viên nghỉ việc" with its hint `disableDialog.leavingHint` "Đánh dấu khi nhân viên đã
+  nghỉ, để ghi ngày làm việc cuối cùng.", the date's hint `disableDialog.leftDateHint` "Ngày làm việc cuối cùng: không
+  sau hôm nay và không trước ngày vào làm ({joinedDate})." or, without a joined date, `disableDialog.leftDateHintToday`
+  "Ngày làm việc cuối cùng: không sau hôm nay.", `disableDialog.submit` "Khóa" (*new*; the date's label is
+  `staff.list.columns.leftDate`); the confirmation `restoreDialog.title` "Khôi phục tài khoản?",
+  `restoreDialog.description` "Nhân viên đăng nhập lại được bằng mật khẩu đang có, và ngày nghỉ việc được xóa." and
+  `restoreDialog.submit` "Khôi phục" (*new*); `cancel` "Hủy" (*new*); the toasts `disabled` "Đã khóa tài khoản." and
+  `restored` "Đã khôi phục tài khoản." (*new*); `backToList` "Về danh sách nhân viên" (*new*); `admin.retry` "Thử lại";
+  `ui.calendar.previousMonth` "Tháng trước" and `ui.calendar.nextMonth` "Tháng sau" (*new*; each both the `aria-label`
+  of its button and its tooltip), `ui.calendar.nav` "Chọn tháng" (the nav's name), `ui.calendar.today` "hôm nay" and
+  `ui.calendar.selected` "đã chọn" (the parts a day button's name adds) (*new*), and a key of the same namespace for any
+  other label the installed version reads; `ui.close` "Đóng" (the tooltip of the close button of the dialog and of the
+  sheet); `disableDialog.leftDateFuture` "Ngày vào làm sau hôm nay, nên chưa ghi được ngày nghỉ việc." (*new*); for gap
+  7, not built yet: `update` "Cập nhật thông tin", `updateSheet.title` "Cập nhật thông tin nhân viên",
+  `updateSheet.description` "Sửa họ tên, mã, số điện thoại và ngày vào làm. Email và vai trò chưa đổi được ở đây.", the
+  labels `staff.list.columns.name`, `.employeeCode`, `workPhone`, `staff.list.columns.joinedDate`, the hints
   `updateSheet.nameHint` "Tối đa 100 ký tự.", `updateSheet.employeeCodeHint` "Tối đa 50 ký tự, không để khoảng trắng ở
   đầu hoặc cuối." and `updateSheet.workPhoneHint` "Không bắt buộc; 8 đến 15 chữ số, có thể bắt đầu bằng +.", the
   placeholder `updateSheet.workPhonePlaceholder` "0901234567", `updateSheet.submit` "Lưu" and the toast `updated` "Đã
@@ -342,27 +330,25 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   │                                      hash still applies), one column in the same order; it only places the slots
   ├── staff-account-nav-section.tsx      the nav slot: reads StaffAccountProvider; renders nothing on a 404 or a
   │                                      failed load; while loading and once loaded it builds the items, one per card
-  │                                      that shows,
-  │                                      in page order (id info with `staff.account.info.title`, id account with
-  │                                      `.accountCard.title`; with STF-10, for a holder of `staff.pii.read`, id hr
-  │                                      with `staff.profile.hr.title` while the account has no HR profile or its
-  │                                      load failed, else ids personal, contact, work and documents with their
-  │                                      titles; id activity with `.activity.title` once gap 10 is built); it reads
-  │                                      the HR profile with the same hook as the HR section
-  │                                      (`use-staff-hr-profile.ts`, one TanStack query keyed by the account's id,
-  │                                      so one request), and lists id hr while that query loads; calls
-  │                                      useActiveSection with the items and renders SectionNav with the label
-  │                                      `admin.sectionNav.label`, the current id and the select handler; scrolls to
-  │                                      the hash once the account has loaded, or once the profile has loaded for a
-  │                                      hash of its cards
+  │                                      that shows, in page order (id info with `staff.account.info.title`, id account
+  │                                      with `.accountCard.title`; with STF-10, for a holder of `staff.pii.read`, id hr
+  │                                      with `staff.profile.hr.title` while the account has no HR profile or its load
+  │                                      failed, else ids personal, contact, work and documents with their titles; id
+  │                                      activity with `.activity.title` once gap 10 is built); it reads the HR profile
+  │                                      with the same hook as the HR section (`use-staff-hr-profile.ts`, one TanStack
+  │                                      query keyed by the account's id, so one request), and lists id hr while that
+  │                                      query loads; calls useActiveSection with the items and renders SectionNav with
+  │                                      the label `admin.sectionNav.label`, the current id and the select handler;
+  │                                      scrolls to the hash once the account has loaded, or once the profile has loaded
+  │                                      for a hash of its cards
   │   ├── section-nav.tsx                presentational — props: label, items (id, label), currentId, onSelect;
   │   │                                  `nav` aria-labelledby its visible title (`text-xs font-medium`,
   │   │                                  muted-foreground); one link per item to #id, 32px high, radius-md,
   │   │                                  muted-foreground, accent on hover, text wrapping, focus as the base ring of
   │   │                                  button.tsx (`outline-none focus-visible:ring-[3px]
-  │   │                                  focus-visible:ring-ring/50`); the current one accent,
-  │   │                                  foreground, weight 500, aria-current="location"; a click calls onSelect —
-  │   │                                  no shadcn component (moves to components/app/ with SCR-ACC-01)
+  │   │                                  focus-visible:ring-ring/50`); the current one accent, foreground, weight 500,
+  │   │                                  aria-current="location"; a click calls onSelect — no shadcn component (moves to
+  │   │                                  components/app/ with SCR-ACC-01)
   │   └── ../hooks/use-active-section.ts the current id: one IntersectionObserver on the sections and the
   │                                      sentinel `staff-account-end` of the layout (the line 24px plus a third
   │                                      of the viewport from the top; the last id at the sentinel only when the
@@ -387,16 +373,16 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   ├── staff-account-notice-section.tsx   (STF-09) the notice slot, only on a PENDING account: an Alert (ClockIcon;
   │                                      its role set to `status` in place of shadcn's `role="alert"`, so a notice
   │                                      that shows on every load is not announced assertively) with AlertTitle
-  │                                      `pendingNotice.title` and an
-  │                                      AlertDescription of sentences: `pendingNotice.createdBy` with the creator's
-  │                                      name and the time (gap 14; none without a creator),
-  │                                      `status.pendingDescription`, then `pendingNotice.review` when the user may
-  │                                      approve (the provider) or `pendingNotice.other`; when the user may approve,
-  │                                      at the end of the alert "Từ chối" (`reject`, destructive-soft) then "Duyệt"
-  │                                      (`approve`, default, CheckIcon): from md beside the text, below md under it,
-  │                                      side by side at half the width each; they open the two dialogs below; after
-  │                                      a 200 of "Duyệt" the account is ACTIVE and the notice is gone; renders
-  │                                      nothing while loading, on a 404 or on a failed load — alert, button
+  │                                      `pendingNotice.title` and an AlertDescription of sentences:
+  │                                      `pendingNotice.createdBy` with the creator's name and the time (gap 14; none
+  │                                      without a creator), `status.pendingDescription`, then `pendingNotice.review`
+  │                                      when the user may approve (the provider) or `pendingNotice.other`; when the
+  │                                      user may approve, at the end of the alert "Từ chối" (`reject`,
+  │                                      destructive-soft) then "Duyệt" (`approve`, default, CheckIcon): from md beside
+  │                                      the text, below md under it, side by side at half the width each; they open the
+  │                                      two dialogs below; after a 200 of "Duyệt" the account is ACTIVE and the notice
+  │                                      is gone; renders nothing while loading, on a 404 or on a failed load — alert,
+  │                                      button
   │   ├── staff-approve-dialog.tsx       (SCR-STF-01, not a second version) opened with the account of this page:
   │   │                                  AlertDialog `approveDialog.*` with the `dl` `summary.*` (the creator row
   │   │                                  with gap 14) — alert-dialog
@@ -428,33 +414,32 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   │                                      empty). The photo block shows "Chọn ảnh" only with `staff.pii.update`
   │                                      (DEC-130 (3)), from STF-10; outside the user's management scope the API
   │                                      refuses the upload (R-SEC-12) and its `detail` shows in a toast — loading: the
-  │                                      card with Skeleton of its title,
-  │                                      five rows and a round photo; on a 404 or a failed load it renders nothing
-  │                                      (the heading section shows the Empty) — card, skeleton, avatar, button
+  │                                      card with Skeleton of its title, five rows and a round photo; on a 404 or a
+  │                                      failed load it renders nothing (the heading section shows the Empty) — card,
+  │                                      skeleton, avatar, button
   │   ├── staff-photo.tsx                (moves to components/app/profile-photo.tsx with SCR-ACC-01, its texts
   │   │                                  then props) presentational — props: `name`, `photoUrl?`, `onChoose?`;
   │   │                                  an Avatar of 160px (96px below `@xl`): AvatarFallback with the
-  │   │                                  initials (the first
-  │   │                                  letter of the first and of the last word of `name` that start with a
-  │   │                                  letter; one letter for a one-word name; `initials` of `@/utils/initials`),
-  │   │                                  the Avatar `aria-hidden` while it shows them (the name is in the h1);
-  │   │                                  AvatarImage with the alt `info.photoAlt` once gap 8 gives a photo; under
-  │   │                                  it, when `onChoose` is given, built by STF-10 (gap 8: DEC-130 and DEC-131
-  │   │                                  settle where the photo is stored, who may change it, its formats and size;
-  │   │                                  the section holds the upload):
-  │   │                                  the Button outline size sm "Chọn ảnh" (`info.choosePhoto`, ImageUpIcon;
-  │   │                                  full width below `@xl`) calling `onChoose`, with its FieldDescription
-  │   │                                  `info.photoHint` tied by aria-describedby; the first build passes neither
-  │   │                                  `photoUrl` nor `onChoose` and shows the Avatar alone — avatar, button
+  │   │                                  initials (the first letter of the first and of the last word of `name` that
+  │   │                                  start with a letter; one letter for a one-word name; `initials` of
+  │   │                                  `@/utils/initials`), the Avatar `aria-hidden` while it shows them (the name is
+  │   │                                  in the h1); AvatarImage with the alt `info.photoAlt` once gap 8 gives a photo;
+  │   │                                  under it, when `onChoose` is given, built by STF-10 (gap 8: DEC-130 and DEC-131
+  │   │                                  settle where the photo is stored, who may change it, its formats and size; the
+  │   │                                  section holds the upload): the Button outline size sm "Chọn ảnh"
+  │   │                                  (`info.choosePhoto`, ImageUpIcon; full width below `@xl`) calling `onChoose`,
+  │   │                                  with its FieldDescription `info.photoHint` tied by aria-describedby; the first
+  │   │                                  build passes neither `photoUrl` nor `onChoose` and shows the Avatar alone —
+  │   │                                  avatar, button
   │   └── staff-update-sheet.tsx         gap 7, not built: Sheet (right; bottom on a narrow screen): SheetTitle
   │                                      `updateSheet.title`, SheetDescription `updateSheet.description`; the
   │                                      Fields Họ tên (`nameHint`), Mã nhân viên (`employeeCodeHint`), SĐT công
   │                                      việc (`workPhoneHint`, placeholder `workPhonePlaceholder`, type tel) and
   │                                      Ngày vào làm (a date picker like the dialog's), each hint tied by
   │                                      aria-describedby; Email (gap 5) and Vai trò (gap 2) left out; the corner
-  │                                      close button in a Tooltip `ui.close`; footer
-  │                                      "Lưu" (default) and "Hủy" (outline); the rules of its endpoint come with
-  │                                      the Decision of gap 7 — sheet, field, input, popover, calendar, button
+  │                                      close button in a Tooltip `ui.close`; footer "Lưu" (default) and "Hủy"
+  │                                      (outline); the rules of its endpoint come with the Decision of gap 7 — sheet,
+  │                                      field, input, popover, calendar, button
   ├── staff-account-login-section.tsx    the card "Tài khoản", in place of the status card and of the password card
   │                                      (`staff-account-status-section.tsx` becomes this file): Card as a `section`
   │                                      id account, aria-labelledby account-title; CardTitle `accountCard.title` as
@@ -522,26 +507,29 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   │                                      time of the last link; a 409 or 429 shows its `detail` in a toast —
   │                                      alert-dialog, button
   ├── staff-hr-section.tsx               (STF-10) the hr slot, only for a holder of `staff.pii.read` (the API sends
-  │                                      nobody else this group, R-SEC-15); it reads
+  │                                      nobody else this group, R-SEC-15); the query runs only for such a holder,
+  │                                      since its 403 `/problems/permission-denied` would otherwise turn the whole
+  │                                      page into the no-permission page (*Conventions*); it reads
   │                                      `hooks/use-staff-hr-profile.ts` (the query the nav section shares), the
-  │                                      profile of STF-10 (its endpoints come
-  │                                      with the feature), apart from the account's, so that the rest of the page
-  │                                      shows without it. No profile yet (the staff member has not confirmed the
-  │                                      data-processing notice, DEC-130 (7)): one Card as a `section` id hr, CardTitle
-  │                                      `staff.profile.hr.title` (h2, id hr-title, tabindex -1), CardDescription
-  │                                      `hr.description`, and an Empty (FileTextIcon) with EmptyTitle `hr.empty` and
-  │                                      EmptyDescription `hr.emptyDescription`, no action. Loading: one card with
-  │                                      Skeleton of its title and four rows, `aria-busy`. A profile erased (a
-  │                                      DISABLED account past R-USR-19, an ANONYMIZED one): the same card with
-  │                                      EmptyTitle `hr.erased` and EmptyDescription `hr.erasedDescription`. A
-  │                                      refusal of the profile itself (outside the management scope, R-SEC-12, or an
-  │                                      Admin account, R-USR-14; the problem types come with STF-10): the same card
-  │                                      with the problem's text in EmptyTitle, neutral (ShieldXIcon), no description,
-  │                                      no action. Any other failed load (a 500, no answer): the card with an Empty,
-  │                                      the problem's text in EmptyTitle (destructive, role="alert",
-  │                                      TriangleAlertIcon), no description, and "Thử lại" (`admin.retry`), disabled
-  │                                      while the retry is pending. Else the four cards below, in this order —
-  │                                      card, empty, skeleton, button
+  │                                      profile of STF-10 (its endpoints come with the feature), apart from the
+  │                                      account's, so that the rest of the page shows without it. No profile yet (the
+  │                                      staff member has not confirmed the data-processing notice, DEC-130 (7)): one
+  │                                      Card as a `section` id hr, CardTitle `staff.profile.hr.title` (h2, id hr-title,
+  │                                      tabindex -1), CardDescription `hr.description`, and an Empty (FileTextIcon)
+  │                                      with EmptyTitle `hr.empty` and EmptyDescription `hr.emptyDescription`, no
+  │                                      action. Loading: one card with Skeleton of its title and four rows,
+  │                                      `aria-busy`. A profile erased (a DISABLED account past R-USR-19, an ANONYMIZED
+  │                                      one; ANONYMIZED reads from `status`, the erasure of R-USR-19 must be told apart
+  │                                      from a profile never created by the API of STF-10): the same card with
+  │                                      EmptyTitle `hr.erased` and EmptyDescription `hr.erasedDescription`. A refusal
+  │                                      of the profile itself (outside the management scope, R-SEC-12, or an Admin
+  │                                      account before STF-06, from which R-USR-14 answers the whole page 404; the
+  │                                      problem types come with STF-10): the same card with the problem's text in
+  │                                      EmptyTitle, neutral (ShieldXIcon), no description, no action. Any other failed
+  │                                      load (a 500, no answer): the card with an Empty, the problem's text in
+  │                                      EmptyTitle (destructive, role="alert", TriangleAlertIcon), no description, and
+  │                                      "Thử lại" (`admin.retry`), disabled while the retry is pending. Else the four
+  │                                      cards below, in this order — card, empty, skeleton, button
   │   ├── staff-hr-personal-card.tsx     Card as a `section` id personal: CardTitle `personal.title`,
   │   │                                  CardDescription `personal.description`; CardAction, with `staff.pii.update`:
   │   │                                  the Button outline sm "Sửa" (`staff.profile.edit`, PencilIcon), which opens
@@ -574,23 +562,24 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   │   │                                  Fields `personal.legalName` (hint `personalSheet.legalNameHint`),
   │   │                                  `personal.birthDate` (a date picker like the disable dialog's but with
   │   │                                  the Calendar's month and year dropdowns, `captionLayout="dropdown"`, so a
-  │   │                                  date decades back takes two choices; no text while empty; hint
-  │   │                                  `personalSheet.birthDateHint` with the masked value), `personal.gender`
-  │   │                                  (Select),
-  │   │                                  `personalSheet.idType` (Select: CCCD, Hộ chiếu), `personalSheet.idNumber`
-  │   │                                  (for a CCCD the placeholder `personalSheet.idNumberPlaceholder`,
-  │   │                                  `inputmode="numeric"` and the hint `personalSheet.idNumberHintCccd`; for a
-  │   │                                  passport no placeholder and `personalSheet.idNumberHintPassport`; each with
-  │   │                                  the masked value), `personalSheet.issuedDate` (date picker with the same
-  │   │                                  dropdowns) and `personalSheet.issuedPlace`
-  │   │                                  side by side, `personal.permanentAddress` (Textarea, hint
-  │   │                                  `personalSheet.keepHint`); a masked field opens empty and an empty one keeps
-  │   │                                  the stored value, so editing reveals nothing; `autocomplete="off"` on the
-  │   │                                  masked fields; each hint tied by aria-describedby; a 400 or 409 on a field
-  │   │                                  in its FieldError, any other item in an Alert at the top; the corner close
-  │   │                                  button in a Tooltip `ui.close`; footer "Lưu" (`personalSheet.submit`,
-  │   │                                  default), disabled with LoaderCircleIcon until the answer comes, and "Hủy"
-  │   │                                  (`staff.account.cancel`, outline); 200 closes it,
+  │   │                                  date decades back takes two choices; the year from 100 years back to today,
+  │   │                                  its labels from `ui.calendar.*`; while empty the muted `staff.list.noValue`
+  │   │                                  "—" beside the icon; hint `personalSheet.birthDateHint` with the masked
+  │   │                                  value),
+  │   │                                  `personal.gender` (Select), `personalSheet.idType` (Select: CCCD, Hộ chiếu),
+  │   │                                  `personalSheet.idNumber` (for a CCCD the placeholder
+  │   │                                  `personalSheet.idNumberPlaceholder`, `inputmode="numeric"` and the hint
+  │   │                                  `personalSheet.idNumberHintCccd`; for a passport no placeholder and
+  │   │                                  `personalSheet.idNumberHintPassport`; each with the masked value),
+  │   │                                  `personalSheet.issuedDate` (date picker with the same dropdowns, the year from
+  │   │                                  50 years back to today, "—" while empty) and `personalSheet.issuedPlace` side
+  │   │                                  by side, `personal.permanentAddress` (Textarea, hint `personalSheet.keepHint`);
+  │   │                                  a masked field opens empty and an empty one keeps the stored value, so editing
+  │   │                                  reveals nothing; `autocomplete="off"` on the masked fields; each hint tied by
+  │   │                                  aria-describedby; a 400 or 409 on a field in its FieldError, any other item in
+  │   │                                  an Alert at the top; the corner close button in a Tooltip `ui.close`; footer
+  │   │                                  "Lưu" (`personalSheet.submit`, default), disabled with LoaderCircleIcon until
+  │   │                                  the answer comes, and "Hủy" (`staff.account.cancel`, outline); 200 closes it,
   │   │                                  shows the toast `personalSheet.saved` and the card with the masked values
   │   │                                  returned — sheet, field, input, textarea, select, popover, calendar, button
   │   ├── staff-hr-contact-card.tsx      Card as a `section` id contact: CardTitle `contact.title`, CardDescription
