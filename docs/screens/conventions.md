@@ -58,9 +58,9 @@
 - **Dates** `yyyy-MM-dd` from the API are shown `dd/MM/yyyy`; timestamps are shown in Asia/Ho_Chi_Minh.
 - **Accessibility**: WCAG 2.2 AA; every form works with the keyboard alone, every field has a visible label, errors
   are announced to screen readers.
-- **Design principles** (the owner's standing instruction of 2026-11-14, `CLAUDE.md`, *Recommendations, designs and
-  requests*): every design and its Layout fit how the store really works and hold in the long run (reuse the pattern
-  of an approved screen before inventing one; draw what a gap withholds only as drawn ahead), and follow:
+- **Design principles** (DEC-139, `CLAUDE.md`, *Recommendations, designs and requests*): every design and its
+  Layout fit how the store really works and hold in the long run (reuse the pattern of an approved screen before
+  inventing one; draw what a gap withholds only as drawn ahead), and follow:
   - **Usability**: the main task of the screen takes the fewest steps; an action sits next to what it changes; the
     default of every choice is the safe one;
   - **Consistency**: the same thing looks and behaves the same on every screen (components, dialogs, badges, texts,
