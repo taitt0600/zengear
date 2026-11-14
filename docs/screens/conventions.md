@@ -55,6 +55,14 @@
   A Layout lists these texts with the screen's other new texts. Chosen by the owner on the Layout of SCR-ADM-01,
   the placeholder on the Layout of SCR-AUT-01; a screen built before (SCR-AUT-01, SCR-AUT-02, SCR-ACC-01) follows
   it with its next Layout.
+- **Required fields** (chosen by the owner on the Layout of SCR-STF-02): a form that has a required field says once,
+  under its title (after the `CardDescription`, `DialogDescription` or `SheetDescription`), "Trường có dấu * là bắt
+  buộc." (`ui.requiredNote`, the `*` `aria-hidden` and a visually hidden "sao" in its place); the label of each
+  required field ends with ` *` in the label's own colour (so it turns `destructive` only with an error), `aria-hidden`,
+  and its input has `required` (or `aria-required` on a control without it), so that a screen reader says it. An
+  optional field has no mark, and no hint says "bắt buộc" or "không bắt buộc". shadcn's `FieldLabel` has no prop for
+  the mark: it is a span inside the label, and `components/ui/` stays as shadcn writes it (DEC-116). A screen built or
+  laid out before follows it with its next Layout.
 - **Dates** `yyyy-MM-dd` from the API are shown `dd/MM/yyyy`; timestamps are shown in Asia/Ho_Chi_Minh.
 - **Accessibility**: WCAG 2.2 AA; every form works with the keyboard alone, every field has a visible label, errors
   are announced to screen readers.
