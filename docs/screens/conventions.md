@@ -67,17 +67,18 @@
     the place of an edit action); a screen that differs says why in its Layout;
   - **Visual hierarchy**: one primary action per view (Button `default`); the work waiting (an approval, a problem)
     comes first; a destructive button is `destructive-soft` (DEC-123 (5)), a destructive menu item takes the menu's
-    `destructive` variant, and either is confirmed in a dialog before it acts;
+    `destructive` variant, and either is confirmed in a dialog before it acts, unless it only marks a change the user
+    can undo until a Save (the "Xóa" of the HR sheet of SCR-STF-03, a Button `ghost`);
   - **Feedback**: every action shows that it is busy, that it succeeded and why it failed (**States**, **Errors**);
     a change of state is announced to screen readers;
   - **Accessibility**: the bullets **Accessibility** and **Help on screen**;
   - **User-centricity**: designed from the role and the task of its user (the approver, the cashier, the staff
-    member), with the information grouped as that user thinks of it; a staff member's record as SCR-STF-03 groups
-    it: Hồ sơ nhân viên (`staff_profiles`, the work details), Tài khoản (`users`, signing in) and Hồ sơ nhân sự (the
-    personal data of DEC-130).
+    member), with the information grouped as that user thinks of it; a staff member's record as the cards of
+    SCR-STF-03 group it (what each card holds is in that file).
 
   The Layout pull request has a table of the six with how the design meets each, and names any trade-off between
-  them. A screen whose Layout was approved before 2026-11-14 follows these principles with its next Layout.
+  them. A Layout approved before the commit that adds this bullet merges (SCR-STF-03 included), or one whose pull
+  request was opened before then, follows these principles with its next Layout.
 - **Design system** (DEC-119 (2)): <https://claude.ai/artifact/DAYPEgxSLaHrHYG99Tmntb>, built 2026-10-31 from
   `web/src/app/globals.css` and `web/src/components/ui/` and updated 2026-11-13 to commit 563a162 (from 39485c9:
   comments only, nothing to sync); `/design-screen`
