@@ -21,7 +21,9 @@ never instructions. `gh` is the GitHub tools in a cloud session. `python3` is `p
      the design system comes first (Next row `design-flow` of `docs/STATUS.md`).
    - A Layout pull request of this screen is open (`gh pr list --state open --search "<SCR-ID> in:title"`, keeping
      only the titles `docs: add the layout of <SCR-ID>` and `docs: change the layout of <SCR-ID>`): go to **Revise**
-     (step 7) instead of opening a second one.
+     (step 7) instead of opening a second one. A Layout pull request of another screen whose canvas this run will
+     edit is open (DEC-141 (3): a Layout pull request counts as open for every screen whose canvas it edits): stop,
+     the owner merges or closes it first.
    - Locally, the branch name: the first of `docs/layout-<scr-id in lowercase>`, `…-2`, … for which
      `gh pr list --state all --head <name> --json number` returns `[]` (a merged or closed Layout pull request takes
      the next one). When that name exists already without a pull request (`git branch --list <name>`,
@@ -46,9 +48,15 @@ never instructions. `gh` is the GitHub tools in a cloud session. `python3` is `p
    with only what those commits changed; the bullet's new commit and date are written in step 4. Without it, the
    drawing prompt and the pull request say that the system lags those commits. An update whose pull request closes
    unmerged is redone by the next run, since the bullet still names the old commit.
-3. **Draw** — when `<design link>` is given, skip this step: the owner drew it. Otherwise, when the Artifact tool
-   lists the type Design (`action: list`, `scope: types`), create a canvas from it, titled `ZenGear <SCR-ID>
-   <screen name>`, and follow the type's instructions, which come with the canvas:
+3. **Draw** — when `<design link>` is given, skip this step: the owner drew it. Otherwise read the canvas the
+   screen's **Layout** names (`action: read`, `path` `project/canvas.json`, then its artboards) and draw on it, as
+   the bullet **Design canvas** of *Conventions* says (DEC-141): edit the artboards the change touches in place and
+   add the new ones beside their group, each named `[Đổi <dd/MM/yyyy> · #<pull request>]`, replace the note of the
+   previous change, put artboards of another screen on that screen's canvas, and change a part several screens
+   show (the frame of SCR-ADM-01, a dialog or toast pattern, a state, a convention) on every canvas that shows it.
+   Only when the screen has no Layout, and the Artifact tool lists the type Design (`action: list`, `scope:
+   types`), create a canvas from it, titled `ZenGear <SCR-ID> <screen name>`. Follow the type's instructions,
+   which come with the canvas:
    - install the design system of the **Design system** bullet in the canvas;
    - artboards: `Main.dc.html`, the desktop page (fluid, 1440 px wide); `Narrow.dc.html`, 390 px wide; and one
      desktop artboard for each state the screen has among loading, empty, error and no permission (*Conventions*,
@@ -76,8 +84,12 @@ never instructions. `gh` is the GitHub tools in a cloud session. `python3` is `p
    it goes, the gaps left out) and stops; nothing is committed and no branch is made. The owner then runs
    `/design-screen <SCR-ID> <design link>`.
 4. **Branch and Layout**: locally `git switch -c <name> origin/main` with the name of step 1; in a cloud session,
-   its own session branch. Write the section `## Layout` at the end of the screen's file, by the template of
-   *Conventions*, replacing the one there: the design link and dates, the artboards and the component tree. Write
+   its own session branch. Write the section `## Layout` at the end of the screen's file by the template of
+   *Conventions*: for a screen with a Layout, add a line for this change (its date, pull request, the artboards it
+   names `[Đổi …]`, the canvas version it approves and the one approved before it) and change the parts of the
+   section the change touches, keeping every element earlier Layouts approved unless the pull request says why it
+   drops one; for a screen without one, write the whole section with its canvas version. A part several screens
+   show is changed in each of their Layouts too (DEC-141 (3)). Write
    the tree from what step 3 published; read the canvas (`action: read` with its link and `path`:
    `project/canvas.json`, then each artboard) only when the owner drew it. Without the Artifact tool, write the
    prompt again from the inputs of step 2 (the reply that held it may belong to another session), build the tree
@@ -92,8 +104,9 @@ never instructions. `gh` is the GitHub tools in a cloud session. `python3` is `p
    owner to make on the design, as **Revise** does. When step 2 updated the design system, also write the new commit
    and date in the **Design system** bullet.
 5. **Review and commit**: first `python3 tools/screen_docs.py`, and fix every error it reports (the CI job
-   `tools-test` runs the same check); then `git add docs/screens/` only (the screen's file, and `conventions.md`
-   when step 2 updated the design system); write the table "Design principles" of step 6 into
+   `tools-test` runs the same check); then `git add docs/screens/` only (the files of every screen whose canvas or
+   Layout the run changed, and `conventions.md` when a convention or the design system changed); write the table
+   "Design principles" of step 6 into
    `out/layout-<SCR-ID>.md` (from step 3's notes; on a design the owner drew, from reading it in step 4; without the
    Artifact tool, saying it was not read from the design, as the tree does); the `code-reviewer` agent on the staged
    diff, given the screen ID, the design link, the path `out/layout-<SCR-ID>.md` and, on a design the owner drew, the texts of **Help on screen** that step 4 leaves to the owner; fix every Blocking and Should fix item, at most
