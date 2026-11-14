@@ -57,12 +57,15 @@
   it with its next Layout.
 - **Required fields** (chosen by the owner on the Layout of SCR-STF-02): a form that has a required field says once,
   under its title (after the `CardDescription`, `DialogDescription` or `SheetDescription`), "Trường có dấu * là bắt
-  buộc." (`ui.requiredNote`, the `*` `aria-hidden` and a visually hidden "sao" in its place); the label of each
-  required field ends with ` *` in the label's own colour (so it turns `destructive` only with an error), `aria-hidden`,
-  and its input has `required` (or `aria-required` on a control without it), so that a screen reader says it. An
-  optional field has no mark, and no hint says "bắt buộc" or "không bắt buộc". shadcn's `FieldLabel` has no prop for
-  the mark: it is a span inside the label, and `components/ui/` stays as shadcn writes it (DEC-116). A screen built or
-  laid out before follows it with its next Layout.
+  buộc." (`admin.requiredNote`, a rich text whose `*` is `aria-hidden` with the visually hidden `admin.requiredMark`
+  "sao" in its place); the label of each required field ends with ` *` in the label's own colour (so it turns
+  `destructive` only with an error), `aria-hidden`, and its input has `required` (or `aria-required` on a control whose
+  role allows it: checkbox, combobox, listbox, radiogroup, spinbutton, textbox), so that a screen reader says it; a
+  group (`fieldset`) or a button-like control (a date picker) says it through its hint or never has an empty value. A
+  field that becomes required on a condition takes the mark when it does. An optional field has no mark, and no hint
+  says "bắt buộc" or "không bắt buộc". The mark is a span inside `FieldLabel`, so the label keeps its colour and error
+  state and the shared component needs no new prop. A screen built or laid out before follows it with its next
+  Layout.
 - **Dates** `yyyy-MM-dd` from the API are shown `dd/MM/yyyy`; timestamps are shown in Asia/Ho_Chi_Minh.
 - **Accessibility**: WCAG 2.2 AA; every form works with the keyboard alone, every field has a visible label, errors
   are announced to screen readers.
