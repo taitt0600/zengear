@@ -23,7 +23,7 @@
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
     <PackageVersion Include="Resend" Version="0.24.0" />
     <!-- Transitive of Resend (0.24.0 and 0.25.0 depend on 10.0.12): pinned to a version without GHSA-x33c-w48q-qrgc
-         (10.0.14 still has it). Remove when a Resend release depends on a patched version (DEC-122 (5)). -->
+         (10.0.14 still has it). Remove when Resend moves to 0.26.0 or later, which depends on 10.0.15 (DEC-122 (5)). -->
     <PackageVersion Include="Microsoft.AspNetCore.WebUtilities" Version="10.0.15" />
     <PackageVersion Include="Serilog" Version="4.4.0" />
     <PackageVersion Include="Serilog.AspNetCore" Version="10.0.0" />
