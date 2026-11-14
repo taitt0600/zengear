@@ -44,8 +44,9 @@ Every admin screen except the sign-in page sits in this layout.
   theme switch of DEC-123, drawn with the design system of 2026-11-05 (its dark artboards use the softer `.dark`
   values of DEC-124: background `oklch(0.235 0 0)`, card, popover and sidebar `0.255`, secondary, muted, accent and
   sidebar-accent `0.335`, the rest as `app/globals.css`; `tokens.json` gains a dark theme only with DEC-123 (5)),
-  approved by the merge of the pull request of that change. Changed 2026-11-14 on
-  <https://claude.ai/artifact/BBYRvdq6Pg2dRgMncSahww> (its artboard "Menu" and the frame of its other artboards), drawn
+  approved by the merge of the pull request of that change. Changed 2026-11-14 on the page
+  "Submenu Nhân viên · 14/11/2026" of this canvas (artboard `S152-SubmenuNhanVien`; first drawn on the canvas of
+  SCR-STF-02, whose artboards draw the frame with it, and moved here on 2026-11-14 at the owner's request), drawn
   with the design system of 2026-11-13, for the submenu "Nhân viên" (**Menu** above); approved by the merge of the
   Layout pull request of SCR-STF-02, which carries this change at the owner's request. It is built by the web part of
   STF-09 (the Next row STF-09 of `docs/STATUS.md`, which this screen's Feature cell names), so no other row is
