@@ -132,9 +132,11 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
 - **Change of 2026-11-14** (DEC-140): on the one page of this canvas, canvas version `1794684856-bf72` (the version
   approved before it: `1794651241-8e8d`), drawn with the design system of 2026-11-13 (commit 563a162), for "Thu hồi",
   the 412 of the approval and "Ẩn danh hóa" (above); the artboards it changes or adds are named
-  `[Đổi 14/11/2026 · #155]`; approved by the merge of the pull request that wrote this bullet. They are views of the
-  artboard `Main` (`creator`, `stale`, `anonymized`, and the row "Dữ liệu cá nhân" of `disabled`), so they share its
-  frame and sample data.
+  `[Đổi 14/11/2026 · #155]`; approved by the merge of the pull request that wrote this bullet. The artboards below are
+  each a separate artboard that shows the artboard `Main` with one value of its prop `view` (`Creator` with
+  `view="creator"`, `Stale` with `stale`, `Anonymized` with `anonymized`, `Disabled` with `disabled`, which gains the
+  row "Dữ liệu cá nhân"), or that view under a dialog (`Withdraw`, `Anonymize`, `DarkAnonymize`), so they share its
+  frame and sample data; `NarrowCreator` is a narrow artboard of its own.
   - **Builds**: STF-09 (its web part, Next row STF-09 of `docs/STATUS.md`) builds "Thu hồi" here and on SCR-STF-01,
     and the `If-Match` of the three actions; STF-14 builds "Ẩn danh hóa" (the row, the confirmation, the ANONYMIZED
     page after it), in the card "Tài khoản" once `layout-scr-stf-03` has built it, or in the status card the page has
@@ -238,8 +240,8 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   documents card without a document. Narrow (390 px): the PENDING account (no section navigation, the notice first with
   its two buttons side by side, the card's edit action under its description at full width) and the four cards of the HR
   profile (the label over the value, "Hiện" at the end of the value's line, the documents as a list). 404 and error of
-  the account keep the canvas of 2026-11-11 (an Empty in the column, no navigation), and the wide screen its 2560 px
-  artboard (the column keeps 1024 px and centres). No permission is the page of SCR-ADM-01 (`RequirePermission` with
+  the account keep the design of 2026-11-11, now on this canvas (artboards `NotFound` and `Error`: an Empty in the
+  column, no navigation), and the wide screen its 2560 px artboard `Wide` (the column keeps 1024 px and centres). No permission is the page of SCR-ADM-01 (`RequirePermission` with
   `staff.read`). After a rejection the page is SCR-STF-01, not drawn again. Drawn ahead and not built until their
   features: "Cập nhật thông tin" (gap 7), the row of the last reset link with "Gửi link đặt lại mật khẩu" (gap 9) and
   the activity card (gap 10). The only icon-only button is the corner close button of the sheet, drawn with its tooltip

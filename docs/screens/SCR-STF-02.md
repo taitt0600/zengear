@@ -39,8 +39,8 @@ form takes only the staff profile and the sign-in account, collecting no persona
 
 - **Design**: <https://claude.ai/artifact/BBYRvdq6Pg2dRgMncSahww>, drawn 2026-11-14 with the design system of
   2026-11-13 (commit 563a162); approved by the merge of the pull request that wrote this section (DEC-119), at
-  canvas version `1794670930-3faa` (the artboard of the submenu then moved to the canvas of SCR-ADM-01: version
-  `1794683716-7531`). The canvas
+  canvas version `1794670930-3faa` (the artboard of the submenu then moved to the canvas of SCR-ADM-01; this canvas's version after the
+  move: `1794683716-7531`). The canvas
   shows the frame of SCR-ADM-01 as its Layout has it (the group "Menu", "Cài đặt" with its submenu closed, the user
   menu at the foot, the theme switch in the header), for context only; its submenu "Nhân viên"
   is context here too, and what the pull request of this Layout approved at the owner's request is that submenu as

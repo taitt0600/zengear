@@ -100,7 +100,11 @@
   the note of the previous change; artboards for another screen go on that screen's canvas. The Layout names the
   canvas version that its pull request approves (`version id` of the Artifact tool), so an approved design stays
   readable in the canvas history; a Layout pull request closed without merging has its canvas restored to the
-  version before it. No page per change and no second canvas per screen; a session reads the canvas before drawing.
+  version before it, except for artboards moved onto the canvas from other canvases. One Layout pull request per
+  screen is open at a time, so that a restore never reverts another change. No page per change and no second canvas
+  per screen; a session reads the canvas before drawing. `/design-screen` (an owner path) still creates a canvas per
+  run until the owner changes its step 3 to follow this bullet; until then a run that has the canvas of the screen
+  adds to it as this bullet says.
 - **Layout** (DEC-119 (3)): the approved design of a screen, a section `## Layout` at the end of its file that
   `/design-screen <SCR-ID>` writes and the merge of its Layout pull request approves; a later change of the design is
   a new Layout pull request. The component tree is the part a diff can review, and the runs build from it:
@@ -108,8 +112,9 @@
   ````markdown
   ## Layout
 
-  - **Design**: <link>, drawn <yyyy-mm-dd> with the design system of <yyyy-mm-dd>; approved by the merge of the
-    pull request that wrote this section (DEC-119).
+  - **Design**: <link>, drawn <yyyy-mm-dd> with the design system of <yyyy-mm-dd>, canvas version <version id>;
+    approved by the merge of the pull request that wrote this section (DEC-119). A later change adds a line with its
+    date, pull request, the artboards it names `[Đổi …]` and its canvas version.
   - **Artboards**: desktop (1440 px), narrow (390 px); states: loading, empty, error, no permission.
     (Drawn in the light theme, with one dark artboard more when the screen has colours outside neutral, such as a
     badge or a destructive button, DEC-123 (5).)
