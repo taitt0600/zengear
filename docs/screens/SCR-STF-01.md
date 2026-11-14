@@ -90,7 +90,7 @@ the URL (`status`, `roleId`, `joinedFrom`, `joinedTo`, `leftFrom`, `leftTo`, `la
 - **Withdrawing on the list** (STF-09, DEC-140 (1), (2)): on a PENDING row whose `canWithdraw` is true (the user
   created it), the tab Chờ duyệt shows "Thu hồi" and "Xem chi tiết" in place of "Từ chối" and "Duyệt", and the row
   menu has "Thu hồi" (variant destructive); both open the confirmation of [SCR-STF-03](SCR-STF-03.md), whose 204 shows
-  the toast "Đã thu hồi tài khoản {name}." with "Tạo tài khoản mới" and reloads the list and the count, staying on the tab Chờ duyệt. "Duyệt", "Từ
+  the toast "Đã thu hồi tài khoản {name}." with "Tạo tài khoản mới" and reloads the list and the count, staying on the current tab. "Duyệt", "Từ
   chối" and "Thu hồi" of a row send the item's `version` as `If-Match`; a 412 shows its `detail` in a toast, closes the
   dialog and reloads the list and the count. Approving or rejecting several accounts sends `items` of `{id, version}`, and an
   item refused with 412 shows in the result like any other refusal.
