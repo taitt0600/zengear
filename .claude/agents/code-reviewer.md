@@ -55,8 +55,8 @@ reported as unchecked; a PowerShell script is never run, read its `ShouldProcess
   (Vercel's Web Interface Guidelines, copied at a pinned commit; DEC-104 (11), DEC-111 (6))
 - A change that is not a feature (tooling, CI, documents) has no dossier. Read instead the files it changes and the
   documents that describe them: `docs/AUTOMATION.md`, `docs/ACCEPTANCE.md`, the `CLAUDE.md` files and the Decisions
-  it cites (`docs/blueprint/decisions.md`). Apply items 4, 7, 8 and 12 where they apply, and item 11 in
-  full
+  it cites (`docs/blueprint/decisions.md`). Apply items 4, 7, 8 and 12 where they apply, and items 11
+  and 14 in full
 
 ## Checklist
 
@@ -70,7 +70,7 @@ repeat those. Check what no test sees:
    setup); a refusal throws `BusinessRuleException` with the rule ID. Each *Work state* row of the dossier that
    the diff deletes from `docs/STATUS.md` was done in the diff or is a Needs decision item of the pull request
    body, as the handling given with the request says; no other row of `docs/STATUS.md` changed, except the rows
-   the request lists as added for a deferred item or an owner's comment.
+   the request lists as added for a deferred item, an owner's comment or a stopgap (item 14).
 2. **Audience and data exposure**: staff and customers get different DTOs and services (rule 3, DEC-097);
    a `*ShopDto` or `*ShopService` never selects `average_cost`, `unit_cost` or `internal_note`; cost
    fields reach only callers with `cost.view` (R-SEC-09, R-SEC-10); personal data columns follow
@@ -135,7 +135,12 @@ repeat those. Check what no test sees:
          the text of an API problem;
        - each field has the hint text and the placeholder that bullet asks for, and none where it forbids them;
        - each icon-only button and each label cut short has a `Tooltip`;
-       - each of these texts is listed in the **Texts** bullet with its message key.
+       - each of these texts is listed in the **Texts** bullet with its message key;
+       - by **Design principles** of `docs/screens/conventions.md` (DEC-139 (3)): the file `out/layout-<SCR-ID>.md`
+         given with the request has the table "Design principles", a row for each of the six with how the design
+         meets it and any trade-off (cite `out/layout-<SCR-ID>.md:<line>`), and the tree keeps the rules of that
+         bullet; a Layout approved, or whose pull request was opened, before that bullet merged is not a departure:
+         it follows them with its next Layout.
 12. **Simplicity and duplication** (`docs/CODING_GUIDE.md`, section 7):
     1. Is there a simpler way that does the same job?
     2. Does every interface, base class or option have a reason from section 2 of the guide, or a second caller
@@ -178,6 +183,10 @@ repeat those. Check what no test sees:
       targets of 24 px, contrast by the WCAG 2.2 criteria).
     - Severity: a broken MUST or NEVER is Should fix; it is Blocking when it also breaks a WCAG 2.2 AA success
       criterion (DEC-104 (7), `docs/FRONTEND.md`) or a rule of `web/CLAUDE.md`. A broken SHOULD is a Note.
+14. **Shortcuts** (DEC-139; `CLAUDE.md`, *Recommendations, designs and requests*), for every diff: Blocking when a
+    fix or a choice is a shortcut (a skipped or weakened test, a relaxed check, a rule of the specification left out)
+    or a stopgap without its long-term fix (in its commit body, or given with the request) and its Waiting row of
+    `docs/STATUS.md` (`/implement-feature` step 4, **Long-term and safe**).
 
 ## Output
 

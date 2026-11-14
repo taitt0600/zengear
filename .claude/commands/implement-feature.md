@@ -64,7 +64,9 @@ DEC-099 marked **Checkpoint** below (two here, one in `/finish-feature`); withou
 3. **Plan**: endpoints (per `docs/API_CONVENTIONS.md`), service methods, entity methods, migrations if any, one or
    more tests per rule, the Postman scenarios (one per acceptance criterion, a refusal per rule), how each row of
    the dossier's *Work state* section is handled (done in this pull request, or a Needs decision item of step 4)
-   and the open questions sorted by the policy of step 4. A web-only run plans the screens, their components, the
+   and the open questions sorted by the policy of step 4, with an assessment of the plan's design as a whole on
+   performance, scalability (at the scale of the specification), security and reliability, or why one does not
+   apply (DEC-139; `CLAUDE.md`, *Recommendations, designs and requests*). A web-only run plans the screens, their components, the
    Vitest tests and the Playwright flows instead of endpoints, methods, migrations and Postman scenarios. The web
    part of a plan reads each screen's **Layout**: its component tree, and the design through the Artifact tool by
    its link (`action: read`, `path` `project/canvas.json`, then each artboard; all of them together at the start of
@@ -78,7 +80,11 @@ DEC-099 marked **Checkpoint** below (two here, one in `/finish-feature`); withou
    - **Needs decision items**, once plan-reviewer answers READY: ask every item known so far at once,
      with AskUserQuestion. One call takes at most 4 questions, so more items go in consecutive calls at the same
      moment, before any other work. Each question gives the options with their consequences, your recommendation
-     first and marked "(Recommended)". An answer becomes a decision made by the owner, listed as such in the report. An
+     first and marked "(Recommended)". Each option says how it meets performance, scalability (at the scale of the
+     specification), security and reliability, or why one does not apply, which of them it loses, and what it
+     costs; the recommended one is always the long-term, safe one, never a shortcut or a temporary patch, and such an
+     option is not offered either unless the owner asks for one (`CLAUDE.md`, *Recommendations, designs and requests*). Part (4) of
+     "Tóm tắt cho chủ dự án" keeps one line per option. An answer becomes a decision made by the owner, listed as such in the report. An
      answer that changes a specification stops the run: draft the Decision with `/decision-draft` and write the
      report of `/finish-feature` (step 14) without a pull request.
    - **Checkpoint 1** (`--checkpoints` only): show the owner the plan (endpoints, service and entity methods,
@@ -86,6 +92,13 @@ DEC-099 marked **Checkpoint** below (two here, one in `/finish-feature`); withou
      Playwright flows), the plan-reviewer verdict and the decisions you made; go on when the owner approves, after
      the changes they ask for.
 4. **Decision policy** for every question the specification does not answer:
+   - **Long-term and safe** (DEC-139): every choice of this policy, a reversible one and the fix of a review
+     finding, a failed check or a defect included, is the long-term, safe one, never a shortcut (skipping a rule, a
+     check or a part of the specification) or a temporary patch. An urgent stopgap (a broken `main`, a
+     vulnerability) follows `CLAUDE.md`, *Recommendations, designs and requests*; besides, its Waiting row of
+     `docs/STATUS.md` goes in the stopgap's own commit, whose body gives the long-term fix; its trigger is still to
+     come (an event, or `before` a feature not done yet, never the feature of this pull request); and when Waiting
+     has 10 rows and none has that trigger, it is a Needs decision item. The other commands point here.
    - Decide it yourself, and list the choice under "Decisions made" in the report, when it is reversible, stays
      inside the code and agrees with the documents: names of private members, how a service is split within the
      limits of `docs/ARCHITECTURE.md`, the shape of a query, test data, the wording of a message that follows
@@ -187,7 +200,8 @@ DEC-099 marked **Checkpoint** below (two here, one in `/finish-feature`); withou
    branch, whether the run is web-only (and then its pull request title), the plan-reviewer verdict and its counts
    of `[over-engineering]`, `[duplication]` and `[layout]` findings, for each screen built
    whether its design was read or only its Layout tree (step 3), the Needs decision items with the owner's answers (and
-   those left open), how the plan handled each Work state row (step 3), the decisions made, the deviations from the
+   those left open), how the plan handled each Work state row (step 3), the decisions made, each stopgap with its
+   long-term fix and its Waiting row (step 4, **Long-term and safe**), the deviations from the
    approved plan, the results of the build, the tests, the Postman runs and each web check, whether `--checkpoints`
    was given, and, while the trial of the plugin `security-guidance` runs (item (3) of the
    Waiting row of `docs/STATUS.md` on DEC-112), its warnings and review findings so far, each with whether it was
