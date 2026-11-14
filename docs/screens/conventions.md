@@ -65,17 +65,19 @@
     default of every choice is the safe one;
   - **Consistency**: the same thing looks and behaves the same on every screen (components, dialogs, badges, texts,
     the place of an edit action); a screen that differs says why in its Layout;
-  - **Visual hierarchy**: one primary action per view; the work waiting (an approval, a problem) comes first; a
-    destructive action stays soft until it is confirmed;
+  - **Visual hierarchy**: one primary action per view (Button `default`); the work waiting (an approval, a problem)
+    comes first; a destructive button is `destructive-soft` (DEC-123 (5)), a destructive menu item takes the menu's
+    `destructive` variant, and either is confirmed in a dialog before it acts;
   - **Feedback**: every action shows that it is busy, that it succeeded and why it failed (**States**, **Errors**);
     a change of state is announced to screen readers;
   - **Accessibility**: the bullets **Accessibility** and **Help on screen**;
   - **User-centricity**: designed from the role and the task of its user (the approver, the cashier, the staff
-    member), with the information grouped as that user thinks of it; for staff, by the staff profile: Hồ sơ nhân
-    viên (the work details), Tài khoản (signing in) and Hồ sơ nhân sự (personal data, DEC-130).
+    member), with the information grouped as that user thinks of it; a staff member's record as SCR-STF-03 groups
+    it: Hồ sơ nhân viên (`staff_profiles`, the work details), Tài khoản (`users`, signing in) and Hồ sơ nhân sự (the
+    personal data of DEC-130).
 
   The Layout pull request has a table of the six with how the design meets each, and names any trade-off between
-  them.
+  them. A screen whose Layout was approved before 2026-11-14 follows these principles with its next Layout.
 - **Design system** (DEC-119 (2)): <https://claude.ai/artifact/DAYPEgxSLaHrHYG99Tmntb>, built 2026-10-31 from
   `web/src/app/globals.css` and `web/src/components/ui/` and updated 2026-11-13 to commit 563a162 (from 39485c9:
   comments only, nothing to sync); `/design-screen`
