@@ -48,15 +48,12 @@ nhập được bằng mật khẩu mặc định.", the notice goes and the pag
 SCR-STF-01 on its tab Chờ duyệt (`/admin/staff?status=PENDING`, replacing the history entry) with the toast "Đã từ
 chối tài khoản {name}.". "Gửi link đặt lại mật khẩu" (gap 9) shows on an ACTIVE account only.
 
-The account of `GET /api/v1/admin/staff/{id}` has no `canApprove`, `createdBy` or `createdAt` (gap 14): DEC-137 (1)
-adds them to the list item only, and it rejects working out the buttons from `staff.approve` ("web suy từ permission
-staff.approve", under *Không chọn*). This page therefore needs a Decision that extends DEC-137 (1) to the account
-before STF-09 builds it; this Layout draws the page as that Decision would make it. If STF-09 is built without that
-Decision, the page departs from DEC-137 for a time: the two actions show for a user whose `permissions` hold
-`staff.approve` (only to hide them, `docs/FRONTEND.md`) and the sentence about another person for a user without it,
-the sentence about the creator and the creator row of the confirmations are left out, and an approval the API
-refuses (the caller's own request, a role outside the caller's scope) shows its 409 `detail`; the pull request of
-STF-09 then names that departure.
+The account of `GET /api/v1/admin/staff/{id}` has no `canApprove`, `createdBy` or `createdAt` yet (gap 14): DEC-137
+(1) adds them to the list item only, and it rejects working out the buttons from `staff.approve` ("web suy từ
+permission staff.approve", under *Không chọn*). DEC-138 adds the same three fields to that account by the rule of
+DEC-137 (1), as a criterion of STF-09, so STF-09 builds the page as drawn: the actions only where `canApprove` is
+true, the sentence about another person where it is false, and the creator in the notice and the confirmations. An
+approval the API still refuses (the account changed meanwhile) shows its 409 `detail`.
 
 **Action "Khóa tài khoản"** (with `staff.disable`, on an ACTIVE account; on a DISABLED account the same action is
 named "Khóa lại", for the case of a 500 below; not shown on the user's own account — the API refuses it anyway,
@@ -110,7 +107,7 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   - STF-09 (its web part, with its part of SCR-STF-01, since both screens share the two dialogs and
     `hooks/use-staff-approval.ts`): the notice, the PENDING badge, the status row of a PENDING account. Before
     `layout-scr-stf-03` is done it places the notice above the cards the page has and takes the actions out of the
-    status card of a PENDING account. The creator and `canApprove` wait for gap 14.
+    status card of a PENDING account. The creator and `canApprove` come with DEC-138 (gap 14).
   - STF-10: the four cards of the HR profile with their states, "Hiện" and the sheet "Sửa thông tin cá nhân", and
     the photo with "Chọn ảnh" (gap 8). The sheet of "Công việc và hợp đồng", the dialog of "Tải lên tài liệu" and
     the confirmation of "Duyệt" of a document are not drawn: their buttons are, and a Layout pull request of
@@ -316,7 +313,7 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   that account's query and the queries of the staff list, so that SCR-STF-01 shows the new status, `docs/FRONTEND.md`,
   *Data from the API*), whether the user may act (`staff.disable`, and not their own account: `id` of
   `useCurrentUser` from `identity/access`) and, with STF-09, whether the user may approve a PENDING account (its
-  `canApprove`; until gap 14 closes, `staff.approve` in the user's `permissions`). The HR profile of STF-10 is a
+  `canApprove` of the account, DEC-138). The HR profile of STF-10 is a
   second request, held by its own section:
 
   ```text
