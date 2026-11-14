@@ -7,7 +7,7 @@ flight, what is done and how this file changes: `CLAUDE.md`, *Work state*.
 
 | Key | Item | Who | Source |
 |---|---|---|---|
-| STF-09 | Approve Staff Accounts: until it merges, an IT Support account creates staff accounts ACTIVE without a second person; its list Layout is pull request #144, and SCR-STF-03 (approve, reject) and SCR-STF-02 (a PENDING account) need Layout pull requests of their own before its web part | local | DEC-128 (3); DEC-137; pull request #144 |
+| STF-09 | Approve Staff Accounts: until it merges, an IT Support account creates staff accounts ACTIVE without a second person; its Layouts are pull requests #144 (list) and #146 (account page, with DEC-138 for the account's canApprove, createdBy and createdAt), and SCR-STF-02 (a PENDING account) needs a Layout pull request of its own before its web part | local | DEC-128 (3); DEC-137; DEC-138; pull requests #144, #146 |
 | layout-scr-stf-03 | The `feat(web): … (STF-02)` pull request on `feat/stf-02-web-2` that builds the Layout of SCR-STF-03 (`docs/screens/SCR-STF-03.md`); what is drawn ahead for gaps 7 to 10 stays unbuilt | local | pull request #131 |
 | STF-13 | Staff Account Activity, after `layout-scr-stf-03` (its card sits on that Layout) and before STF-11 and STF-12, whose changes write activity events | local | DEC-134 and its Consequences; DEC-132 (5); DEC-133 (4) |
 | STF-11 | Update Staff Account (information, roles, email); its web part for the role editing and the email dialog waits for a Layout pull request of SCR-STF-03 that `/design-screen SCR-STF-03` opens in a cloud session first | local | DEC-132; the order of the features after it: pull request #141 |
