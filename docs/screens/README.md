@@ -32,7 +32,7 @@ the API.
 
 | ID | Screen | Route | Feature | Permission | Blocked by |
 |---|---|---|---|---|---|
-| [SCR-ADM-01](SCR-ADM-01.md) | Admin layout and menu | `/admin` (layout) | AUT-04 | signed-in staff | |
+| [SCR-ADM-01](SCR-ADM-01.md) | Admin layout and menu | `/admin` (layout) | AUT-04, STF-09 | signed-in staff | |
 | [SCR-AUT-01](SCR-AUT-01.md) | Staff sign-in | `/admin/sign-in` | AUT-01 | — | |
 | [SCR-AUT-02](SCR-AUT-02.md) | Required password change | `/admin/change-password` | STF-03 | signed-in staff | |
 | [SCR-ACC-01](SCR-ACC-01.md) | My account | `/admin/account` | STF-03 | signed-in staff | |
