@@ -5,7 +5,7 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- src -->
-    <PackageVersion Include="AutoMapper" Version="16.2.0" />
+    <PackageVersion Include="AutoMapper" Version="16.3.0" />
     <PackageVersion Include="EFCore.NamingConventions" Version="10.0.1" />
     <PackageVersion Include="FirebaseAdmin" Version="3.7.0" />
     <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="12.2.0" />
