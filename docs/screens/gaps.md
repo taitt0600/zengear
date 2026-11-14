@@ -68,3 +68,11 @@ gap is built once the gap is closed. A closed gap keeps its number, since other 
     manages all its roles), `createdBy` (`id`, `name`) and `createdAt`, null on the other statuses, on `GET /staff` and
     `POST /staff/search`. Until then the buttons show for a holder of `staff.approve` and the API's 409 says why one
     cannot be approved. Settled by DEC-137 (1) (a criterion of STF-09); closes when STF-09 merges.
+14. **Who may approve a PENDING account, and who created it, on its page.** The account of
+    `GET /api/v1/admin/staff/{id}` has no `canApprove`, `createdBy` or `createdAt`: DEC-137 (1) adds them to the list
+    item of `GET /staff` and `POST /staff/search` only, while SCR-STF-03 loads one account by its id, also from a link
+    or after a reload, without the list. The Layout of SCR-STF-03 draws the creator and the creation time in its notice, the
+    creator in the confirmations, and the buttons only where the caller may approve. Proposed for the Decision: the account of
+    `GET /api/v1/admin/staff/{id}` carries the same three fields by the rule of DEC-137 (1) (null when the account is
+    not PENDING), as a criterion of STF-09. Until then the buttons show for a holder of `staff.approve`, the sentence about
+    the creator and the creator row are left out, and the API's 409 says why an account cannot be approved.
