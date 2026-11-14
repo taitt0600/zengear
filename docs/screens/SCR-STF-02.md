@@ -38,11 +38,13 @@ form takes only the staff profile and the sign-in account, collecting no persona
 ## Layout
 
 - **Design**: <https://claude.ai/artifact/BBYRvdq6Pg2dRgMncSahww>, drawn 2026-11-14 with the design system of
-  2026-11-13 (commit 563a162); approved by the merge of the pull request that wrote this section (DEC-119). The canvas
+  2026-11-13 (commit 563a162); approved by the merge of the pull request that wrote this section (DEC-119), at
+  canvas version `1794670930-3faa` (the artboard of the submenu then moved to the canvas of SCR-ADM-01: version
+  `1794683716-7531`). The canvas
   shows the frame of SCR-ADM-01 as its Layout has it (the group "Menu", "Cài đặt" with its submenu closed, the user
   menu at the foot, the theme switch in the header), for context only; its submenu "Nhân viên"
-  is context here too, and what the pull request of this Layout approved at the owner's request is the artboard
-  `S152-SubmenuNhanVien` on the page "Submenu Nhân viên · 14/11/2026" of the canvas of SCR-ADM-01, recorded in
+  is context here too, and what the pull request of this Layout approved at the owner's request is that submenu as
+  drawn on the canvas of SCR-ADM-01 (artboards `Main` and `NarrowMenu`), recorded in
   [SCR-ADM-01](SCR-ADM-01.md) (**Menu**, *Layout*). The breadcrumb of this page is "Nhân viên ›
   Thêm nhân viên", the group as text, then the entry `admin.menu.staffNew` (SCR-ADM-01, *Layout*). It draws the PENDING account of STF-09 (above): the notice
   and the toast of a 201 whose `status` is `PENDING`. At the owner's request (2026-11-14) the required fields carry

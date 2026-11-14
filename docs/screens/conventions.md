@@ -94,6 +94,13 @@
   `web/src/app/globals.css` and `web/src/components/ui/` and updated 2026-11-13 to commit 563a162 (from 39485c9:
   comments only, nothing to sync); `/design-screen`
   brings the system up to date when those files changed since, and then the update's date and commit.
+- **Design canvas** (the owner's choice, 2026-11-14): each screen has one canvas with one page that always shows the
+  whole screen as it is now. A change edits the artboards it changes in place and adds the new ones beside the
+  related group, each named with the prefix `[Đổi <dd/MM/yyyy> · #<pull request>]`, and a note of the change replaces
+  the note of the previous change; artboards for another screen go on that screen's canvas. The Layout names the
+  canvas version that its pull request approves (`version id` of the Artifact tool), so an approved design stays
+  readable in the canvas history; a Layout pull request closed without merging has its canvas restored to the
+  version before it. No page per change and no second canvas per screen; a session reads the canvas before drawing.
 - **Layout** (DEC-119 (3)): the approved design of a screen, a section `## Layout` at the end of its file that
   `/design-screen <SCR-ID>` writes and the merge of its Layout pull request approves; a later change of the design is
   a new Layout pull request. The component tree is the part a diff can review, and the runs build from it:

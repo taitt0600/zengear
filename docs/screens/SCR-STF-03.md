@@ -120,31 +120,34 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   rows of the status card and of the password card), the HR profile and "Hoạt động"; each action in the row or the
   card it changes, every card's edit action in its header; and, on a PENDING account, a notice with the approval
   before the cards. The four cards of the HR profile and what each shows, masks and lets edit follow the field
-  classification the owner approved on <https://claude.ai/artifact/1YzxwMAsQ2gS2qL5MQ2tVi> (its artboard "Admin"). It
-  keeps, from the Layout of 2026-11-11 (<https://claude.ai/artifact/QjTnaq2rsB49xBeN3Wkuen>, pull request #131, not
-  built yet): the centred column with the section navigation, the heading with its small Avatar, the photo in the first
-  card, the activity card, the 404 and error artboards and the confirmation "Gửi link đặt lại mật khẩu?"; and, from
-  <https://claude.ai/artifact/DuLX9hmqGWyyP9vmoUw6Dd> (pull request #111), the dialog "Khóa tài khoản", the confirmation
-  "Khôi phục tài khoản?" and the sheet "Cập nhật thông tin". The two confirmations of the approval, the badge "Chờ
+  classification the owner approved on the preview of DEC-130 (its artboard "Admin", now the artboard
+  `HrClassification` of this canvas). It keeps, from the Layout of 2026-11-11 (pull request #131, not built yet): the centred column with the section navigation, the heading with its small Avatar, the photo in the first
+  card, the activity card, the 404 and error artboards, the wide screen and the confirmation "Gửi link đặt lại mật khẩu?"; and, from
+  the Layout of pull request #111, the dialog "Khóa tài khoản", the confirmation "Khôi phục tài khoản?" and the sheet
+  "Cập nhật thông tin". Those artboards were moved onto this canvas on 2026-11-14 (**Design canvas** of
+  *Conventions*), unchanged, and their old canvases deleted. The two confirmations of the approval, the badge "Chờ
   duyệt" and the toasts are those of the Layout of [SCR-STF-01](SCR-STF-01.md)
   (<https://claude.ai/artifact/VGfMXvw1CSvzx3ptVKWHbZ>), drawn again only to show them on this page. The canvas shows
   the frame of SCR-ADM-01 for context only; this Layout does not approve it.
-- **Change of 2026-11-14** (DEC-140): the page "DEC-140 · 14/11/2026" of the canvas of this screen
-  (<https://claude.ai/artifact/TqWKuUJDPivBNDfNJrosMP>, artboards `D140-*`; its page "Layout 13/11/2026" keeps the
-  design below), drawn with the design system of 2026-11-13 (commit 563a162), for "Thu hồi", the 412 of the approval
-  and "Ẩn danh hóa" (above); approved by the merge of the pull request that wrote this bullet.
+- **Change of 2026-11-14** (DEC-140): on the one page of this canvas, canvas version `1794684856-bf72` (the version
+  approved before it: `1794651241-8e8d`), drawn with the design system of 2026-11-13 (commit 563a162), for "Thu hồi",
+  the 412 of the approval and "Ẩn danh hóa" (above); the artboards it changes or adds are named
+  `[Đổi 14/11/2026 · #155]`; approved by the merge of the pull request that wrote this bullet. They are views of the
+  artboard `Main` (`creator`, `stale`, `anonymized`, and the row "Dữ liệu cá nhân" of `disabled`), so they share its
+  frame and sample data.
   - **Builds**: STF-09 (its web part, Next row STF-09 of `docs/STATUS.md`) builds "Thu hồi" here and on SCR-STF-01,
     and the `If-Match` of the three actions; STF-14 builds "Ẩn danh hóa" (the row, the confirmation, the ANONYMIZED
     page after it), in the card "Tài khoản" once `layout-scr-stf-03` has built it, or in the status card the page has
     then. No other row is needed.
-  - **Artboards**, desktop 1440 px unless named: the PENDING sample "Thu ngân mới (fixture)" viewed by its creator, the
-    fixture IT Support (the notice with "Thu hồi"); the confirmation "Thu hồi tài khoản này?"; after the 204, SCR-STF-01
-    on its tab Chờ duyệt with the toast and "Tạo tài khoản mới"; the same account viewed by the fixture admin after a 412 on "Duyệt" (roles
-    changed, the toast, the account reloaded); the DISABLED sample "Thu ngân cũ (fixture)" (not a fixture yet) viewed by
-    the fixture admin, with the row "Dữ liệu cá nhân"; the confirmation "Ẩn danh hóa tài khoản này?" submitted with
-    its box not ticked (the error under it); the ANONYMIZED account after the 200, with the toast; dark: that
-    confirmation ticked and sending (DEC-123 (5): `destructive-soft`); SCR-STF-01's tab Chờ duyệt for the creator, with "Thu hồi" on the
-    creator's own row; narrow (390 px): the PENDING account of the creator, "Thu hồi" at full width under the text.
+  - **Artboards**, desktop 1440 px unless named: `Creator`, the PENDING sample "Thu ngân mới (fixture)" viewed by its
+    creator, the fixture IT Support (the notice with "Thu hồi"); `Withdraw`, the confirmation "Thu hồi tài khoản này?"
+    (after the 204 the page is SCR-STF-01 on its tab Chờ duyệt with the toast and "Tạo tài khoản mới", not drawn again,
+    as after a rejection); `Stale`, the account viewed by an approver after a 412 on "Duyệt" (roles changed, the toast,
+    the account reloaded); `Disabled`, changed in place, the DISABLED account with the row "Dữ liệu cá nhân";
+    `Anonymize`, the confirmation "Ẩn danh hóa tài khoản này?" submitted with its box not ticked (the error under it);
+    `Anonymized`, the ANONYMIZED account after the 200, with the toast; `DarkAnonymize`, that confirmation ticked and
+    sending (DEC-123 (5): `destructive-soft`); `NarrowCreator` (390 px), the PENDING account of the creator, "Thu
+    hồi" at full width under the text. The row of SCR-STF-01 is on its own canvas.
     Loading, error, 404 and no permission are those of the Layout below. No icon-only button is new; the row button
     "Thu hồi" of SCR-STF-01 has a visible label and its `aria-label` names the account.
   - **shadcn**: no `add` (`alert`, `alert-dialog`, `checkbox`, `button`, `sonner` are installed).
