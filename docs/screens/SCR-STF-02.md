@@ -41,8 +41,8 @@ form takes only the staff profile and the sign-in account, collecting no persona
   2026-11-13 (commit 563a162); approved by the merge of the pull request that wrote this section (DEC-119). The canvas
   shows the frame of SCR-ADM-01 as its Layout has it (the group "Menu", "Cài đặt" with its submenu closed, the user
   menu at the foot, the theme switch in the header), for context only, except its new submenu "Nhân viên" (the artboard "Menu"), which
-  this pull request also approves at the owner's request and records in [SCR-ADM-01](SCR-ADM-01.md) (**Menu**, *Layout*). The breadcrumb entry of this page is
-  `staff.list.add` "Thêm nhân viên" after the link "Nhân viên". It draws the PENDING account of STF-09 (above): the notice
+  this pull request also approves at the owner's request and records in [SCR-ADM-01](SCR-ADM-01.md) (**Menu**, *Layout*). The breadcrumb of this page is "Nhân viên ›
+  Thêm nhân viên", the group as text, then the entry `admin.menu.staffNew` (SCR-ADM-01, *Layout*). It draws the PENDING account of STF-09 (above): the notice
   and the toast of a 201 whose `status` is `PENDING`. At the owner's request (2026-11-14) the required fields carry
   ` *`, which **Required fields** of *Conventions* now sets for every form.
 - **Builds**, each part by its feature:

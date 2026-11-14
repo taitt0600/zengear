@@ -8,12 +8,16 @@ Every admin screen except the sign-in page sits in this layout.
 - **Menu**: "Nhân viên" → "Danh sách nhân viên" (SCR-STF-01, needs `staff.read`), "Thêm nhân viên" (SCR-STF-02,
   needs `staff.create`) and, with STF-09, "Chờ duyệt" (the tab Chờ duyệt of SCR-STF-01, `/admin/staff?status=PENDING`,
   needs `staff.read` and `staff.approve`) with the number of accounts waiting (`totalCount` of the list with
-  `status=PENDING` and `pageSize=1`, the query of that tab; hidden at 0); "Cài đặt" → "Địa điểm kinh doanh"
+  `status=PENDING` and `pageSize=1`: the same query and key as the count of that tab, so an approval or a rejection
+  on SCR-STF-01 or SCR-STF-03 updates both; hidden at 0, while it loads and when it fails, so the entry never waits on
+  it; collapsed to icons, the submenus and the count are hidden, and the work waiting shows on the tab); "Cài đặt" → "Địa điểm kinh doanh"
   (SCR-LOC-01, needs `business_location.update`). An entry the user cannot use is hidden, and a group left empty.
   **Submenus** (the owner's request on the Layout of SCR-STF-02, 2026-11-14): an area that opens more than one page,
   or a group of settings, is a group with a submenu; an area of one page would stay a single entry. The current entry
   is the one whose page is open: "Danh sách nhân viên" on SCR-STF-01 (but its tab Chờ duyệt) and on SCR-STF-03,
-  "Thêm nhân viên" on SCR-STF-02, "Chờ duyệt" on `?status=PENDING`.
+  "Thêm nhân viên" on SCR-STF-02, "Chờ duyệt" on `?status=PENDING` ("Danh sách nhân viên" for a user without
+  `staff.approve`, who has no "Chờ duyệt"). A user with `staff.create` without `staff.read` sees the group with
+  "Thêm nhân viên" alone, and the API still answers 403 where the user goes without the permission.
 - **Guard**: without a Firebase session, every admin route goes to SCR-AUT-01 with the requested path kept as
   `?next=`. When `GET /api/v1/admin/me` says `mustChangePassword: true`, every admin route goes to SCR-AUT-02. When it says
   `isStaff: false`, the user is signed out with "Tài khoản này không phải tài khoản nhân viên."
@@ -44,8 +48,8 @@ Every admin screen except the sign-in page sits in this layout.
   <https://claude.ai/artifact/BBYRvdq6Pg2dRgMncSahww> (its artboard "Menu" and the frame of its other artboards), drawn
   with the design system of 2026-11-13, for the submenu "Nhân viên" (**Menu** above); approved by the merge of the
   Layout pull request of SCR-STF-02, which carries this change at the owner's request. It is built by the web part of
-  STF-09 (the Next row STF-09 of `docs/STATUS.md`), "Chờ duyệt" with it, or before by the web-only run of STF-01 that
-  builds SCR-STF-02, whichever comes first, without "Chờ duyệt"; no other row is needed.
+  STF-09 (the Next row STF-09 of `docs/STATUS.md`, which this screen's Feature cell names), so no other row is
+  needed; until then the menu keeps the single entry "Nhân viên".
 - **Artboards**: desktop (1440 px) with the menu expanded, which collapses to icons when the canvas plays it;
   desktop with the menu collapsed and the user menu open; narrow (390 px) with the menu closed and open; states:
   loading, error of `GET /me`, no permission, not found; for the theme: the desktop's "Giao diện" menu works in Play
@@ -62,8 +66,8 @@ Every admin screen except the sign-in page sits in this layout.
   theme switch needs no `add`: `dropdown-menu`, `tooltip` and `button` are installed, and `next-themes` too.
 - **Texts** (`messages/vi.json`), new ones marked *new*: for the submenu "Nhân viên" (2026-11-14) `admin.menu.staff`
   "Nhân viên" (the group), `admin.menu.staffList` "Danh sách nhân viên" (*new*), `admin.menu.staffNew` "Thêm nhân
-  viên" (*new*), `admin.menu.staffPending` "Chờ duyệt" (*new*, STF-09) and `admin.menu.pendingCount` "{count} tài
-  khoản chờ duyệt" (*new*, the count's `aria-label`); the menu button `admin.menu.collapse` "Thu gọn menu"
+  viên" (*new*), `admin.menu.staffPending` "Chờ duyệt" (*new*, STF-09) and `admin.menu.pendingCount` ", {count} tài
+  khoản" (*new*, the count's sr-only text, as `staff.list.status.pendingCount`); the menu button `admin.menu.collapse` "Thu gọn menu"
   (*new*) and `admin.menu.expand` "Mở rộng menu" (*new*) on a wide screen, by the menu's state, and
   `admin.menu.open` "Mở menu" on a narrow one, passed as props; the close button of the narrow menu
   `admin.menu.close` "Đóng menu". The English texts of `sidebar.tsx` and `breadcrumb.tsx` go through `ui`
@@ -117,12 +121,14 @@ Every admin screen except the sign-in page sits in this layout.
   │   ├── admin-nav.tsx              `nav` named "Menu" around a SidebarGroup labelled "Menu", the entries of
   │   │                              visibleMenu (utils/admin-menu.ts): "Nhân viên" (UsersIcon) as a Collapsible
   │   │                              with SidebarMenuSub "Danh sách nhân viên", "Thêm nhân viên" and (STF-09)
-  │   │                              "Chờ duyệt" with its count in a SidebarMenuBadge-like Badge `default` (as
-  │   │                              the count of the tab Chờ duyệt), `aria-label` `admin.menu.pendingCount`;
+  │   │                              "Chờ duyệt" with its count in a Badge `default` at the end of the
+  │   │                              SidebarMenuSubButton, its number `aria-hidden` and
+  │   │                              `admin.menu.pendingCount` sr-only inside the link (the pattern of the
+  │   │                              count of the tab Chờ duyệt of SCR-STF-01);
   │   │                              "Cài đặt" (Settings2Icon) as a Collapsible with SidebarMenuSub "Địa điểm kinh
   │   │                              doanh"; a group is open when one of its entries is the current page (the
   │   │                              query string counts for "Chờ duyệt"); collapsed, an entry shows its label
-  │   │                              in a Tooltip and a click on "Cài đặt" expands the menu with the group open;
+  │   │                              in a Tooltip and a click on a group expands the menu with that group open;
   │   │                              the current entry isActive with aria-current="page" — collapsible, tooltip
   │   └── user-menu.tsx              SidebarMenuButton size="lg" named by `name`: Avatar (aria-hidden) with the
   │                                  first letters of the first and last words of `name`, then `name` and `email`
@@ -137,8 +143,11 @@ Every admin screen except the sign-in page sits in this layout.
   ├── admin-header-section.tsx       header h-16 (h-12 collapsed): SidebarTrigger (texts above, also its
   │   │                              Tooltip), a vertical Separator, Breadcrumb "Vị trí trang" from the route:
   │   │                              the entry's group as text, then the entry ("Cài đặt › Địa điểm kinh
-  │   │                              doanh"); a page under an entry (SCR-STF-02, SCR-STF-03) adds the title that
-  │   │                              its own Layout names, the entry then a link; the account page "Tài khoản của
+  │   │                              doanh", "Nhân viên › Danh sách nhân viên" on SCR-STF-01, "Nhân viên › Chờ
+  │   │                              duyệt" on its tab Chờ duyệt for a holder of `staff.approve`, "Nhân viên ›
+  │   │                              Thêm nhân viên" on SCR-STF-02); a page under an entry (SCR-STF-03) adds the
+  │   │                              title that its own Layout names, the entry then a link ("Nhân viên › Danh
+  │   │                              sách nhân viên › Tài khoản nhân viên"); the account page "Tài khoản của
   │   │                              tôi"; the no-permission page keeps the requested path; none on /admin and on
   │   │                              the 404; at the right end, unless `isMobile` of useSidebar (so that exactly
   │   │                              one of the switch and the user-menu item shows), `theme-switch.tsx` —
