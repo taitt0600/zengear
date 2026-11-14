@@ -123,7 +123,8 @@ A 400 on a value of the URL means the URL was edited by hand: the list falls bac
 
 ## Layout
 
-- **Design**: drawn 2026-11-05 with the design system of
+- **Design**: <https://claude.ai/artifact/VGfMXvw1CSvzx3ptVKWHbZ> (since 2026-11-14 the one canvas of this screen),
+  first drawn 2026-11-05 with the design system of
   2026-11-05; approved by the merge of the pull request that wrote this subsection (DEC-119); changed 2026-11-05
   (the columns STT and Thao tác, the soft badges), approved by the merge of the pull request of that change. The
   canvas shows the frame of SCR-ADM-01 for context only; this Layout does not approve it. Changed 2026-11-13 on
@@ -133,9 +134,11 @@ A 400 on a value of the URL means the URL was edited by hand: the list falls bac
   of STF-07 and STF-08, the export, the tab Chờ duyệt of STF-09, the role action and the approval of several accounts
   drawn ahead (gaps 7 and 12); approved by the merge of the pull request of that change. Loading and error, kept from the
   first design, were moved onto this canvas on 2026-11-14 (artboards `Loading` and `Error`, **Design canvas** of
-  *Conventions*), unchanged, and the first canvas deleted.
+  *Conventions*), unchanged; the two empty states of that design (`Empty`, `EmptyFiltered`) were lost when the first
+  canvas was deleted before they were moved, and are redrawn here, named `[Vẽ lại 14/11/2026 · #155]`, from the
+  bullet **Empty** above and the built `staff-list-empty.tsx` (icon, title, description, action as built).
 - **Change of 2026-11-14** (DEC-140): "Thu hồi" on the creator's PENDING rows, drawn on the one page of the canvas of this
-  screen, canvas version `1794684833-cd42` (artboard `NoApprove`, changed in place and named `[Đổi 14/11/2026 ·
+  screen, canvas version `1794685239-a362` (the version approved before it: `1794576303-7b63`; artboard `NoApprove`, changed in place and named `[Đổi 14/11/2026 ·
   #155]`, a view of `Main`; the confirmation is on the canvas of SCR-STF-03); approved by the merge of
   the pull request that wrote this bullet, built by STF-09. Tree additions: `staff-pending-row.tsx` shows, when
   `canWithdraw` is true, Button `destructive-soft` sm `staff.account.withdraw` (Undo2Icon) with its `aria-label`
@@ -158,11 +161,11 @@ A 400 on a value of the URL means the URL was edited by hand: the list falls bac
   selected; the confirmations "Duyệt" and "Từ chối" of one account; after an approval, the toast and the count down to
   1; for gap 12 the confirmations of several accounts and a result where one of two could not be approved. Signed in
   as the fixture Store Manager: no Admin row, no "Xuất CSV" and no "Thêm nhân viên", with filters in use. Signed in as
-  the fixture IT Support: the tab Chờ duyệt with "Xem chi tiết" only. Narrow (390 px): the tab Tất cả as a list of
+  the fixture IT Support: the tab Chờ duyệt with "Xem chi tiết", and "Thu hồi" on the rows it created (DEC-140). Narrow (390 px): the tab Tất cả as a list of
   blocks with checkboxes and the bar stuck to the bottom; the tab Chờ duyệt as blocks with full-width buttons. The
   tab Chờ duyệt empty. Dark: the tab Chờ duyệt with the confirmation "Từ chối" (DEC-123 (5)).
-- **Artboards of the first canvas** (still the design of these states): desktop and narrow at 2026-11-05; loading,
-  empty (no account), empty (nothing matches the filters), error. No permission is the page of SCR-ADM-01
+- **Artboards of the first design**, on this canvas since 2026-11-14: loading (`Loading`), error (`Error`), and the
+  two empty states redrawn (`Empty`, `EmptyFiltered`); its desktop and narrow are replaced by those of 2026-11-13. No permission is the page of SCR-ADM-01
   (`RequirePermission` with `staff.read`).
 - **shadcn**: the first build added `table badge select pagination`; `dropdown-menu`, `tooltip`, `alert-dialog`,
   `checkbox`, `dialog`, `popover`, `calendar`, `field`, `input-group`, `empty`, `skeleton` and `sonner` are installed.
