@@ -56,6 +56,27 @@ DEC-137 (1), as a criterion of STF-09, so STF-09 builds the page as drawn: the a
 true, the sentence about another person where it is false, and the creator in the notice and the confirmations. An
 approval the API still refuses (the account or the caller's roles changed meanwhile) shows its 409 `detail`.
 
+**Withdrawing a PENDING account** (STF-09, DEC-140 (1), R-USR-17): when `canWithdraw` is true (the user created the
+account and holds `staff.create`), the notice says that another person will approve it and holds "Thu hồi" in place of
+"Từ chối" and "Duyệt", which the creator never gets. "Thu hồi" opens a confirmation that repeats the account; its submit
+sends `POST /api/v1/admin/staff/{id}/withdraw` with the `If-Match` of the loaded account. After a 204 the account no
+longer exists: the page goes to SCR-STF-01 (replacing the history entry) with the toast "Đã thu hồi tài khoản {name}."
+and its action "Tạo tài khoản mới" (SCR-STF-02, for a user with `staff.create`), so that the creator enters the account
+again with the right data; the withdrawn data is not carried over to the form.
+
+**Approving data that changed** (STF-09, DEC-140 (2)): "Duyệt", "Từ chối" and "Thu hồi" send the `If-Match` of the
+account as loaded (the `ETag` of `GET /api/v1/admin/staff/{id}`), so an account whose name, code, phone, joined date,
+email or roles changed since gets 412: the confirmation closes, the problem's `detail` shows in a toast and the account
+reloads, so the approver looks at it again (*Conventions*, **Edits with an ETag**).
+
+**Action "Ẩn danh hóa"** (STF-14, DEC-140 (4), R-USR-23; with `staff.anonymize`, on a DISABLED account in the user's
+scope, not the user's own): the card "Tài khoản" has a row "Dữ liệu cá nhân" with the action, used when a staff member
+who left asks for their personal data to be erased. It opens a confirmation that repeats the account (name, email,
+employee code, left date) and says what is erased at once and what is kept until its retention ends (R-USR-19); its
+submit is disabled until the box "Nhân viên này đã yêu cầu xóa dữ liệu cá nhân của mình." is ticked, and sends
+`POST /api/v1/admin/staff/{id}/anonymize` with the account's `If-Match`. After a 200 the page shows the ANONYMIZED
+account as returned, with the toast "Đã ẩn danh hóa tài khoản."; nothing can be done to it any more.
+
 **Action "Khóa tài khoản"** (with `staff.disable`, on an ACTIVE account; on a DISABLED account the same action is
 named "Khóa lại", for the case of a 500 below; not shown on the user's own account — the API refuses it anyway,
 R-USR-12): a dialog
@@ -81,6 +102,10 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
 | 500 on "Khóa" | The account may be disabled with its sessions still open (R-SEC-04), or not disabled at all: the web's text of [*Conventions*](conventions.md) in a toast. The account is reloaded; "Khóa" (ACTIVE) or "Khóa lại" (DISABLED) sends the request again, which revokes the sessions again |
 | 404 or 409 on "Duyệt" or "Từ chối" (not PENDING any more, the caller's own request, an email taken in Firebase, a role outside the caller's scope) | Its `detail` in a toast; the confirmation closes and the account reloads (an account rejected meanwhile then shows the 404 of the first row) |
 | 500 or no answer on "Duyệt" or "Từ chối" | The web's texts of [*Conventions*](conventions.md) in a toast; the confirmation closes and the account reloads |
+| 412 on "Duyệt", "Từ chối", "Thu hồi" or "Ẩn danh hóa" (the account changed since it loaded) | Its `detail` in a toast; the confirmation closes and the account reloads |
+| 404 or 409 on "Thu hồi" (not PENDING any more, not the creator) | Its `detail` in a toast; the confirmation closes and the account reloads (an account approved or rejected meanwhile then shows as it is, or the 404 of the first row) |
+| 409 on "Ẩn danh hóa" (not DISABLED, the user's own account, outside the scope) | Its `detail` in a toast; the confirmation closes and the account reloads |
+| 500 or no answer on "Thu hồi" or "Ẩn danh hóa" | The web's texts of [*Conventions*](conventions.md) in a toast; the confirmation closes and the account reloads |
 
 ## Layout
 
@@ -101,6 +126,68 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   duyệt" and the toasts are those of the Layout of [SCR-STF-01](SCR-STF-01.md)
   (<https://claude.ai/artifact/VGfMXvw1CSvzx3ptVKWHbZ>), drawn again only to show them on this page. The canvas shows
   the frame of SCR-ADM-01 for context only; this Layout does not approve it.
+- **Change of 2026-11-14** (DEC-140): <https://claude.ai/artifact/M9wKyy8fLC34Rh1jzHXHF6>, drawn with the design
+  system of 2026-11-13 (commit 563a162), for "Thu hồi", the 412 of the approval and "Ẩn danh hóa" (above); approved by
+  the merge of the pull request that wrote this bullet. The rest of the page is the Layout of 2026-11-13 below.
+  - **Builds**: STF-09 (its web part, Next row STF-09 of `docs/STATUS.md`) builds "Thu hồi" here and on SCR-STF-01,
+    and the `If-Match` of the three actions; STF-14 builds "Ẩn danh hóa" (the row, the confirmation, the ANONYMIZED
+    page after it). No other row is needed.
+  - **Artboards**, desktop 1440 px unless named: the PENDING sample "Thu ngân mới (fixture)" viewed by its creator, the
+    fixture IT Support (the notice with "Thu hồi"); the confirmation "Thu hồi tài khoản này?"; after the 204, SCR-STF-01
+    with the toast and "Tạo tài khoản mới"; the same account viewed by the fixture admin after a 412 on "Duyệt" (roles
+    changed, the toast, the account reloaded); the DISABLED sample "Thu ngân cũ (fixture)" (not a fixture yet) viewed by
+    the fixture admin, with the row "Dữ liệu cá nhân"; the confirmation "Ẩn danh hóa tài khoản này?" with its box not
+    ticked and its submit disabled; the ANONYMIZED account after the 200, with the toast; dark: that confirmation ticked
+    and sending (DEC-123 (5): `destructive-soft`); SCR-STF-01's tab Chờ duyệt for the creator, with "Thu hồi" on the
+    creator's own row; narrow (390 px): the PENDING account of the creator, "Thu hồi" at full width under the text.
+    Loading, error, 404 and no permission are those of the Layout below. No icon-only button is new; the row button
+    "Thu hồi" of SCR-STF-01 has a visible label and its `aria-label` names the account.
+  - **shadcn**: no `add` (`alert`, `alert-dialog`, `checkbox`, `button`, `sonner` are installed).
+  - **Theme**: unchanged. "Thu hồi" and "Ẩn danh hóa" are Button `destructive-soft` (they delete or erase, DEC-123
+    (5)), with Undo2Icon and UserXIcon; each is confirmed in an AlertDialog whose submit is `destructive-soft` too.
+  - **Texts** (`messages/vi.json`), all *new*, under `staff.account`: `pendingNotice.own` "Bạn đã tạo tài khoản này nên
+    một người khác sẽ duyệt. Nếu đã nhập sai, hãy thu hồi rồi tạo lại." (in place of `pendingNotice.other` when
+    `canWithdraw` is true); `withdraw` "Thu hồi"; `withdrawDialog.title` "Thu hồi tài khoản này?", `.description` "Tài
+    khoản chờ duyệt bị xóa cùng hồ sơ và vai trò, không hoàn tác được. Email và mã nhân viên được giải phóng để bạn tạo
+    lại tài khoản đúng thông tin." and `.submit` "Thu hồi tài khoản", with the rows `summary.*` of SCR-STF-01; the
+    toast `withdrawn` "Đã thu hồi tài khoản {name}." with its action `withdrawnCreate` "Tạo tài khoản mới"; the row
+    `accountCard.personalData` "Dữ liệu cá nhân" with the value `accountCard.personalDataKept` "Đang lưu" and the hint
+    `accountCard.anonymizeHint` "Khi nhân viên đã nghỉ yêu cầu xóa dữ liệu cá nhân, ẩn danh hóa tài khoản. Không hoàn
+    tác được."; `anonymize` "Ẩn danh hóa"; `anonymizeDialog.title` "Ẩn danh hóa tài khoản này?", `.description` "Dùng
+    khi nhân viên đã nghỉ yêu cầu xóa dữ liệu cá nhân. Không hoàn tác được: tài khoản không khôi phục được nữa.", the
+    rows `summary.employeeCode` "Mã nhân viên" and `summary.leftDate` "Ngày nghỉ việc" beside `summary.name` and
+    `.email`, the headings `anonymizeDialog.erasedTitle` "Xóa ngay" and `anonymizeDialog.keptTitle` "Giữ tới hết thời
+    hạn lưu", the items `anonymizeDialog.erased1` "Họ tên, email đăng nhập và SĐT công việc (thay bằng giá trị ẩn
+    danh)", `.erased2` "Liên lạc, người liên hệ khẩn cấp và ảnh của hồ sơ nhân sự", `.erased3` "Tài khoản đăng nhập và
+    dữ liệu cá nhân trong nhật ký thay đổi", `.kept1` "Hồ sơ lao động phải lưu và mã nhân viên, rồi tự xóa khi hết hạn",
+    `.kept2` "Chứng từ và lịch sử hoạt động, hiện tên đã ẩn danh", the box `anonymizeDialog.confirm` "Nhân viên này đã
+    yêu cầu xóa dữ liệu cá nhân của mình." and `.submit` "Ẩn danh hóa"; the toast `anonymizedToast` "Đã ẩn danh hóa
+    tài khoản.". The anonymized name and email are the API's values; the 412 shows the API's `detail`.
+  - **Component tree** additions, under `web/src/features/identity/staff-accounts/components/`:
+
+    ```text
+    staff-account-notice-section.tsx    (STF-09) when `canWithdraw` is true: `pendingNotice.own` and, at the end of
+    │                                   the alert, Button destructive-soft `withdraw` (Undo2Icon), from md beside the
+    │                                   text, below md under it at full width; never with "Từ chối" and "Duyệt"
+    ├── staff-withdraw-dialog.tsx       (STF-09) AlertDialog `withdrawDialog.*` with the `dl` `summary.*` (name,
+    │                                   email, roles, creator), "Hủy" and the submit destructive-soft, disabled with
+    │                                   LoaderCircleIcon while the request runs; shared with SCR-STF-01 — alert-dialog
+    ├── ../hooks/use-staff-approval.ts  (STF-09) also `withdraw`; every request of approve, reject and withdraw sends
+    │                                   `If-Match` (the account's `ETag` here, the item's `version` on SCR-STF-01); on
+    │                                   204 of withdraw: invalidates the list and the count and goes to SCR-STF-01
+    │                                   (replace) with the toast `withdrawn` and its action; on 412: the `detail` in a
+    │                                   toast, closes the dialog and reloads the account (or the list)
+    ├── staff-account-login-section.tsx (STF-14) the row `accountCard.personalData` on a DISABLED account with
+    │                                   `staff.anonymize`, not the user's own: the value `personalDataKept`, the hint
+    │                                   `anonymizeHint`, and Button destructive-soft `anonymize` (UserXIcon),
+    │                                   aria-describedby the hint; none on ACTIVE, PENDING or ANONYMIZED
+    └── staff-anonymize-dialog.tsx      (STF-14) AlertDialog `anonymizeDialog.*`: the `dl` (name, email, employee
+                                        code, left date), the two lists, a Field orientation horizontal with Checkbox
+                                        and FieldLabel `confirm` (unticked when it opens), "Hủy" and the submit
+                                        destructive-soft, disabled until ticked and while the request runs; on 200 the
+                                        account query takes the returned account and the toast `anonymizedToast` shows;
+                                        `../hooks/use-staff-anonymize.ts` holds the request — alert-dialog, checkbox
+    ```
 - **Builds**, each part by its feature, on the page as it is then:
   - `layout-scr-stf-03` (the Next row of `docs/STATUS.md`, a `feat(web): … (STF-02)` pull request): the section
     navigation, the width, the cards "Hồ sơ nhân viên" and "Tài khoản" with the status actions in the status row and

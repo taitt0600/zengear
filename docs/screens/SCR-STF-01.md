@@ -87,6 +87,13 @@ the URL (`status`, `roleId`, `joinedFrom`, `joinedTo`, `leftFrom`, `leftTo`, `la
   hours after the job finished, shown as a time. A refused download (the file expired, `staff.export` removed) shows
   the problem's `detail` in a toast. An export that ended while its dialog was closed shows the toast "Đã xuất {count}
   nhân viên." with "Tải file", which opens the file dialog; a failed export says so in the dialog and the toast.
+- **Withdrawing on the list** (STF-09, DEC-140 (1), (2)): on a PENDING row whose `canWithdraw` is true (the user
+  created it), the tab Chờ duyệt shows "Thu hồi" and "Xem chi tiết" in place of "Từ chối" and "Duyệt", and the row
+  menu has "Thu hồi" (variant destructive); both open the confirmation of [SCR-STF-03](SCR-STF-03.md), whose 204 shows
+  the toast "Đã thu hồi tài khoản {name}." with "Tạo tài khoản mới" and reloads the list and the count. "Duyệt", "Từ
+  chối" and "Thu hồi" of a row send the item's `version` as `If-Match`; a 412 shows its `detail` in a toast, closes the
+  dialog and reloads the list and the count. The approval of several accounts sends `items` of `{id, version}`, and an
+  item refused with 412 shows in the result like any other refusal.
 - **The tab Chờ duyệt** (STF-09, R-USR-17, UC-140): a line under the filters says why the accounts wait, and the table
   shows the checkbox (gap 12), STT, Họ tên with the email under it, Vai trò, Người tạo, Ngày tạo (gap 13) and Thao tác:
   the buttons "Từ chối" and "Duyệt" side by side, or "Xem chi tiết". Until gap 13 closes, the buttons show for a user
@@ -126,6 +133,14 @@ A 400 on a value of the URL means the URL was edited by hand: the list falls bac
   of STF-07 and STF-08, the export, the tab Chờ duyệt of STF-09, the role action and the approval of several accounts
   drawn ahead (gaps 7 and 12); approved by the merge of the pull request of that change. Loading and error keep the
   first canvas.
+- **Change of 2026-11-14** (DEC-140): "Thu hồi" on the creator's PENDING rows, drawn on the canvas of the change of
+  SCR-STF-03 (<https://claude.ai/artifact/M9wKyy8fLC34Rh1jzHXHF6>, artboard "ListPending"); approved by the merge of
+  the pull request that wrote this bullet, built by STF-09. Tree additions: `staff-pending-row.tsx` shows, when
+  `canWithdraw` is true, Button `destructive-soft` sm `staff.account.withdraw` (Undo2Icon) with its `aria-label`
+  `actions.withdrawLabel` "Thu hồi {name}" (*new*) and the link "Xem chi tiết"; `staff-pending-actions.tsx` adds
+  `actions.withdraw` "Thu hồi" (*new*, variant destructive, Undo2Icon) in place of the two items of the approval;
+  both open `staff-withdraw-dialog.tsx` of SCR-STF-03; `hooks/use-staff-approval.ts` sends the item's `version` as
+  `If-Match` and handles 412 as above.
 - **Builds**: the screen exists in `web/`, so each feature's run builds its part of this Layout in its `feat` pull
   request, in the order of `docs/STATUS.md`: STF-09 the status links, the tab Chờ duyệt, the column Email moved under
   the name, the badge Chờ duyệt and the PENDING items of the row menu; STF-06 the search over the API, the filters, the
