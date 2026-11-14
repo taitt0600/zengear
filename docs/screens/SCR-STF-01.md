@@ -135,7 +135,7 @@ A 400 on a value of the URL means the URL was edited by hand: the list falls bac
   drawn ahead (gaps 7 and 12); approved by the merge of the pull request of that change. Loading and error, kept from the
   first design, were moved onto this canvas on 2026-11-14 (artboards `Loading` and `Error`, **Design canvas** of
   *Conventions*), unchanged; the two empty states of that design (`Empty`, `EmptyFiltered`) were lost when the first
-  canvas was deleted before they were moved, and are redrawn here, named `[Vẽ lại 14/11/2026 · #155]`, from the
+  canvas was deleted before they were moved, and are redrawn here, named `[Vẽ lại 14/11/2026 · #155]` and approved by the merge of #155, from the
   bullet **Empty** above and the built `staff-list-empty.tsx` (icon, title, description, action as built).
 - **Change of 2026-11-14** (DEC-140): "Thu hồi" on the creator's PENDING rows, drawn on the one page of the canvas of this
   screen, canvas version `1794685239-a362` (the version approved before it: `1794576303-7b63`; artboard `NoApprove`, changed in place and named `[Đổi 14/11/2026 ·

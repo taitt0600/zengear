@@ -96,15 +96,17 @@
   brings the system up to date when those files changed since, and then the update's date and commit.
 - **Design canvas** (the owner's choice, 2026-11-14): each screen has one canvas with one page that always shows the
   whole screen as it is now. A change edits the artboards it changes in place and adds the new ones beside the
-  related group, each named with the prefix `[Đổi <dd/MM/yyyy> · #<pull request>]`, and a note of the change replaces
+  related group, each named with the prefix `[Đổi <dd/MM/yyyy> · #<pull request>]` (`[Vẽ lại <dd/MM/yyyy> ·
+  #<pull request>]` for an approved artboard drawn again because its source was lost, approved again by that pull
+  request's merge), and a note of the change replaces
   the note of the previous change; artboards for another screen go on that screen's canvas. The Layout names the
   canvas version that its pull request approves (`version id` of the Artifact tool), so an approved design stays
   readable in the canvas history; a Layout pull request closed without merging has its canvas restored to the
-  version before it, except for artboards moved onto the canvas from other canvases. One Layout pull request per
+  version before it, except for artboards moved onto the canvas from other canvases and artboards drawn again. One Layout pull request per
   screen is open at a time, so that a restore never reverts another change. No page per change and no second canvas
-  per screen; a session reads the canvas before drawing. `/design-screen` (an owner path) still creates a canvas per
-  run until the owner changes its step 3 to follow this bullet; until then a run that has the canvas of the screen
-  adds to it as this bullet says.
+  per screen; a session reads the canvas before drawing. `/design-screen` (an owner path) creates a canvas in its step
+  3; until the owner changes that step (the owner's steps of pull request #155), a run creates a canvas only for a
+  screen that has none, and otherwise adds to the screen's canvas as this bullet says.
 - **Layout** (DEC-119 (3)): the approved design of a screen, a section `## Layout` at the end of its file that
   `/design-screen <SCR-ID>` writes and the merge of its Layout pull request approves; a later change of the design is
   a new Layout pull request. The component tree is the part a diff can review, and the runs build from it:
