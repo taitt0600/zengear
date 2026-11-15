@@ -101,7 +101,7 @@
   version before it, except for artboards moved onto the canvas from other canvases and artboards drawn again. One Layout pull request per
   screen is open at a time, so that a restore never reverts another change. No page per change and no second canvas
   per screen; a session reads the canvas before drawing. `/design-screen` (an owner path) creates a canvas in its step
-  3 only for a screen that has none, and otherwise adds to the screen's canvas as this bullet says. A part that
+  3 only for a screen that has no Layout, and otherwise adds to the screen's canvas as this bullet says. A part that
   several screens show (the frame of SCR-ADM-01, a dialog or toast pattern, a state, a convention of this file) is
   changed on every canvas and in every Layout that shows it, in the same Layout pull request (DEC-141 (3)); a new
   convention applies to every Layout at once, never with a screen's next Layout (DEC-141 (4)). The frame of
