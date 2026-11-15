@@ -31,8 +31,8 @@ Class names are singular PascalCase in `ZenGear.Data/Entities/<Area>`; table nam
 | Nhãn sản phẩm (badge) | `Badge` | `product_badges` | Catalog |
 | Khung ưu đãi (tag) | `ProductTag` | `product_tags` | Catalog |
 | Chuyển hướng đường dẫn (301) | `UrlRedirect` | `url_redirects` | Catalog |
-| Nhóm ngành nghề tính thuế | `TaxClass` | `tax_classes` | Tax |
-| Tỷ lệ % thuế GTGT trên doanh thu | `TaxRate` | `tax_rates` | Tax |
+| Nhóm hàng hóa, dịch vụ tính thuế | `TaxClass` | `tax_classes` | Tax |
+| Thuế suất GTGT | `TaxRate` | `tax_rates` | Tax |
 | Địa điểm kinh doanh | `BusinessLocation` | `business_locations` | Locations |
 | Kho (khu vực tồn kho) | `Warehouse` | `warehouses` | Inventory |
 | Tồn kho | `StockBalance` | `stock_balances` | Inventory |
@@ -113,8 +113,10 @@ Stored as the English values below; the Vietnamese label is what the UI shows, t
 
 | Thuật ngữ | English | Meaning |
 |---|---|---|
-| Hộ kinh doanh | household business | Hình thức pháp lý của cửa hàng; thuế GTGT tính theo tỷ lệ % trên doanh thu |
-| Hóa đơn bán hàng | sales invoice | Loại hóa đơn của hộ kinh doanh (ký hiệu mẫu số 2), không ghi tiền thuế từng dòng |
+| Công ty TNHH một thành viên | single-member limited company | Hình thức pháp lý của ZenGear; thuế GTGT theo phương pháp khấu trừ, sổ kế toán kép trên phần mềm kế toán ngoài (DEC-143) |
+| Hộ kinh doanh | household business | Một loại người mua trên hóa đơn (`HOUSEHOLD_BUSINESS`), định danh bằng số định danh cá nhân 12 số (R-ORD-09); không còn là hình thức của cửa hàng (DEC-143) |
+| Hóa đơn giá trị gia tăng | VAT invoice | Loại hóa đơn của công ty khấu trừ thuế (loại 1), ghi giá chưa thuế, thuế suất và tiền thuế theo từng thuế suất (R-EIV-01) |
+| Thuế GTGT đầu vào | input VAT | Thuế trên hóa đơn mua hàng, được khấu trừ nên không vào giá vốn (R-COST-01) |
 | Giá vốn bình quân | average cost (`average_cost`) | Bình quân gia quyền di động theo SKU, chỉ hiện với quyền `cost.view` |
 | Doanh thu thuần | net revenue | Doanh thu − giá trị hàng bị trả (R-RPT-01) |
 | Công nợ phải trả NCC | supplier payable | Tính từ số dư đầu kỳ, phiếu nhập, phiếu trả và thanh toán NCC (R-PO-04) |
