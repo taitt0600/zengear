@@ -4,8 +4,8 @@
 |---|---|---|---|---|---|---|---|---|---|
 | Customer | User | Address | Entity | addresses | Sổ địa chỉ giao hàng của Customer; mỗi địa chỉ có Người nhận riêng, độc lập chủ tài khoản. | — | R-ADR-01, R-USR-09, R-DB-01 | ACC-08, CRT-03, ACC-02 | Phase 2 |
 | Customer | Wishlist | Wishlist | Aggregate Root | wishlists | Sản phẩm khách lưu lại để xem/mua sau. | Added → Removed | R-QRY-01 | ACC-04 | Future |
-| Finance & Tax | TaxClass | TaxClass | Reference Data | tax_classes | Nhóm ngành nghề tính thuế GTGT theo % doanh thu; sản phẩm và phương thức giao trỏ vào thay vì lưu tỷ lệ. | Active → Inactive | R-DEL-01 | TAX-01 | Phase 1 |
-| Finance & Tax | TaxRate | TaxRate | Reference Data | tax_rates | Tỷ lệ % thuế GTGT trên doanh thu của 1 nhóm ngành nghề trong 1 khoảng hiệu lực. | — | R-ORD-07, R-DB-06, R-TZ-01 | TAX-01 | Phase 1 |
+| Finance & Tax | TaxClass | TaxClass | Reference Data | tax_classes | Nhóm hàng hóa, dịch vụ quyết định thuế suất GTGT (phương pháp khấu trừ, DEC-143); sản phẩm và phương thức giao trỏ vào thay vì lưu thuế suất. | Active → Inactive | R-DEL-01 | TAX-01 | Phase 1 |
+| Finance & Tax | TaxRate | TaxRate | Reference Data | tax_rates | Thuế suất GTGT (%) của 1 nhóm hàng hóa, dịch vụ trong 1 khoảng hiệu lực (phương pháp khấu trừ, DEC-143). | — | R-ORD-07, R-DB-06, R-TZ-01 | TAX-01 | Phase 1 |
 | Geography | Country | Country | Reference Data | countries | Danh mục quốc gia theo chuẩn ISO, seed data tĩnh. | — | — | — | Phase 1 |
 | Geography | Province | Province | Reference Data | provinces | 34 tỉnh/thành phố Việt Nam theo mô hình chính quyền 2 cấp (hiệu lực từ 1/7/2025, không còn cấp Huyện). | — | — | — | Phase 1 |
 | Geography | Ward | Ward | Reference Data | wards | 3.321 xã/phường/đặc khu trực thuộc thẳng Province, không còn cấp Quận/Huyện. | — | — | — | Phase 1 |
