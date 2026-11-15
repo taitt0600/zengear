@@ -57,8 +57,9 @@ the URL (`status`, `roleId`, `joinedFrom`, `joinedTo`, `leftFrom`, `leftTo`, `la
 - **Several accounts at once** (STF-07, STF-08, DEC-127 (5)): a selected row is highlighted; the header checkbox
   selects or clears every selectable row of the page. With one or more selected, a bar above the table says "Đã chọn
   {count} tài khoản" with "Bỏ chọn" and, by tab and permission: "Xuất {count}" (`staff.export`), "Khôi phục {count}"
-  (`staff.disable`, tabs Tất cả and Đã khóa) and "Khóa {count}" (`staff.disable`, tabs Tất cả and Đang hoạt động); a
-  change of tab, filter, sort, page or page size clears the selection. The web never checks which selected accounts
+  (`staff.disable`, tabs Tất cả and Đã khóa) and "Khóa {count}" (`staff.disable`, tabs Tất cả and Đang hoạt động); on the tab Chờ duyệt, "Thu hồi {count}" (`staff.create`,
+  DEC-142 (2), gap 16), which counts and sends only the selected rows whose `canWithdraw` is true and shows while
+  one is selected; a change of tab, filter, sort, page or page size clears the selection. The web never checks which selected accounts
   may change: the job does, account by account (R-USR-15).
   - "Khóa {count}" opens a confirmation listing the accounts with their roles, with the checkbox "Nhân viên nghỉ
     việc" and its date picker "Ngày nghỉ việc" (not after today) as on SCR-STF-03, the date shared by all
@@ -94,8 +95,14 @@ the URL (`status`, `roleId`, `joinedFrom`, `joinedTo`, `leftFrom`, `leftTo`, `la
   chối" and "Thu hồi" of a row send the item's `version` as `If-Match`; a 412 shows its `detail` in a toast, closes the
   dialog and reloads the list and the count. Approving or rejecting several accounts sends `items` of `{id, version}`, and an
   item refused with 412 shows in the result like any other refusal.
+- **Withdrawing several accounts** (DEC-142, drawn for gap 16): on the tab Chờ duyệt a row whose `canWithdraw` is
+  true has its checkbox for its creator, and the bar's "Thu hồi {count}" (`destructive-soft`) opens a confirmation
+  listing the accounts with their roles, then sends `POST /api/v1/admin/staff/bulk-withdraw` with `items` of
+  `{id, version}` and an `Idempotency-Key`; the 202 opens the progress and the result of a job, as for disabling or
+  approving several accounts, and the end reloads the list and the count. Until gap 16 closes, the creator's rows
+  have no checkbox and the bar no "Thu hồi".
 - **The tab Chờ duyệt** (STF-09, R-USR-17, UC-140): a line under the filters says why the accounts wait, and the table
-  shows the checkbox (gap 12), STT, Họ tên with the email under it, Vai trò, Người tạo, Ngày tạo (gap 13) and Thao tác:
+  shows the checkbox (gap 12; gap 16 for the creator's rows), STT, Họ tên with the email under it, Vai trò, Người tạo, Ngày tạo (gap 13) and Thao tác:
   the buttons "Từ chối" and "Duyệt" side by side, or "Xem chi tiết". Until gap 13 closes, the buttons show for a user
   whose `permissions` hold `staff.approve` (only to hide them, `docs/FRONTEND.md`), the columns Người tạo and Ngày tạo
   and the creator row of the confirmations are left out, and an approval the API refuses (the caller's own request, a
@@ -146,13 +153,53 @@ A 400 on a value of the URL means the URL was edited by hand: the list falls bac
   `actions.withdraw` "Thu hồi" (*new*, variant destructive, Undo2Icon) in place of the two items of the approval;
   both open `staff-withdraw-dialog.tsx` of SCR-STF-03; `hooks/use-staff-approval.ts` sends the item's `version` as
   `If-Match` and handles 412 as above.
+- **Change of 2026-11-14, #158** (DEC-141 (4), DEC-142): on the one page of this canvas, canvas version `1794688651-7dd1`
+  (the version approved before it: `1794685239-a362`), drawn with the design system of 2026-11-13 (commit 563a162);
+  every artboard whose drawing changed is named `[Đổi 14/11/2026 · #158]`; approved by the merge of the pull request
+  that wrote this bullet.
+  - **Frame**: every artboard with the frame draws it from the artboard `Main` of the canvas of SCR-ADM-01: the group
+    "Nhân viên" open with "Danh sách nhân viên" current, or "Chờ duyệt" with its count on the tab Chờ duyệt for a
+    holder of `staff.approve`; "Thêm nhân viên" only with `staff.create` (not for the fixture Store Manager) and "Chờ
+    duyệt" only with `staff.approve` (not for the fixture IT Support); the breadcrumb "Nhân viên › Danh sách nhân
+    viên" or "Nhân viên › Chờ duyệt", the current page alone on a narrow screen; the switch "Giao diện" at the right
+    of the header. It is still context, approved by the Layout of SCR-ADM-01, not by this one.
+  - **Withdrawing several accounts** (above, gap 16): `NoApprove` now shows the fixture IT Support with both of its
+    PENDING rows selected and the bar with "Thu hồi 2"; `BulkWithdraw`, the confirmation; `BulkWithdrawProgress`,
+    the progress at 1 of 2; `BulkWithdrawResult`, the result where one of two could not be withdrawn (approved
+    meanwhile). Built with the bulk-withdraw of STF-07 (DEC-142 (1)), after STF-09; until then nothing changes on the
+    tab.
+  - **States in the current layout** (moved from the first design, **Design canvas** of *Conventions*): `Loading`,
+    `Error`, `Empty` and `EmptyFiltered` are now the artboard `Main` with its prop `state`, so the tabs, the search,
+    the filters and the header stay and only the rows change (**Grouping**: the Empty takes the place of the rows in
+    the list's card): loading as Skeleton rows under the column headers, the error as an Empty with an outline,
+    `role="alert"`, the problem's text in `destructive` and "Thử lại", the two empty states with their texts of the
+    first design. The way out "Thêm nhân viên" of `Empty` is now Button `outline`, since the page's header holds the
+    primary "Thêm nhân viên" (**Visual hierarchy**: one primary action per view).
+  - **Required fields**: `BulkDisable` marks "Ngày nghỉ việc" with ` *` once "Nhân viên nghỉ việc" is ticked, its
+    picker `aria-required`, and shows `admin.requiredNote` under the description while it is.
+  - **Texts** (`messages/vi.json`, under `staff.list`, all *new*, built with gap 16): `bulk.withdraw` "Thu hồi
+    {count}" (Undo2Icon), `bulk.selectAllWithdraw` "Chọn mọi tài khoản thu hồi được trong trang" (the header
+    checkbox of a user without `staff.approve`), `bulk.withdrawDialog.title` "Thu hồi {count} tài khoản?",
+    `.description` "Các tài khoản chờ duyệt bị xóa cùng hồ sơ và vai trò, không hoàn tác được; email và mã nhân viên
+    được giải phóng để bạn tạo lại. Hệ thống thu hồi từng tài khoản; tài khoản nào không thu hồi được sẽ giữ nguyên và
+    có lý do trong kết quả.", `.submit` "Thu hồi {count} tài khoản", `.list` "Tài khoản sẽ thu hồi";
+    `jobs.progress.withdraw` "Đang thu hồi {count} tài khoản", `jobs.result.withdraw` "Đã thu hồi {done} trên {count}
+    tài khoản" (also the toast, with a final "."), `jobs.result.done.withdraw` "Đã thu hồi". The state texts are those
+    of the first design (`staff.list.empty.*`, `admin.retry`, the texts of **Errors**).
+  - **Component tree** changes: `staff-bulk-bar.tsx` adds, on the tab Chờ duyệt, "Thu hồi {count}"
+    (`destructive-soft`, Undo2Icon) while a selected row has `canWithdraw`, its count only those rows, before "Từ
+    chối {count}" and "Duyệt {count}" (which show with `staff.approve` only); `staff-pending-row.tsx` shows the
+    checkbox on a row whose `canWithdraw` (gap 16) or `canApprove` (gap 12) is true, and the header checkbox
+    `bulk.selectAllWithdraw` or `bulk.selectAllPending` by the user's `staff.approve`; `staff-bulk-dialog.tsx` and
+    `staff-job-dialog.tsx` take the action `withdraw` (its title, description, list, submit, progress and result
+    texts above); `../hooks/use-staff-job.ts` sends `items` of the selected withdrawable rows' `{id, version}`.
 - **Builds**: the screen exists in `web/`, so each feature's run builds its part of this Layout in its `feat` pull
   request, in the order of `docs/STATUS.md`: STF-09 the status links, the tab Chờ duyệt, the column Email moved under
   the name, the badge Chờ duyệt and the PENDING items of the row menu; STF-06 the search over the API, the filters, the
   chips, the column Đăng nhập gần nhất, "Chưa đổi mật khẩu", the page size and the numbered pages; STF-07 the checkbox
   column, the bar with "Khóa" and "Khôi phục", the progress and the result; STF-08 "Xuất CSV", "Xuất {count}" and the
   file dialog. The creator columns and `canApprove` wait for gap 13. "Sửa vai trò" waits for STF-11 and the Layout of
-  SCR-STF-03 that draws its dialog; the approval of several accounts waits for gap 12.
+  SCR-STF-03 that draws its dialog; the approval of several accounts waits for gap 12, and their withdrawal for gap 16.
 - **Artboards of the 2026-11-13 change**: desktop (1440 px), signed in as the Admin: the tab Tất cả with two rows
   selected and the bar (in Play, the status links, the checkboxes, "Bỏ chọn" and "Bộ lọc khác" work); the popover
   "Bộ lọc khác" open; the confirmation of "Khóa 2"; the progress at 2 of 3 with one refusal; the result with the

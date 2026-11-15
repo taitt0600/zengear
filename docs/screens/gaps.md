@@ -87,3 +87,10 @@ gap is built once the gap is closed. A closed gap keeps its number, since other 
     Layout pull request of SCR-STF-02 (the fields out, the generated code, username and email shown after creation)
     and one of SCR-AUT-01 (the field "Tên đăng nhập hoặc email" and the error "Tên đăng nhập, email hoặc mật khẩu
     không đúng.") merge before it.
+16. **Withdrawing several PENDING accounts at once.** STF-09 withdraws one account per request
+    (`POST /api/v1/admin/staff/{id}/withdraw`, DEC-140 (1)); no endpoint takes several, while a creator who entered
+    several accounts wrong withdraws them one by one. The Layout of SCR-STF-01 draws the checkbox on the creator's
+    PENDING rows, "Thu hồi {count}" in the bar, the confirmation, the progress and the result. Settled by DEC-142 (1)
+    (`POST /api/v1/admin/staff/bulk-withdraw` in STF-07: a background job of 1 to 100 items `{id, version}`, each
+    withdrawn under the rules of the single withdrawal, with an `Idempotency-Key`); closes when that endpoint merges,
+    after STF-09.

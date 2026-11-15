@@ -36,6 +36,14 @@ hàng."
   2026-11-01; approved by the merge of the pull request that wrote this subsection (DEC-119). The shadcn block
   `login-03` (DEC-118 (5)): the store name above one card on the `muted` ground, without the block's social sign-in,
   sign-up link, "forgot password" link and terms text, which Phase 1 does not have.
+- **Change of 2026-11-14, #158** (DEC-141 (4)): canvas version `1794688615-9470` (the version approved before it, by the
+  pull request of 2026-11-04: `1793758178-edbd`), drawn with the design system of 2026-11-13 (commit 563a162); the six
+  artboards are named `[Đổi 14/11/2026 · #158]`; approved by the merge of the pull request that wrote this bullet.
+  **Required fields**: `admin.requiredNote` under the CardDescription (centred like it; a line of Skeleton more on
+  the loading artboard), "Email công ty" and "Mật khẩu" end with ` *` and their inputs are `required`; the tree adds
+  both to `sign-in-form.tsx` and the line to `sign-in-skeleton.tsx`. The note's key lives under `admin` although this
+  page is outside the frame, so that every form shares one text. **Help on screen**, **Grouping** and **Design
+  principles**: met as drawn (the review is in the pull request), nothing else changes.
 - **Artboards**: desktop (1440 px), where the show/hide button and "Đăng nhập" (busy) work in Play; narrow (390 px);
   states: field errors with the tooltip of the show/hide button, a sign-in error ("Email hoặc mật khẩu không đúng."),
   the notice after a password change, loading. The page has no empty and no no-permission state.
