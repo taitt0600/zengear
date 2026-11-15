@@ -1,6 +1,6 @@
 # ZenGear
 
-Retail system for a PC and hardware store run by a Vietnamese single-member limited company (Công ty TNHH một thành viên; VAT by the credit method, DEC-143), one store today and a second planned in the same province: storefront, admin, POS, inventory ledger, purchasing, warranty and returns, cash book.
+Retail system for a PC and hardware store to be run by a Vietnamese single-member limited company (Công ty TNHH một thành viên; VAT by the credit method, DEC-143), one store today and a second planned in the same province: storefront, admin, POS, inventory ledger, purchasing, warranty and returns, cash book.
 
 ## Repository
 

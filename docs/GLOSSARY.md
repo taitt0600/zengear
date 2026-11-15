@@ -114,9 +114,13 @@ Stored as the English values below; the Vietnamese label is what the UI shows, t
 | Thuật ngữ | English | Meaning |
 |---|---|---|
 | Công ty TNHH một thành viên | single-member limited company | Hình thức pháp lý của ZenGear; thuế GTGT theo phương pháp khấu trừ, sổ kế toán kép trên phần mềm kế toán ngoài (DEC-143) |
-| Hộ kinh doanh | household business | Một loại người mua trên hóa đơn (`HOUSEHOLD_BUSINESS`), định danh bằng số định danh cá nhân 12 số (R-ORD-09); không còn là hình thức của cửa hàng (DEC-143) |
-| Hóa đơn giá trị gia tăng | VAT invoice | Loại hóa đơn của công ty khấu trừ thuế (loại 1), ghi giá chưa thuế, thuế suất và tiền thuế theo từng thuế suất (R-EIV-01) |
-| Thuế GTGT đầu vào | input VAT | Thuế trên hóa đơn mua hàng, được khấu trừ nên không vào giá vốn (R-COST-01) |
+| Hộ kinh doanh | household business | Một loại người mua trên hóa đơn (`HOUSEHOLD_BUSINESS`: hộ kinh doanh hoặc cá nhân kinh doanh), định danh bằng số định danh cá nhân 12 số (R-ORD-09); không còn là hình thức của cửa hàng (DEC-143) |
+| Hóa đơn giá trị gia tăng | VAT invoice | Loại hóa đơn của công ty khấu trừ thuế (loại 1), khởi tạo từ máy tính tiền khi bán lẻ, ghi giá chưa thuế, thuế suất và tiền thuế theo từng thuế suất (R-EIV-01) |
+| Thuế GTGT đầu vào | input VAT | Thuế GTGT ghi trên hóa đơn của NCC (`purchase_order_items.vat_rate`); không vào giá vốn (R-COST-01), khấu trừ khi đủ điều kiện (R-ACT-04), phần không được khấu trừ kế toán xử lý trên phần mềm kế toán (DEC-143) |
+| Phương pháp khấu trừ | credit method | Cách tính thuế GTGT của công ty: thuế đầu ra trừ thuế đầu vào được khấu trừ (Luật Thuế GTGT 48/2024/QH15, DEC-143) |
+| Giá chưa thuế | amount before VAT | Phần tổng thanh toán của một thuế suất sau khi tách tiền thuế GTGT, ghi trên hóa đơn GTGT (R-ORD-07) |
+| Tiền thuế GTGT | VAT amount (`vat_amount`) | round(tổng thanh toán × thuế suất / (100 + thuế suất)) theo từng thuế suất của đơn (R-ORD-07); trên đơn mua là thuế đầu vào |
+| Xuất dữ liệu cho phần mềm kế toán | accounting software export | Tệp CSV theo kỳ của hóa đơn, mua hàng, nhập xuất tồn, phiếu quỹ và công nợ NCC để kế toán ghi sổ kép (ACT-02, R-ACT-03) |
 | Giá vốn bình quân | average cost (`average_cost`) | Bình quân gia quyền di động theo SKU, chỉ hiện với quyền `cost.view` |
 | Doanh thu thuần | net revenue | Doanh thu − giá trị hàng bị trả (R-RPT-01) |
 | Công nợ phải trả NCC | supplier payable | Tính từ số dư đầu kỳ, phiếu nhập, phiếu trả và thanh toán NCC (R-PO-04) |
