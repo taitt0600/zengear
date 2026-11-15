@@ -8,10 +8,10 @@ flight, what is done and how this file changes: `CLAUDE.md`, *Work state*.
 | Key | Item | Who | Source |
 |---|---|---|---|
 | STF-09 | Approve Staff Accounts: until it merges, an IT Support account creates staff accounts ACTIVE without a second person; its Layouts are pull requests #144 (list), #146 (account page, with DEC-138 for the account's canApprove, createdBy and createdAt) and #152 (the PENDING parts of SCR-STF-02 and the submenu "Nhân viên" of SCR-ADM-01) | local | DEC-128 (3); DEC-137; DEC-138; pull requests #144, #146, #152 |
-| layout-scr-stf-03 | The `feat(web): … (STF-02)` pull request on `feat/stf-02-web-2` that builds the Layout of SCR-STF-03 (`docs/screens/SCR-STF-03.md`); what is drawn ahead for gaps 7 to 10 stays unbuilt | local | pull request #131 |
-| STF-13 | Staff Account Activity, after `layout-scr-stf-03` (its card sits on that Layout) and before STF-11 and STF-12, whose changes write activity events | local | DEC-134 and its Consequences; DEC-132 (5); DEC-133 (4) |
+| layout-scr-stf-03 | (1) The `feat(web): … (STF-02)` pull request on `feat/stf-02-web-2` that builds the Layout of SCR-STF-03 (`docs/screens/SCR-STF-03.md`); what is drawn ahead for gaps 7 to 10 stays unbuilt; (2) after it, the `feat(web): … (STF-03)` pull request on `feat/stf-03-web-2` that builds the Layout of SCR-ACC-01 (`docs/screens/SCR-ACC-01.md`); what is drawn ahead for gaps 8 and 11 stays unbuilt. The pull request of item (1) deletes item (1), re-keys this row `layout-scr-acc-01` and drops "item (1) of" from the row STF-13 | local | (1) pull request #131; (2) pull request #138 |
+| STF-13 | Staff Account Activity, after item (1) of `layout-scr-stf-03` (its card sits on that Layout) and before STF-15, STF-11 and STF-12, whose changes write activity events | local | DEC-134 and its Consequences; DEC-132 (5); DEC-133 (4) |
+| STF-15 | Organization & Staff Assignments, before STF-10; its plan settles the assignments of an account disabled with a `left_date` before their `start_date` (R-ORG-03), and its screens wait for their Layout pull requests | local | DEC-144; code-reviewer of the pull request of the organization tables |
 | STF-11 | Update Staff Account (information, roles, email); its web part for the role editing and the email dialog waits for a Layout pull request of SCR-STF-03 that `/design-screen SCR-STF-03` opens in a cloud session first | local | DEC-132; the order of the features after it: pull request #141 |
-| layout-scr-acc-01 | The `feat(web): … (STF-03)` pull request on `feat/stf-03-web-2` that builds the Layout of SCR-ACC-01 (`docs/screens/SCR-ACC-01.md`), after the pull request of `layout-scr-stf-03`; what is drawn ahead for gaps 8 and 11 stays unbuilt | local | pull request #138 |
 
 ## Waiting for a trigger
 
