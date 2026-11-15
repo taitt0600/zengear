@@ -36,7 +36,7 @@
 | File Storage | Firebase Storage | — | Ảnh sản phẩm, ảnh chứng từ và bằng chứng (attachments); file xuất tạm, riêng tư, xóa sau 24 giờ (R-USR-16, DEC-127) | Phase 1 |
 | External Service | Firebase Authentication | — | Đăng nhập nhân viên; khách đăng nhập email, Google, SĐT + OTP ở Phase 2 cần gói Blaze (A13) | Phase 1 |
 | External Service | Resend | — | Gửi email giao dịch (A14) | Phase 1 |
-| External Service | MISA meInvoice | — | Phát hành hóa đơn bán hàng điện tử qua API tích hợp dành cho developer (A15) | Phase 1 |
+| External Service | MISA meInvoice | — | Phát hành hóa đơn giá trị gia tăng điện tử qua API tích hợp dành cho developer (A15) | Phase 1 |
 | External Service | VNPay | — | Cổng thanh toán, dùng sandbox cho demo (A12) | Phase 2 |
 | Testing | NUnit | 5 | Test framework cho unit test và integration test; NUnit3TestAdapter 6, Microsoft.NET.Test.Sdk 18, coverlet 10 (DEC-122) | Phase 1 |
 | Testing | Shouldly | — | Assertion | Phase 1 |
