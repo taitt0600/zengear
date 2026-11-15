@@ -22,8 +22,8 @@ a Next.js app.
 ## The problem
 
 A small PC store sells parts and custom-built PCs, buys from many suppliers, and owes each customer warranty on
-every serial number. It also carries the VAT, e-invoice and bookkeeping duties of a Vietnamese household business
-(hộ kinh doanh). Spreadsheets lose track of serials, stock value and warranty claims; ZenGear keeps them in one
+every serial number. It also carries the VAT, e-invoice and bookkeeping duties of a Vietnamese single-member limited company
+(VAT by the credit method, VAT invoices; DEC-143). Spreadsheets lose track of serials, stock value and warranty claims; ZenGear keeps them in one
 system.
 
 ## What works today
