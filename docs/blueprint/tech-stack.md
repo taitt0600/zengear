@@ -60,3 +60,5 @@
 | Source & Docs | Dependabot | — | Cập nhật phiên bản hằng tuần cho npm (web/), NuGet (api/), GitHub Actions, Docker và Docker Compose; patch và minor gộp theo ecosystem, mỗi major một PR, ignore các major gắn với .NET 10 và PostgreSQL 18, và TypeScript từ 6.1; pr_gates chỉ nhận PR của dependabot[bot] đổi dòng phiên bản; chủ dự án merge từng PR (DEC-104, DEC-122) | Phase 1 |
 | Source & Docs | GitHub Container Registry | — | Lưu image API build một lần trong pipeline để deploy staging và production (DEC-100) | Phase 1 |
 | Source & Docs | dbdocs.io | — | Tài liệu ERD sinh từ khối DBML trong DATABASE.md | Phase 1 |
+| Source & Docs | GitHub Issues + Projects | — | Nguồn của kế hoạch: Issue types Feature, Bug, Task, Design; Issue fields Priority, Feature ID, Trigger, Start date, Target date; Roadmap bằng sub-issue, blocked by cho trigger before <Feature ID>; Project chỉ để xem dạng Kanban (DEC-148) | Phase 1 |
+| Dev Tooling | Commitizen | ghim trong tools/requirements.txt | Kiểm Conventional Commits của từng commit và tiêu đề pull request trong hook commit-msg và CI (DEC-150) | Phase 1 |
