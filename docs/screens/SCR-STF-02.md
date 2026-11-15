@@ -49,9 +49,9 @@ form takes only the staff profile and the sign-in account, collecting no persona
   Thêm nhân viên", the group as text, then the entry `admin.menu.staffNew` (SCR-ADM-01, *Layout*). It draws the PENDING account of STF-09 (above): the notice
   and the toast of a 201 whose `status` is `PENDING`. At the owner's request (2026-11-14) the required fields carry
   ` *`, which **Required fields** of *Conventions* now sets for every form.
-- **Change of 2026-11-14, #158** (DEC-141 (4)): canvas version `1794688646-befe` (the version approved before it:
+- **Change of 2026-11-14, #158** (DEC-141 (4)): canvas version `1794731136-0a34` (the version approved before it:
   `1794683716-7531`); the artboard `Narrow`, named `[Đổi 14/11/2026 · #158]`, draws the narrow header of SCR-ADM-01
-  (the button "Mở menu" and the current page "Thêm nhân viên" alone in the breadcrumb); the desktop artboards already
+  (the button "Mở menu" of 44 px and the breadcrumb "Nhân viên › Thêm nhân viên"); the desktop artboards already
   draw the frame of SCR-ADM-01 with its submenu and breadcrumb. Approved by the merge of the pull request that wrote
   this bullet.
 - **Builds**, each part by its feature:

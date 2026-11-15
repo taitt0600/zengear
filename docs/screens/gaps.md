@@ -92,5 +92,5 @@ gap is built once the gap is closed. A closed gap keeps its number, since other 
     several accounts wrong withdraws them one by one. The Layout of SCR-STF-01 draws the checkbox on the creator's
     PENDING rows, "Thu hồi {count}" in the bar, the confirmation, the progress and the result. Settled by DEC-142 (1)
     (`POST /api/v1/admin/staff/bulk-withdraw` in STF-07: a background job of 1 to 100 items `{id, version}`, each
-    withdrawn under the rules of the single withdrawal, with an `Idempotency-Key`); closes when that endpoint merges,
+    withdrawn under the rules of the single withdrawal, with an `Idempotency-Key`); closes when STF-07's bulk-withdraw merges,
     after STF-09.

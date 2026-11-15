@@ -205,15 +205,15 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
                                         or no answer, the toast of the answers table and the same invalidation
                                         — alert-dialog, checkbox
     ```
-- **Change of 2026-11-14, #158** (DEC-141 (4)): on the one page of this canvas, canvas version `1794688656-3d51` (the
+- **Change of 2026-11-14, #158** (DEC-141 (4)): on the one page of this canvas, canvas version `1794731137-483d` (the
   version approved before it: `1794684856-bf72`), drawn with the design system of 2026-11-13 (commit 563a162); every
   artboard whose drawing changed is named `[Đổi 14/11/2026 · #158]`; approved by the merge of the pull request that
   wrote this bullet.
   - **Frame**: every artboard with the frame draws it from the artboard `Main` of the canvas of SCR-ADM-01: the group
     "Nhân viên" open with "Danh sách nhân viên" current ("Thêm nhân viên" for a holder of `staff.create`, "Chờ duyệt"
     with its count for a holder of `staff.approve`, so not for the fixture IT Support of `NoApprove` and `Creator`),
-    the breadcrumb "Nhân viên › Danh sách nhân viên › Tài khoản nhân viên" (the entry a link), the current page alone
-    on a narrow screen, and the switch "Giao diện". It stays context, approved by the Layout of SCR-ADM-01.
+    the breadcrumb "Nhân viên › Danh sách nhân viên › Tài khoản nhân viên" (the entry a link)
+    at every width, as SCR-ADM-01 has it, and the switch "Giao diện". It stays context, approved by the Layout of SCR-ADM-01.
   - **Moved artboards in the current layout**: `NotFound` and `Error` keep their Empty in the column (no section
     navigation) inside the full frame; `Loading` gains the header and the menu; `DisableDialog`, `ResetPassword` and
     `UpdateSheet` now open over the ACTIVE account of the page as it is (`Main` with `view="profile"`, the fixture
@@ -221,10 +221,13 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
     name, email, code and dates are those of that account; their content is the approved one. The Empty of `Error`
     has no description: its title is the text the web shows for a failed answer of the API (**Errors**), the case
     **Help on screen** leaves without one, as the failed load of the HR profile.
-  - **Required fields**: `DisableDialog` marks "Ngày nghỉ việc" with ` *` (its picker `aria-required`) once "Nhân
-    viên nghỉ việc" is ticked and shows `admin.requiredNote` under the DialogDescription while it is; `UpdateSheet`
+  - **Required fields**: `DisableDialog` marks "Ngày nghỉ việc" with ` *` once "Nhân viên nghỉ việc" is ticked
+    (the picker is a button, so no `aria-required`; ticking sets today, as the built dialog does, so it is never
+    empty) and shows `admin.requiredNote` (*new* unless an earlier build added it, with `admin.requiredMark`; the texts of SCR-STF-02) under the DialogDescription while it is; `UpdateSheet`
     (gap 7) shows `admin.requiredNote` under the SheetDescription and marks "Họ tên", "Mã nhân viên" and "Ngày vào
-    làm" (the picker never empty, so its hint is not needed); its phone hint drops "Không bắt buộc;" (an optional
+    làm"; the joined date may be empty (`staff_profiles.joined_date` is nullable), so its picker says it through its
+    new hint `updateSheet.joinedDateHint` "Bắt buộc; không sau hôm nay. Tài khoản chưa có ngày vào làm thì chọn ngày
+    nhân viên bắt đầu làm việc." (*new*), tied by `aria-describedby`; its phone hint drops "Không bắt buộc;" (an optional
     field has no mark and no hint says it), so `updateSheet.workPhoneHint` is "Từ 8 đến 15 chữ số, có thể bắt đầu
     bằng +." The sheet "Sửa thông tin cá nhân" has no required field (a masked field left empty keeps its value) and
     `Anonymize` already follows the bullet; the confirmations have no field.
@@ -232,6 +235,8 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
     take as SCR-STF-02 does: the ` *` span of **Required fields** in their FieldLabel and `admin.requiredNote` under
     their description.
 - **Builds**, each part by its feature, on the page as it is then:
+  - from the change of #158: `layout-scr-stf-03` builds the frame as SCR-ADM-01 has it then and the mark and note
+    of "Khóa tài khoản" in `staff-disable-dialog.tsx`; STF-11 the marks, note and hints of the sheet (gap 7).
   - `layout-scr-stf-03` (the Next row of `docs/STATUS.md`, a `feat(web): … (STF-02)` pull request): the section
     navigation, the width, the cards "Hồ sơ nhân viên" and "Tài khoản" with the status actions in the status row and
     the row of the default password, loading, 404 and error.

@@ -39,7 +39,7 @@ hàng."
 - **Change of 2026-11-14, #158** (DEC-141 (4)): canvas version `1794688615-9470` (the version approved before it, by the
   pull request of 2026-11-04: `1793758178-edbd`), drawn with the design system of 2026-11-13 (commit 563a162); the six
   artboards are named `[Đổi 14/11/2026 · #158]`; approved by the merge of the pull request that wrote this bullet.
-  **Required fields**: `admin.requiredNote` under the CardDescription (centred like it; a line of Skeleton more on
+  **Required fields**: `admin.requiredNote` (*new* unless an earlier build added it, with `admin.requiredMark`; the texts of SCR-STF-02) under the CardDescription (centred like it; a line of Skeleton more on
   the loading artboard), "Email công ty" and "Mật khẩu" end with ` *` and their inputs are `required`; the tree adds
   both to `sign-in-form.tsx` and the line to `sign-in-skeleton.tsx`. The note's key lives under `admin` although this
   page is outside the frame, so that every form shares one text. **Help on screen**, **Grouping** and **Design
