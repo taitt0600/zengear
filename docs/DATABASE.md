@@ -165,6 +165,72 @@ Table role_manageable_roles {
   }
 }
 
+Table departments {
+  id uuid [pk, default: `uuidv7()`]
+  code varchar(50) [not null, note: 'Seed: EXEC | SALES | PROC | MKT | FINHR | IT — admins can add more; unique whatever the case after trimming (R-ORG-01)']
+  name varchar [not null]
+  is_active boolean [not null, default: true]
+  created_by uuid [null]
+  created_at timestamptz [not null, default: `now()`]
+  updated_by uuid [null]
+  updated_at timestamptz [not null, default: `now()`]
+  parent_id uuid [null, note: 'NULL = root; no cycle (validated in code, R-ORG-01)']
+
+  indexes {
+    (`lower(trim(code))`) [unique, name: 'ix_departments_code']
+    parent_id
+  }
+
+  checks {
+    `parent_id is null or parent_id <> id`
+  }
+}
+
+Table positions {
+  id uuid [pk, default: `uuidv7()`]
+  code varchar(50) [not null, note: 'Seed: the 21 positions of R-ORG-02 — admins can add more; unique whatever the case after trimming']
+  name varchar [not null]
+  description text [null]
+  is_active boolean [not null, default: true]
+  created_by uuid [null]
+  created_at timestamptz [not null, default: `now()`]
+  updated_by uuid [null]
+  updated_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (`lower(trim(code))`) [unique, name: 'ix_positions_code']
+  }
+}
+
+Table staff_assignments {
+  id uuid [pk, default: `uuidv7()`]
+  start_date date [not null]
+  end_date date [null, note: 'last working day of the assignment; NULL = in effect (R-ORG-03)']
+  is_primary boolean [not null, default: false, note: 'exactly one primary among the assignments in effect of a user (ix_staff_assignments_user_id_primary_open, partial)']
+  created_by uuid [null]
+  created_at timestamptz [not null, default: `now()`]
+  updated_by uuid [null]
+  updated_at timestamptz [not null, default: `now()`]
+  user_id uuid [not null]
+  department_id uuid [not null]
+  position_id uuid [not null]
+  location_id uuid [not null]
+  manager_user_id uuid [null]
+
+  indexes {
+    (user_id, start_date)
+    department_id
+    position_id
+    location_id
+    manager_user_id
+  }
+
+  checks {
+    `end_date is null or end_date >= start_date`
+    `manager_user_id is null or manager_user_id <> user_id`
+  }
+}
+
 Table countries {
   id integer [pk]
   country_code varchar(2) [not null, unique, note: 'ISO 3166-1 alpha-2, e.g. VN, US']
@@ -262,6 +328,12 @@ Ref: role_permissions.role_id > roles.id [delete: cascade]
 Ref: role_permissions.permission_id > permissions.id [delete: cascade]
 Ref: role_manageable_roles.role_id > roles.id [delete: cascade]
 Ref: role_manageable_roles.managed_role_id > roles.id [delete: cascade]
+Ref: departments.parent_id >? departments.id [delete: restrict]
+Ref: staff_assignments.user_id > users.id [delete: restrict]
+Ref: staff_assignments.department_id > departments.id [delete: restrict]
+Ref: staff_assignments.position_id > positions.id [delete: restrict]
+Ref: staff_assignments.location_id > business_locations.id [delete: restrict]
+Ref: staff_assignments.manager_user_id >? users.id [delete: restrict]
 Ref: addresses.user_id > users.id [delete: cascade]
 
 Table categories {
@@ -1955,6 +2027,9 @@ TableGroup phase1_store [note: 'Phase 1 — Store (in-store sales)'] {
   user_roles
   role_permissions
   role_manageable_roles
+  departments
+  positions
+  staff_assignments
   countries
   provinces
   wards
@@ -2137,6 +2212,62 @@ migration (DEC-129).
 |---|---|---|
 | role_id | FK to `roles`: the managing role | `b2c3d4e5-...` |
 | managed_role_id | FK to `roles`: a role it manages | `d4e5f6a7-...` |
+
+#### departments
+
+Department of the company, as a tree (R-ORG-01, DEC-144). A store is a business location (`business_locations`), not a
+department (DEC-143). Changing the parent may not create a cycle (validated in code by walking up `parent_id`);
+deactivating is refused while an assignment in effect or an active child department points to it; a department that
+has assignments is never deleted, only deactivated. Seeded by `api/seed/09_organization.sql`; edited with `org.update`.
+
+| Column | Description | Sample Data |
+|---|---|---|
+| id | Primary key | `e5f6a7b8-...` |
+| code | Short code, unique whatever the case after trimming (`ix_departments_code` on `lower(trim(code))`) | EXEC, SALES, PROC, MKT, FINHR, IT |
+| name | Department name | Ban điều hành, Kinh doanh và Vận hành |
+| is_active | false = no new assignment; still shown in history | true, false |
+| parent_id | FK to `departments`: the parent department; NULL = root, never the row itself | `e5f6a7b8-...`, NULL |
+
+#### positions
+
+Job position, a catalogue of its own (R-ORG-02, DEC-144): not tied to a department or a role, and it grants no
+permission (permissions follow roles, R-SEC-03, R-SEC-12). Deactivating is refused while an assignment in effect points
+to it; a position that has assignments is never deleted. Seeded by `api/seed/09_organization.sql`; edited with
+`org.update`.
+
+| Column | Description | Sample Data |
+|---|---|---|
+| id | Primary key | `f6a7b8c9-...` |
+| code | Short code, unique whatever the case after trimming (`ix_positions_code` on `lower(trim(code))`) | STORE_MANAGER, CASHIER |
+| name | Position name | Cửa hàng trưởng, Thu ngân |
+| description | What the position does, optional | Phụ trách vận hành một cửa hàng, NULL |
+| is_active | false = no new assignment; still shown in history | true, false |
+
+#### staff_assignments
+
+Assignment of a staff account to a department, a position and a business location, with a line manager and dates
+(R-ORG-03, DEC-144). An assignment is in effect on day D (Asia/Ho_Chi_Minh) when `start_date <= D` and (`end_date` is
+NULL or `end_date >= D`). A person may hold several assignments in effect (Kiêm nhiệm) but exactly one primary among
+them; `ix_staff_assignments_user_id_primary_open` (unique on `user_id` where `is_primary` and `end_date IS NULL`) is the
+database safety net. A promotion or a lateral move sets `end_date` on the old assignment and inserts a new one: the
+department and position of an existing row never change, no row is deleted, and every change is written to
+`audit_logs`. Disabling an account with a `left_date` (STF-02, STF-07) sets `end_date = left_date` on every assignment
+in effect in the same transaction. The line manager is another active staff account, and walking up the managers of
+the primary assignments never meets the person again (validated in code). Written with `staff.assignment.update` for
+accounts in the manageable scope (R-SEC-12); read with `staff.read`. `GET /api/v1/admin/me` returns the department,
+position and line manager of the primary assignment in effect.
+
+| Column | Description | Sample Data |
+|---|---|---|
+| id | Primary key | `a7b8c9d0-...` |
+| start_date | First working day of the assignment | 2026-12-01 |
+| end_date | Last working day of the assignment, not before `start_date`; NULL = in effect | 2027-06-30, NULL |
+| is_primary | The primary assignment (Phân công chính): the one shown as the person's department, position and line manager | true, false |
+| user_id | FK to `users`: the staff account | `a1b2c3d4-...` |
+| department_id | FK to `departments`; active when the assignment is created | `e5f6a7b8-...` |
+| position_id | FK to `positions`; active when the assignment is created | `f6a7b8c9-...` |
+| location_id | FK to `business_locations`: the place of work | `b0c1d2e3-...` |
+| manager_user_id | FK to `users`: the line manager (Quản lý trực tiếp), never the person; NULL = none | `a1b2c3d4-...`, NULL |
 
 #### countries
 

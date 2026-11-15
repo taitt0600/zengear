@@ -7,6 +7,7 @@ BEGIN;
 DROP VIEW IF EXISTS product_with_effective_price;
 DROP TABLE IF EXISTS
   users, customer_profiles, staff_profiles, roles, permissions, user_roles, role_permissions, role_manageable_roles,
+  departments, positions, staff_assignments,
   countries, provinces, wards, addresses,
   tax_classes, tax_rates,
   categories, brands, product_series, products, product_skus, product_images, product_badges, product_badge_assignments, product_tags, pc_build_components,
@@ -167,6 +168,37 @@ CREATE TABLE role_manageable_roles (
   CONSTRAINT fk_role_manageable_roles_roles_managed_role_id FOREIGN KEY (managed_role_id) REFERENCES roles (id) ON DELETE CASCADE
 );
 CREATE INDEX ix_role_manageable_roles_managed_role_id ON role_manageable_roles (managed_role_id);
+
+CREATE TABLE departments (
+  id         uuid        NOT NULL DEFAULT uuidv7(),
+  code       varchar(50) NOT NULL,
+  name       varchar     NOT NULL,
+  is_active  boolean     NOT NULL DEFAULT true,
+  created_by uuid,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_by uuid,
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  parent_id  uuid,
+  CONSTRAINT pk_departments PRIMARY KEY (id),
+  CONSTRAINT fk_departments_departments_parent_id FOREIGN KEY (parent_id) REFERENCES departments (id) ON DELETE RESTRICT,
+  CONSTRAINT ck_departments_parent_not_self CHECK (parent_id is null or parent_id <> id)
+);
+CREATE UNIQUE INDEX ix_departments_code ON departments (lower(trim(code)));
+CREATE INDEX ix_departments_parent_id ON departments (parent_id);
+
+CREATE TABLE positions (
+  id          uuid        NOT NULL DEFAULT uuidv7(),
+  code        varchar(50) NOT NULL,
+  name        varchar     NOT NULL,
+  description text,
+  is_active   boolean     NOT NULL DEFAULT true,
+  created_by  uuid,
+  created_at  timestamptz NOT NULL DEFAULT now(),
+  updated_by  uuid,
+  updated_at  timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT pk_positions PRIMARY KEY (id)
+);
+CREATE UNIQUE INDEX ix_positions_code ON positions (lower(trim(code)));
 
 -- 2. Geography & Addresses
 
@@ -459,6 +491,37 @@ CREATE TABLE business_locations (
 CREATE UNIQUE INDEX ix_business_locations_name ON business_locations (name);
 CREATE INDEX ix_business_locations_province_id ON business_locations (province_id);
 CREATE INDEX ix_business_locations_ward_id ON business_locations (ward_id);
+
+-- staff_assignments belongs to 1. Identity & Access; it is created here because it references business_locations
+CREATE TABLE staff_assignments (
+  id              uuid        NOT NULL DEFAULT uuidv7(),
+  start_date      date        NOT NULL,
+  end_date        date,
+  is_primary      boolean     NOT NULL DEFAULT false,
+  created_by      uuid,
+  created_at      timestamptz NOT NULL DEFAULT now(),
+  updated_by      uuid,
+  updated_at      timestamptz NOT NULL DEFAULT now(),
+  user_id         uuid        NOT NULL,
+  department_id   uuid        NOT NULL,
+  position_id     uuid        NOT NULL,
+  location_id     uuid        NOT NULL,
+  manager_user_id uuid,
+  CONSTRAINT pk_staff_assignments PRIMARY KEY (id),
+  CONSTRAINT fk_staff_assignments_users_user_id FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE RESTRICT,
+  CONSTRAINT fk_staff_assignments_departments_department_id FOREIGN KEY (department_id) REFERENCES departments (id) ON DELETE RESTRICT,
+  CONSTRAINT fk_staff_assignments_positions_position_id FOREIGN KEY (position_id) REFERENCES positions (id) ON DELETE RESTRICT,
+  CONSTRAINT fk_staff_assignments_business_locations_location_id FOREIGN KEY (location_id) REFERENCES business_locations (id) ON DELETE RESTRICT,
+  CONSTRAINT fk_staff_assignments_users_manager_user_id FOREIGN KEY (manager_user_id) REFERENCES users (id) ON DELETE RESTRICT,
+  CONSTRAINT ck_staff_assignments_end_date CHECK (end_date is null or end_date >= start_date),
+  CONSTRAINT ck_staff_assignments_manager_not_self CHECK (manager_user_id is null or manager_user_id <> user_id)
+);
+CREATE INDEX ix_staff_assignments_user_id_start_date ON staff_assignments (user_id, start_date);
+CREATE INDEX ix_staff_assignments_department_id ON staff_assignments (department_id);
+CREATE INDEX ix_staff_assignments_position_id ON staff_assignments (position_id);
+CREATE INDEX ix_staff_assignments_location_id ON staff_assignments (location_id);
+CREATE INDEX ix_staff_assignments_manager_user_id ON staff_assignments (manager_user_id);
+CREATE UNIQUE INDEX ix_staff_assignments_user_id_primary_open ON staff_assignments (user_id) WHERE is_primary AND end_date IS NULL;
 
 CREATE TABLE warehouses (
   id         uuid        NOT NULL DEFAULT uuidv7(),

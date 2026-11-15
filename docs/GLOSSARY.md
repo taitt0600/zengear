@@ -13,9 +13,12 @@ Class names are singular PascalCase in `ZenGear.Data/Entities/<Area>`; table nam
 | Hồ sơ nhân viên | `StaffProfile` | `staff_profiles` | Identity |
 | Vai trò | `Role` | `roles` | Identity |
 | Quyền | `Permission` | `permissions` | Identity |
-| Gán vai trò (kiêm nhiệm) | `UserRole` | `user_roles` | Identity |
+| Gán vai trò (một tài khoản giữ nhiều vai trò) | `UserRole` | `user_roles` | Identity |
 | Gán quyền cho vai trò | `RolePermission` | `role_permissions` | Identity |
 | Phạm vi quản lý (các vai trò mà người giữ vai trò được quản lý tài khoản) | `RoleManageableRole` | `role_manageable_roles` | Identity |
+| Phòng ban | `Department` | `departments` | Identity |
+| Vị trí (chức danh công việc) | `Position` | `positions` | Identity |
+| Phân công (nhân viên vào phòng ban, vị trí, địa điểm làm việc) | `StaffAssignment` | `staff_assignments` | Identity |
 | Sổ địa chỉ giao hàng | `Address` | `addresses` | Customers |
 | Danh sách yêu thích | `Wishlist` | `wishlists` | Customers |
 | Quốc gia | `Country` | `countries` | Geography |
@@ -129,6 +132,9 @@ Stored as the English values below; the Vietnamese label is what the UI shows, t
 | Đơn tạo hộ / bán tại quầy | assisted order / counter sale | Đơn do nhân viên tạo (`ASSISTED`) |
 | Vai trò hệ thống | system role | Admin và Customer (`is_system_role = true`): quyền do code quy định, ghi đè khi khởi động, không sửa qua API (DEC-095) |
 | Vai trò mặc định | default role | 8 vai trò nhân viên có sẵn (DEC-128): code chỉ cấp quyền mới lần đầu, sau đó Admin chỉnh; không đổi tên, không xóa (DEC-095) |
+| Phân công chính | primary assignment (`is_primary`) | Phân công duy nhất được đánh dấu chính trong các phân công đang hiệu lực của một nhân viên; phòng ban, vị trí và quản lý trực tiếp của nhân viên là của phân công này (R-ORG-03) |
+| Quản lý trực tiếp | line manager (`manager_user_id`) | Tài khoản nhân viên khác, đang hoạt động, mà nhân viên báo cáo trong một phân công; không tạo vòng báo cáo; không đổi quyền, quyền vẫn theo Role (R-ORG-03, DEC-144) |
+| Kiêm nhiệm | concurrent assignment | Một nhân viên có nhiều phân công cùng hiệu lực, trong đó đúng một là phân công chính (R-ORG-03); khác với gán nhiều Role (`user_roles`) |
 | Khách lẻ | walk-in customer | Tài khoản hệ thống cho khách không cho SĐT lẫn email (R-USR-08) |
 | Tài khoản placeholder | placeholder account | Tài khoản khách do nhân viên tạo hộ, chưa gắn Firebase (`firebase_uid` NULL) |
 | PC bộ, PC dựng sẵn | pre-built PC | SKU PC có cấu hình niêm yết; lắp sẵn (STOCK) hoặc lắp theo đơn (BUILD) |

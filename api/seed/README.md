@@ -12,5 +12,6 @@ Reference data needed before the first login. Run in file order after the schema
 | `06_adjustment_reasons.sql` | DAMAGED, LOST, MISCOUNT |
 | `07_categories_brands.sql` | Categories with `attribute_schema` and brands, from `category_attribute_schemas.json` |
 | `08_business_location.sql` | Template for the store location — fill in before running |
+| `09_organization.sql` | 6 departments (Ban điều hành as the root of the other 5) and 21 positions (R-ORG-01, R-ORG-02, DEC-144); skipped by `tools/dev_reset.ps1` and the acceptance set-up until the migration of STF-15 builds the tables |
 
 Not seeded here: countries, provinces and wards (loaded from the official list of Quyết định 19/2025/QĐ-TTg), the default bank account, expense categories and the first Admin account, created once per environment with `dotnet ZenGear.Api.dll bootstrap-admin --email <email> --name <name>` (DEC-096).

@@ -10,7 +10,7 @@ FROM (VALUES
   ('ix_stock_count_lines_stock_count_id_sku_id_serial_number'), ('ix_products_attributes'), ('ix_product_skus_attributes'),
   ('ix_product_skus_product_id_price_active'), ('ix_notifications_next_attempt_at_pending'), ('ix_cash_accounts_type_default'),
   ('ix_cash_vouchers_source_type_source_id_active'), ('ex_tax_rates_no_overlap'), ('trg_user_roles_min_one'),
-  ('trg_user_roles_last_admin'),
+  ('trg_user_roles_last_admin'), ('ix_staff_assignments_user_id_primary_open'),
   -- Phase 2
   ('ix_addresses_user_id_default'), ('ix_shipping_fee_rules_method_province_min_value'), ('ix_products_name_trgm'),
   -- Phase 3
