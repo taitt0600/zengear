@@ -34,7 +34,7 @@ Based on [PostgreSQL Wiki — Don't Do This](https://wiki.postgresql.org/wiki/Do
 ```dbml
 Project zengear {
   database_type: 'PostgreSQL'
-  Note: 'ZenGear — PC & hardware retail (household business, 1 store): storefront, POS, inventory ledger, purchasing, warranty & returns, cash book. PostgreSQL 18. Tables are grouped by development phase; table and column descriptions are in section Database Definition of DATABASE.md.'
+  Note: 'ZenGear — PC & hardware retail (single-member limited company, VAT by the credit method, 1 store): storefront, POS, inventory ledger, purchasing, warranty & returns, cash book. PostgreSQL 18. Tables are grouped by development phase; table and column descriptions are in section Database Definition of DATABASE.md.'
 }
 
 Table users {
@@ -1017,7 +1017,7 @@ Table shipping_fee_rules {
 
 Table tax_classes {
   id uuid [pk, default: `uuidv7()`]
-  code varchar(50) [not null, unique, note: 'Business line for VAT on revenue. Seed: GOODS_DISTRIBUTION | GOODS_RELATED_SERVICE | SERVICE — admins can add more']
+  code varchar(50) [not null, unique, note: 'Goods or service group that sets the VAT rate (credit method, DEC-143); seed groups follow the confirmation of the accountant before TAX-01 — admins can add more']
   name varchar [not null]
   is_active boolean [not null, default: true]
   created_by uuid [null]
@@ -1028,7 +1028,7 @@ Table tax_classes {
 
 Table tax_rates {
   id uuid [pk, default: `uuidv7()`]
-  rate numeric(5,2) [not null, note: 'VAT rate in percent of revenue']
+  rate numeric(5,2) [not null, note: 'VAT rate in percent, entered by the accountant, never hardcoded (DEC-143)']
   valid_from timestamptz [not null]
   valid_to timestamptz [null]
   created_by uuid [null]
@@ -1189,7 +1189,7 @@ Table orders {
   manual_discount_by uuid [null, note: 'staff whose discount cap covered this discount']
   shipping_fee numeric(15,0) [not null, default: 0]
   total_amount numeric(15,0) [not null]
-  shipping_vat_rate numeric(5,2) [not null, default: 0, note: 'VAT-on-revenue rate of the shipping fee business line (snapshot)']
+  shipping_vat_rate numeric(5,2) [not null, default: 0, note: 'VAT rate of the tax class of the shipping fee (snapshot)']
   idempotency_key uuid [null]
   completed_at timestamptz [null]
   created_by uuid [null]
@@ -1273,7 +1273,7 @@ Table order_items {
   variant_attributes jsonb [null]
   warranty_months integer [null]
   discount_allocated numeric(15,0) [not null, default: 0]
-  vat_rate numeric(5,2) [not null, note: 'VAT-on-revenue rate of the line business line (snapshot)']
+  vat_rate numeric(5,2) [not null, note: 'VAT rate of the tax class of the line (snapshot)']
   unit_cost numeric(15,0) [null, note: 'average cost snapshot when stock left at confirmation']
   item_condition varchar(20) [not null, default: 'NEW', note: 'NEW | OPEN_BOX | DISPLAY — snapshot of the unit sold']
   pc_fulfillment varchar(10) [null, note: 'PC build lines only: STOCK = a pre-built PC is reserved; BUILD = components are reserved and assembled for this order']
@@ -2256,7 +2256,7 @@ Product shown on the storefront.
 | category_id | FK to `categories`; must be a child (leaf) category | `e5f6a7b8-...` |
 | brand_id | FK to `brands` | `f6a7b8c9-...` |
 | series_id | FK to `product_series`; optional | `a7b8c9d0-...`, NULL |
-| tax_class_id | FK to `tax_classes` — business line for VAT on revenue, shared by every SKU of this product | `f1a2b3c4-...` |
+| tax_class_id | FK to `tax_classes` — goods or service group that sets the VAT rate, shared by every SKU of this product | `f1a2b3c4-...` |
 
 #### product_skus
 
@@ -2350,7 +2350,7 @@ Append-only record of every stock change.
 | id | Primary key | `b3c4d5e6-...` |
 | quantity_change | Signed change: + in, − out; never 0 | 20, -1 |
 | balance_after | Quantity on hand at this warehouse right after the movement — stock card balance and stock at any point in time; reconciled nightly (R-REC-07) | 42, 0 |
-| unit_cost | Cost per unit used for this movement (purchase cost incl. input VAT in, average cost out) | 15250000, NULL |
+| unit_cost | Cost per unit used for this movement (purchase cost excl. VAT in, average cost out) | 15250000, NULL |
 | movement_type | Why the stock changed; TRANSFER_OUT/TRANSFER_IN move one unit between MAIN, DISPLAY and OUTLET | PURCHASE_RECEIPT, ORDER_CONFIRM, WARRANTY_OUT, SUPPLIER_RETURN, TRANSFER_OUT |
 | reference_type | Source document table — polymorphic, no FK | purchase_receipts, orders, return_items, NULL |
 | reference_id | Source document id | `e1f2a3b4-...`, NULL |
@@ -2412,7 +2412,7 @@ Lines of a purchase order. One SKU may have several lines at different unit cost
 | id | Primary key | `b4c5d6e7-...` |
 | quantity_ordered | Quantity ordered | 50 |
 | quantity_received | Quantity received so far on this line = Σ `purchase_receipts.quantity` of the line; reconciled nightly (R-REC-05) | 20, 50 |
-| unit_cost | Agreed unit cost excluding VAT, as on the supplier invoice; inventory cost = unit_cost plus VAT at vat_rate because a household business does not deduct input VAT; different from `product_skus.price`; 0 = free units of the same SKU from a supplier promotion | 8500000, 0 |
+| unit_cost | Agreed unit cost excluding VAT, as on the supplier invoice; inventory cost = unit_cost, without VAT, because the company deducts input VAT (R-COST-01, DEC-143); different from `product_skus.price`; 0 = free units of the same SKU from a supplier promotion | 8500000, 0 |
 | vat_rate | VAT rate on the supplier invoice, 0 when the invoice shows no VAT; payables = quantity × unit_cost plus VAT | 10.00, 0 |
 | purchase_order_id | FK to `purchase_orders` | `f2a3b4c5-...` |
 | sku_id | FK to `product_skus` | `c0d1e2f3-...` |
@@ -2499,23 +2499,23 @@ One counted item in a stock count: one line per SKU, or one line per serial for 
 
 #### tax_classes
 
-Business lines for VAT calculated as a percentage of revenue.
+Goods and service groups that set the VAT rate (credit method, DEC-143); products and shipping methods point to a group instead of storing a rate.
 
 | Column | Description | Sample Data |
 |---|---|---|
 | id | Primary key | `f1a2b3c4-...` |
-| code | Unique code | GOODS_DISTRIBUTION, GOODS_RELATED_SERVICE, SERVICE |
-| name | Display name | Phân phối, cung cấp hàng hóa |
+| code | Unique code | GOODS, SERVICE |
+| name | Display name | Hàng hóa |
 | is_active | Soft-delete flag | true, false |
 
 #### tax_rates
 
-VAT-on-revenue rate of a business line over a period.
+VAT rate of a goods or service group over a period.
 
 | Column | Description | Sample Data |
 |---|---|---|
 | id | Primary key | `a2b3c4d5-...` |
-| rate | Rate in percent of revenue | 1.00, 3.00, 5.00 |
+| rate | VAT rate in percent | theo xác nhận của kế toán (DEC-143) |
 | valid_from | Effective from (inclusive) | 2026-01-01 00:00:00+07 |
 | valid_to | Effective until (exclusive); NULL = open-ended | NULL |
 | tax_class_id | FK to `tax_classes` | `f1a2b3c4-...` |
@@ -2621,7 +2621,7 @@ Before Phase 3 there are no vouchers: `ck_orders_discount_manual_only` keeps `di
 | manual_discount_by | Staff whose discount cap covered it | `a1b2c3d4-...`, NULL |
 | shipping_fee | Shipping fee at order time — snapshot, NOT read live from `shipping_methods` | 30000, 0 |
 | total_amount | = subtotal − discount_amount + shipping_fee (enforced by CHECK) | 16520000 |
-| shipping_vat_rate | VAT-on-revenue rate of the business line of the shipping fee (snapshot) — used to split revenue by line | 1.00, 0 |
+| shipping_vat_rate | VAT rate of the tax class of the shipping fee (snapshot) — splits the order's VAT by rate (R-ORD-07) | theo xác nhận của kế toán (DEC-143) |
 | idempotency_key | Key generated by the client per checkout; a repeated request returns the existing order | `9f1c2d3e-...`, NULL |
 | completed_at | When the order became Completed — basis for revenue date and warranty start | 2026-02-03 16:20:00, NULL |
 | customer_id | FK to `users` — order owner | `a1b2c3d4-...` |
@@ -2655,7 +2655,7 @@ Lines of an order.
 | variant_attributes | Variant attributes at order time (snapshot) | `{"ram": "16GB"}`, NULL |
 | warranty_months | Warranty period at order time (snapshot, never changes afterwards) | 24, NULL |
 | discount_allocated | Share of the order-level voucher allocated to this line (pro-rata by line value; rounding remainder goes to the last line) | 480000, 0 |
-| vat_rate | VAT-on-revenue rate of the product business line (snapshot); re-read at completion — revenue per rate feeds the tax books | 1.00, 5.00 |
+| vat_rate | VAT rate of the product's tax class (snapshot); re-read at completion — the VAT per rate feeds the VAT invoice and the accounting export (R-ORD-07, R-EIV-01, R-ACT-03) | theo xác nhận của kế toán (DEC-143) |
 | unit_cost | Average cost per unit when the stock left (order confirmation); basis of gross profit | 15250000, NULL |
 | item_condition | Condition of the unit sold (snapshot); non-NEW lines are outlet units priced per unit | NEW, OPEN_BOX, DISPLAY |
 | serial_unit_id | FK to `serial_units` — the outlet unit chosen at order time; unit_price and warranty_months are copied from its resale_price and resale_warranty_months | `e4f5a6b7-...`, NULL |
@@ -2739,7 +2739,7 @@ Payments and refunds of an order.
 
 #### e_invoices
 
-Electronic sales invoices (hóa đơn bán hàng) issued through the e-invoice provider: one invoice per order, adjustments for returns.
+Electronic VAT invoices (hóa đơn giá trị gia tăng), generated from a cash register at the counter and issued through the e-invoice provider: one invoice per order, adjustments for returns.
 
 | Column | Description | Sample Data |
 |---|---|---|
@@ -2747,10 +2747,10 @@ Electronic sales invoices (hóa đơn bán hàng) issued through the e-invoice p
 | invoice_type | SALE, or an adjustment/replacement of an issued invoice | SALE, ADJUSTMENT_DECREASE |
 | status | Pending → Issued; Failed after provider errors; Cancelled | Issued, Pending |
 | provider | E-invoice provider used | MISA |
-| amount | Invoice total (tax included in the price) | 18990000 |
-| invoice_symbol | Invoice symbol; the leading 2 is the sales-invoice form, the letter after the year is M for an invoice generated from a cash register, T for a regular coded invoice | 2C26MAA, 2C26TAA |
+| amount | Invoice total including VAT; the amounts before VAT and the VAT per rate come from the order lines (R-ORD-07) | 18990000 |
+| invoice_symbol | Invoice symbol; the leading 1 is the VAT invoice form, the letter after the year is M for an invoice generated from a cash register, T for a regular coded invoice | 1C27MAA, 1C27TAA |
 | invoice_number | Invoice number | 0000123, NULL |
-| tax_authority_code | Code issued by the tax authority | M1-26-ABC12-00000000123, NULL |
+| tax_authority_code | Code issued by the tax authority | M1-27-ABC12-00000000123, NULL |
 | lookup_code | Code the buyer uses to look up the invoice | 8F3K2L, NULL |
 | provider_ref | Provider transaction id — makes retries idempotent | a1b2c3, NULL |
 | issued_at | When the invoice was issued | 2026-02-01 10:05:00, NULL |
@@ -2979,7 +2979,7 @@ Shipping options and fees.
 | name | Method name | Giao hàng tiêu chuẩn |
 | base_fee | Fallback fee when no fee rule matches | 30000 |
 | is_active | Visible for selection at checkout | true, false |
-| tax_class_id | FK to `tax_classes` — business line of the shipping fee | `f1a2b3c4-...` |
+| tax_class_id | FK to `tax_classes` — goods or service group of the shipping fee, sets its VAT rate | `f1a2b3c4-...` |
 | carrier_id | FK to `carriers` — default carrier of this method; IN_HOUSE = store delivery staff; NULL = chosen when shipped | `a3b4c5d6-...`, NULL |
 
 #### shipping_fee_rules
