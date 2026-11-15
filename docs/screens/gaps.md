@@ -21,16 +21,19 @@ gap is built once the gap is closed. A closed gap keeps its number, since other 
    `GET /api/v1/admin/staff`.
 5. **Changing a staff member's email.** No endpoint changes it; SCR-ACC-01 shows the email read-only, without a note
    (the owner's choice, 2026-11-12: the company issues it). Settled by DEC-132 (3) (`staff.email.update`, the Admin by
-   default); closes when STF-11 merges. Its dialog on SCR-STF-03 needs a Layout pull request first.
+   default); closes when STF-11 merges. Its dialog on SCR-STF-03 needs a Layout pull request first. DEC-145 (5)
+   replaces the free email with "Sinh lại tên đăng nhập và email" (`POST /api/v1/admin/staff/{id}/identity`,
+   R-USR-21), so that Layout pull request draws this action, not an email field.
 6. **Store name for every staff member.** SCR-ADM-01 shows the store name at the top of its menu, but `GET
    /api/v1/admin/business-locations` needs `business_location.update` and no endpoint every signed-in staff member may
    read returns it; the menu shows "ZenGear" (message `app.name`) until then. Settled by DEC-136 (`GET
    /api/v1/admin/store`, added to AUT-04); closes when the pull request of AUT-04 that builds it merges.
-7. **Updating a staff account's profile.** No endpoint changes a staff member's name, employee code, work phone,
-   joined date or roles. The Layout of SCR-STF-03 draws the action and its information sheet ahead, at the owner's
-   request. Settled by DEC-132 (`staff.update`); closes when STF-11 merges. The role editing needs a Layout pull
-   request of SCR-STF-03 first; the Layout of SCR-STF-01 draws ahead a row action "Sửa vai trò" that only opens that
-   dialog on SCR-STF-03.
+7. **Updating a staff account's profile.** No endpoint changes a staff member's name, work phone, joined date or
+   roles. The Layout of SCR-STF-03 draws the action and its information sheet ahead, at the owner's request. Settled
+   by DEC-132 (`staff.update`); closes when STF-11 merges. DEC-145 (3) makes the employee code immutable (R-USR-20,
+   R-USR-24): the sheet drawn ahead edits it, so a Layout pull request of SCR-STF-03 takes it out of the sheet before
+   STF-11 builds it. The role editing needs a Layout pull request of SCR-STF-03 first; the Layout of SCR-STF-01 draws
+   ahead a row action "Sửa vai trò" that only opens that dialog on SCR-STF-03.
 8. **A staff member's photo.** Neither `users` nor `staff_profiles` holds a photo, and no endpoint uploads one.
    SCR-STF-03 and SCR-ACC-01 show the initials in an Avatar until then. Settled by DEC-130 (the manager with
    `staff.pii.update` on SCR-STF-03, the staff member through `/me` on SCR-ACC-01) and DEC-131 (the private storage);
@@ -75,3 +78,12 @@ gap is built once the gap is closed. A closed gap keeps its number, since other 
     notice, the creator in the confirmations, and the buttons only where the caller may approve. Settled by DEC-138
     (the account of `GET /api/v1/admin/staff/{id}` carries the same three fields by the rule of DEC-137 (1), as a
     criterion of STF-09); closes when STF-09 merges.
+15. **Generated staff identifiers.** `POST /api/v1/admin/staff` still takes `employeeCode` and `email` typed by the
+    creator, no account has a username, and sign-in takes an email only, while DEC-145 has the system generate the
+    employee code, the username and the company email (R-USR-24) and lets staff sign in with either (AUT-01). The
+    approved Layouts follow the old API: SCR-STF-02 has the fields Mã nhân viên and Email công ty, SCR-AUT-01 the
+    field Email công ty and the error "Email hoặc mật khẩu không đúng.". Settled by DEC-145; closes when the pull
+    request that builds R-USR-24 in STF-01 merges. Since that pull request changes the API and the web together, a
+    Layout pull request of SCR-STF-02 (the fields out, the generated code, username and email shown after creation)
+    and one of SCR-AUT-01 (the field "Tên đăng nhập hoặc email" and the error "Tên đăng nhập, email hoặc mật khẩu
+    không đúng.") merge before it.
