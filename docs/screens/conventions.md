@@ -31,8 +31,7 @@
   to show (an empty list, no permission, not found, a failed load) is an `Empty` with an outline (`border`, dashed):
   an icon in `EmptyMedia variant="icon"`, the message in `EmptyTitle` (the page's h1 on a page that is only this
   Empty), the way out, when there is one, in `EmptyContent`; an empty list's Empty takes the place of the rows inside
-  the list's card, so that its filters stay. Chosen by the owner on the Layout of SCR-ADM-01; a screen built before
-  (SCR-ACC-01, the placeholder page) follows it with its next Layout.
+  the list's card, so that its filters stay. Chosen by the owner on the Layout of SCR-ADM-01.
 - **Help on screen**, in every design and its Layout, from the message files like every text:
   - a **tooltip** (`Tooltip`) on every button that shows only an icon, with its `aria-label` (the corner close
     button of `Dialog` and `Sheet` too, with `ui.close`, in the pull request that next changes those components),
@@ -53,8 +52,7 @@
     value it finds (chosen by the owner on the Layout of SCR-STF-01).
 
   A Layout lists these texts with the screen's other new texts. Chosen by the owner on the Layout of SCR-ADM-01,
-  the placeholder on the Layout of SCR-AUT-01; a screen built before (SCR-AUT-01, SCR-AUT-02, SCR-ACC-01) follows
-  it with its next Layout.
+  the placeholder on the Layout of SCR-AUT-01.
 - **Required fields** (chosen by the owner on the Layout of SCR-STF-02): a form that has a required field says once,
   under its title (after the `CardDescription`, `DialogDescription` or `SheetDescription`), "Trường có dấu * là bắt
   buộc." (`admin.requiredNote`, a rich text whose `*` is `aria-hidden` with the visually hidden `admin.requiredMark`
@@ -64,8 +62,7 @@
   group (`fieldset`) or a button-like control (a date picker) says it through its hint or never has an empty value. A
   field that becomes required on a condition takes the mark when it does. An optional field has no mark, and no hint
   says "bắt buộc" or "không bắt buộc". The mark is a span inside `FieldLabel`, so the label keeps its colour and error
-  state and the shared component needs no new prop. A screen built or laid out before follows it with its next
-  Layout.
+  state and the shared component needs no new prop.
 - **Dates** `yyyy-MM-dd` from the API are shown `dd/MM/yyyy`; timestamps are shown in Asia/Ho_Chi_Minh.
 - **Accessibility**: WCAG 2.2 AA; every form works with the keyboard alone, every field has a visible label, errors
   are announced to screen readers.
@@ -88,8 +85,7 @@
     SCR-STF-03 group it (what each card holds is in that file).
 
   The Layout pull request has a table of the six with how the design meets each, and names any trade-off between
-  them. A Layout approved before the commit that adds this bullet merges (SCR-STF-03 included), or one whose pull
-  request was opened before then, follows these principles with its next Layout.
+  them.
 - **Design system** (DEC-119 (2)): <https://claude.ai/artifact/DAYPEgxSLaHrHYG99Tmntb>, built 2026-10-31 from
   `web/src/app/globals.css` and `web/src/components/ui/` and updated 2026-11-13 to commit 563a162 (from 39485c9:
   comments only, nothing to sync); `/design-screen`
@@ -105,8 +101,12 @@
   version before it, except for artboards moved onto the canvas from other canvases and artboards drawn again. One Layout pull request per
   screen is open at a time, so that a restore never reverts another change. No page per change and no second canvas
   per screen; a session reads the canvas before drawing. `/design-screen` (an owner path) creates a canvas in its step
-  3; until the owner changes that step (the owner's steps of pull request #155), a run creates a canvas only for a
-  screen that has none, and otherwise adds to the screen's canvas as this bullet says.
+  3 only for a screen that has none, and otherwise adds to the screen's canvas as this bullet says. A part that
+  several screens show (the frame of SCR-ADM-01, a dialog or toast pattern, a state, a convention of this file) is
+  changed on every canvas and in every Layout that shows it, in the same Layout pull request (DEC-141 (3)); a new
+  convention applies to every Layout at once, never with a screen's next Layout (DEC-141 (4)). The frame of
+  SCR-ADM-01 on another screen's canvas is drawn from the artboard `Main` of the canvas of SCR-ADM-01, with the
+  current entry, the breadcrumb and the menu entries of the viewer's permissions of that artboard.
 - **Layout** (DEC-119 (3)): the approved design of a screen, a section `## Layout` at the end of its file that
   `/design-screen <SCR-ID>` writes and the merge of its Layout pull request approves; a later change of the design is
   a new Layout pull request. The component tree is the part a diff can review, and the runs build from it:

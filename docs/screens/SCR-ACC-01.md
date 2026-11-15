@@ -42,6 +42,17 @@ its **Layout** below.
   SCR-STF-03 (a centred column with the section navigation), shows the email and the work details as read-only rows,
   draws the staff member's own photo ahead (gap 8) and changes the password on the page instead of in a dialog. The
   canvas shows the frame of SCR-ADM-01 for context only; this Layout does not approve it.
+- **Change of 2026-11-14, #158** (DEC-141 (4)): canvas version `1794688643-bbff` (the version approved before it, by the
+  pull request of 2026-11-12: `1794494016-9d1e`), drawn with the design system of 2026-11-13 (commit 563a162); the
+  four artboards are named `[Đổi 14/11/2026 · #158]`; approved by the merge of the pull request that wrote this bullet.
+  The frame is drawn from the artboard `Main` of the canvas of SCR-ADM-01 (no group open, since no entry is the
+  current page; the breadcrumb "Tài khoản của tôi"; the switch "Giao diện"), still context. **Required fields**: each
+  card has a form with required fields, so each shows `admin.requiredNote` under its CardDescription (on the loading
+  artboard too, since the descriptions show while loading); "Tên hiển thị", "Mật khẩu hiện tại", "Mật khẩu mới" and
+  "Nhập lại mật khẩu mới" end with ` *` and their inputs are `required`. The tree adds the note to
+  `account-profile-section.tsx` and `account-password-section.tsx` and the mark to the labels of
+  `account-profile-fields.tsx` and `account-password-form.tsx`. **Help on screen**, **Grouping** and **Design
+  principles**: met as drawn (the review is in the pull request), nothing else changes.
 - **Artboards**: desktop (1440 px), signed in as the fixture manager, where the section navigation works in Play and
   the repeat of the new password does not match yet; wide (2560 px), the column kept at 1024px and centred; narrow
   (390 px), with the photo above the details, the current password refused and every requirement met; state:
