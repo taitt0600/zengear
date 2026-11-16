@@ -1,0 +1,36 @@
+name: issue-deps
+
+# Blocked-by relations for cloud sessions (DEC-151 (1)): the owner's account (a local session, the owner, or a cloud
+# session through the Claude app) comments a zengear:blocked-by or zengear:unblock marker of tools/comment_templates.py
+# on the blocked issue, and tools/issue.py deps adds or removes the relation through the REST API, then answers with a
+# zengear:blocked-by-result comment. issue_comment runs this file and tools/ as they are on main; the comment body is
+# read from the event file by the script, never put into a command, and no code of a branch runs.
+on:
+  issue_comment:
+    types: [created]
+
+permissions: {}
+
+jobs:
+  issue-deps:
+    name: issue-deps
+    # Issues only, comments of the owner only; tools/issue.py checks both again.
+    if: ${{ !github.event.issue.pull_request && github.event.comment.user.login == 'taitt0600' }}
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+    # One run at a time per issue. GitHub keeps one pending run per group and cancels an older pending one, so a
+    # request can go unanswered when three come at once: the session resends every request without a result comment
+    # (DEC-151 (2)).
+    concurrency:
+      group: issue-deps-${{ github.event.issue.number }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Add or remove the relation
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 tools/issue.py deps "$GITHUB_EVENT_PATH"

@@ -1,0 +1,37 @@
+name: issue-lint
+
+# Issues follow their form of .github/ISSUE_TEMPLATE (DEC-148 (9)): an issue made through the GitHub MCP, the API or a
+# Blank issue without the fields of its form gets the label invalid and one comment that lists what is missing; both go
+# once it is fixed. The field Feature ID of a Feature issue is read with this token, the read that gate 9 makes. Runs
+# this file and tools/ of main; the body is read from the event file by the script, never put into a command.
+# Changes made with GITHUB_TOKEN start no workflow, so the label and the comment do not run this again.
+on:
+  issues:
+    # The field Feature ID is set after an issue opens: tools/issue.py create lints again once it is set; an issue made
+    # through the GitHub MCP is linted again by its next edit, label or type change.
+    types: [opened, edited, typed, untyped, labeled, unlabeled]
+
+permissions: {}
+
+jobs:
+  issue-lint:
+    name: issue-lint
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+    concurrency:
+      group: issue-lint-${{ github.event.issue.number }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # PyYAML reads the forms; tools/requirements.txt with hashes, in a venv (PEP 668 on the runner).
+      - run: |
+          python3 -m venv .venv
+          .venv/bin/pip install --quiet --require-hashes -r tools/requirements.txt
+      - name: Check the issue against its form
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: .venv/bin/python tools/issue.py lint "$GITHUB_EVENT_PATH"
