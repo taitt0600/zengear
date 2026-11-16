@@ -1,17 +1,21 @@
 name: gates
 
 # Checks that stand in for a person's approval before auto-merge (tools/pr_gates.py, CLAUDE.md, Workflow), and the
-# title of the pull request. pull_request_target runs this file and tools/pr_gates.py as they are on main, so a pull
-# request cannot change the gates that judge it. The pull request is read as git objects: nothing of it is checked
-# out or run, and the token can only read. The other checks run in pipeline.yml.
+# title and commit messages of the pull request (Commitizen, DEC-150 (1)). pull_request_target runs this file,
+# tools/pr_gates.py, .cz.toml and tools/requirements.txt as they are on main, so a pull request cannot change the gates
+# that judge it. The pull request is read as git objects and from the event file: nothing of it is checked out or run,
+# and the token can only read. The other checks run in pipeline.yml.
 on:
   pull_request_target:
-    types: [opened, reopened, edited, synchronize]
+    # edited: the body (gate 11) and the title; ready_for_review and converted_to_draft: a Needs decision item needs a
+    # draft; auto_merge_enabled and auto_merge_disabled: owner paths never merge by auto-merge (DEC-149 (1)).
+    types: [opened, reopened, edited, synchronize, ready_for_review, converted_to_draft, auto_merge_enabled,
+            auto_merge_disabled]
 
 permissions:
   contents: read
   pull-requests: read
-  issues: read   # the app that opened a pull request is recorded on its issue only
+  issues: read   # the issues the pull request closes, their field Feature ID and blocked-by relations (gates 9, 10)
 
 concurrency:
   group: gates-${{ github.event.pull_request.number }}
@@ -31,50 +35,41 @@ jobs:
         env:
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: git fetch --no-tags origin "$HEAD_SHA"
-      - name: Check rule coverage, decisions, commit identity and owner files
+      # The title, body, branch, author, draft and auto-merge state are read from $GITHUB_EVENT_PATH by the script.
+      - name: Check rules, decisions, commits, owner files, branch, issues and body
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-          TITLE: ${{ github.event.pull_request.title }}
-          NUMBER: ${{ github.event.pull_request.number }}
           GH_TOKEN: ${{ github.token }}
-        run: |
-          if ! app=$(gh api "repos/$GITHUB_REPOSITORY/issues/$NUMBER" --jq '.performed_via_github_app.slug // ""'); then
-            echo "::error::cannot read which app opened #$NUMBER (issues API, workflow token)"
-            exit 1
-          fi
-          python3 tools/pr_gates.py check "$BASE_SHA" "$HEAD_SHA" "$TITLE" "$app"
+        run: python3 tools/pr_gates.py check "$BASE_SHA" "$HEAD_SHA" "$GITHUB_EVENT_PATH"
 
-  # The PR title becomes the subject of the merge; it follows Conventional Commits (CLAUDE.md, Commits).
+  # The title becomes the subject of the merge, and every commit keeps its message (rebase): cz check judges both
+  # with .cz.toml of main (CLAUDE.md, Commits). The packages come from tools/requirements.txt of main, with hashes.
   pr-title:
     name: pr-title
     runs-on: ubuntu-latest
     permissions:
+      contents: read
       pull-requests: read
     steps:
-      - uses: amannn/action-semantic-pull-request@2252a14e810aa9b85c2d560bd7070c802206ecf6 # v6.1.2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # As in pr-gates: the read-only token stays for the fetch, and no step runs code of the pull request (cz reads
+      # the messages of its commits only).
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          types: |
-            feat
-            fix
-            docs
-            refactor
-            perf
-            test
-            build
-            ci
-            chore
-            revert
-          scopes: |
-            api
-            web
-            db
-            seed
-            docs
-            ci
-          requireScope: false
-          subjectPattern: ^(?![A-Z]).+[^.]$
-          subjectPatternError: |
-            The subject "{subject}" must start with a lowercase letter and must not end with a period.
+          fetch-depth: 0
+      - name: Fetch the pull request
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: git fetch --no-tags origin "$HEAD_SHA"
+      - name: Install Commitizen
+        run: |
+          python3 -m venv .venv
+          .venv/bin/pip install --quiet --require-hashes -r tools/requirements.txt
+      - name: Check the title and every commit
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          .venv/bin/cz check --message "$TITLE"
+          .venv/bin/cz check --rev-range "$BASE_SHA..$HEAD_SHA"

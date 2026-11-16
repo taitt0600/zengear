@@ -170,5 +170,69 @@ class AutoMergeHeadTests(unittest.TestCase):
         self.assertEqual(gh.calls[-1], ('DELETE', '/repos/taitt0600/zengear/pulls/1/ccr/auto_merge'))
 
 
+class ReviewRunningTests(unittest.TestCase):
+    """A failure of code-review is not final while the run started by the verdict comment is queued or running."""
+
+    class Gh:
+        repo = 'taitt0600/zengear'
+
+        def __init__(self, runs=None, error=None):
+            self.runs, self.error = runs or [], error
+
+        def call(self, method, path, body=None):
+            if self.error:
+                raise self.error
+            return {'workflow_runs': self.runs}
+
+    def test_a_queued_run(self):
+        self.assertTrue(github_pr.review_running(self.Gh([{'status': 'completed'}, {'status': 'queued'}])))
+
+    def test_no_run(self):
+        self.assertFalse(github_pr.review_running(self.Gh([{'status': 'completed'}])))
+
+    def test_workflow_not_on_main_yet(self):
+        self.assertFalse(github_pr.review_running(self.Gh(error=github_pr.GitHubError('HTTP 404', 404))))
+
+
+class TemplateTests(unittest.TestCase):
+    """DEC-150 (2): the body starts from .github/pull_request_template.md and create refuses one without its sections."""
+
+    def test_template_fills_the_closes_line(self):
+        text = github_pr.template([12, 13])
+        self.assertIn('Closes #12, Closes #13', text)
+        self.assertNotIn('#<issue>', text)
+        self.assertEqual(github_pr.body_errors(text, False), [])
+
+    def test_create_refuses_a_body_without_the_sections(self):
+        with tempfile.TemporaryDirectory() as folder:
+            body = Path(folder) / 'body.md'
+            body.write_text('Closes #1\n', encoding='utf-8')
+            with mock.patch('github_pr.run', side_effect=['docs/1-x', 'abc refs/heads/docs/1-x', 'abc']):
+                with self.assertRaisesRegex(github_pr.GitHubError, 'no section "## Needs decision"'):
+                    github_pr.create(FakeGitHub([]), 'docs: x', str(body), False)
+
+    def test_create_refuses_an_open_needs_decision_that_is_not_a_draft(self):
+        text = github_pr.template([1]).replace('## Needs decision\n\nKhông có', '## Needs decision\n\n1. A or B')
+        with tempfile.TemporaryDirectory() as folder:
+            body = Path(folder) / 'body.md'
+            body.write_text(text, encoding='utf-8')
+            with mock.patch('github_pr.run', side_effect=['docs/1-x', 'abc refs/heads/docs/1-x', 'abc']):
+                with self.assertRaisesRegex(github_pr.GitHubError, 'stays a draft'):
+                    github_pr.create(FakeGitHub([]), 'docs: x', str(body), False)
+
+
+@mock.patch('github_pr.owned_files', return_value=[])
+class AutoMergeIssueTests(unittest.TestCase):
+    def test_an_open_blocker_refuses_auto_merge(self, _):
+        gh = FakeGitHub(['a1'])
+        with mock.patch('github_pr.issue_gaps', return_value=['#1 is still blocked by the open issue #7']):
+            with self.assertRaisesRegex(github_pr.GitHubError, 'blocked by the open issue #7'):
+                github_pr.auto_merge(gh, 1, False)
+        self.assertFalse([c for c in gh.calls if c[0] == 'PUT'])
+
+    def test_issue_gaps_only_for_a_feat_pull_request_of_a_feature(self, _):
+        self.assertEqual(github_pr.issue_gaps(FakeGitHub([]), {'title': 'docs: x', 'body': ''}), [])
+
+
 if __name__ == '__main__':
     unittest.main()
