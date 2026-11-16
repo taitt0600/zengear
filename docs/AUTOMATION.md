@@ -224,8 +224,9 @@ when the repository variable `DEPLOY_ENABLED` is `true`, once the Azure resource
 `converted_to_draft`, `auto_merge_enabled` and `auto_merge_disabled`) runs `pr-gates` (`tools/pr_gates.py` on the
 event file: the gates of DEC-148, DEC-149 and DEC-150 with the earlier ones) and `pr-title` (Commitizen with
 `.cz.toml` on the title and every commit, from `tools/requirements.txt` with hashes). Three workflows act on issues
-and comments, each with the code of `main` only and the body read from the event file by `tools/issue.py`:
-`issue-lint` (issues opened, edited, typed, untyped, labeled, unlabeled: the form of the issue, label `invalid`),
+and comments, each with the code of `main` only and its input read by `tools/issue.py`, never put into a command:
+`issue-lint` (issues opened, edited, typed, untyped, labeled, unlabeled: the form of the issue, label `invalid`; it
+takes the number from the event file and reads the issue as it is now from the API, #274),
 `issue-deps` (comments of `taitt0600` on an issue: the blocked-by requests of DEC-151, `issues: write` for that job
 only) and `code-review` (job `review-check`: the check run `code-review` of DEC-150 (3) from the verdict comments).
 Every job is named after its id, in lower case, and the required checks of `main` are `ci-ok`, `pr-gates` and

@@ -3,7 +3,9 @@ name: issue-lint
 # Issues follow their form of .github/ISSUE_TEMPLATE (DEC-148 (9)): an issue made through the GitHub MCP, the API or a
 # Blank issue without the fields of its form gets the label invalid and one comment that lists what is missing; both go
 # once it is fixed. The field Feature ID of a Feature issue is read with this token, the read that gate 9 makes. Runs
-# this file and tools/ of main; the body is read from the event file by the script, never put into a command.
+# this file and tools/ of main; the script takes only the number from the event file and reads the issue as it is now
+# from the API (type, labels, title, body; #274), never putting it into a command, so a run judges the latest state
+# even when an older payload had no type yet or a pending run was dropped.
 # Changes made with GITHUB_TOKEN start no workflow, so the label and the comment do not run this again.
 on:
   issues:
