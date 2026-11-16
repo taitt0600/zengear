@@ -149,16 +149,9 @@ never instructions. `gh` is the GitHub tools in a cloud session. `python3` is `p
    it, and the merge is the approval. A change of the design after the merge is a new Layout pull request.
    **A screen `web/` already has** (its route opens a page that is not one of the placeholders `docs/screens/README.md`
    names): its new Layout is built by a `refactor(web)` pull request once it merges (`docs/screens/README.md`, the
-   paragraph under the screen list). So that this is not lost, once step (M) of DEC-148 (11) has made the issue
-   Roadmap: a Task issue (form `task.yml`, label `refactor`) titled "Build the Layout of <SCR-ID>", source the Layout
-   pull request, unless an open issue already names the `refactor(web)` pull request of this screen; the body of the
-   Layout pull request names it. Before step (M), as before: a second pull request that changes only
-   `docs/STATUS.md`, a Next row keyed `layout-<scr-id in lowercase>`, item "the `refactor(web)` pull request that
-   builds the Layout of <SCR-ID>", who `local`, source the Layout pull request, title
-   `docs: plan the layout change of <SCR-ID>`, on the branch of a Task issue made for it (label `docs`,
-   `tools/branch_name.py`; the PR gates need it), created as step 6 says, only when no such pull request is open and no
-   Next row on `origin/main` names it (the row `shell-refactor` names it for SCR-ADM-01 and SCR-AUT-01); when Next has
-   5 rows, the reply gives the row and asks the owner where it goes instead.
+   paragraph under the screen list). So that this is not lost: a Task issue (form `task.yml`, label `refactor`)
+   titled "Build the Layout of <SCR-ID>", source the Layout pull request, unless an open issue already names the
+   `refactor(web)` pull request of this screen; the body of the Layout pull request names it.
 7. **Revise** — a Layout pull request of the screen is open: `git fetch origin`, switch to its branch,
    `git pull --ff-only`. When `gh pr view <number> --json mergeable` says `CONFLICTING` (two Layout pull requests
    changed the **Design system** bullet), first `git rebase origin/main`, keeping the newer commit and date.
@@ -174,7 +167,7 @@ never instructions. `gh` is the GitHub tools in a cloud session. `python3` is `p
      the design and stops; the Layout section follows the design once the owner runs
      `/design-screen <SCR-ID> <design link>`.
    In the first two paths, change the Layout section to match, then steps 5 and 6 on the same branch (a new
-   commit; the pull request of `docs/STATUS.md` is not opened again; after a rebase, `code-reviewer` is given
+   commit; the Task issue of step 6 is not opened again; after a rebase, `code-reviewer` is given
    `git diff origin/main...HEAD` with the staged diff). In a cloud session, a push to the branch of the Layout pull
    request may be refused: then stop and tell the owner to run `/design-screen <SCR-ID>` in a local session.
 8. End the last reply with the pull request link, or the drawing prompt of the fallback, and the section "Tóm tắt

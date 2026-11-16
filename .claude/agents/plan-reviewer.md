@@ -15,7 +15,7 @@ repository's specifications and code. You never edit files.
 - `docs/ARCHITECTURE.md`, `docs/CODING_GUIDE.md`, `docs/API_CONVENTIONS.md`, `docs/GLOSSARY.md`
 - The `README.md` of each area of `api/src/ZenGear.Services` the plan touches or calls
 - The feature dossier `out/feature-<ID>.md` given with the plan (written by `tools/feature_context.py`): the
-  feature row, its rows of `docs/STATUS.md` (section *Work state*), its open Feature issue and blocked-by issues
+  feature row, its open Feature issue and blocked-by issues
   (section *Issues (GitHub)*), its use cases, every rule it lists
   (implementation rules included), the decisions they cite, its glossary rows and the `docs/DATABASE.md` section
   of each table its rules touch. Without it, read those in `docs/blueprint/` and `docs/DATABASE.md` yourself
@@ -40,9 +40,9 @@ repository's specifications and code. You never edit files.
 
 1. **Specification coverage**: every acceptance criterion, use-case step and extension, and every
    listed rule is handled or explicitly deferred with a reason. Nothing is added that the
-   specification does not ask for. Every row of the dossier's *Work state* section is handled by the plan:
-   done in this pull request, or a Needs decision item (DEC-110 (5)); so is every open blocked-by issue of its
-   *Issues* section, done in this pull request with `Closes #<n>` or a Needs decision item (DEC-148 (6)). A plan
+   specification does not ask for. Every open blocked-by issue of the dossier's
+   *Issues* section is handled by the plan: done in this pull request with `Closes #<n>`, or a Needs decision item
+   (DEC-148 (6)). A plan
    made while the dossier says GitHub could not be read, without saying so, is Blocking. The plan names the Feature
    issue its pull request closes and the branch `tools/branch_name.py` gives (DEC-148 (10)).
 2. **Authorization**: `DefaultPolicy` and `FallbackPolicy` stay aligned; anonymous endpoints and
@@ -130,7 +130,7 @@ repository's specifications and code. You never edit files.
       missing: Should fix;
     - Blocking: a recommended option that is a shortcut (it skips a rule, a check or a part of the specification)
       or a temporary patch; such an option offered when the owner did not ask for it; a stopgap that skips a rule, a check or a
-      part of the specification, or lacks its long-term fix or its Waiting row (`/implement-feature` step 4,
+      part of the specification, or lacks its long-term fix or its Task issue (`/implement-feature` step 4,
       **Long-term and safe**);
     - an extension point for a need no feature has yet (`docs/CODING_GUIDE.md`, section 1) is Should fix, judged and
       labelled by item 13, question 2.

@@ -139,7 +139,7 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   frame and sample data; `NarrowCreator` is a narrow artboard of its own.
   - **Builds**: STF-09 (its web part, its item in the plan, `CLAUDE.md`, *Work state*) builds "Thu hồi" here and on SCR-STF-01,
     and the `If-Match` of the three actions; STF-14 builds "Ẩn danh hóa" (the row, the confirmation, the ANONYMIZED
-    page after it), in the card "Tài khoản" once `layout-scr-stf-03` has built it, or in the status card the page has
+    page after it), in the card "Tài khoản" once issue #244 (STF-02 web) has built it, or in the status card the page has
     then. No other row is needed.
   - **Artboards**, desktop 1440 px unless named: `Creator`, the PENDING sample "Thu ngân mới (fixture)" viewed by its
     creator, the fixture IT Support (the notice with "Thu hồi"); `Withdraw`, the confirmation "Thu hồi tài khoản này?"
@@ -235,14 +235,14 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
     take as SCR-STF-02 does: the ` *` span of **Required fields** in their FieldLabel and `admin.requiredNote` under
     their description.
 - **Builds**, each part by its feature, on the page as it is then:
-  - from the change of #158: `layout-scr-stf-03` builds the frame as SCR-ADM-01 has it then and the mark and note
+  - from the change of #158: issue #244 (STF-02 web) builds the frame as SCR-ADM-01 has it then and the mark and note
     of "Khóa tài khoản" in `staff-disable-dialog.tsx`; STF-11 the marks, note and hints of the sheet (gap 7).
-  - `layout-scr-stf-03` (its item in the plan, `CLAUDE.md`, *Work state*, a `feat(web): … (STF-02)` pull request): the section
+  - issue #244 (STF-02 web, a `feat(web): … (STF-02)` pull request): the section
     navigation, the width, the cards "Hồ sơ nhân viên" and "Tài khoản" with the status actions in the status row and
     the row of the default password, loading, 404 and error.
   - STF-09 (its web part, with its part of SCR-STF-01, since both screens share the two dialogs and
     `hooks/use-staff-approval.ts`): the notice, the PENDING badge, the status row of a PENDING account. Before
-    `layout-scr-stf-03` is done it places the notice above the cards the page has and takes the actions out of the
+    issue #244 is done it places the notice above the cards the page has and takes the actions out of the
     status card of a PENDING account. The creator and `canApprove` come with DEC-138 (gap 14).
   - STF-10: the four cards of the HR profile with their states, "Hiện" and the sheet "Sửa thông tin cá nhân", and
     the photo with "Chọn ảnh" (gap 8). The sheet of "Công việc và hợp đồng", the dialog of "Tải lên tài liệu" and

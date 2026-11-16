@@ -42,9 +42,8 @@ in Vietnamese; every cell of the row is in Vietnamese, in the style of the rows 
    Then, as a separate list marked **not in the patch**, the work items the Decision settles or creates (CLAUDE.md,
    *Work state*; DEC-148): the issues to close (number and title; a Feature issue is never closed this way, it closes
    with its `feat` pull request), the issues to create (Issue type, title, form and its fields, labels, the fields
-   Priority, Feature ID and Trigger, and each blocked-by relation, for a trigger "before <Feature ID>"), and, until
-   the pull request (D) of DEC-148 (11) deletes `docs/STATUS.md`, the exact lines of `docs/STATUS.md` it settles (its
-   Next row, when the owner had postponed applying it, and the Waiting rows it settles). The owner, or the session
+   Priority, Feature ID and Trigger, and each blocked-by relation, for a trigger "before <Feature ID>"); the Task
+   issue of the Decision, when the owner had postponed applying it, is among the issues to close. The owner, or the session
    that applies the Decision, does them at step 8.4.
 6. **The patch**, every row and cell change of steps 4 and 5 as JSON for `tools/blueprint_apply.py` (its docstring
    has the format):
@@ -75,13 +74,11 @@ in Vietnamese; every cell of the row is in Vietnamese, in the style of the rows 
       changes of step 5 by hand, then `python tools/export_blueprint.py docs/product-domain-blueprint-MVP.xlsx docs/blueprint`).
    3. Open the workbook in Excel once to look at the new rows, then close it without saving.
    4. Do the list "not in the patch" (step 5): close and create the issues it names (`python tools/issue.py create`,
-      `link`), and delete from `docs/STATUS.md` its rows, each found by its Key or Trigger cell: its other text may
-      have changed on `main` since the draft.
-   5. `git status --short` lists the workbook, only the exported files the change explains and `docs/STATUS.md`
-      when step 8.4 changed it, and
+      `link`); an issue to close that the pull request settles is closed by its body (`Closes #<n>`) instead.
+   5. `git status --short` lists the workbook and only the exported files the change explains, and
       `python -c "l=open('docs/blueprint/decisions.md',encoding='utf-8').read().splitlines()[-1]; print(l.startswith('| DEC-0xx |'))"`
       prints `True`.
-   6. Commit the workbook, the exported files and `docs/STATUS.md` with the commit message of step 7.
+   6. Commit the workbook and the exported files with the commit message of step 7.
    7. Write the body from `python tools/github_pr.py template --closes <issue> > out/pr-body.md`, then
       `python tools/pr_gates.py check-local origin/main "<subject>" --body-file out/pr-body.md` prints
       `PR gates passed`.

@@ -46,7 +46,7 @@ reported as unchecked; a PowerShell script is never run, read its `ShouldProcess
   `docs/GLOSSARY.md`
 - The `README.md` of each area of `api/src/ZenGear.Services` the diff touches or calls
 - The feature dossier `out/feature-<ID>.md` given with the request (written by `tools/feature_context.py`): the
-  feature row, its rows of `docs/STATUS.md` (section *Work state*), its open Feature issue and blocked-by issues
+  feature row, its open Feature issue and blocked-by issues
   (section *Issues (GitHub)*), every rule it lists (implementation rules
   included) and the `docs/DATABASE.md` section of each table its rules touch. Without it, read those in
   `docs/blueprint/` and `docs/DATABASE.md` yourself
@@ -68,10 +68,7 @@ repeat those. Check what no test sees:
 
 1. **Rules**: the code does what each rule says, including every refusal and edge case of the rule text;
    each `R_…` test would fail if the rule were broken (no test that only checks the happy path or its own
-   setup); a refusal throws `BusinessRuleException` with the rule ID. Each *Work state* row of the dossier that
-   the diff deletes from `docs/STATUS.md` was done in the diff or is a Needs decision item of the pull request
-   body, as the handling given with the request says; no other row of `docs/STATUS.md` changed, except the rows
-   the request lists as added for a deferred item, an owner's comment or a stopgap (item 14). Each open blocked-by
+   setup); a refusal throws `BusinessRuleException` with the rule ID. Each open blocked-by
    issue of the dossier is done in the diff (and closed by the body with `Closes #<n>`) or is a Needs decision item
    (DEC-148 (6)); the body follows `.github/pull_request_template.md` and closes the Feature issue, and every
    `feat` and `fix` commit names `#<that issue>` in its `Refs:` (DEC-150 (1), (2)). The session posts the verdict
@@ -191,8 +188,8 @@ repeat those. Check what no test sees:
       criterion (DEC-104 (7), `docs/FRONTEND.md`) or a rule of `web/CLAUDE.md`. A broken SHOULD is a Note.
 14. **Shortcuts** (DEC-139; `CLAUDE.md`, *Recommendations, designs and requests*), for every diff: Blocking when a
     fix or a choice is a shortcut (a skipped or weakened test, a relaxed check, a rule of the specification left out)
-    or a stopgap without its long-term fix (in its commit body, or given with the request) and its Waiting row of
-    `docs/STATUS.md` (`/implement-feature` step 4, **Long-term and safe**).
+    or a stopgap without its long-term fix (in its commit body, or given with the request) and its Task issue
+    (`/implement-feature` step 4, **Long-term and safe**).
 
 ## Output
 

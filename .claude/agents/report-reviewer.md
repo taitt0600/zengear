@@ -20,11 +20,10 @@ facts you are given. You never edit files.
   (passed and failed) when there are any, and, for a report, the owner's answer to the test (Đạt, Có lỗi or Để sau,
   and the minutes). "The API changed" below means that the branch changes `api/` or `postman/`.
 - The feature dossier `out/feature-<ID>.md`: acceptance criteria, rules (implementation rules included), use cases,
-  decisions, the feature's rows of `docs/STATUS.md` (section *Work state*) and its open Feature issue with its
+  decisions, and its open Feature issue with its
   blocked-by issues (section *Issues (GitHub)*). The report names the Feature issue the pull request closes and how
   each blocker was handled (closed by it, or a Needs decision item, DEC-148 (6)); a follow-up after the merge is a
-  Task issue with its number, or, before step (M) of DEC-148 (11), a row of `docs/STATUS.md`; an item that is
-  neither is a finding.
+  Task issue with its number; an item that is not is a finding.
 - The guide and the report start with the line `<!-- finish-feature -->`, which marks the comments `/finish-feature`
   posts; it is expected, not a finding.
 - The folder `postman/collections/ZenGear/<ID>/`: its `*.request.yaml` files (description, account in
