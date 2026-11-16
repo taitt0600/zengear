@@ -13,7 +13,6 @@ import json
 import os
 import shutil
 import subprocess
-import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -46,6 +45,67 @@ def load_gates():
     return module
 
 
+BODY = ('## Summary\n\nWhat changed.\n\nCloses #{closes}\n\n## Needs decision\n\nKhông có\n\n## Deviations\n\n'
+        'Không có\n\n## Test\n\nUnit tests.\n\n## Tóm tắt cho chủ dự án\n\n1. **Làm gì**: x\n'
+        '2. **Lệch so với yêu cầu**: Không có\n3. **Rủi ro và kết quả rà**: x\n4. **Bạn cần quyết định**: Không có\n')
+
+
+class FakeIssues:
+    """The reader of tools/issue.py: issues by number, their field Feature ID and their open blockers."""
+
+    def __init__(self, issues=None, features=None, blockers=None, error=None):
+        self.issues, self.features, self.blockers, self.error = issues or {}, features or {}, blockers or {}, error
+
+    def issue(self, number):
+        if self.error:
+            raise self.error
+        return self.issues[number]
+
+    def feature_id(self, number):
+        return self.features.get(number)
+
+    def open_feature_issues(self, fid):
+        return sorted(n for n, f in self.features.items() if f == fid and self.issues.get(n, {}).get('state') == 'open'
+                      and (self.issues[n].get('type') or {}).get('name') == 'Feature')
+
+    def open_blockers(self, number):
+        return self.blockers.get(number, [])
+
+
+def valid_pull_request(title):
+    """A pull request event and issues that pass gates 8 to 12 for the title."""
+    gates = load_gates()
+    feature = gates.FEATURE_IN_TITLE.search(title)
+    kind = title.split(':')[0].split('(')[0].rstrip('!')
+    if kind == 'feat' and feature:
+        branch, issue_type = f'feat/{feature.group(1).lower()}', 'Feature'
+    elif kind == 'fix' and feature:
+        branch, issue_type = f'fix/{feature.group(1).lower()}-1', 'Bug'
+    else:
+        branch, issue_type = f'{kind}/1-change', 'Task'
+    api = FakeIssues({1: {'number': 1, 'state': 'open', 'type': {'name': issue_type}, 'title': 't'}},
+                     {1: feature.group(1)} if feature and issue_type == 'Feature' else {})
+    pr = {'number': 9, 'title': title, 'body': BODY.format(closes=1), 'draft': False, 'auto_merge': None,
+          'head': {'ref': branch}, 'user': {'login': 'taitt0600'}}
+    return pr, api
+
+
+def run_gates(directory, base, head, event, api):
+    gates = load_gates()
+    cwd = os.getcwd()
+    out = io.StringIO()
+    try:
+        os.chdir(directory)
+        with contextlib.redirect_stdout(out):
+            try:
+                code = gates.check(base, head, event, api)
+            except SystemExit as stop:
+                code = stop.code
+    finally:
+        os.chdir(cwd)
+    return code, out.getvalue()
+
+
 @unittest.skipUnless(shutil.which('git'), 'git is needed')
 class GitRepositoryTestCase(unittest.TestCase):
     def setUp(self):
@@ -74,10 +134,13 @@ class GitRepositoryTestCase(unittest.TestCase):
         self.git('commit', '-q', '-m', message)
         return self.git('rev-parse', 'HEAD')
 
-    def run_check(self, base, head, title):
-        run = subprocess.run([sys.executable, str(SCRIPT), 'check', base, head, title],
-                             cwd=self.dir, capture_output=True, text=True, encoding='utf-8')
-        return run.returncode, run.stdout
+    def run_check(self, base, head, title, **event):
+        """check() in this repository with the event of a valid pull request for the title (gates 8 to 12 pass)
+        and the fake issue reader; keyword arguments change the pull request of the event."""
+        pr, api = valid_pull_request(title)
+        pr.update(event.pop('pr', {}))
+        api = event.pop('api', api)
+        return run_gates(self.dir, base, head, {'pull_request': pr}, api)
 
 
 class SpecificationDecisionTests(GitRepositoryTestCase):

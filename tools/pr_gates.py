@@ -1,9 +1,14 @@
 """Pull request gates that stand in for a person's approval (CLAUDE.md, Workflow).
 
-  python tools/pr_gates.py check <base sha> <head sha> "<pull request title>" [<app that opened it>]
+  python tools/pr_gates.py check <base sha> <head sha> <event file>
+  python tools/pr_gates.py check-local <base> "<pull request title>" --body-file <file> [--draft]
   python tools/pr_gates.py coverage <Feature ID>
 
-check, run by .github/workflows/gates.yml on every pull request:
+check-local runs check on HEAD of the current branch with the event GitHub would send (that title and body, auto-merge
+off), so that /finish-feature and /fix-defect see the gates before they push.
+
+check, run by .github/workflows/gates.yml on every pull request; the title, body, branch, author, draft and auto-merge
+state are read from the event file of the workflow ($GITHUB_EVENT_PATH), never from the command line:
   1. Rule coverage: a feat or fix pull request that changes api/src/ or web/ ends its title with a feature ID,
      e.g. "(STF-01)"; every rule of that feature (its Rules column on main and in the pull request) has a test
      method whose name starts with the rule ID (R-USR-01 -> R_USR_01_...).
@@ -15,8 +20,8 @@ check, run by .github/workflows/gates.yml on every pull request:
      same way.
   4. Commit identity: no commit is authored or committed as Claude (noreply@anthropic.com), and no commit
      message carries a Co-Authored-By or Claude-Session trailer (CLAUDE.md, Commits).
-  5. Owner merges: a pull request opened through a GitHub App (a Claude Code cloud session opens it through the
-     Claude app) changes no file of owner_paths; the owner opens those pull requests on GitHub.
+  5. Owner merges: a pull request that changes a file of owner_paths has auto-merge off (DEC-149 (1)); the event
+     auto_merge_enabled runs the gates again, so turning it on after they passed fails them.
   6. Work state: a feat pull request whose title ends with a feature ID leaves no row of docs/STATUS.md at the head
      that names that feature (a Next row keyed by it, a Waiting row triggered "before <ID>"; DEC-110 (5)); the pull
      request that does the work deletes it (CLAUDE.md, Work state). fix pull requests and other titles are not
@@ -30,18 +35,32 @@ check, run by .github/workflows/gates.yml on every pull request:
      node_modules/. An alias (a "name" that differs), a link (unless web/package.json has workspaces) and a top-level
      inBundle entry are refused; a nested inBundle entry is skipped, since the tarball of its parent holds it.
      web/npm-shrinkwrap.json, which npm would install from instead of the lockfile, is refused.
+  8. Branch name (DEC-148 (10)): tools/branch_name.py problem(), its type equal to the type of the title.
+  9. Closes (DEC-148 (6), (10), DEC-150 (2)): every issue the body closes is an open issue; a feat title that ends with
+     a Feature ID closes an open issue of type Feature whose field Feature ID is that ID, and at most one such issue is
+     open; a Bug, Task or Design branch closes the issue of its name.
+ 10. Blockers (DEC-148 (6)): the Feature issue of a feat pull request has no open blocked-by issue.
+ 11. Body (DEC-150 (2)): the sections of .github/pull_request_template.md, the four parts of "Tóm tắt cho chủ dự án";
+     a Needs decision section other than "Không có" needs a draft.
+ 12. Refs (DEC-150 (1)): every feat and fix commit has a Refs: footer that names #<n> of an issue the body closes.
+Gates 8 to 12 and the commit identity skip a pull request opened by dependabot[bot] (DEC-148 (10)). Gates 9 and 10 read
+GitHub (tools/issue.py); a read that fails fails the gate with its reason.
 check reads the pull request from git objects only: nothing of the pull request is checked out or run.
 coverage reads the working tree, new files included (used by /implement-feature and /finish-feature).
 owner_paths lists the changed files that only the owner merges (tools/github_pr.py refuses auto-merge for them): by
 name, and by content between the merge-base and the head for web/package.json (owner merged unless it only adds
 approved packages or changes the exact version of one, DEC-111 (4))."""
-import json, re, subprocess, sys
+import json, os, re, subprocess, sys
 import xml.etree.ElementTree as ET
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import branch_name  # noqa: E402
 
 SPEC_PATHS = ('api/db/', 'docs/blueprint/', 'docs/DATABASE.md', 'docs/product-domain-blueprint-MVP.xlsx')
 BUILD_SUFFIXES = ('.csproj', '.props', '.targets')
 # What decides how the code is built, checked or merged: changed only in pull requests the owner merges.
 OWNER_PATHS = SPEC_PATHS + ('.claude/', '.githooks/', '.github/', '.gitleaks.toml', '.mcp.json', '.config/', 'tools/',
+                            '.cz.toml',
                             'docs/ARCHITECTURE.md', 'api/tests/ZenGear.ArchitectureTests/', 'api/global.json',
                             'api/.config/', 'api/.editorconfig', 'nuget.config', 'NuGet.Config',
                             # The web build files of DEC-104 (3); web/package.json goes by content.
@@ -83,6 +102,20 @@ DECISION = re.compile(r'\bDEC-\d{3}\b')
 TEST_METHOD = re.compile(r'\b(?:Task|ValueTask|void)\s+(R_[A-Z]+_\d+)_\w*\s*\(')
 AGENT_EMAIL = 'noreply@anthropic.com'
 AGENT_TRAILER = re.compile(r'^\s*(Co-Authored-By|Claude-Session)\s*:', re.IGNORECASE | re.MULTILINE)
+DEPENDABOT = 'dependabot[bot]'
+# The one identity of every commit (DEC-150 (1), CLAUDE.md, Commits), as git log prints "%an <%ae>".
+OWNER = 'taitt0600 <taitt.dev@gmail.com>'
+# The closing keywords of GitHub: close, closes, closed, fix, fixes, fixed, resolve, resolves, resolved.
+CLOSING = re.compile(r'\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?):?\s+#([1-9][0-9]*)\b', re.IGNORECASE)
+REFS = re.compile(r'^Refs:(.*)$', re.MULTILINE)
+ISSUE_REF = re.compile(r'#([1-9][0-9]*)\b')
+CODE_COMMIT = re.compile(r'^(feat|fix)(\([^)]*\))?!?:')
+SECTION = re.compile(r'^##[ \t]+(.+?)[ \t]*$', re.MULTILINE)
+COMMENT = re.compile(r'<!--.*?-->', re.DOTALL)
+SUMMARY = 'Tóm tắt cho chủ dự án'
+BODY_SECTIONS = (SUMMARY, 'Needs decision', 'Deviations', 'Test')
+SUMMARY_PARTS = ('Làm gì', 'Lệch so với yêu cầu', 'Rủi ro và kết quả rà', 'Bạn cần quyết định')
+NOTHING = ('không có', 'none')
 
 
 def annotate(level, message):
@@ -354,9 +387,9 @@ def changed_files(base, head):
 
 
 def commits(base, head):
-    """(hash, author email, committer email, message, changed files) of every commit of the pull request."""
+    """(hash, "author <email>", "committer <email>", message, changed files) of every commit of the pull request."""
     result = []
-    for record in git('log', '--format=%h%x1f%ae%x1f%ce%x1f%B%x1e', f'{base}..{head}').split('\x1e'):
+    for record in git('log', '--format=%h%x1f%an <%ae>%x1f%cn <%ce>%x1f%B%x1e', f'{base}..{head}').split('\x1e'):
         if not record.strip():
             continue
         fields = record.lstrip('\n').split('\x1f', 3)
@@ -368,7 +401,130 @@ def commits(base, head):
     return result
 
 
-def check(base, head, title, app=''):
+def sections(body):
+    """{heading of level 2: its text without HTML comments} of a pull request body."""
+    text = COMMENT.sub('', (body or '').replace('\r\n', '\n'))
+    found = list(SECTION.finditer(text))
+    return {m.group(1): text[m.end():found[i + 1].start() if i + 1 < len(found) else len(text)].strip()
+            for i, m in enumerate(found)}
+
+
+def body_errors(body, draft):
+    """Gate 11: the sections of .github/pull_request_template.md (DEC-150 (2)); also run by tools/github_pr.py create."""
+    parts = sections(body)
+    errors = [f'the body has no section "## {name}" of .github/pull_request_template.md'
+              for name in BODY_SECTIONS if name not in parts]
+    if SUMMARY in parts:
+        errors += [f'the section "{SUMMARY}" has no part "{part}"' for part in SUMMARY_PARTS if part not in parts[SUMMARY]]
+    needs = parts.get('Needs decision')
+    if needs is not None:
+        if not needs:
+            errors.append('the section "Needs decision" is empty: write "Không có" when there is none')
+        elif needs.rstrip('.').lower() not in NOTHING and not draft:
+            errors.append('the body has a Needs decision item: the pull request stays a draft until it is answered '
+                          '(CLAUDE.md, Workflow)')
+    return errors
+
+
+def closing_issues(body):
+    return sorted({int(n) for n in CLOSING.findall(COMMENT.sub('', body or ''))})
+
+
+def issue_errors(pr, closes, api):
+    """Gates 9 and 10 through the reader of tools/issue.py; any GitHub error fails the gate."""
+    title, branch = pr.get('title') or '', pr['head']['ref']
+    errors = []
+    try:
+        issues = {number: api.issue(number) for number in closes}
+        for number, issue in issues.items():
+            if 'pull_request' in issue:
+                errors.append(f'Closes #{number}: #{number} is a pull request, not an issue')
+            elif issue.get('state') != 'open':
+                errors.append(f'Closes #{number}: the issue is not open')
+        own = branch_name.issue_number(branch)
+        if own is not None and own not in closes:
+            errors.append(f'the branch {branch} was made from #{own}, but the body has no "Closes #{own}" '
+                          '(DEC-148 (10))')
+        feature = FEATURE_IN_TITLE.search(title)
+        if feature and FEAT_TITLE.match(title):
+            fid = feature.group(1)
+            mine = [n for n, issue in issues.items() if issue.get('state') == 'open' and 'pull_request' not in issue
+                    and (issue.get('type') or {}).get('name') == 'Feature' and api.feature_id(n) == fid]
+            if not mine:
+                errors.append(f'a feat pull request of {fid} closes its open Feature issue, whose field Feature ID is '
+                              f'{fid} (DEC-148 (6)): add "Closes #<issue>"')
+            open_features = api.open_feature_issues(fid)
+            if len(open_features) > 1:
+                errors.append(f'{fid} has more than one open Feature issue: '
+                              + ', '.join(f'#{n}' for n in open_features) + ' (DEC-148 (6))')
+            for number in mine:
+                for blocker in api.open_blockers(number):
+                    errors.append(f'#{number} is still blocked by the open issue #{blocker["number"]} '
+                                  f'"{blocker.get("title", "")}": close it in this pull request or settle it first '
+                                  '(DEC-148 (6))')
+    except Exception as error:  # noqa: BLE001  any failure to read GitHub fails the gate (DEC-148 (7))
+        errors.append(f'cannot read the issues of the pull request from GitHub: {error}')
+    return errors
+
+
+def refs_errors(commit_list, closes):
+    """Gate 12: a feat or fix commit names #<n> of a closed issue in its Refs: footer (DEC-150 (1))."""
+    errors = []
+    for commit, _, _, message, _ in commit_list:
+        if CODE_COMMIT.match(message):
+            named = {int(n) for line in REFS.findall(message) for n in ISSUE_REF.findall(line)}
+            if not named & set(closes):
+                errors.append(f'commit {commit} is feat or fix, but its Refs: footer names no issue this pull request '
+                              f'closes (#{", #".join(map(str, closes)) or "<issue>"})')
+    return errors
+
+
+def pull_request_errors(pr, commit_list, api):
+    """Gates 8, 9, 10, 11 and 12 on the pull request of the event; dependabot[bot] is exempt (DEC-148 (10))."""
+    if (pr.get('user') or {}).get('login') == DEPENDABOT:
+        return []
+    title, body = pr.get('title') or '', pr.get('body') or ''
+    errors = []
+    reason = branch_name.problem(pr['head']['ref'], title)
+    if reason:
+        errors.append(reason)
+    errors += body_errors(body, bool(pr.get('draft')))
+    closes = closing_issues(body)
+    errors += issue_errors(pr, closes, api)
+    errors += refs_errors(commit_list, closes)
+    return errors
+
+
+def identity_errors(commit, author, committer):
+    errors = []
+    if AGENT_EMAIL in (author.lower(), committer.lower()):
+        errors.append(f'commit {commit} is authored or committed as Claude ({AGENT_EMAIL}): '
+                      'set git user.name and user.email to the owner (CLAUDE.md, Commits)')
+    elif author != OWNER or committer != OWNER:
+        errors.append(f'commit {commit} is authored by {author} and committed by {committer}, not by the owner '
+                      f'{OWNER} (DEC-150 (1), CLAUDE.md, Commits)')
+    return errors
+
+
+def read_event(path):
+    with open(path, encoding='utf-8') as f:
+        return json.load(f)
+
+
+def local_event(title, body_file, draft):
+    """The event GitHub would send for the current branch, so that a session runs the gates before it pushes."""
+    with open(body_file, encoding='utf-8') as f:
+        body = f.read()
+    branch = git('branch', '--show-current').strip()
+    return {'pull_request': {'title': title, 'body': body, 'draft': draft, 'auto_merge': None, 'head': {'ref': branch},
+                             'user': {'login': 'taitt0600'}}}
+
+
+def check(base, head, event, api=None):
+    """event: the parsed event of the workflow; api: the issue reader (tools/issue.py) or a fake in tests."""
+    pr = event['pull_request']
+    title = pr.get('title') or ''
+    dependabot = (pr.get('user') or {}).get('login') == DEPENDABOT
     for rev in (base, head):
         git('rev-parse', '--verify', '--quiet', f'{rev}^{{commit}}')
     errors = []
@@ -391,7 +547,8 @@ def check(base, head, title, app=''):
                           'the pull request that does the work deletes it (CLAUDE.md, Work state)')
 
     accepted = accepted_decisions(head)
-    for commit, author, committer, message, files in commits(base, head):
+    commit_list = commits(base, head)
+    for commit, author, committer, message, files in commit_list:
         named = set(DECISION.findall(message))
         decided = bool(named & accepted)
         needs = missing_decision(named)
@@ -408,18 +565,21 @@ def check(base, head, title, app=''):
                 errors.append(f'commit {commit} adds packages {needs}: {", ".join(added)}')
             if build:
                 errors.append(f'commit {commit} adds build code {needs}: {", ".join(build)}')
-        if AGENT_EMAIL in (author.lower(), committer.lower()):
-            errors.append(f'commit {commit} is authored or committed as Claude ({AGENT_EMAIL}): '
-                          'set git user.name and user.email to the owner (CLAUDE.md, Commits)')
+        if not dependabot:
+            errors += identity_errors(commit, author, committer)
         if AGENT_TRAILER.search(message):
             errors.append(f'commit {commit} has a Co-Authored-By or Claude-Session trailer (CLAUDE.md, Commits)')
 
     errors += web_package_errors(head, accepted)
+    if api is None and not dependabot:
+        import issue  # GitHub is read only for the gates that need it
+        api = issue.Reader()
+    errors += pull_request_errors(pr, commit_list, api)
 
     owned = owner_paths(changed, merge_base, head)
-    if owned and app:
-        errors.append(f'opened through the {app} app, but changes files the owner merges: {", ".join(owned)}; '
-                      'the owner opens this pull request on GitHub')
+    if owned and pr.get('auto_merge'):
+        errors.append(f'auto-merge is on, but the pull request changes files the owner merges: {", ".join(owned)}; '
+                      'turn auto-merge off, the owner merges it (DEC-149 (1))')
     for path in owned:
         annotate('notice', f'merged by the owner, not by auto-merge: {path}')
     for error in errors:
@@ -439,8 +599,11 @@ def coverage(feature):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) in (5, 6) and sys.argv[1] == 'check':
-        sys.exit(check(*sys.argv[2:]))
+    if len(sys.argv) == 5 and sys.argv[1] == 'check':
+        sys.exit(check(sys.argv[2], sys.argv[3], read_event(sys.argv[4])))
+    if len(sys.argv) in (6, 7) and sys.argv[1] == 'check-local' and sys.argv[4] == '--body-file' \
+            and sys.argv[6:] in ([], ['--draft']):
+        sys.exit(check(sys.argv[2], 'HEAD', local_event(sys.argv[3], sys.argv[5], sys.argv[6:] == ['--draft'])))
     if len(sys.argv) == 3 and sys.argv[1] == 'coverage':
         sys.exit(coverage(sys.argv[2]))
     print(__doc__)

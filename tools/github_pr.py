@@ -5,9 +5,12 @@
   python tools/github_pr.py auto-merge <number> [--off]
   python tools/github_pr.py checks <number> [--wait <seconds>]
   python tools/github_pr.py comment <number> --body-file <file>
+  python tools/github_pr.py template [--closes <issue>]...
 
-create opens the pull request of the current branch against main, or updates the one already open (title,
-body, and draft or ready as asked). auto-merge refuses when the pull request changes a file that only the owner
+template prints .github/pull_request_template.md (DEC-150 (2)) to start the body from. create opens the pull request
+of the current branch against main, or updates the one already open (title, body, and draft or ready as asked); it
+refuses a body without the sections of the template, or with a Needs decision item but not --draft, as gate 11 of
+tools/pr_gates.py would. auto-merge refuses when the pull request changes a file that only the owner
 merges (owner_paths in tools/pr_gates.py, which judges web/package.json by content: the branch
 of the pull request and main are fetched here and compared from their merge-base, DEC-111 (4)), or when main does
 not require every check in REQUIRED_CHECKS or lets someone bypass them, so that nothing merges unchecked; it turns
@@ -20,92 +23,31 @@ ended, 4 GitHub could not be reached, 5 the owner merges (auto-merge refused).
 
 In a cloud session the GitHub proxy adds the credential (GH_TOKEN reads "proxy-injected") and serves no
 GraphQL, so draft, ready and auto-merge use its routes under /pulls/<number>/ccr/. Elsewhere the token comes
-from GH_TOKEN, GITHUB_TOKEN or `gh auth token`, and those three use GraphQL. Job logs are not reachable from
+from GH_TOKEN, GITHUB_TOKEN or `gh auth token` (tools/github_api.py), and those three use GraphQL. Job logs are not reachable from
 a cloud session: reproduce a failed job with its commands in .github/workflows/."""
-import argparse, json, os, re, subprocess, sys, time, urllib.error, urllib.parse, urllib.request
+import argparse, os, subprocess, sys, time, urllib.parse
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from pr_gates import changed_files, owner_paths  # noqa: E402
+from github_api import GitHub, GitHubError, Unreachable, run  # noqa: E402,F401  (Unreachable: exit code 4)
+import pr_gates  # noqa: E402
+from pr_gates import body_errors, changed_files, owner_paths  # noqa: E402
 
-API = 'https://api.github.com'
-PROXY_TOKEN = 'proxy-injected'
 BASE = 'main'
+# code-review (DEC-150 (3)) joins only after the owner has made it a required check of main, from its first run.
 REQUIRED_CHECKS = ('ci-ok', 'pr-gates', 'pr-title')
 PASSED = ('success', 'neutral', 'skipped')
 POLL_SECONDS = 30
-ATTEMPTS = 3
-
-
-class GitHubError(Exception):
-    exit_code = 1
-
-
-class Unreachable(GitHubError):
-    exit_code = 4
+TEMPLATE = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '.github',
+                        'pull_request_template.md')
 
 
 class OwnerMerges(GitHubError):
     exit_code = 5
 
 
-def run(*args):
-    return subprocess.run(args, capture_output=True, text=True, encoding='utf-8', check=True).stdout.strip()
-
-
 def read(path):
     with open(path, encoding='utf-8') as f:
         return f.read()
-
-
-class GitHub:
-    def __init__(self):
-        self.token = os.environ.get('GH_TOKEN') or os.environ.get('GITHUB_TOKEN') or self._gh_token()
-        self.proxy = self.token == PROXY_TOKEN
-        url = run('git', 'remote', 'get-url', 'origin')
-        match = re.search(r'[/:]([^/:]+)/([^/]+?)(?:\.git)?/?$', url)
-        if not match:
-            raise GitHubError(f'origin is not a GitHub repository: {url}')
-        self.owner, self.repo = match[1], f'{match[1]}/{match[2]}'
-
-    @staticmethod
-    def _gh_token():
-        try:
-            return run('gh', 'auth', 'token')
-        except (OSError, subprocess.CalledProcessError):
-            raise GitHubError('No GitHub token: set GH_TOKEN, or sign in with `gh auth login`.') from None
-
-    def call(self, method, path, body=None):
-        data = None if body is None else json.dumps(body).encode()
-        headers = {'Authorization': f'Bearer {self.token}', 'Accept': 'application/vnd.github+json',
-                   'X-GitHub-Api-Version': '2022-11-28', 'User-Agent': 'zengear-github-pr'}
-        if data is not None:
-            headers['Content-Type'] = 'application/json'
-        # Reads are retried; a write is sent once, since it may have been applied before the error.
-        attempts = ATTEMPTS if method == 'GET' else 1
-        for attempt in range(1, attempts + 1):
-            request = urllib.request.Request(f'{API}{path}', data=data, method=method, headers=headers)
-            try:
-                with urllib.request.urlopen(request, timeout=60) as response:
-                    text = response.read().decode()
-                return json.loads(text) if text else None
-            except urllib.error.HTTPError as error:
-                detail = error.read().decode(errors='replace')[:500]
-                if error.code < 500 or attempt == attempts:
-                    kind = Unreachable if error.code >= 500 else GitHubError
-                    raise kind(f'{method} {path}: HTTP {error.code} {detail}') from None
-            except (urllib.error.URLError, OSError) as error:
-                if attempt == attempts:
-                    raise Unreachable(f'{method} {path}: {error}') from None
-            time.sleep(5 * attempt)
-
-    def graphql(self, query, variables):
-        result = self.call('POST', '/graphql', {'query': query, 'variables': variables})
-        if result.get('errors'):
-            raise GitHubError('GraphQL: ' + '; '.join(error['message'] for error in result['errors']))
-        return result['data']
-
-    def pull(self, number):
-        return self.call('GET', f'/repos/{self.repo}/pulls/{number}')
 
 
 def owned_files(pr):
@@ -146,6 +88,10 @@ def create(gh, title, body_file, draft):
     if not remote or remote[0] != run('git', 'rev-parse', 'HEAD'):
         raise GitHubError('The branch is not pushed as it is: git push -u origin HEAD')
     body = read(body_file)
+    # The sections of .github/pull_request_template.md, as gate 11 of tools/pr_gates.py checks them (DEC-150 (2)).
+    errors = body_errors(body, draft)
+    if errors:
+        raise GitHubError(f'{body_file}: ' + '; '.join(errors) + f' (start from: python tools/github_pr.py template)')
     query = urllib.parse.urlencode({'head': f'{gh.owner}:{branch}', 'state': 'open'})
     existing = gh.call('GET', f'/repos/{gh.repo}/pulls?{query}')
     if existing:
@@ -173,6 +119,16 @@ def protection_gaps(gh):
     if checks.get('enforcement_level') != 'everyone':
         gaps.append(f'{BASE} lets administrators bypass the required checks ("Do not allow bypassing" is off)')
     return gaps
+
+
+def issue_gaps(gh, pr):
+    """Gates 9 and 10 again for a feat pull request of a feature: a blocker added or reopened after pr-gates passed
+    does not run the gates again (DEC-148 (6), (12))."""
+    title = pr.get('title') or ''
+    if not (pr_gates.FEAT_TITLE.match(title) and pr_gates.FEATURE_IN_TITLE.search(title)):
+        return []
+    import issue
+    return pr_gates.issue_errors(pr, pr_gates.closing_issues(pr.get('body')), issue.Reader(gh))
 
 
 def set_auto_merge(gh, pr, on):
@@ -204,6 +160,9 @@ def auto_merge(gh, number, off):
     owned = owned_files(pr)
     if owned:
         raise OwnerMerges(f'Auto-merge not enabled: #{number} changes files the owner merges: {", ".join(owned)}')
+    gaps = issue_gaps(gh, pr)
+    if gaps:
+        raise GitHubError(f'Auto-merge not enabled: #{number}: ' + '; '.join(gaps))
     gaps = protection_gaps(gh)
     if gaps:
         raise OwnerMerges('Auto-merge not enabled, the owner merges: ' + '; '.join(gaps))
@@ -235,6 +194,17 @@ def latest_checks(gh, sha):
     return latest
 
 
+def review_running(gh):
+    path = f'/repos/{gh.repo}/actions/workflows/code-review.yml/runs?event=issue_comment&per_page=20'
+    try:
+        runs = gh.call('GET', path).get('workflow_runs', [])
+    except GitHubError as error:
+        if getattr(error, 'status', None) == 404:  # the workflow is not on main yet
+            return False
+        raise
+    return any(run.get('status') in ('queued', 'in_progress', 'waiting', 'pending', 'requested') for run in runs)
+
+
 def checks(gh, number, wait):
     deadline = time.monotonic() + wait
     while True:
@@ -243,9 +213,15 @@ def checks(gh, number, wait):
         workflows = gh.call('GET', f'/repos/{gh.repo}/actions/runs?head_sha={sha}&per_page=100')['workflow_runs']
         found = latest_checks(gh, sha)
         running = [item for item in [*workflows, *found.values()] if item['status'] != 'completed']
+        # The run of code-review that a verdict comment starts (issue_comment) is not attached to the head, so it is
+        # not in workflows: while one is queued or running, its failure of the push before is not final (DEC-150 (3)).
+        review_pending = found.get('code-review', {}).get('conclusion') == 'failure' and review_running(gh)
+        if review_pending:
+            running.append({'name': 'code-review', 'status': 'in_progress'})
         # A run cancelled by a newer one of the same workflow counts only once nothing runs any more.
         failed = [c for c in found.values() if c['status'] == 'completed' and c['conclusion'] not in PASSED
-                  and not (c['conclusion'] == 'cancelled' and running)]
+                  and not (c['conclusion'] == 'cancelled' and running)
+                  and not (c['name'] == 'code-review' and review_pending)]
         settled = pr['merged'] or failed or pr['mergeable_state'] in ('dirty', 'behind') \
             or (workflows and not running and not pr['auto_merge'])
         if settled or time.monotonic() >= deadline:
@@ -291,6 +267,14 @@ def comment(gh, number, body_file):
     print(result['html_url'])
 
 
+def template(closes):
+    """The pull request template, with the Closes line filled when issues are given."""
+    text = read(TEMPLATE)
+    if closes:
+        text = text.replace('Closes #<issue>', ', '.join(f'Closes #{number}' for number in closes))
+    return text
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     commands = parser.add_subparsers(dest='command', required=True)
@@ -308,8 +292,14 @@ def main():
     p = commands.add_parser('comment')
     p.add_argument('number', type=int)
     p.add_argument('--body-file', required=True)
+    p = commands.add_parser('template')
+    p.add_argument('--closes', type=int, action='append', default=[])
     args = parser.parse_args()
 
+    if args.command == 'template':
+        sys.stdout.reconfigure(encoding='utf-8')
+        sys.stdout.write(template(args.closes))
+        return 0
     try:
         gh = GitHub()
         if args.command == 'create':
