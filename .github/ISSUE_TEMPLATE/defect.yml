@@ -1,6 +1,8 @@
 name: Acceptance defect
 description: "One defect found in acceptance testing. The owner fixes it in a local session with /fix-defect <Feature ID> #<issue>."
 title: "<Feature ID>: "
+# Type Bug (DEC-148 (2)); the label defect stays for the routines (docs/AUTOMATION.md).
+type: Bug
 labels: [defect]
 body:
   - type: markdown

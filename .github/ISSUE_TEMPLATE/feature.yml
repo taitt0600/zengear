@@ -1,0 +1,29 @@
+name: Feature
+description: "One feature of the blueprint not done yet, or the screens of a done feature (<Feature ID> web). DEC-148 (2)."
+title: "<Feature ID> <feature name>"
+type: Feature
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The blueprint stays the specification: point to it, do not copy it. Set the field **Feature ID** to the ID that
+        starts the title (whole ID, e.g. `POS-01`), and the milestone of its Phase. One open Feature issue per Feature ID.
+        It closes only when its `feat` pull request merges with `Closes #<this issue>` (DEC-148 (6)).
+  - type: input
+    id: source
+    attributes:
+      label: Source
+      description: The row of docs/blueprint/features.md, and the decisions, rules or gaps that matter.
+      placeholder: "docs/blueprint/features.md STF-09; DEC-128 (3)"
+    validations:
+      required: true
+  - type: input
+    id: screens
+    attributes:
+      label: Screens
+      description: The SCR-IDs this issue builds (for a "<Feature ID> web" issue, every screen it waits for).
+      placeholder: "SCR-STF-02, SCR-STF-03"
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
