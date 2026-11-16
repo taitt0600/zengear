@@ -143,8 +143,8 @@ class FormTests(unittest.TestCase):
         self.assertEqual(issue.lint_problems(an_issue(3, labels=['defect'], title='AUT-04: x', body=body)), [])
 
     def test_lint_labels_and_comments(self):
-        gh = FakeGitHub()
         event = {'issue': an_issue(5, type_name='Task', title='x', labels=['docs'], body='nothing')}
+        gh = FakeGitHub(issues={5: event['issue']})
         with contextlib.redirect_stdout(io.StringIO()):
             issue.lint(event, gh)
         methods = [(c[0], c[1]) for c in gh.calls]
@@ -152,7 +152,8 @@ class FormTests(unittest.TestCase):
         self.assertEqual(ct.parse(gh.posted()[0])[0], 'issue-lint')
         fixed = {'issue': an_issue(5, type_name='Task', title='x', labels=['docs', 'invalid'],
                                    body=issue.render('task', {'source': 'a', 'done': 'b'}))}
-        gh = FakeGitHub(comments={5: [{'id': 9, 'body': ct.issue_lint(['x']), 'user': {'login': 'github-actions[bot]'}}]})
+        gh = FakeGitHub(issues={5: fixed['issue']},
+                        comments={5: [{'id': 9, 'body': ct.issue_lint(['x']), 'user': {'login': 'github-actions[bot]'}}]})
         with contextlib.redirect_stdout(io.StringIO()):
             issue.lint(fixed, gh)
         methods = [(c[0], c[1]) for c in gh.calls]
@@ -164,12 +165,26 @@ class FormTests(unittest.TestCase):
                                    body=issue.render('task', {'source': 'a', 'done': 'b'}))}
         comments = {5: [{'id': 9, 'body': ct.issue_lint(['x']), 'user': {'login': 'taitt0600'}},
                         {'id': 10, 'body': ct.issue_lint(['x']), 'user': {'login': 'someone'}}]}
-        gh = FakeGitHub(comments=comments)
+        gh = FakeGitHub(issues={5: fixed['issue']}, comments=comments)
         with contextlib.redirect_stdout(io.StringIO()):
             issue.lint(fixed, gh)
         deleted = [c[1] for c in gh.calls if c[0] == 'DELETE']
         self.assertIn('/repos/taitt0600/zengear/issues/comments/9', deleted)
         self.assertNotIn('/repos/taitt0600/zengear/issues/comments/10', deleted)
+
+    def test_lint_reads_the_issue_as_it_is_now(self):
+        # #274: an issue made through the GitHub MCP has no type in its opened payload; the type set after it, the
+        # labels, the title and the body are read from the API when the workflow runs.
+        body = issue.render('feature', {'source': 'docs/blueprint/features.md STF-09'})
+        opened = {'issue': an_issue(7, type_name=None, title='STF-09 Approve staff accounts', body=body)}
+        now = an_issue(7, type_name='Feature', title='STF-09 Approve staff accounts', body=body)
+        fields = {'repository': {'issue': {'issueFieldValues': {'nodes': [
+            {'value': 'STF-09', 'field': {'name': 'Feature ID'}}]}}}}
+        gh = FakeGitHub(issues={7: now}, graphql={'issueFieldValues': fields})
+        with contextlib.redirect_stdout(io.StringIO()) as out:
+            issue.lint(opened, gh)
+        self.assertIn('#7 follows its form', out.getvalue())
+        self.assertFalse([c for c in gh.calls if c[0] == 'POST'])
 
 
 class DepsTests(unittest.TestCase):

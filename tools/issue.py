@@ -9,7 +9,7 @@ Local sessions (the GitHub token of gh):
   python tools/issue.py next
   python tools/issue.py roadmap      the Roadmap sub-issues with their blockers, and Priority High against them
 Workflows (the event file of the workflow, GITHUB_TOKEN):
-  python tools/issue.py lint <event file>          issue-lint.yml
+  python tools/issue.py lint <event file>          issue-lint.yml (reads the issue of the event from the API)
   python tools/issue.py deps <event file>          issue-deps.yml
   python tools/issue.py review-check <event file>  code-review.yml
 
@@ -131,8 +131,10 @@ def lint_problems(item):
 
 
 def lint(event, gh):
-    item = event['issue']
-    number = item['number']
+    # The issue as it is now, not the event payload: an issue made through the GitHub MCP gets its type after it opens,
+    # so the opened payload has none (#274); a later edit may also have changed labels, title or body.
+    number = event['issue']['number']
+    item = gh.issue(number)
     problems = lint_problems(item)
     if form_of(item) == 'feature':
         # The field that gate 9 reads, read here with the same token, so that a refused read shows on an issue first.
@@ -470,7 +472,7 @@ def create(gh, name, title, fields, feature_id=None, extra_labels=()):
             # An issue made by hand may lack the field that the gates and the dossier read: set it, then lint again.
             if feature_id and Reader(gh).feature_id(item['number']) != feature_id:
                 set_field(gh, item['number'], 'Feature ID', feature_id)
-                lint({'issue': gh.issue(item['number'])}, gh)
+                lint({'issue': {'number': item['number']}}, gh)
             print(f'#{item["number"]} {item["html_url"]} (already open)')
             return 0
     form = load_form(name)
@@ -480,7 +482,7 @@ def create(gh, name, title, fields, feature_id=None, extra_labels=()):
     if feature_id:
         set_field(gh, made['number'], 'Feature ID', feature_id)
         # issue-lint ran on "opened" before the field was set; setting a field starts no listed event, so lint again.
-        lint({'issue': gh.issue(made['number'])}, gh)
+        lint({'issue': {'number': made['number']}}, gh)
     print(f'#{made["number"]} {made["html_url"]}')
     return 0
 
