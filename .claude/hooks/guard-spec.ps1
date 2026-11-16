@@ -94,13 +94,15 @@ if ($path) {
 # (and feature_context.py only with an --out under out/ and no --root), with python, python3, py or the venv of
 # out/.venv, are removed before the command is checked; their other arguments, such as a redirection, are still judged.
 $command = [string]$payload.tool_input.command
-$interpreter = '(?:\w+=\S+\s+)*(?:python3?|py|out[\\/]+\.venv[\\/]+(?:bin|Scripts)[\\/]+python(?:\.exe)?)'
+# An environment prefix is stripped only for the names the tests of tools/ set, with a plain path as value; any other
+# (PYTHON*, LD_*, a command substitution) stays and is judged.
+$interpreter = '(?:(?:PR_GATES_SCRIPT|GUARD_SPEC_SCRIPT)=[\w./\\:-]+\s+)*(?:python3?|py|out[\\/]+\.venv[\\/]+(?:bin|Scripts)[\\/]+python(?:\.exe)?)'
 $runsTool = '(pr_gates\.py\s+(check-local|check|coverage)|github_pr\.py\s+(create|ready|auto-merge|checks|comment|template)|schema_compare\.py|message_keys\.py|issue\.py\s+(render|feature|next|start|create|link|unlink)|branch_name\.py\s+(make|check)|comment_templates\.py\s+(handoff|code-review|blocked-by|unblock|log)|screen_docs\.py|token_usage\.py|structure_metrics\.py)\b'
 $command = $command -replace "(^|[;&|]\s*)$interpreter\s+(\.\.[\\/]+)?tools[\\/]+$runsTool", '$1'
-$command = $command -replace "(^|[;&|]\s*)$interpreter\s+(\.\.[\\/]+)?tools[\\/]+feature_context\.py\s+[A-Z]{3}-[0-9]{2}(\s+--out\s+out[\\/][^\s;&|<>]*)?(\s+--no-issues)?(?=\s*(\z|[;&|]))", '$1'
-# An export of the workbook into out/ or the temp folder (/check-docs, item 5) reads the specification only; any
+$command = $command -replace "(^|[;&|]\s*)$interpreter\s+(\.\.[\\/]+)?tools[\\/]+feature_context\.py\s+[A-Z]{3}-[0-9]{2}(\s+--out\s+out[\\/](?![\w./\\-]*\.\.)[\w./\\-]*)?(\s+--no-issues)?(?=\s*(\z|[;&|]))", '$1'
+# An export of the workbook into out/ or /tmp/ (/check-docs, item 5) reads the specification only; any
 # other target, or one with "..", stays and is judged.
-$command = $command -replace "(^|[;&|]\s*)$interpreter\s+(\.\.[\\/]+)?tools[\\/]+export_blueprint\.py\s+[^\s;&|<>]+\.xlsx\s+(?:out|/tmp|\`$TEMP|\`$env:TEMP)[\\/](?![^\s;&|<>]*\.\.)[^\s;&|<>]*(?=\s*(\z|[;&|]))", '$1'
+$command = $command -replace "(^|[;&|]\s*)$interpreter\s+(\.\.[\\/]+)?tools[\\/]+export_blueprint\.py\s+[\w./\\-]+\.xlsx\s+(?:out|/tmp)[\\/](?![\w./\\-]*\.\.)[\w./\\-]*(?=\s*(\z|[;&|]))", '$1'
 # Running the two writers of the specification is level A, not a write to tools/: the run becomes "py <name>" (still a
 # write, judged by $mentionsSpec with its arguments); a command that writes to these scripts still names tools/.
 $command = $command -replace "(^|[;&|]\s*)$interpreter\s+(\.\.[\\/]+)?tools[\\/]+(blueprint_apply|export_blueprint)\.py\b", '$1py $3'
@@ -110,7 +112,7 @@ if ($command) {
     # tools/blueprint_apply.py writes the workbook without naming it on the command line: running it is a write to the
     # specification (level A). tools/export_blueprint.py names its target, so only an export into docs/blueprint asks.
     $mentionsSpec = '(api[\\/]+db[\\/]|(^|[\s''"=])db[\\/]+zengear_|docs[\\/]+blueprint\b|DATABASE\.md|product-domain-blueprint-MVP\.xlsx|(?<![\w-])blueprint_apply\b)'
-    $canWrite = '(>(?!>?\s*(&|/dev/null\b|\$null\b))|\btee\b|\bsed\b[^|;&]*\s-i|\bperl\b[^|;&]*\s-i|(^|[;&|(]\s*|\b(do|then|else|xargs|sudo|exec|env)\s+)(cp|mv|rm|truncate|touch|dd|install|unzip|tar|py(?=\s))\b|\bgit\s+(checkout|restore|apply|mv|rm|reset|stash)\b|Out-File|Set-Content|Add-Content|Remove-Item|Move-Item|Copy-Item|New-Item|Rename-Item|\bpython\d*\b|\bnode\b|\bpwsh\b|\bpowershell\b)'
+    $canWrite = '(>(?!>?\s*(&|/dev/null\b|\$null\b))|\btee\b|\bsed\b[^|;&]*\s-i|\bperl\b[^|;&]*\s-i|(^|[;&|(]\s*|\b(do|then|else|xargs|sudo|exec|env)\s+)(cp|mv|rm|ln|truncate|touch|dd|install|unzip|tar|py(?=\s))\b|\bmklink\b|\bgit\s+(checkout|restore|apply|mv|rm|reset|stash)\b|Out-File|Set-Content|Add-Content|Remove-Item|Move-Item|Copy-Item|New-Item|Rename-Item|\bpython\d*\b|\bnode\b|\bpwsh\b|\bpowershell\b)'
     # All of tools/ but the two writers of the specification above, which are level A.
     $mentionsTooling = '(\.(claude|githooks|github)(?=[\\/\s''"]|$)|\.gitleaks\.toml|\.mcp\.json|\.cz\.toml|(?<![\w.-])(?<!(?<![\w.-])out[\\/])tools[\\/]+|(?<![\w.-])(pr_gates\.py|github_pr\.py|schema_snapshot\.sql|schema_compare\.py|message_keys\.py)|ZenGear\.ArchitectureTests[\\/]|ARCHITECTURE\.md)'
     $mentionsGenerated = 'web[\\/]+src[\\/]+lib[\\/]+api[\\/]+generated\b'
