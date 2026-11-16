@@ -39,9 +39,13 @@ in Vietnamese; every cell of the row is in Vietnamese, in the style of the rows 
 5. **Rows that change with it**: for each feature or rule, its ID, the column, the current text and the new text; a
    new rule as a full row of `docs/blueprint/business-rules.md`:
    Rule ID | Rule | Type | Static/Dynamic | Enforced At | Source | Features | Tables | Phase.
-   Then, as a separate list marked **not in the patch**, the exact lines of `docs/STATUS.md` that the Decision
-   settles: its Next row, when the owner had postponed applying it, and the Waiting rows it settles (CLAUDE.md,
-   *Work state*). The owner deletes them at step 8.4.
+   Then, as a separate list marked **not in the patch**, the work items the Decision settles or creates (CLAUDE.md,
+   *Work state*; DEC-148): the issues to close (number and title; a Feature issue is never closed this way, it closes
+   with its `feat` pull request), the issues to create (Issue type, title, form and its fields, labels, the fields
+   Priority, Feature ID and Trigger, and each blocked-by relation, for a trigger "before <Feature ID>"), and, until
+   the pull request (D) of DEC-148 (11) deletes `docs/STATUS.md`, the exact lines of `docs/STATUS.md` it settles (its
+   Next row, when the owner had postponed applying it, and the Waiting rows it settles). The owner, or the session
+   that applies the Decision, does them at step 8.4.
 6. **The patch**, every row and cell change of steps 4 and 5 as JSON for `tools/blueprint_apply.py` (its docstring
    has the format):
    ```json
@@ -60,20 +64,27 @@ in Vietnamese; every cell of the row is in Vietnamese, in the style of the rows 
    (`git log --grep "DEC-096" -1 --format=%B`): subject `docs: record DEC-0xx for <topic>`, body wrapped at 72
    characters, footer `Refs: DEC-0xx` followed by the features and rules it changes.
 8. **The owner's steps**, numbered, each with its check:
-   1. `git switch main`, `git pull --ff-only origin main`, `git switch -c docs/dec-0xx`.
+   1. `git switch main`, `git pull --ff-only origin main`, then the Task issue of the change (form `task.yml`, label
+      `docs`; it may be one of the list of step 5) and `git switch -c $(python tools/branch_name.py make --number
+      <issue> --type Task --label docs --title "<its title>")` (DEC-148 (10)); `docs/dec-0xx` below stands for that
+      name.
    2. In your own terminal (a Claude session asks before running it, and cannot in the cloud): save the patch as
       `out/dec-0xx.patch.json` if it came as a block, then `python tools/blueprint_apply.py out/dec-0xx.patch.json`.
       It applies the patch and exports `docs/blueprint/`; when the patch does not fit the workbook it lists every
       problem and writes nothing (ask for a new draft, or fall back to pasting the tab line of step 4 and making the
       changes of step 5 by hand, then `python tools/export_blueprint.py docs/product-domain-blueprint-MVP.xlsx docs/blueprint`).
    3. Open the workbook in Excel once to look at the new rows, then close it without saving.
-   4. Delete from `docs/STATUS.md` the rows of the list "not in the patch" (step 5), each found by its Key or
-      Trigger cell: its other text may have changed on `main` since the draft.
+   4. Do the list "not in the patch" (step 5): close and create the issues it names (`python tools/issue.py create`,
+      `link`), and delete from `docs/STATUS.md` its rows, each found by its Key or Trigger cell: its other text may
+      have changed on `main` since the draft.
    5. `git status --short` lists the workbook, only the exported files the change explains and `docs/STATUS.md`
       when step 8.4 changed it, and
       `python -c "l=open('docs/blueprint/decisions.md',encoding='utf-8').read().splitlines()[-1]; print(l.startswith('| DEC-0xx |'))"`
       prints `True`.
    6. Commit the workbook, the exported files and `docs/STATUS.md` with the commit message of step 7.
-   7. `python tools/pr_gates.py check origin/main HEAD "<subject>"` prints `PR gates passed`.
+   7. Write the body from `python tools/github_pr.py template --closes <issue> > out/pr-body.md`, then
+      `python tools/pr_gates.py check-local origin/main "<subject>" --body-file out/pr-body.md` prints
+      `PR gates passed`.
    8. `git push -u origin docs/dec-0xx`, open `https://github.com/taitt0600/zengear/pull/new/docs/dec-0xx` with the
-      subject as title, and merge with **Rebase and merge** once every check passes.
+      subject as title and that body, have a session post the code-reviewer verdict for its head (DEC-150 (3)), and
+      merge with **Rebase and merge** once every check passes.

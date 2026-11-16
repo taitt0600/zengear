@@ -1,6 +1,6 @@
 ---
 name: feature-context
-description: Write the feature dossier of one ZenGear feature to out/feature-<ID>.md (its row, its rows of docs/STATUS.md, rules with implementation rules, use cases, the decisions they cite, glossary rows, DATABASE.md tables and, for a feature with screens, its screen files with the screen conventions and the gaps they name) and read it. Use before planning, reviewing or fixing a feature, instead of searching docs/blueprint and docs/DATABASE.md by hand.
+description: Write the feature dossier of one ZenGear feature to out/feature-<ID>.md (its row, its rows of docs/STATUS.md, its open Feature issue with its open blocked-by issues, rules with implementation rules, use cases, the decisions they cite, glossary rows, DATABASE.md tables and, for a feature with screens, its screen files with the screen conventions and the gaps they name) and read it. Use before planning, reviewing or fixing a feature, instead of searching docs/blueprint and docs/DATABASE.md by hand.
 argument-hint: <Feature ID, e.g. POS-01>
 allowed-tools: Bash(python3 tools/feature_context.py *), Bash(python tools/feature_context.py *), Read
 ---
@@ -11,3 +11,6 @@ allowed-tools: Bash(python3 tools/feature_context.py *), Bash(python tools/featu
    each table in `docs/ARCHITECTURE.md`, and open a source document only for what the dossier does not hold.
 4. A line "Rules not found in business-rules.md nor technical-design.md" is a gap in the specification: a
    Needs decision item (policy of `/implement-feature`, step 4), never a rule to invent.
+5. The section *Issues (GitHub)* (DEC-148 (6)) lists the open Feature issue and its open blocked-by issues, which
+   the plan handles one by one. A bold line "GitHub could not be read" means the blockers are not known: say so,
+   never plan as if there were none (DEC-148 (7)).

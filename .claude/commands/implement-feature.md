@@ -44,17 +44,25 @@ DEC-099 marked **Checkpoint** below (two here, one in `/finish-feature`); withou
      hooks of `.claude/settings.json` do not run, and nothing guards the specification), `postman --version`
      answers (the Postman CLI, `docs/ACCEPTANCE.md`) and `node --version` is within the `engines` range of
      `web/package.json` (which `npm ci` enforces; a change of the API contract runs the web checks, step 5).
-   - Last, the branch: `git switch -c <name> origin/main`, where `<name>` is `feat/<id in lowercase>` (`-web`
-     added for a web-only run), never `main`. Take the first of `<name>`, `<name>-2`, … for which
-     `gh pr list --state merged --head <name> --json number` returns nothing (an earlier run of the same feature may
-     have merged under it, and `tools/token_usage.py --branch` would count both runs in one Token line).
+   - The issue (DEC-148 (6)): `python tools/issue.py feature <ID>` prints the open Feature issue of the ID (for a
+     web-only run, the issue `<ID> web`) and its open blockers. No open Feature issue: stop and ask the owner to
+     create it (form `feature.yml`, field Feature ID); until step (M) of DEC-148 (11) has run, note it for the report
+     and go on. More than one: stop (DEC-148 (6) allows one). GitHub cannot be read: say so, and go on only with
+     the owner's answer. Blockers do not stop the run: the plan handles them (step 3).
+   - Last, the branch: `git switch -c <name> origin/main`, where `<name>` is
+     `python tools/branch_name.py make --number <issue> --type Feature --feature <ID> [--web]` with a `--taken <n>`
+     for each name of this feature whose pull request merged already
+     (`gh pr list --state merged --head <n> --json number` returns one; an earlier run of the same feature may have
+     merged under it, and `tools/token_usage.py --branch` would count both runs in one Token line), never `main`.
      When the chosen name exists already (`git branch --list <name>`, `git ls-remote --heads origin <name>`), stop:
      it is work in flight (CLAUDE.md, *Work state*). A ready check that stops leaves HEAD detached at
      `origin/main`; the next run starts there too.
 2. **Read** the feature dossier: `python3 tools/feature_context.py <ID> --out out/feature-<ID>.md` (skill
    `feature-context`), then `out/feature-<ID>.md`. It holds the row of the feature in `docs/blueprint/features.md`,
    its rows of `docs/STATUS.md` (section *Work state*: a Next row keyed by its ID, a Waiting row triggered
-   `before <ID>`), its use cases, every rule of its Rules column (implementation rules — R-DB-, R-TX-, R-NOT-,
+   `before <ID>`; read until (D) of DEC-148), its open Feature issue with its open blocked-by issues, Start date and
+   handoff comment (section *Issues (GitHub)*; a bold line when GitHub could not be read: then do not plan as if
+   there were no blocker, read them again or make it a Needs decision item), its use cases, every rule of its Rules column (implementation rules — R-DB-, R-TX-, R-NOT-,
    R-AUD-, R-SEC-07, R-ORD-12, R-REC- — from `docs/blueprint/technical-design.md`, section 8), the decisions they
    cite, its rows of `docs/GLOSSARY.md`, the `docs/DATABASE.md` section of each table its rules touch and, when the
    feature has screens, the file of each (`docs/screens/`), `docs/screens/conventions.md` and the gaps of
@@ -63,7 +71,9 @@ DEC-099 marked **Checkpoint** below (two here, one in `/finish-feature`); withou
    decision item (step 4). When the code the feature touches is unfamiliar, the agent `feature-dev:code-explorer` may map it first (entry points, call paths, the tests that cover it).
 3. **Plan**: endpoints (per `docs/API_CONVENTIONS.md`), service methods, entity methods, migrations if any, one or
    more tests per rule, the Postman scenarios (one per acceptance criterion, a refusal per rule), how each row of
-   the dossier's *Work state* section is handled (done in this pull request, or a Needs decision item of step 4)
+   the dossier's *Work state* section and each open blocked-by issue of its *Issues* section is handled (done in this
+   pull request, which then closes the issue with `Closes #<n>`, or a Needs decision item of step 4; the PR gates
+   refuse the merge while a blocker is open, DEC-148 (6))
    and the open questions sorted by the policy of step 4, with an assessment of the plan's design as a whole on
    performance, scalability (at the scale of the specification), security and reliability, or why one does not
    apply (DEC-139; `CLAUDE.md`, *Recommendations, designs and requests*). A web-only run plans the screens, their components, the
@@ -190,7 +200,8 @@ DEC-099 marked **Checkpoint** below (two here, one in `/finish-feature`); withou
         reports CSS variables, and `web/package.json` and `web/package-lock.json` when they changed; never
         `git add -A` or `.` (the tree holds the tests and code not committed yet); check
         `git diff --cached --name-only`.
-     3. Commit `feat(web): add the shadcn <items> as generated` with a body and `Refs: <ID>, DEC-116` plus the
+     3. Commit `feat(web): add the shadcn <items> as generated` with a body and `Refs: <ID>, #<the Feature issue>,
+        DEC-116` (gate 12 of the PR gates, DEC-150 (1); from `/fix-defect`, `#<the Bug issue>`) plus the
         Decision that approved each package it adds (a commit that adds a package names an accepted Decision,
         `CLAUDE.md`, Workflow). The edits of those files come in later commits. In a web-only run, which skips step 5, **Checkpoint 2** comes
      here (`--checkpoints` only): the failing Vitest tests, each with the reason it fails.
@@ -200,11 +211,17 @@ DEC-099 marked **Checkpoint** below (two here, one in `/finish-feature`); withou
    branch, whether the run is web-only (and then its pull request title), the plan-reviewer verdict and its counts
    of `[over-engineering]`, `[duplication]` and `[layout]` findings, for each screen built
    whether its design was read or only its Layout tree (step 3), the Needs decision items with the owner's answers (and
-   those left open), how the plan handled each Work state row (step 3), the decisions made, each stopgap with its
+   those left open), how the plan handled each Work state row and each blocked-by issue (step 3), the number of the
+   Feature issue, the decisions made, each stopgap with its
    long-term fix and its Waiting row (step 4, **Long-term and safe**), the deviations from the
    approved plan, the results of the build, the tests, the Postman runs and each web check, whether `--checkpoints`
    was given, and, while the trial of the plugin `security-guidance` runs (item (3) of the
    Waiting row of `docs/STATUS.md` on DEC-112), its warnings and review findings so far, each with whether it was
-   acted on. Then stop: tell the owner to type `/clear`, then `/finish-feature <ID>`
+   acted on. Then, beside that file (DEC-148 (8)), so that a cloud session sees the work that sits between the two
+   commands: post the handoff comment on the Feature issue,
+   `python tools/comment_templates.py handoff --feature <ID> --step 8 --branch <branch> --next "/finish-feature <ID>" > out/handoff-comment-<ID>.md`
+   then `python tools/github_pr.py comment <issue> --body-file out/handoff-comment-<ID>.md`, and set its Start date
+   with `python tools/issue.py start <issue>` (a run that resumes keeps the first date; a failure of either is
+   written in the handoff file and the report, not a reason to stop). Then stop: tell the owner to type `/clear`, then `/finish-feature <ID>`
    (with `--checkpoints` when it was given), which verifies, commits, opens the pull request, follows CI, has the
    owner test the feature before merge and reports. End with the section "Tóm tắt cho chủ dự án".
