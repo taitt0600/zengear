@@ -1,0 +1,30 @@
+name: Task
+description: "A follow-up, a task waiting for a trigger, tooling or documents. DEC-148 (2)."
+title: ""
+type: Task
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Add exactly one type label (docs, ci, chore, build, test, refactor, perf): it names the branch and the commit type.
+        An event trigger goes in the field **Trigger**; a trigger "before <Feature ID>" is a blocked-by relation on that
+        feature's issue instead (DEC-148 (4), DEC-151). Point to the source, do not copy it.
+  - type: input
+    id: source
+    attributes:
+      label: Source
+      description: The decision, pull request, issue or document this task comes from.
+      placeholder: "DEC-150 (3); pull request #170"
+    validations:
+      required: true
+  - type: textarea
+    id: done
+    attributes:
+      label: Done when
+      description: What is true once the task is done.
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes

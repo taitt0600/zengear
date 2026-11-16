@@ -1,0 +1,30 @@
+name: Design
+description: "The Layout of one screen, drawn with /design-screen and approved by merging its Layout pull request. DEC-148 (2), DEC-119."
+title: "<SCR-ID> <screen name>"
+type: Design
+body:
+  - type: markdown
+    attributes:
+      value: |
+        One screen per issue. It closes when its Layout pull request merges with `Closes #<this issue>`.
+  - type: input
+    id: screen
+    attributes:
+      label: Screen file
+      placeholder: docs/screens/SCR-STF-04.md
+    validations:
+      required: true
+  - type: input
+    id: features
+    attributes:
+      label: Features
+      description: The Feature IDs whose screen this is.
+      placeholder: "STF-09"
+    validations:
+      required: true
+  - type: input
+    id: source
+    attributes:
+      label: Source
+      description: The gap, decision or pull request that asks for the Layout.
+      placeholder: "docs/screens/gaps.md, gap 15"
