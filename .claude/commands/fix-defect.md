@@ -23,7 +23,10 @@ output to `out/logs/` and bring only a summary into the context, as **Output** o
      of a web-only run (`feat/<id>-web…`) for a defect of the API, which that run never changes: then the next item;
    - otherwise the Bug issue (DEC-148 (2), (10)): with `#<issue>`, that issue; without it, `python tools/issue.py create
      defect --title "<Feature ID>: <what is wrong>" --field feature=<Feature ID> --field steps=… --field expected=…
-     --field actual=…` (it reuses an open issue with the same title; no personal data, token or secret in it); then
+     --field actual=…` (no personal data, token or secret in it); it reuses an open Bug issue of the owner with the
+     same title. When an open issue with that title is of another author or has no type or another one (an old
+     defect issue made before the Issue types), it refuses without writing: a Needs decision item for the owner, asked
+     at once as `/implement-feature` step 4 says, and the run waits for the answer; then
      `git fetch origin main` and `git switch -c $(python tools/branch_name.py make --number <issue> --type Bug
      --feature <Feature ID>) origin/main` (`fix/<id in lowercase>-<issue>`).
    - The work starts: `python tools/issue.py start <issue>` sets the field Start date of the Bug issue (a run on the
