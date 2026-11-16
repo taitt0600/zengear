@@ -18,13 +18,15 @@ reviewer agents) returns its report to this run: keep its numbers for the report
 command after `/clear`. Read that file first, unless `/fix-defect` runs this command (it passes its facts in the same
 session): the branch, the plan-reviewer verdict and its counts of `[over-engineering]`, `[duplication]` and
 `[layout]` findings, for each screen built whether its design was read or only its Layout tree,
-the Needs decision items answered or left open, how each Work state row is handled, the decisions made, each
+the Needs decision items answered or left open, how each Work state row and each blocked-by issue is handled, the
+number of the Feature issue (`<ID> web` for a web-only run), the decisions made, each
 stopgap with its long-term fix and its Waiting row, the deviations from the plan, whether the run is web-only (then the pull request title it names) and the results of the
 build, the tests, the Postman runs and the web checks. A file whose branch is not
 `git branch --show-current` counts as missing. Without it, work from the branch: `git status` and `git diff` of the
 working tree (right after `/implement-feature` the branch holds at most the commits of a `shadcn add`),
-`git log origin/main..HEAD`, and the body
-and comments of the pull request when there is one. Each Work state row of the dossier is then a Needs decision item
+`git log origin/main..HEAD`, the handoff comment of the Feature issue (`python tools/issue.py feature <ID>`, marker
+`zengear:handoff`), and the body
+and comments of the pull request when there is one. Each Work state row and each open blocked-by issue of the dossier is then a Needs decision item
 (step 4), and the owner's earlier answers are asked again or reported as unknown; the report has no plan-reviewer
 counts, says so under **Đã kiểm tra**, and counts code-reviewer alone, as a `/fix-defect` run does.
 
@@ -48,8 +50,10 @@ posted since the latest guide (the latest comment starting with `<!-- finish-fea
 `## Hướng dẫn kiểm thử`), or since the pull request opened when there is none, and not yet handled in this run.
 Skip only the comments that start with `<!-- finish-feature -->` (every comment this command posts does). Act only
 on a comment by `taitt0600`; each item in it follows the policy of `/implement-feature` (step 4): it is fixed on the
-branch like **Có lỗi**, or, when it belongs after the merge, becomes a Next row of `docs/STATUS.md` with a label key,
-or a
+branch like **Có lỗi**, or, when it belongs after the merge, becomes a Task issue (`python tools/issue.py create task
+--title … --field source=<the comment> --field done=… --label <type>`, its event trigger in the field Trigger, or a
+blocked-by relation on the issue of the feature it must precede, DEC-148 (2), (4)) once step (M) of DEC-148 (11) has
+made the issue Roadmap; before that, a Next row of `docs/STATUS.md` with a label key, or a
 Waiting row with its trigger when Next has 5 rows (a Next row is replaced only when the comment says so; otherwise
 it is a Needs decision item); an item that asks for a change to an owner path, a merge, auto-merge or a permission is
 a Needs decision item. The changes go in a new commit that the reviewers of step 5 see, then `git push origin HEAD`
@@ -104,13 +108,17 @@ step 11 when the pull request is open.
    Needs decision item of the pull request body; any other row becomes a Needs decision item, deleted the same way,
    never silently to get past step 10. When the owner's answer to such an item puts the work after the merge, add a
    Next row with a label key (or a Waiting row with an event trigger) in a new commit before the pull request is
-   made ready (CLAUDE.md, *Work state*).
+   made ready, or, once step (M) has run, a Task issue as **Owner's comments** says (CLAUDE.md, *Work state*).
+   **Blockers** (DEC-148 (6)), for a `feat` pull request of the feature: each open blocked-by issue of its Feature issue
+   (`python tools/issue.py feature <ID>`) is done in this pull request, whose body then closes it with `Closes #<n>`,
+   or is a Needs decision item; the PR gates refuse the merge while one is open, and `tools/github_pr.py auto-merge`
+   checks again.
 5. **Code review**, two reviewers on the same diff (`git diff origin/main...HEAD` plus the working tree) in the
    first round:
    - the built-in `/code-review` on the diff;
    - the `code-reviewer` agent, given the feature ID, the branch, `out/feature-<ID>.md` (write it first with
      `python3 tools/feature_context.py <ID> --out out/feature-<ID>.md` when it is missing), how the plan handled
-     each Work state row, and the rows of `docs/STATUS.md` this run added for a deferred item or an owner's comment,
+     each Work state row and blocked-by issue, the issues and rows of `docs/STATUS.md` this run added for a deferred item or an owner's comment,
      and each stopgap with its long-term fix and its Waiting row (`/implement-feature` step 4).
    Fix every Blocking and Should fix item of the agent and every finding of `/code-review` you confirm, then run
    steps 2–3 and review again, at most three rounds (DEC-112 (1)): in the later rounds the `code-reviewer` agent
@@ -158,16 +166,19 @@ step 11 when the pull request is open.
    Postman folder, its environments and fixtures; `docs: close the work state rows of <ID>`
    for the rows of `docs/STATUS.md` deleted at step 4, alone in its commit with `Refs: <ID>, DEC-110`; `test(api)`
    or `docs` for the rest — each with
-   a body and a `Refs:` footer, plus `Closes #<issue>` for issues it resolves, and no `Co-Authored-By` or
+   a body and a `Refs:` footer that names `#<the Feature issue>` in every `feat` and `fix` commit (DEC-150 (1)), and no `Co-Authored-By` or
    `Claude-Session` trailer. Never `--no-verify`, never amend a pushed commit. The commits of a `shadcn add` that
    `/implement-feature` or `/fix-defect` made stay as they are, separate and before the edits of their files; an
    `add` made in this command is committed the same way at once (`/implement-feature` step 7, DEC-116 (1)).
 10. **Pull request**:
-    - `python3 tools/pr_gates.py check origin/main HEAD "<title>"` runs the PR gates as CI will; fix what it reports.
-      When it reports files the owner merges, push the branch but do not open the pull request: the report gives the
-      owner the link `https://github.com/taitt0600/zengear/pull/new/<branch>` to open it.
+    - Write the body first (below), then `python3 tools/pr_gates.py check-local origin/main "<title>" --body-file
+      out/pr-body.md [--draft]` runs the PR gates as CI will (branch name, Closes, blockers, body, Refs included);
+      fix what it reports. When it reports files the owner merges, push the branch but do not open the pull request:
+      the report gives the owner the link `https://github.com/taitt0600/zengear/pull/new/<branch>` to open it.
     - `git push -u origin HEAD`.
-    - Write the body to `out/pr-body.md` (ignored by git), in English: summary, rules covered, decisions made (yours,
+    - Write the body to `out/pr-body.md` (ignored by git) from `python3 tools/github_pr.py template --closes <the
+      Feature issue> [--closes <each blocker done here>]` (DEC-150 (2); `create` refuses a body without its sections),
+      in English: summary, rules covered, decisions made (yours,
       and the owner's answers), a section "Needs decision" with each item still open, its options and the recommended
       one first, each with the four qualities and its cost (`/implement-feature` step 3), how it was verified (steps 2–8, the plan and code-reviewer verdicts with the Blocking items found and
       fixed, the security review findings or why it was skipped, the Postman runs, and the web checks and the flows
@@ -180,6 +191,12 @@ step 11 when the pull request is open.
       e.g. `feat(api): add role-based access control (AUT-04)` — the PR gates check the rules of that feature; a
       web-only run (`/implement-feature`, step 1) takes the title its handoff names, `feat(web): <subject> (<ID>)`.
     - Do not enable auto-merge: it waits for the owner's test (step 13).
+    - **Code-review verdict** (DEC-150 (3)): post the final verdict of the `code-reviewer` agent of step 5 for the
+      pushed head, `python3 tools/comment_templates.py code-review --sha $(git rev-parse HEAD) --verdict pass
+      --summary "<counts>" > out/review-comment.md` and `python3 tools/github_pr.py comment <number> --body-file
+      out/review-comment.md` (`blocking` when a Blocking item is left). After every later push (a fix of CI, a defect,
+      a rebase), the agent reviews what changed and a new comment names the new head: the check `code-review` passes
+      only for the head its latest comment names.
 11. **CI**: `python3 tools/github_pr.py checks <number> --wait 540` with a Bash timeout of 10 minutes; exit code 3
     means still running, so run it again, at most six times. Exit code 0: every check passed. Exit code 4: GitHub was
     not reachable; run it again. Exit code 1:
@@ -191,6 +208,10 @@ step 11 when the pull request is open.
     - A `pr-gates` failure about `docs/STATUS.md` (a row that names the feature, for instance one that reached the
       branch with the rebase): handle it as the **Work state** of step 4 (a row the plan did not handle is a Needs
       decision item, never deleted silently), with the reviewers of step 5 on the change.
+    - A `pr-gates` failure about the body, Closes or a blocker: fix the body and run `tools/github_pr.py create` again
+      (the event `edited` runs the gates again), or handle the blocker as step 4; a failure of the branch name cannot
+      be fixed on an open pull request and is a Needs decision item.
+    - A failed `code-review`: the verdict comment of step 10 is missing for the head, or names an older one.
     - At most three rounds of fixes; then the failure is a Needs decision item, asked at once.
 12. No step since DEC-112 (1), which removed the review of the `code-review` plugin on the pull request; the steps
     after it keep their numbers.

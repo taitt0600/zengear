@@ -4,13 +4,15 @@ The owner picks and starts features in a local session with `/implement-feature`
 `/finish-feature` (DEC-112 (4)), answers the Needs decision items they ask and tests the result before it merges
 (CLAUDE.md, Workflow; DEC-100). Everything else runs by itself, except four things kept for the owner on purpose: answering a **Needs decision** item (money, tax, legal duties, personal data,
 role permissions, data that is hard to migrate, packages, build code), the test before merge, merging a pull
-request that changes the specification or the tooling (`owner_paths` in `tools/pr_gates.py`), and merging the pull
-requests that change only `docs/STATUS.md`, the docs pull requests of cloud sessions (DEC-110) and the Layout pull
-requests of `/design-screen` (DEC-119), which never get auto-merge.
+request that changes the specification or the tooling (`owner_paths` in `tools/pr_gates.py`, which fail while
+auto-merge is on, DEC-149 (1)), and merging the pull requests of cloud sessions (level A of DEC-149 (1): documents,
+the specification, the Layout pull requests of `/design-screen`), which never get auto-merge.
 
 ## The owner's part
 
-1. Take the first row of *Next* in `docs/STATUS.md` and start it in a local session: open VS Code on the
+1. Take the next work (item 6: the first sub-issue of the pinned issue Roadmap that meets the Definition of Ready,
+   DEC-148 (4), (6); until the pull request (D) of DEC-148 (11) merges, also the first row of *Next* in
+   `docs/STATUS.md`) and start it in a local session: open VS Code on the
    repository, `git switch main`, `git pull`. A feature row (or another feature of `docs/blueprint/features.md`
    whose *Depends On* features are done) runs with `/implement-feature <Feature ID>` in Claude Code
    (`--checkpoints` to also approve the plan, the failing tests and the diff, as in DEC-099); when it stops after
@@ -24,9 +26,10 @@ requests of `/design-screen` (DEC-119), which never get auto-merge.
    design. A session without the Artifact tool gives a drawing prompt to paste into Claude Design in the Claude app
    instead; give the link back with `/design-screen <SCR-ID> <link>`. Any other row is asked of Claude in words,
    from its *Source*; when its *Who* says owner path, Claude pushes the branch and the owner opens and merges the
-   pull request. Cloud sessions do not run features or fixes (DEC-100): they run only the two
-   notification routines below, `/report-review`, `/decision-draft`, `/design-screen`, and the pull requests and
-   comments of DEC-110 (4).
+   pull request. Cloud sessions do not run features or fixes (DEC-100, level C of DEC-149 (3)): they run the two
+   notification routines below and the work of level A (CLAUDE.md, *Reviewers on every change*): documents and the
+   specification through pull requests the owner merges, `/report-review`, `/decision-draft`, `/design-screen`,
+   issues and their fields, and comments; level B (`.claude/`, `.github/`, `tools/`, …) stays local.
 2. Answer the **Needs decision** items when Claude asks them: all the items known after the plan in one question,
    a later one at once. An answer that changes a specification stops the run: `/decision-draft <what was decided>`
    drafts the Decision for the workbook, and the owner opens that specification pull request. A yes to a package
@@ -41,18 +44,20 @@ requests of `/design-screen` (DEC-119), which never get auto-merge.
    in all), then answer **Đạt** (auto-merge on),
    **Có lỗi** (describe each defect; Claude fixes it on the same branch and sends the guide again) or **Để sau**
    (a later `/finish-feature <Feature ID>` resumes at the test), with the minutes you spent.
-4. A defect found after the merge: an issue with the form **Acceptance defect** (label `defect`), one defect per
+4. A defect found after the merge: an issue with the form **Acceptance defect** (Issue type Bug, label `defect`), one defect per
    issue, the title starting with the Feature ID, then `/fix-defect <Feature ID> #<issue>` in a local session; the
    fix pull request closes the issue when it merges, after the same test before merge.
 5. Plans and pull requests are reviewed locally (`plan-reviewer`, `code-reviewer`), except a Layout pull request that
    a cloud session opens with `/design-screen`, which that session reviews with `code-reviewer` itself; they end with
    the section "Tóm tắt cho chủ dự án" (CLAUDE.md, Workflow): read that summary instead of sending them to a cloud
    session.
-6. After a few days away, or in a new session, ask **"Việc tiếp theo là gì?"**: Claude answers from
-   `docs/STATUS.md` and the open pull requests, issues and branches (CLAUDE.md, *Work state*). Say first whether the
-   answer was right, then what it missed; Claude logs that as a Re-entry line (below, *Metrics*). Merge a pull request
-   that changes only `docs/STATUS.md` when no feature pull request waits to merge: every merge to `main` puts the
-   open pull requests behind it.
+6. After a few days away, or in a new session, ask **"Việc tiếp theo là gì?"**: Claude answers in the order of
+   DEC-148 (7) (open pull requests, drafts, Bug issues, issues with a handoff comment and no pull request, the first
+   ready sub-issue of the Roadmap, Task issues whose trigger has occurred; `python tools/issue.py next` locally, the
+   GitHub MCP in a cloud session), with `docs/STATUS.md` beside it until (D) (CLAUDE.md, *Work state*). Say first
+   whether the answer was right, then what it missed; Claude logs that as a Re-entry line (below, *Metrics*). Merge a
+   pull request that changes only `docs/STATUS.md` when no feature pull request waits to merge: every merge to `main`
+   puts the open pull requests behind it.
 
 ## What runs by itself
 
@@ -164,15 +169,32 @@ script prints a table with a part per agent type (`agentType` of the subagent's 
 to issue #24.
 
 Since DEC-110, when the owner asks what is next in a new session and says whether the answer was right, Claude adds
-one comment to issue #24 (`gh issue comment 24 --body "<line>"` locally, the GitHub tools in a cloud session):
+one comment to issue #24 (`python tools/comment_templates.py log re-entry --text "<line>"` written to a file, then
+`tools/github_pr.py comment 24 --body-file <file>` locally; the GitHub tools in a cloud session, with the same first
+line `<!-- zengear:log line=re-entry -->`; DEC-148 (9)):
 
 ```
 Re-entry | <yyyy-mm-dd> | <local or cloud> | <pass or fail> | missed: <the items the answer left out or got wrong, or none>
 ```
 
 When the owner has to remind Claude of an item already discussed, or an old item comes back as a new one, Claude adds
-`Reminder | <yyyy-mm-dd> | <local or cloud> | <the item>`. These lines count M2 and M1 of DEC-110 (7); when DEC-110 is
-evaluated (DEC-110 (7)), Claude takes M3 and M4 from `git log -p origin/main -- docs/STATUS.md` after `git fetch`.
+`Reminder | <yyyy-mm-dd> | <local or cloud> | <the item>` (marker `<!-- zengear:log line=reminder -->`). These lines
+count M2 and M1 of DEC-110 (7), kept by DEC-148 (12); when DEC-110 is evaluated (DEC-110 (7)), Claude takes its M3
+and M4 from `git log -p origin/main -- docs/STATUS.md` after `git fetch`.
+
+The measures of DEC-148 (12), DEC-149 (6) and DEC-150 (5), over the 4 weeks or 5 features after the switch to issues:
+
+- **M3 of DEC-148**, cycle time: from the field Start date of an issue to its closing, per Issue type, read by hand
+  (`gh issue list --state closed --json number,closedAt`, and the field Start date on each issue page or through the
+  GitHub MCP).
+- **M4 of DEC-148**: no `feat` pull request merged while its Feature issue had an open blocked-by issue (gate 10 of
+  `tools/pr_gates.py` and `tools/github_pr.py auto-merge` refuse it; a merge past them is a finding).
+  M1 at 0 and M2 met every time keep DEC-148 as it is; otherwise its items (7) and (8) are looked at again.
+- **DEC-149 (6)**: the number of hand-overs to a local session per change that touches only level A, target 0; the
+  session that hands over adds one line to issue #24, `Handover | <yyyy-mm-dd> | <pull request or issue> | <why>`
+  (`tools/comment_templates.py log handover`).
+- **DEC-150 (5)**: no pull request merged with a commit that `cz check` refuses or without a `code-review` verdict
+  pass for its head; checked on the merged pull requests (`pr-title` and the check `code-review` of their last head).
 
 The measures of DEC-119 are read by hand, since the routines copy none of them to issue #24: the share of screens
 with an approved design before their code (target 100%), from `git log origin/main -- docs/screens/ docs/SCREENS.md`
@@ -198,9 +220,17 @@ Playwright's CDN run only after the image and the bundle are published; `ci-ok` 
 check. The weekly schedule runs only the full-history secret scan. `deploy-staging` (OIDC to Azure, bundle, slot `staging`, smoke) and
 `deploy-production` (swap after the environment's approval; rollback is swapping again) are written but run only
 when the repository variable `DEPLOY_ENABLED` is `true`, once the Azure resources exist.
-`.github/workflows/gates.yml` (`pull_request_target`, code of `main` only) runs `pr-gates` and `pr-title`.
+`.github/workflows/gates.yml` (`pull_request_target`, code of `main` only; also on `edited`, `ready_for_review`,
+`converted_to_draft`, `auto_merge_enabled` and `auto_merge_disabled`) runs `pr-gates` (`tools/pr_gates.py` on the
+event file: the gates of DEC-148, DEC-149 and DEC-150 with the earlier ones) and `pr-title` (Commitizen with
+`.cz.toml` on the title and every commit, from `tools/requirements.txt` with hashes). Three workflows act on issues
+and comments, each with the code of `main` only and the body read from the event file by `tools/issue.py`:
+`issue-lint` (issues opened, edited, typed, untyped, labeled, unlabeled: the form of the issue, label `invalid`),
+`issue-deps` (comments of `taitt0600` on an issue: the blocked-by requests of DEC-151, `issues: write` for that job
+only) and `code-review` (job `review-check`: the check run `code-review` of DEC-150 (3) from the verdict comments).
 Every job is named after its id, in lower case, and the required checks of `main` are `ci-ok`, `pr-gates` and
-`pr-title` (`REQUIRED_CHECKS` of `tools/github_pr.py`).
+`pr-title` (`REQUIRED_CHECKS` of `tools/github_pr.py`); `code-review` joins once the owner has made it required after
+its first run.
 
 ## Phase 0 (DEC-100)
 
@@ -217,8 +247,10 @@ of `api/**` or `postman/**`, fewer tools, or more checks moved into the collecti
 Two routines with this same prompt, since a routine takes one trigger of each type. Since DEC-100 the report is
 posted after the owner's test and before the merge, so "merged" means tested; the prompt below is the one to paste
 into both routines. Both filter the pull request
-with *title* matches regex `.*\([A-Z]{3}-[0-9]{2}\)` (a feature or fix pull request), have taitt0600/zengear as
-their repository and notify by push:
+with *title* matches regex `.*\([A-Z]{3}-[0-9]{2}\)` (a feature or fix pull request; the pull requests of Task and
+Design issues have no Feature ID in their titles and are skipped, DEC-148), have taitt0600/zengear as
+their repository and notify by push. The comment on issue #24 starts with the marker line of DEC-148 (9), which the
+owner adds to the prompt of both routines when DEC-148 is applied (they live in the owner's claude.ai account):
 
 - **ZenGear PR merged**: GitHub event *pull request closed*, filter *is merged* = true;
 - **ZenGear PR needs decision**: GitHub event *pull request opened*, filter *is draft* = true.
@@ -239,7 +271,8 @@ nothing, and write every comment on GitHub in English.
    opened for a Needs decision item usually has none yet: then take its open items from the section
    "Needs decision" of the pull request body. The test guide (a comment with "Các bước" and no "Kết quả") is not
    the report.
-3. Add one comment to issue #24 with this line, taking the review rounds, the Needs decision items and the
+3. Add one comment to issue #24: a first line "<!-- zengear:log line=merged -->" (or line=needs-decision for a
+   draft), then this line, taking the review rounds, the Needs decision items and the
    scenarios from the report ("Đã kiểm tra", "Cần bạn quyết định", "Kịch bản kiểm thử", one line per Postman
    request) and writing "?" for a number the report does not give:
    PR #<n> | <Feature ID> | <feat or fix> | opened → merged: <hours>h<minutes> or draft | commits: <c> | reviews: plan <a> / code <b> / report <r> rounds | needs decision: <k> | scenarios: <s> | where: <local or cloud> | owner-minutes: <m> | over-engineering: <o> | duplication: <d> | folders per feat commit: <f> | tokens: <t> / output <u> / fresh <w>

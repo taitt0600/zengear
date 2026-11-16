@@ -137,7 +137,7 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   `view="creator"`, `Stale` with `stale`, `Anonymized` with `anonymized`, `Disabled` with `disabled`, which gains the
   row "Dữ liệu cá nhân"), or that view under a dialog (`Withdraw`, `Anonymize`, `DarkAnonymize`), so they share its
   frame and sample data; `NarrowCreator` is a narrow artboard of its own.
-  - **Builds**: STF-09 (its web part, Next row STF-09 of `docs/STATUS.md`) builds "Thu hồi" here and on SCR-STF-01,
+  - **Builds**: STF-09 (its web part, its item in the plan, `CLAUDE.md`, *Work state*) builds "Thu hồi" here and on SCR-STF-01,
     and the `If-Match` of the three actions; STF-14 builds "Ẩn danh hóa" (the row, the confirmation, the ANONYMIZED
     page after it), in the card "Tài khoản" once `layout-scr-stf-03` has built it, or in the status card the page has
     then. No other row is needed.
@@ -237,7 +237,7 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
 - **Builds**, each part by its feature, on the page as it is then:
   - from the change of #158: `layout-scr-stf-03` builds the frame as SCR-ADM-01 has it then and the mark and note
     of "Khóa tài khoản" in `staff-disable-dialog.tsx`; STF-11 the marks, note and hints of the sheet (gap 7).
-  - `layout-scr-stf-03` (the Next row of `docs/STATUS.md`, a `feat(web): … (STF-02)` pull request): the section
+  - `layout-scr-stf-03` (its item in the plan, `CLAUDE.md`, *Work state*, a `feat(web): … (STF-02)` pull request): the section
     navigation, the width, the cards "Hồ sơ nhân viên" and "Tài khoản" with the status actions in the status row and
     the row of the default password, loading, 404 and error.
   - STF-09 (its web part, with its part of SCR-STF-01, since both screens share the two dialogs and

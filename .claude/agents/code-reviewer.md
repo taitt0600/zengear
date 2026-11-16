@@ -46,7 +46,8 @@ reported as unchecked; a PowerShell script is never run, read its `ShouldProcess
   `docs/GLOSSARY.md`
 - The `README.md` of each area of `api/src/ZenGear.Services` the diff touches or calls
 - The feature dossier `out/feature-<ID>.md` given with the request (written by `tools/feature_context.py`): the
-  feature row, its rows of `docs/STATUS.md` (section *Work state*), every rule it lists (implementation rules
+  feature row, its rows of `docs/STATUS.md` (section *Work state*), its open Feature issue and blocked-by issues
+  (section *Issues (GitHub)*), every rule it lists (implementation rules
   included) and the `docs/DATABASE.md` section of each table its rules touch. Without it, read those in
   `docs/blueprint/` and `docs/DATABASE.md` yourself
 - For a table the diff touches that the dossier does not hold: `#### <table>` in `docs/DATABASE.md` (search, do
@@ -70,7 +71,12 @@ repeat those. Check what no test sees:
    setup); a refusal throws `BusinessRuleException` with the rule ID. Each *Work state* row of the dossier that
    the diff deletes from `docs/STATUS.md` was done in the diff or is a Needs decision item of the pull request
    body, as the handling given with the request says; no other row of `docs/STATUS.md` changed, except the rows
-   the request lists as added for a deferred item, an owner's comment or a stopgap (item 14).
+   the request lists as added for a deferred item, an owner's comment or a stopgap (item 14). Each open blocked-by
+   issue of the dossier is done in the diff (and closed by the body with `Closes #<n>`) or is a Needs decision item
+   (DEC-148 (6)); the body follows `.github/pull_request_template.md` and closes the Feature issue, and every
+   `feat` and `fix` commit names `#<that issue>` in its `Refs:` (DEC-150 (1), (2)). The session posts the verdict
+   of the Output below for the head with `tools/comment_templates.py code-review` (DEC-150 (3)): READY as
+   `--verdict pass`, CHANGES REQUIRED as `--verdict blocking`.
 2. **Audience and data exposure**: staff and customers get different DTOs and services (rule 3, DEC-097);
    a `*ShopDto` or `*ShopService` never selects `average_cost`, `unit_cost` or `internal_note`; cost
    fields reach only callers with `cost.view` (R-SEC-09, R-SEC-10); personal data columns follow

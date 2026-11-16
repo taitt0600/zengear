@@ -55,7 +55,7 @@ built before DEC-119 — SCR-ADM-01, SCR-AUT-01, SCR-AUT-02 and SCR-ACC-01 — n
 changes. A `refactor(web)` pull request that changes the layout of a screen (the pull request (B) of DEC-118) needs
 that screen's approved Layout first and builds it; a new Layout of a screen `web/` already has (not a placeholder
 page) is built the same way, by a `refactor(web)` pull request of a local session when it only changes the layout,
-or by a `feat(web): … (<Feature ID>)` pull request on `feat/<id>-web` when it adds behaviour (DEC-123), which a Next row of
-`docs/STATUS.md` keeps in view: `/design-screen` adds that row in a `docs/STATUS.md` pull request beside the Layout
-pull request, unless a Next row already names that pull request (`shell-refactor` for SCR-ADM-01 and SCR-AUT-01). A
+or by a `feat(web): … (<Feature ID>)` pull request on `feat/<id>-web` when it adds behaviour (DEC-123), which the plan keeps in view (`CLAUDE.md`, *Work state*): `/design-screen` adds
+that item beside the Layout pull request (a Task issue, or before step (M) of DEC-148 (11) a Next row of
+`docs/STATUS.md`), unless an item already names that pull request (`shell-refactor` for SCR-ADM-01 and SCR-AUT-01). A
 date picker uses the shadcn calendar with date-fns (DEC-116 (6)).
