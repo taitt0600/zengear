@@ -78,7 +78,8 @@ class FakeGitHub:
 
 def an_issue(number, state='open', type_name=None, title='x', labels=(), body='', pull_request=False):
     data = {'number': number, 'id': 1000 + number, 'state': state, 'title': title, 'body': body,
-            'labels': [{'name': name} for name in labels], 'type': {'name': type_name} if type_name else None}
+            'labels': [{'name': name} for name in labels], 'type': {'name': type_name} if type_name else None,
+            'user': {'login': 'taitt0600'}}
     if pull_request:
         data['pull_request'] = {'url': 'x'}
     return data
@@ -355,6 +356,24 @@ class ReaderTests(unittest.TestCase):
         mutation = [c[1] for c in gh.calls if c[0] == 'GRAPHQL' and 'value' in c[1]]
         self.assertEqual((mutation[0]['name'], mutation[0]['value']), ('Feature ID', 'STF-09'))
 
+    @unittest.skipUnless(HAS_YAML, 'PyYAML (tools/requirements.txt) is needed: the type comes from the form')
+    def test_create_refuses_an_issue_of_another_author_or_type(self):
+        for login, type_name in (('someone', 'Feature'), ('taitt0600', 'Task')):
+            existing = dict(an_issue(30, type_name=type_name, title='STF-09 Approve staff accounts'),
+                            html_url='x', user={'login': login})
+
+            class Gh(FakeGitHub):
+                def pages(self, path, limit=1000):
+                    if path.endswith('/issues?state=open'):
+                        return [existing]
+                    return super().pages(path, limit)
+
+            gh = Gh(issues={30: existing})
+            with self.subTest(login=login, type_name=type_name), self.assertRaisesRegex(ValueError, '#30'):
+                issue.create(gh, 'feature', 'STF-09 Approve staff accounts', {'source': 'x'}, feature_id='STF-09')
+            self.assertEqual([c for c in gh.calls if c[0] in ('POST', 'GRAPHQL', 'PATCH')], [])
+
+    @unittest.skipUnless(HAS_YAML, 'PyYAML (tools/requirements.txt) is needed: the type comes from the form')
     def test_create_reuse_keeps_a_matching_feature_id(self):
         existing = dict(an_issue(30, type_name='Feature', title='STF-09 Approve staff accounts'), node_id='I_30',
                         html_url='x')
