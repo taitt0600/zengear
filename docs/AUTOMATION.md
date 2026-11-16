@@ -229,9 +229,8 @@ and comments, each with the code of `main` only and its input read by `tools/iss
 takes the number from the event file and reads the issue as it is now from the API, #274),
 `issue-deps` (comments of `taitt0600` on an issue: the blocked-by requests of DEC-151, `issues: write` for that job
 only) and `code-review` (job `review-check`: the check run `code-review` of DEC-150 (3) from the verdict comments).
-Every job is named after its id, in lower case, and the required checks of `main` are `ci-ok`, `pr-gates` and
-`pr-title` (`REQUIRED_CHECKS` of `tools/github_pr.py`); `code-review` joins once the owner has made it required after
-its first run.
+Every job is named after its id, in lower case, and the required checks of `main` are `ci-ok`, `pr-gates`, `pr-title`
+and the check run `code-review` that the job `review-check` posts (`REQUIRED_CHECKS` of `tools/github_pr.py`).
 
 ## Phase 0 (DEC-100)
 

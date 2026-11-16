@@ -16,7 +16,8 @@ of the pull request and main are fetched here and compared from their merge-base
 not require every check in REQUIRED_CHECKS or lets someone bypass them, so that nothing merges unchecked; it turns
 auto-merge off again when the head moved while it was being enabled. REQUIRED_CHECKS are job names, each equal to its job id:
 ci-ok aggregates every job of .github/workflows/pipeline.yml, and pr-gates and pr-title run in
-.github/workflows/gates.yml. checks prints the latest run of every check of the head commit, the annotations of the failed ones and the merge state.
+.github/workflows/gates.yml; code-review is the check run that the job review-check of .github/workflows/code-review.yml
+posts, success only with a verdict comment pass for the head (DEC-150 (3)). checks prints the latest run of every check of the head commit, the annotations of the failed ones and the merge state.
 
 Exit codes: 0 done, 1 a check failed or the pull request cannot merge as it is, 3 still running when the wait
 ended, 4 GitHub could not be reached, 5 the owner merges (auto-merge refused).
@@ -33,8 +34,9 @@ import pr_gates  # noqa: E402
 from pr_gates import body_errors, changed_files, owner_paths  # noqa: E402
 
 BASE = 'main'
-# code-review (DEC-150 (3)) joins only after the owner has made it a required check of main, from its first run.
-REQUIRED_CHECKS = ('ci-ok', 'pr-gates', 'pr-title')
+# code-review (DEC-150 (3)) is not a job: the job review-check posts it from the verdict comments; the owner made it a
+# required check of main after its first run (#251).
+REQUIRED_CHECKS = ('ci-ok', 'pr-gates', 'pr-title', 'code-review')
 PASSED = ('success', 'neutral', 'skipped')
 POLL_SECONDS = 30
 TEMPLATE = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '.github',

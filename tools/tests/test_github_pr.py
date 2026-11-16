@@ -47,7 +47,36 @@ class RequiredChecksTests(unittest.TestCase):
         names = job_names()
         for check in REQUIRED_CHECKS:
             with self.subTest(check=check):
+                if check == 'code-review':  # a check run that a job posts (test below)
+                    continue
                 self.assertIn(check, names, f'no job of .github/workflows/ is named "{check}"')
+
+    def test_code_review_is_required_and_posted_by_the_job_review_check(self):
+        # DEC-150 (3): required since the owner made it a required check of main after its first run (#251). The job
+        # that posts it is review-check; no job may be named code-review, or its own check run would pass for the verdict.
+        self.assertIn('code-review', REQUIRED_CHECKS)
+        names = job_names()
+        self.assertEqual(names.get('review-check'), ['code-review.yml'])
+        self.assertNotIn('code-review', names)
+        import issue
+
+        class Gh:
+            repo = 'taitt0600/zengear'
+            posted = []
+
+            def pages(self, path, limit=1000):
+                return []
+
+            def call(self, method, path, body=None):
+                self.posted.append((method, path, body))
+
+        gh = Gh()
+        event = {'pull_request': {'number': 7, 'head': {'sha': 'a' * 40}, 'user': {'login': 'taitt0600'}}}
+        with contextlib.redirect_stdout(io.StringIO()):
+            issue.review_check(event, gh)
+        (method, path, body), = gh.posted
+        self.assertEqual((method, path, body['name'], body['head_sha']),
+                         ('POST', '/repos/taitt0600/zengear/check-runs', 'code-review', 'a' * 40))
 
     def test_every_job_is_named_after_its_id(self):
         for workflow in sorted((REPO / '.github' / 'workflows').glob('*.yml')):
