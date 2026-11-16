@@ -384,7 +384,7 @@ def next_work(reader, ready=screens_ready):
     try:
         pulls = reader.pulls()
         issues = reader.open_issues()
-        lines = ['Next work (DEC-148 (7)); docs/STATUS.md is read beside it until PR (D) merges:']
+        lines = ['Next work (DEC-148 (7)):']
         ready_prs = [p for p in pulls if not p.get('draft')]
         drafts = [p for p in pulls if p.get('draft')]
         lines += [f'1. Pull request #{p["number"]} {p["title"]}: waiting for the test, CI or the merge' for p in ready_prs]
