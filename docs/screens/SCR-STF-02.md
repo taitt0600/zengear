@@ -102,7 +102,7 @@ form takes only the staff profile and the sign-in account, collecting no persona
   `t.rich`, whose `mark` renders the `*` `aria-hidden`) with `admin.requiredMark` "sao" (*new*, the visually hidden
   word in place of the `*`); the legends `profile.title` "Hồ sơ
   nhân viên" (*new*, the words of SCR-STF-03, under a key of its own so this page does not wait for the build of
-  `layout-scr-stf-03`, which renames `staff.account.info.title`) with the `FieldDescription` `profile.description`
+  issue #244 (STF-02 web), which renames `staff.account.info.title`) with the `FieldDescription` `profile.description`
   "Thông tin của nhân viên tại cửa hàng, dùng để liên hệ trong công việc." (*new*) and `account.title` "Tài khoản"
   (*new*) with `account.description` "Email đăng nhập và vai trò quyết định nhân viên mở được những trang nào."
   (*new*); the labels `staff.list.columns.name`, `.employeeCode`, `.joinedDate`, `staff.account.workPhone`, `email`

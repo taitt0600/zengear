@@ -75,7 +75,7 @@ its **Layout** below.
   current until the next scroll moves the line, on both screens (the Layout of SCR-STF-03 says so too). The
   navigation is new behaviour, so the build is a `feat(web): … (STF-03)` pull request on `feat/stf-03-web-2`
   (`feat/stf-03-web` has merged, #87), as the paragraph under the [screen list](README.md#screen-list) says. It comes after the pull request
-  of the Next row `layout-scr-stf-03`, which builds `section-nav.tsx`, `use-active-section.ts` and `staff-photo.tsx`
+  of issue #244 (STF-02 web), which builds `section-nav.tsx`, `use-active-section.ts` and `staff-photo.tsx`
   in the module of SCR-STF-03: this build moves them to `components/app/section-nav.tsx`,
   `@/hooks/use-active-section.ts` (the sentinel id an argument instead of `staff-account-end`) and
   `components/app/profile-photo.tsx` (its texts then props; DEC-118 (1), the second screen that uses them), and

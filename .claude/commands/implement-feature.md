@@ -63,8 +63,7 @@ DEC-099 marked **Checkpoint** below (two here, one in `/finish-feature`); withou
      `origin/main`; the next run starts there too.
 2. **Read** the feature dossier: `python3 tools/feature_context.py <ID> --out out/feature-<ID>.md` (skill
    `feature-context`), then `out/feature-<ID>.md`. It holds the row of the feature in `docs/blueprint/features.md`,
-   its rows of `docs/STATUS.md` (section *Work state*: a Next row keyed by its ID, a Waiting row triggered
-   `before <ID>`; read until (D) of DEC-148), its open Feature issue with its open blocked-by issues, Start date and
+   its open Feature issue with its open blocked-by issues, Start date and
    handoff comment (section *Issues (GitHub)*; a bold line when GitHub could not be read: then do not plan as if
    there were no blocker, read them again or make it a Needs decision item), its use cases, every rule of its Rules column (implementation rules — R-DB-, R-TX-, R-NOT-,
    R-AUD-, R-SEC-07, R-ORD-12, R-REC- — from `docs/blueprint/technical-design.md`, section 8), the decisions they
@@ -74,8 +73,8 @@ DEC-099 marked **Checkpoint** below (two here, one in `/finish-feature`); withou
    source document only for what the dossier does not hold; a rule the dossier reports as not found is a Needs
    decision item (step 4). When the code the feature touches is unfamiliar, the agent `feature-dev:code-explorer` may map it first (entry points, call paths, the tests that cover it).
 3. **Plan**: endpoints (per `docs/API_CONVENTIONS.md`), service methods, entity methods, migrations if any, one or
-   more tests per rule, the Postman scenarios (one per acceptance criterion, a refusal per rule), how each row of
-   the dossier's *Work state* section and each open blocked-by issue of its *Issues* section is handled (done in this
+   more tests per rule, the Postman scenarios (one per acceptance criterion, a refusal per rule), how each open
+   blocked-by issue of the dossier's *Issues* section is handled (done in this
    pull request, which then closes the issue with `Closes #<n>`, or a Needs decision item of step 4; the PR gates
    refuse the merge while a blocker is open, DEC-148 (6))
    and the open questions sorted by the policy of step 4, with an assessment of the plan's design as a whole on
@@ -109,10 +108,11 @@ DEC-099 marked **Checkpoint** below (two here, one in `/finish-feature`); withou
    - **Long-term and safe** (DEC-139): every choice of this policy, a reversible one and the fix of a review
      finding, a failed check or a defect included, is the long-term, safe one, never a shortcut (skipping a rule, a
      check or a part of the specification) or a temporary patch. An urgent stopgap (a broken `main`, a
-     vulnerability) follows `CLAUDE.md`, *Recommendations, designs and requests*; besides, its Waiting row of
-     `docs/STATUS.md` goes in the stopgap's own commit, whose body gives the long-term fix; its trigger is still to
-     come (an event, or `before` a feature not done yet, never the feature of this pull request); and when Waiting
-     has 10 rows and none has that trigger, it is a Needs decision item. The other commands point here.
+     vulnerability) follows `CLAUDE.md`, *Recommendations, designs and requests*; besides, its Task issue (form
+     `task.yml`, `python tools/issue.py create`) is opened in the same run and named in the stopgap's own commit,
+     whose body gives the long-term fix; its trigger is still to come (an event in the field Trigger, or a blocked-by
+     relation on the issue of a feature not done yet, never the feature of this pull request). The other commands
+     point here.
    - Decide it yourself, and list the choice under "Decisions made" in the report, when it is reversible, stays
      inside the code and agrees with the documents: names of private members, how a service is split within the
      limits of `docs/ARCHITECTURE.md`, the shape of a query, test data, the wording of a message that follows
@@ -215,12 +215,11 @@ DEC-099 marked **Checkpoint** below (two here, one in `/finish-feature`); withou
    branch, whether the run is web-only (and then its pull request title), the plan-reviewer verdict and its counts
    of `[over-engineering]`, `[duplication]` and `[layout]` findings, for each screen built
    whether its design was read or only its Layout tree (step 3), the Needs decision items with the owner's answers (and
-   those left open), how the plan handled each Work state row and each blocked-by issue (step 3), the number of the
+   those left open), how the plan handled each blocked-by issue (step 3), the number of the
    Feature issue, the decisions made, each stopgap with its
-   long-term fix and its Waiting row (step 4, **Long-term and safe**), the deviations from the
+   long-term fix and its Task issue (step 4, **Long-term and safe**), the deviations from the
    approved plan, the results of the build, the tests, the Postman runs and each web check, whether `--checkpoints`
-   was given, and, while the trial of the plugin `security-guidance` runs (item (3) of the
-   Waiting row of `docs/STATUS.md` on DEC-112), its warnings and review findings so far, each with whether it was
+   was given, and, while the trial of the plugin `security-guidance` runs (Task issue #262 on DEC-112), its warnings and review findings so far, each with whether it was
    acted on. Then, beside that file (DEC-148 (8)), so that a cloud session sees the work that sits between the two
    commands: post the handoff comment on the Feature issue,
    `python tools/comment_templates.py handoff --feature <ID> --step 8 --branch <branch> --next "/finish-feature <ID>" > out/handoff-comment-<ID>.md`

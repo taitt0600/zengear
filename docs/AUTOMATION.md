@@ -11,9 +11,8 @@ the specification, the Layout pull requests of `/design-screen`), which never ge
 ## The owner's part
 
 1. Take the next work (item 6: the first sub-issue of the pinned issue Roadmap that meets the Definition of Ready,
-   DEC-148 (4), (6); until the pull request (D) of DEC-148 (11) merges, also the first row of *Next* in
-   `docs/STATUS.md`) and start it in a local session: open VS Code on the
-   repository, `git switch main`, `git pull`. A feature row (or another feature of `docs/blueprint/features.md`
+   DEC-148 (4), (6)) and start it in a local session: open VS Code on the
+   repository, `git switch main`, `git pull`. A Feature issue (or another feature of `docs/blueprint/features.md`
    whose *Depends On* features are done) runs with `/implement-feature <Feature ID>` in Claude Code
    (`--checkpoints` to also approve the plan, the failing tests and the diff, as in DEC-099); when it stops after
    the tests and the Postman folder, type `/clear`, then `/finish-feature <Feature ID>` (DEC-112 (4)). A feature
@@ -24,9 +23,9 @@ the specification, the Layout pull requests of `/design-screen`), which never ge
    request; comment on the design or the pull request (each comment leads to a new revision when
    `/design-screen <SCR-ID>` runs again), add a comment `Phút duyệt: <minutes>`, and merge it to approve the
    design. A session without the Artifact tool gives a drawing prompt to paste into Claude Design in the Claude app
-   instead; give the link back with `/design-screen <SCR-ID> <link>`. Any other row is asked of Claude in words,
-   from its *Source*; when its *Who* says owner path, Claude pushes the branch and the owner opens and merges the
-   pull request. Cloud sessions do not run features or fixes (DEC-100, level C of DEC-149 (3)): they run the two
+   instead; give the link back with `/design-screen <SCR-ID> <link>`. Any other issue (a Task) is asked of Claude in
+   words, from the source its body points to; when it changes an owner path, Claude pushes the branch and the owner
+   opens and merges the pull request. Cloud sessions do not run features or fixes (DEC-100, level C of DEC-149 (3)): they run the two
    notification routines below and the work of level A (CLAUDE.md, *Reviewers on every change*): documents and the
    specification through pull requests the owner merges, `/report-review`, `/decision-draft`, `/design-screen`,
    issues and their fields, and comments; level B (`.claude/`, `.github/`, `tools/`, …) stays local.
@@ -54,10 +53,8 @@ the specification, the Layout pull requests of `/design-screen`), which never ge
 6. After a few days away, or in a new session, ask **"Việc tiếp theo là gì?"**: Claude answers in the order of
    DEC-148 (7) (open pull requests, drafts, Bug issues, issues with a handoff comment and no pull request, the first
    ready sub-issue of the Roadmap, Task issues whose trigger has occurred; `python tools/issue.py next` locally, the
-   GitHub MCP in a cloud session), with `docs/STATUS.md` beside it until (D) (CLAUDE.md, *Work state*). Say first
-   whether the answer was right, then what it missed; Claude logs that as a Re-entry line (below, *Metrics*). Merge a
-   pull request that changes only `docs/STATUS.md` when no feature pull request waits to merge: every merge to `main`
-   puts the open pull requests behind it.
+   GitHub MCP in a cloud session; CLAUDE.md, *Work state*). Say first whether the answer was right, then what it
+   missed; Claude logs that as a Re-entry line (below, *Metrics*).
 
 ## What runs by itself
 
@@ -84,7 +81,7 @@ only the owner merges. The repository's agents name their `model` and `effort` i
 
 | Tool | What it gives | Declared in |
 |---|---|---|
-| Plugins of the official marketplace `claude-plugins-official`: `csharp-lsp`, `feature-dev`, `typescript-lsp`, `frontend-design`, `security-guidance` | C# go-to-definition, references and compiler diagnostics (csharp-ls; it reports no Sonar rule); agents `code-explorer` and `code-architect`, `/feature-dev` for a spike; TypeScript and JavaScript go-to-definition, references and diagnostics (typescript-language-server); `frontend-design`, a skill of design guidance for the storefront only (DEC-104 (11)), not for the admin or the POS: only this rule limits it, since the skill triggers from its own description, and its screenshots come from Playwright tests, never from a browser Claude opens (DEC-111). `pr-review-toolkit`, `code-review` and `commit-commands` are set to `false` (DEC-112 (2)); `/code-review` is the built-in command. `playwright` is set to `false` (DEC-111 (6), (d): its MCP server runs `npx @playwright/mcp@latest`, unpinned). `security-guidance` is on again since web-shell (DEC-112 (2)), on trial for the next 3 web features, whose reports give its warnings and its own findings (`/finish-feature`, step 14); web-shell itself is not counted, since the plugin came on in its last commits. At marketplace commit `d1adba4` it has three layers (its README): regex warnings after Edit and Write, an LLM review of the diff at the end of each turn, and an agentic review on `git commit` and `git push`, each running beside `stop-check` and the git hooks and feeding findings back to Claude. At session start it installs Anthropic's `claude-agent-sdk` with pip, unpinned and from the default index, into a venv under `~/.claude/security` when it is missing (accepted by the owner for the trial on 2026-10-21, pull request of web-shell, Decisions). The trial ends with item (3) of the Waiting row of `docs/STATUS.md` on DEC-112. Its LLM calls may fall outside the transcripts, so the `Token:` line of `tools/token_usage.py` can undercount them (DEC-112) | `enabledPlugins` of `.claude/settings.json`; reviewed at the marketplace commit named by the commit that enabled each |
+| Plugins of the official marketplace `claude-plugins-official`: `csharp-lsp`, `feature-dev`, `typescript-lsp`, `frontend-design`, `security-guidance` | C# go-to-definition, references and compiler diagnostics (csharp-ls; it reports no Sonar rule); agents `code-explorer` and `code-architect`, `/feature-dev` for a spike; TypeScript and JavaScript go-to-definition, references and diagnostics (typescript-language-server); `frontend-design`, a skill of design guidance for the storefront only (DEC-104 (11)), not for the admin or the POS: only this rule limits it, since the skill triggers from its own description, and its screenshots come from Playwright tests, never from a browser Claude opens (DEC-111). `pr-review-toolkit`, `code-review` and `commit-commands` are set to `false` (DEC-112 (2)); `/code-review` is the built-in command. `playwright` is set to `false` (DEC-111 (6), (d): its MCP server runs `npx @playwright/mcp@latest`, unpinned). `security-guidance` is on again since web-shell (DEC-112 (2)), on trial for the next 3 web features, whose reports give its warnings and its own findings (`/finish-feature`, step 14); web-shell itself is not counted, since the plugin came on in its last commits. At marketplace commit `d1adba4` it has three layers (its README): regex warnings after Edit and Write, an LLM review of the diff at the end of each turn, and an agentic review on `git commit` and `git push`, each running beside `stop-check` and the git hooks and feeding findings back to Claude. At session start it installs Anthropic's `claude-agent-sdk` with pip, unpinned and from the default index, into a venv under `~/.claude/security` when it is missing (accepted by the owner for the trial on 2026-10-21, pull request of web-shell, Decisions). The trial ends with Task issue #262 on DEC-112. Its LLM calls may fall outside the transcripts, so the `Token:` line of `tools/token_usage.py` can undercount them (DEC-112) | `enabledPlugins` of `.claude/settings.json`; reviewed at the marketplace commit named by the commit that enabled each |
 | Skill `shadcn` | The official shadcn/ui skill (components, composition, forms, styling, the CLI), with the project rules on top: the CLI only as `npm exec --no -- shadcn` from `web/`; `web/src/components/ui/` is code of the app, edited directly after a first commit that holds what `add` wrote, keeping the classes of shadcn's design; every official item, its texts through the message files; blocks as templates with lucide icons; an update of a component in a `chore(web)` pull request of its own, `--overwrite` only when none of its files was edited; the official registry only; packages checked before `add` (DEC-116, DEC-111 (2), (5)) | `.claude/skills/shadcn/`, copied from `shadcn-ui/ui` at a pinned commit (MIT), its source and changes in `SKILL.md` |
 | Web Interface Guidelines (Vercel) | Rules for accessible, fast interfaces, which `code-reviewer` applies to diffs under `web/` only (item 13 of its checklist); the project wins where they differ (WCAG 2.2 AA) | `.claude/guidelines/web-interface-guidelines.md`, copied at a pinned commit (MIT); an update copies a newer commit after reading it |
 | MCP server `postgres` (crystaldba postgres-mcp, image pinned by digest, unrestricted mode) | The schema and rows of the development database `zengear`; skill `db-inspect`. Read-only tools run without a prompt; `execute_sql` and `explain_query` always ask | `.mcp.json`, with `DATABASE_URI` from the user environment variable `ZENGEAR_MCP_DATABASE_URI` |
@@ -155,8 +152,8 @@ per defect taken: time from opened to merged, commits, review rounds, Needs deci
 over-engineering and duplication and the folders touched per `feat` commit (`tools/structure_metrics.py`). Compare
 features with it before changing the workflow.
 
-For the evaluation of DEC-112 (8) (reviewers, plugins, models, efforts and sessions; its trigger is a Waiting row of
-`docs/STATUS.md`), the report also carries the line `Token:` of `python3 tools/token_usage.py --branch <branch> --line`, read from this project's
+For the evaluation of DEC-112 (8) (reviewers, plugins, models, efforts and sessions; its trigger is that of Task
+issue #262), the report also carries the line `Token:` of `python3 tools/token_usage.py --branch <branch> --line`, read from this project's
 Claude Code transcripts on the owner's machine: the tokens of the main session and of the subagents, the output
 tokens (thinking is billed as output tokens, per Anthropic's extended-thinking documentation, so a change of effort
 shows there), the fresh input (input plus cache
@@ -180,7 +177,8 @@ Re-entry | <yyyy-mm-dd> | <local or cloud> | <pass or fail> | missed: <the items
 When the owner has to remind Claude of an item already discussed, or an old item comes back as a new one, Claude adds
 `Reminder | <yyyy-mm-dd> | <local or cloud> | <the item>` (marker `<!-- zengear:log line=reminder -->`). These lines
 count M2 and M1 of DEC-110 (7), kept by DEC-148 (12); when DEC-110 is evaluated (DEC-110 (7)), Claude takes its M3
-and M4 from `git log -p origin/main -- docs/STATUS.md` after `git fetch`.
+and M4 from `git log -p origin/main -- docs/STATUS.md` after `git fetch` (the history of the file up to its
+deletion by the pull request (D) of DEC-148 (11)).
 
 The measures of DEC-148 (12), DEC-149 (6) and DEC-150 (5), over the 4 weeks or 5 features after the switch to issues:
 
@@ -295,8 +293,8 @@ nothing, and write every comment on GitHub in English.
 A web-only pull request (`/implement-feature`, step 1) matches the title filter too, so its feature gets a second line
 in issue #24. Its report lists the Playwright flows in a sub-list "Luồng màn hình (Playwright)" of
 "Kịch bản kiểm thử", apart from the Postman lines the prompt counts, so its "scenarios" count only Postman requests
-(none when the API did not change). Unchecked: that the routine reads the sub-list that way; item (4) of the Waiting
-row of `docs/STATUS.md` on DEC-112 checks it on the issue #24 lines of the first pull requests with a web.
+(none when the API did not change). Unchecked: that the routine reads the sub-list that way; Task issue #262 on
+DEC-112 checks it on the issue #24 lines of the first pull requests with a web.
 
 ### ZenGear fix defects (disabled since 2026-10-02)
 
