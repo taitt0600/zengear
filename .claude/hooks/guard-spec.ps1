@@ -10,8 +10,12 @@
 # generator (npm run gen:api) does not name it and runs. web/src/components/ui/ is code of the app (DEC-116 (1)), and
 # so is the mutator web/src/lib/api/api.ts beside the generated folder.
 # Covers file tools (Edit, Write, MultiEdit, NotebookEdit) and shell commands (Bash, PowerShell).
-# In an unattended cloud session (CLAUDE_CODE_REMOTE=true) nobody can answer: the specification, the tooling
-# and the checks are read-only there, and build files are left to the CI gates (tools/pr_gates.py).
+# Levels of DEC-149: level A (the specification: api/db/, docs/blueprint/, docs/DATABASE.md, the workbook, running
+# tools/blueprint_apply.py, and running tools/export_blueprint.py into docs/blueprint) is asked locally and allowed in an unattended cloud session
+# (CLAUDE_CODE_REMOTE=true), whose pull request the owner merges; level B (all of .claude/, .github/, .githooks/,
+# tools/, .mcp.json, .gitleaks.toml, .cz.toml, docs/ARCHITECTURE.md, the architecture tests) is asked locally and
+# denied unattended, whatever else the command does; build files are asked locally and left to the CI gates
+# (tools/pr_gates.py) unattended. The rest of docs/ is not asked.
 # A guardrail, not a security boundary: the CI gates and branch protection decide what reaches main.
 $ErrorActionPreference = 'Stop'
 # An error blocks the tool call (exit code 2) instead of letting it through unchecked.
@@ -28,9 +32,10 @@ $generatedReason = 'is written only by its generator (npm run gen:api), never by
 $unattendedReason = 'cannot change in an unattended cloud session. Stop and report it as a "Needs decision" item instead.'
 $unattended = $env:CLAUDE_CODE_REMOTE -eq 'true'
 
-# $kind: 'spec' and 'tooling' are read-only when unattended; 'build' is left to the CI gates there.
+# $kind: 'spec' (level A) is allowed when unattended, 'tooling' (level B) is denied there, 'build' is left to the CI
+# gates there; all three are asked when attended.
 function Ask([string]$target, [string]$reason, [string]$kind) {
-    if ($unattended -and $kind -eq 'build') { exit 0 }
+    if ($unattended -and $kind -in @('build', 'spec')) { exit 0 }
     $decision = if ($unattended) { 'deny' } else { 'ask' }
     $why = if ($unattended) { "$target $unattendedReason" } else { "$target $reason" }
     @{
@@ -50,9 +55,8 @@ $protectedPrefixes = @(
     'docs/product-domain-blueprint-MVP.xlsx'
 )
 
-$codePrefixes = @('.claude/', '.githooks/', '.github/workflows/', '.gitleaks.toml', '.mcp.json', 'tools/pr_gates.py',
-    'tools/github_pr.py', 'tools/schema_snapshot.sql', 'tools/schema_compare.py',
-    'tools/message_keys.py', 'api/tests/ZenGear.ArchitectureTests/', 'docs/ARCHITECTURE.md')
+$codePrefixes = @('.claude/', '.githooks/', '.github/', '.gitleaks.toml', '.mcp.json', '.cz.toml', 'tools/',
+    'api/tests/ZenGear.ArchitectureTests/', 'docs/ARCHITECTURE.md')
 $codeSuffixes = @('.csproj', '.props', '.targets')
 
 # File tools: compare the path relative to the repository root, with forward slashes, after resolving
@@ -86,15 +90,29 @@ if ($path) {
 # read-only command is not taken for a write because another part of it runs pwsh or python, and tool names
 # match only whole (test_pr_gates.py is not pr_gates.py). A cd into a
 # folder carries over to the parts after it, which may name their files relative to that folder.
-# Running the workflow tools is not a write: those invocations are removed before the command is checked.
+# Running a tool of tools/ that writes no protected file is not a write: those invocations, by name and subcommand
+# (and feature_context.py only with an --out under out/ and no --root), with python, python3, py or the venv of
+# out/.venv, are removed before the command is checked; their other arguments, such as a redirection, are still judged.
 $command = [string]$payload.tool_input.command
-$command = $command -replace '(^|[;&|]\s*)python3?\s+(\.\.[\\/]+)?tools[\\/]+(pr_gates\.py\s+(check|coverage)|github_pr\.py\s+(create|ready|auto-merge|checks|comment)|schema_compare\.py|message_keys\.py)\b', '$1'
+$interpreter = '(?:\w+=\S+\s+)*(?:python3?|py|out[\\/]+\.venv[\\/]+(?:bin|Scripts)[\\/]+python(?:\.exe)?)'
+$runsTool = '(pr_gates\.py\s+(check-local|check|coverage)|github_pr\.py\s+(create|ready|auto-merge|checks|comment|template)|schema_compare\.py|message_keys\.py|issue\.py\s+(render|feature|next|start|create|link|unlink)|branch_name\.py\s+(make|check)|comment_templates\.py\s+(handoff|code-review|blocked-by|unblock|log)|screen_docs\.py|token_usage\.py|structure_metrics\.py)\b'
+$command = $command -replace "(^|[;&|]\s*)$interpreter\s+(\.\.[\\/]+)?tools[\\/]+$runsTool", '$1'
+$command = $command -replace "(^|[;&|]\s*)$interpreter\s+(\.\.[\\/]+)?tools[\\/]+feature_context\.py\s+[A-Z]{3}-[0-9]{2}(\s+--out\s+out[\\/][^\s;&|<>]*)?(\s+--no-issues)?(?=\s*(\z|[;&|]))", '$1'
+# An export of the workbook into out/ or the temp folder (/check-docs, item 5) reads the specification only; any
+# other target, or one with "..", stays and is judged.
+$command = $command -replace "(^|[;&|]\s*)$interpreter\s+(\.\.[\\/]+)?tools[\\/]+export_blueprint\.py\s+[^\s;&|<>]+\.xlsx\s+(?:out|/tmp|\`$TEMP|\`$env:TEMP)[\\/](?![^\s;&|<>]*\.\.)[^\s;&|<>]*(?=\s*(\z|[;&|]))", '$1'
+# Running the two writers of the specification is level A, not a write to tools/: the run becomes "py <name>" (still a
+# write, judged by $mentionsSpec with its arguments); a command that writes to these scripts still names tools/.
+$command = $command -replace "(^|[;&|]\s*)$interpreter\s+(\.\.[\\/]+)?tools[\\/]+(blueprint_apply|export_blueprint)\.py\b", '$1py $3'
+$command = $command -replace "(^|[;&|]\s*)$interpreter\s+-m\s+unittest\s+(discover\s+-s\s+tools[\\/]+tests\b|tools[\\/]+tests[\\/]+[\w./\\-]+)", '$1'
+$command = $command -replace '(^|[;&|]\s*)pwsh\s+-NoProfile\s+-File\s+tools[\\/]+(git_tidy|dev_reset|env_doctor|mcp[\\/]+setup)\.ps1\b', '$1'
 if ($command) {
-    # tools/blueprint_apply.py writes the workbook without naming it on the command line: running it is a write to
-    # the specification, which the owner does in their own terminal.
-    $mentionsSpec = '(api[\\/]+db[\\/]|(^|[\s''"=])db[\\/]+zengear_|docs[\\/]+blueprint[\\/]|DATABASE\.md|product-domain-blueprint-MVP\.xlsx|(?<![\w-])blueprint_apply\b)'
+    # tools/blueprint_apply.py writes the workbook without naming it on the command line: running it is a write to the
+    # specification (level A). tools/export_blueprint.py names its target, so only an export into docs/blueprint asks.
+    $mentionsSpec = '(api[\\/]+db[\\/]|(^|[\s''"=])db[\\/]+zengear_|docs[\\/]+blueprint\b|DATABASE\.md|product-domain-blueprint-MVP\.xlsx|(?<![\w-])blueprint_apply\b)'
     $canWrite = '(>(?!>?\s*(&|/dev/null\b|\$null\b))|\btee\b|\bsed\b[^|;&]*\s-i|\bperl\b[^|;&]*\s-i|(^|[;&|(]\s*|\b(do|then|else|xargs|sudo|exec|env)\s+)(cp|mv|rm|truncate|touch|dd|install|unzip|tar|py(?=\s))\b|\bgit\s+(checkout|restore|apply|mv|rm|reset|stash)\b|Out-File|Set-Content|Add-Content|Remove-Item|Move-Item|Copy-Item|New-Item|Rename-Item|\bpython\d*\b|\bnode\b|\bpwsh\b|\bpowershell\b)'
-    $mentionsTooling = '(\.claude[\\/]|\.githooks[\\/]|\.github[\\/]+workflows|\.gitleaks\.toml|\.mcp\.json|(?<![\w.-])(pr_gates\.py|github_pr\.py|schema_snapshot\.sql|schema_compare\.py|message_keys\.py)|ZenGear\.ArchitectureTests[\\/]|ARCHITECTURE\.md)'
+    # All of tools/ but the two writers of the specification above, which are level A.
+    $mentionsTooling = '(\.(claude|githooks|github)(?=[\\/\s''"]|$)|\.gitleaks\.toml|\.mcp\.json|\.cz\.toml|(?<![\w.-])(?<!(?<![\w.-])out[\\/])tools[\\/]+|(?<![\w.-])(pr_gates\.py|github_pr\.py|schema_snapshot\.sql|schema_compare\.py|message_keys\.py)|ZenGear\.ArchitectureTests[\\/]|ARCHITECTURE\.md)'
     $mentionsGenerated = 'web[\\/]+src[\\/]+lib[\\/]+api[\\/]+generated\b'
     $mentionsBuild = '\.(csproj|props|targets)\b'
     # The first target of each kind; asked in the order spec, tooling, generated, build once every part is judged.
@@ -119,6 +137,11 @@ if ($command) {
     }
     # dotnet add/remove/new/sln change project files without naming them.
     if (-not $found.build -and $command -match '\bdotnet\s+(add|remove|new|sln)\b') { $found.build = $Matches[0] }
+    # Unattended, a level B target denies the whole command before a level A target can allow it.
+    if ($unattended) {
+        if ($found.tooling) { Ask $found.tooling $codeReason 'tooling' }
+        if ($found.generated) { Ask $found.generated $generatedReason 'tooling' }
+    }
     if ($found.spec) { Ask $found.spec $specReason 'spec' }
     if ($found.tooling) { Ask $found.tooling $codeReason 'tooling' }
     if ($found.generated) { Ask $found.generated $generatedReason 'tooling' }
