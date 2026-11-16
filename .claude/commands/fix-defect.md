@@ -26,6 +26,8 @@ output to `out/logs/` and bring only a summary into the context, as **Output** o
      --field actual=…` (it reuses an open issue with the same title; no personal data, token or secret in it); then
      `git fetch origin main` and `git switch -c $(python tools/branch_name.py make --number <issue> --type Bug
      --feature <Feature ID>) origin/main` (`fix/<id in lowercase>-<issue>`).
+   - The work starts: `python tools/issue.py start <issue>` sets the field Start date of the Bug issue (a run on the
+     open branch of the feature, of the defect's issue when there is one), kept when it is set already (DEC-148 (3)).
    Never `main`; `git status` shows no change. Then, on that branch,
    `pwsh -NoProfile -File tools/git_tidy.ps1 -Apply` (DEC-120 (2)), so that the branch the last run left is no
    longer the current one: report the branches it deleted and kept and its exit code; a failure of it is reported,

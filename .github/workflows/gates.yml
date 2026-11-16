@@ -65,11 +65,13 @@ jobs:
         run: |
           python3 -m venv .venv
           .venv/bin/pip install --quiet --require-hashes -r tools/requirements.txt
+      # --allowed-prefixes with no value empties the allowed_prefixes of .cz.toml (Commitizen 4.19.3 takes the option
+      # over the config): "fixup! ", "squash! ", "amend! " and "Merge " pass the local hook only, never a pull request.
       - name: Check the title and every commit
         env:
           TITLE: ${{ github.event.pull_request.title }}
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
-          .venv/bin/cz check --message "$TITLE"
-          .venv/bin/cz check --rev-range "$BASE_SHA..$HEAD_SHA"
+          .venv/bin/cz check --message "$TITLE" --allowed-prefixes
+          .venv/bin/cz check --rev-range "$BASE_SHA..$HEAD_SHA" --allowed-prefixes

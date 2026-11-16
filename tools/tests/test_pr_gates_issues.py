@@ -95,6 +95,27 @@ class EventGateTests(GitRepositoryTestCase):
         api = FakeIssues({1: issue(1, type_name='Feature')}, {1: 'POS-01'}, {1: [{'number': 7, 'title': 'Decide'}]})
         self.assertFails(self.gates(FEAT, api=api), '#1 is still blocked by the open issue #7 "Decide"')
 
+    def test_a_blocker_closed_by_this_pull_request_passes(self):
+        # DEC-148 (6): a blocker may be done in the feature's own pull request, which then closes it.
+        api = FakeIssues({1: issue(1, type_name='Feature'), 7: issue(7)}, {1: 'POS-01'},
+                         {1: [{'number': 7, 'title': 'Decide', 'state': 'open'}]})
+        body = BODY.format(closes=1).replace('Closes #1', 'Closes #1, closes #7')
+        self.assertPasses(self.gates(FEAT, pr={'body': body}, api=api))
+
+    def test_a_blocker_not_named_in_closes_fails(self):
+        api = FakeIssues({1: issue(1, type_name='Feature'), 7: issue(7)}, {1: 'POS-01'},
+                         {1: [{'number': 7, 'title': 'Decide', 'state': 'open'}, {'number': 8, 'title': 'Other',
+                                                                                  'state': 'open'}]})
+        body = BODY.format(closes=1).replace('Closes #1', 'Closes #1, closes #7')
+        result = self.gates(FEAT, pr={'body': body}, api=api)
+        self.assertFails(result, '#1 is still blocked by the open issue #8 "Other"')
+        self.assertNotIn('open issue #7', result[1])
+
+    def test_a_closed_blocker_passes(self):
+        api = FakeIssues({1: issue(1, type_name='Feature')}, {1: 'POS-01'},
+                         {1: [{'number': 7, 'title': 'Decide', 'state': 'closed'}]})
+        self.assertPasses(self.gates(FEAT, api=api))
+
     # 11
     def test_a_body_without_the_template(self):
         self.assertFails(self.gates('docs: change a page', pr={'body': 'Closes #1'}),

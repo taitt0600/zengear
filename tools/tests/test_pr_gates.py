@@ -69,7 +69,8 @@ class FakeIssues:
                       and (self.issues[n].get('type') or {}).get('name') == 'Feature')
 
     def open_blockers(self, number):
-        return self.blockers.get(number, [])
+        # As tools/issue.py Reader: only the blockers still open.
+        return [b for b in self.blockers.get(number, []) if b.get('state', 'open') == 'open']
 
 
 def valid_pull_request(title):

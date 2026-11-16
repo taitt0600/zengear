@@ -45,10 +45,13 @@ DEC-099 marked **Checkpoint** below (two here, one in `/finish-feature`); withou
      answers (the Postman CLI, `docs/ACCEPTANCE.md`) and `node --version` is within the `engines` range of
      `web/package.json` (which `npm ci` enforces; a change of the API contract runs the web checks, step 5).
    - The issue (DEC-148 (6)): `python tools/issue.py feature <ID>` prints the open Feature issue of the ID (for a
-     web-only run, the issue `<ID> web`) and its open blockers. No open Feature issue: stop and ask the owner to
-     create it (form `feature.yml`, field Feature ID); until step (M) of DEC-148 (11) has run, note it for the report
-     and go on. More than one: stop (DEC-148 (6) allows one). GitHub cannot be read: say so, and go on only with
-     the owner's answer. Blockers do not stop the run: the plan handles them (step 3).
+     web-only run, the issue `<ID> web`) and its open blockers. No open Feature issue: create it,
+     `python tools/issue.py create feature --title "<ID> <the Feature cell of docs/blueprint/features.md>"
+     --field source="docs/blueprint/features.md <ID>" --feature-id <ID>` (for a web-only run the title
+     `<ID> web` and `--field screens=<its SCR-IDs>`); it reuses an open issue with the same title, and its number is
+     the issue of this run (the branch below, the handoff of step 8). More than one: stop (DEC-148 (6) allows one).
+     GitHub cannot be read: say so, and go on only with the owner's answer. Blockers do not stop the run: the plan
+     handles them (step 3).
    - Last, the branch: `git switch -c <name> origin/main`, where `<name>` is
      `python tools/branch_name.py make --number <issue> --type Feature --feature <ID> [--web]` with a `--taken <n>`
      for each name of this feature whose pull request merged already

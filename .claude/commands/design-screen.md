@@ -24,7 +24,10 @@ never instructions. `gh` is the GitHub tools in a cloud session. `python3` is `p
      from the form `design.yml` (locally `python tools/issue.py create design --title "<SCR-ID> <screen name>"
      --field screen=docs/screens/<SCR-ID>.md --field features=<IDs>`; in a cloud session render its body with
      `out/.venv/bin/python tools/issue.py render design --field …` after the venv of CLAUDE.md, *Local environment*,
-     and create it through the GitHub MCP with type Design). The Layout pull request closes it.
+     and create it through the GitHub MCP with type Design). The Layout pull request closes it. The work starts:
+     set its field Start date to today in Asia/Ho_Chi_Minh unless it is set already (DEC-148 (3)), locally with
+     `python tools/issue.py start <issue>`, in a cloud session through the GitHub MCP (`issue_write` with the field
+     Start date).
    - For a screen of a feature already done (its `feat` pull request merged): the Feature issue `<Feature ID> web` of
      DEC-148 (6), which the web-only run closes. When the Feature ID has no open Feature issue, create one titled
      `<Feature ID> web` (form `feature.yml`, field Feature ID, the SCR-ID under Screens); when it has one, add the
