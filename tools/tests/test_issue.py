@@ -334,6 +334,7 @@ class ReaderTests(unittest.TestCase):
         mutation = [c[1] for c in gh.calls if c[0] == 'GRAPHQL' and 'value' in c[1]]
         self.assertEqual((mutation[0]['id'], mutation[0]['name']), ('I_12', 'Start date'))
 
+    @unittest.skipUnless(HAS_YAML, 'PyYAML (tools/requirements.txt) is needed: the lint after the field reads a form')
     def test_create_reuses_an_open_issue_and_sets_its_feature_id(self):
         existing = dict(an_issue(30, type_name='Feature', title='STF-09 Approve staff accounts'), node_id='I_30',
                         html_url='x')
