@@ -1,0 +1,43 @@
+# Commitizen (DEC-150 (1)): checks every commit message (.githooks/commit-msg), the commits of each pull request and
+# its title (job pr-title of .github/workflows/gates.yml) against the convention of CLAUDE.md, section Commits.
+# cz check matches schema_pattern from the start of the WHOLE message, so the pattern also holds the rules of the
+# subject (1 to 72 characters, not starting with a capital letter, no final period) and the blank second line.
+# tools/tests/test_commit_msg.py checks the pattern; change it with the test.
+[tool.commitizen]
+name = "cz_customize"
+# The messages of git that the old hook let through.
+allowed_prefixes = ["Merge ", "Revert \"", "fixup! ", "squash! ", "amend! "]
+
+[tool.commitizen.customize]
+schema = "<type>(<scope>): <subject>\n\n<body>\n\n<footer>"
+schema_pattern = "(feat|fix|docs|refactor|perf|test|build|ci|chore|revert)(\\((api|web|db|seed|docs|ci)\\))?!?: (?![A-Z])[^\\n]{0,71}[^.\\n](\\n\\n|\\n?\\Z)"
+example = "feat(api): add role-based access control\n\nWhat changed and why.\n\nRefs: AUT-04, #12"
+message_template = "{{type}}{% if scope %}({{scope}}){% endif %}: {{subject}}"
+info = "Conventional Commits 1.0.0 with the types and scopes of CLAUDE.md, section Commits."
+
+[[tool.commitizen.customize.questions]]
+type = "list"
+name = "type"
+message = "Type of change"
+choices = [
+    { value = "feat", name = "feat: new behavior" },
+    { value = "fix", name = "fix: bug fix" },
+    { value = "docs", name = "docs: documentation" },
+    { value = "refactor", name = "refactor: no behavior change" },
+    { value = "perf", name = "perf: performance" },
+    { value = "test", name = "test: tests" },
+    { value = "build", name = "build: packages, SDK, project files" },
+    { value = "ci", name = "ci: CI" },
+    { value = "chore", name = "chore: other tooling" },
+    { value = "revert", name = "revert: revert a commit" },
+]
+
+[[tool.commitizen.customize.questions]]
+type = "input"
+name = "scope"
+message = "Scope (api, web, db, seed, docs, ci; empty when the change spans several)"
+
+[[tool.commitizen.customize.questions]]
+type = "input"
+name = "subject"
+message = "Subject: imperative, lowercase, no final period, at most 72 characters"

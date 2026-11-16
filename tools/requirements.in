@@ -1,0 +1,5 @@
+# Python packages of tools/ (DEC-150 (1)): compiled with hashes into requirements.txt by pip-tools.
+#   pip-compile --generate-hashes --allow-unsafe --strip-extras tools/requirements.in -o tools/requirements.txt
+# Install: python -m pip install --require-hashes -r tools/requirements.txt
+commitizen==4.19.3
+pyyaml

@@ -1,10 +1,10 @@
 #!/bin/sh
-# Rejects commit messages that do not follow Conventional Commits as described in CLAUDE.md (Commits).
+# Rejects commit messages that do not follow Conventional Commits as described in CLAUDE.md (Commits): the identity
+# and trailer rules here, the format through Commitizen and .cz.toml (DEC-150 (1)), the same check as the job pr-title.
 # Enable once per clone: git config core.hooksPath .githooks
+# Install Commitizen once: python -m pip install --require-hashes -r tools/requirements.txt
 
 message=$(tr -d '\r' < "$1" | grep -v '^#')
-subject=$(printf '%s\n' "$message" | sed -n '1p')
-second=$(printf '%s\n' "$message" | sed -n '2p')
 
 # Every commit carries the owner's name only (CLAUDE.md, Commits); the PR gates check it again.
 case "$(git var GIT_AUTHOR_IDENT) $(git var GIT_COMMITTER_IDENT)" in
@@ -17,25 +17,24 @@ if printf '%s\n' "$message" | grep -Eiq '^[[:space:]]*(Co-Authored-By|Claude-Ses
   exit 1
 fi
 
-case "$subject" in
-  "Merge "*|"Revert \""*|"fixup! "*|"squash! "*|"amend! "*) exit 0 ;;
-esac
-
-types='feat|fix|docs|refactor|perf|test|build|ci|chore|revert'
-scopes='api|web|db|seed|docs|ci'
-pattern="^($types)(\\(($scopes)\\))?!?: [^A-Z]"
-
-fail() {
-  echo "commit-msg: $1" >&2
-  echo "  got:      $subject" >&2
-  echo "  expected: <type>(<scope>): <subject>   types: $types   scopes: $scopes" >&2
-  echo "  see CLAUDE.md, section Commits" >&2
+# cz on PATH, else the module in python3 or python (Windows); no Commitizen stops the commit.
+if command -v cz >/dev/null 2>&1; then
+  set -- cz check --commit-msg-file "$1"
+elif python3 -c 'import commitizen' >/dev/null 2>&1; then
+  set -- python3 -m commitizen check --commit-msg-file "$1"
+elif python -c 'import commitizen' >/dev/null 2>&1; then
+  set -- python -m commitizen check --commit-msg-file "$1"
+else
+  echo "commit-msg: Commitizen is not installed (DEC-150 (1)). Install it once, then commit again:" >&2
+  echo "  python -m pip install --require-hashes -r tools/requirements.txt" >&2
   exit 1
-}
-
-printf '%s\n' "$subject" | grep -Eq "$pattern" || fail "header does not match the convention"
-description=${subject#*: }
-[ ${#description} -le 72 ] || fail "subject longer than 72 characters"
-case "$description" in *.) fail "subject ends with a period" ;; esac
-[ -z "$second" ] || fail "leave a blank line between the header and the body"
+fi
+if ! "$@" >/dev/null 2>&1; then
+  echo "commit-msg: the message does not follow the convention (.cz.toml, CLAUDE.md, section Commits)" >&2
+  echo "  got:      $(printf '%s\n' "$message" | sed -n '1p')" >&2
+  echo "  expected: <type>(<scope>): <subject>, then a blank line" >&2
+  echo "  types: feat fix docs refactor perf test build ci chore revert   scopes: api web db seed docs ci" >&2
+  echo "  subject: 1 to 72 characters, not starting with a capital letter, no final period" >&2
+  exit 1
+fi
 exit 0

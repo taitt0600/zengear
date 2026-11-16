@@ -68,7 +68,7 @@ jobs:
           # The schema job also runs the two schema tools of tools/.
           set_output api '^(api/|tools/schema_compare\.py$|tools/schema_snapshot\.sql$)'
           set_output postman '^postman/'
-          set_output tools '^(tools/|\.claude/hooks/|\.githooks/|api/global\.json$)'
+          set_output tools '^(tools/|\.claude/hooks/|\.githooks/|api/global\.json$|\.cz\.toml$|\.github/ISSUE_TEMPLATE/|\.github/pull_request_template\.md$|\.github/workflows/[a-z-]+\.yml$)'
           set_output docs '^docs/'
           # The web client comes from the OpenAPI contract; web-test also runs the web check of tools/.
           set_output web '^(web/|api/openapi/|tools/message_keys\.py$)'
@@ -105,10 +105,13 @@ jobs:
       # runs .claude/hooks/guard-spec.ps1, the git_tidy test runs tools/git_tidy.ps1 with a fake gh in a throw-away
       # clone, the env_doctor test reads user-secrets through dotnet, and the export
       # test (the workbook against docs/blueprint/) needs openpyxl, pinned, in a venv because the Python of the
-      # runner is externally managed (PEP 668).
+      # runner is externally managed (PEP 668). Commitizen and PyYAML come from tools/requirements.txt with hashes
+      # (DEC-150 (1)): the commit-msg hook and the issue forms are tested with them.
       - run: |
           python3 -m venv .venv
           .venv/bin/pip install --quiet --no-deps openpyxl==3.1.5 et-xmlfile==2.0.0
+          .venv/bin/pip install --quiet --require-hashes -r tools/requirements.txt
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
       - run: .venv/bin/python -m unittest discover -s tools/tests -v
 
   api-test:
