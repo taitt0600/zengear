@@ -16,7 +16,9 @@ Workflows (the event file of the workflow, GITHUB_TOKEN):
 render prints the body of a form as GitHub writes it ("### <label>", a blank line, the value, "_No response_" for an
 empty optional field), so that an issue made through the API or the GitHub MCP passes issue-lint; a cloud session
 renders it here (after `pip install --require-hashes -r tools/requirements.txt`) and creates the issue through the
-MCP. create looks for an open issue with the same title first and prints it instead of making a second one. link and
+MCP. create looks for an open issue with the same title first and prints it instead of making a second one, only when
+the owner wrote it with the form's Issue type (then it sets a missing Feature ID); any other issue with that title
+makes it refuse, without writing, so that the owner's token never changes an issue someone else wrote. link and
 unlink add or remove a blocked-by relation through the REST API, which takes the id of the blocking issue, not its
 number; a cloud session asks issue-deps for it with the comment of `tools/comment_templates.py blocked-by`. start sets
 the field Start date to today in Asia/Ho_Chi_Minh, unless it is set already. feature prints the open Feature issues of an ID with their open
@@ -454,8 +456,17 @@ def set_field(gh, number, name, value):
 
 
 def create(gh, name, title, fields, feature_id=None, extra_labels=()):
+    form_type = None
     for item in gh.pages(f'/repos/{gh.repo}/issues?state=open'):
         if not item.get('pull_request') and item['title'] == title:
+            # Reuse only the owner's issue of the form's type: the owner's token never changes an issue someone
+            # else wrote, or one of another type that happens to share the title.
+            form_type = form_type or load_form(name)['type']
+            author = (item.get('user') or {}).get('login')
+            item_type = (item.get('type') or {}).get('name')
+            if author != OWNER_LOGIN or item_type != form_type:
+                raise ValueError(f'#{item["number"]} is open with the same title, but by {author} with the Issue type '
+                                 f'{item_type}, not {OWNER_LOGIN} with {form_type}: settle it by hand first')
             # An issue made by hand may lack the field that the gates and the dossier read: set it, then lint again.
             if feature_id and Reader(gh).feature_id(item['number']) != feature_id:
                 set_field(gh, item['number'], 'Feature ID', feature_id)

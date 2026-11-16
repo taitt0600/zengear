@@ -48,8 +48,9 @@ DEC-099 marked **Checkpoint** below (two here, one in `/finish-feature`); withou
      web-only run, the issue `<ID> web`) and its open blockers. No open Feature issue: create it,
      `python tools/issue.py create feature --title "<ID> <the Feature cell of docs/blueprint/features.md>"
      --field source="docs/blueprint/features.md <ID>" --feature-id <ID>` (for a web-only run the title
-     `<ID> web` and `--field screens=<its SCR-IDs>`); it reuses an open issue with the same title, and its number is
-     the issue of this run (the branch below, the handoff of step 8). More than one: stop (DEC-148 (6) allows one).
+     `<ID> web` and `--field screens=<its SCR-IDs>`); it reuses an open Feature issue of the owner with the same title
+     (and sets its Feature ID), and its number is the issue of this run (the branch below, the handoff of step 8).
+     When an issue of another author or type has that title, it refuses: a Needs decision item for the owner. More than one: stop (DEC-148 (6) allows one).
      GitHub cannot be read: say so, and go on only with the owner's answer. Blockers do not stop the run: the plan
      handles them (step 3).
    - Last, the branch: `git switch -c <name> origin/main`, where `<name>` is
