@@ -24,6 +24,22 @@ updates:
     commit-message:
       prefix: build(api)
 
+  # The Python packages of tools/ (DEC-150 (1)): Commitizen and PyYAML with their dependencies, pinned with hashes in
+  # tools/requirements.txt (compiled from tools/requirements.in). Owner path: the owner merges each pull request.
+  - package-ecosystem: pip
+    directory: /tools
+    schedule:
+      interval: weekly
+      timezone: Asia/Ho_Chi_Minh
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: build
+    groups:
+      tools:
+        patterns: ['*']
+
   # The web packages (DEC-104 (4)): a version is proposed once it is 7 days old, and the owner approves each pull
   # request (the exact versions of web/package.json; pr_gates checks every package against
   # web/approved-packages.json). Minor and patch updates come in one pull request, each major one alone.
