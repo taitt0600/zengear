@@ -92,16 +92,55 @@ class FakeSpecTests(unittest.TestCase):
         with self.assertRaises(LookupError):
             feature_context.build('ZZZ-99', self.root)
 
+    def test_issues_and_their_blockers(self):
+        class Reader:
+            def open_feature_issues(self, fid):
+                return [12] if fid == 'POS-01' else []
+
+            def fields(self, number):
+                return {'Feature ID': 'POS-01', 'Start date': '2026-11-10'}
+
+            def has_handoff(self, number):
+                return True
+
+            def open_blockers(self, number):
+                return [{'number': 7, 'title': 'Decide the tax tables'}]
+
+        out = feature_context.build('POS-01', self.root, Reader())
+        self.assertIn('## Issues (GitHub)\n\n### #12\n- Start date: 2026-11-10; handoff comment: yes', out)
+        self.assertIn('  - #7 Decide the tax tables', out)
+        self.assertIn('Closes or as a Needs decision item', out)
+
+    def test_no_feature_issue(self):
+        class Reader:
+            def open_feature_issues(self, fid):
+                return []
+
+        self.assertIn('No open Feature issue of POS-01', feature_context.build('POS-01', self.root, Reader()))
+
+    def test_unreadable_github_is_written_in_bold_and_warned(self):
+        reader = feature_context.Unreadable(OSError('No GitHub token'))
+        with contextlib.redirect_stderr(io.StringIO()) as err:
+            out = feature_context.build('POS-01', self.root, reader)
+        self.assertIn('**GitHub could not be read: the issues and blockers of this feature are not known '
+                      '(No GitHub token).', out)
+        self.assertIn('warning: GitHub could not be read', err.getvalue())
+
+    def test_without_issues_says_so(self):
+        self.assertIn('## Issues (GitHub)\n\n_Not read (--no-issues)._', feature_context.build('POS-01', self.root))
+
     def test_escaped_pipe_stays_inside_its_cell(self):
         self.assertEqual(feature_context.split_row(r'| A | x \| y | B |'), ['A', r'x \| y', 'B'])
 
     def test_out_writes_only_under_out(self):
         with contextlib.redirect_stdout(io.StringIO()):
-            self.assertEqual(feature_context.main(['POS-01', '--root', str(self.root), '--out', 'out/f.md']), 0)
+            self.assertEqual(feature_context.main(['POS-01', '--root', str(self.root), '--out', 'out/f.md',
+                                                   '--no-issues']), 0)
         self.assertTrue((self.root / 'out' / 'f.md').read_text(encoding='utf-8').startswith('# Feature dossier POS-01'))
         for bad in ('docs/blueprint/features.md', 'out/../docs/x.md', 'out', '/tmp/f.md'):
             with self.subTest(bad=bad), contextlib.redirect_stderr(io.StringIO()) as err:
-                self.assertEqual(feature_context.main(['POS-01', '--root', str(self.root), '--out', bad]), 1)
+                self.assertEqual(feature_context.main(['POS-01', '--root', str(self.root), '--out', bad,
+                                                       '--no-issues']), 1)
                 self.assertIn('--out must be a file under', err.getvalue())
         self.assertNotIn('Feature dossier', (self.root / 'docs' / 'blueprint' / 'features.md').read_text(encoding='utf-8'))
 
