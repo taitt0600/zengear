@@ -65,6 +65,30 @@ def commitizen():
     return None
 
 
+class PullRequestCheckTests(unittest.TestCase):
+    """The job pr-title refuses the prefixes that the local hook allows (fixup!, squash!, amend!, Merge)."""
+
+    def test_every_cz_check_of_gates_yml_empties_the_allowed_prefixes(self):
+        text = (REPO / '.github' / 'workflows' / 'gates.yml').read_text(encoding='utf-8')
+        calls = [line.strip() for line in text.splitlines() if 'cz check' in line and not line.strip().startswith('#')]
+        self.assertEqual(len(calls), 2, calls)
+        for call in calls:
+            with self.subTest(call=call):
+                self.assertTrue(call.endswith('--allowed-prefixes'), call)
+
+    @unittest.skipUnless(commitizen(), 'Commitizen (tools/requirements.txt) is needed')
+    def test_cz_refuses_a_fixup_with_the_option_of_ci(self):
+        command = commitizen()
+        for message, code in (('fixup! feat: x', False), ('Merge branch x', False), ('squash! x', False),
+                              ('docs: x', True)):
+            with self.subTest(message=message):
+                ci = subprocess.run([*command, 'check', '--message', message, '--allowed-prefixes'], cwd=REPO,
+                                    capture_output=True)
+                self.assertEqual(ci.returncode == 0, code)
+        local = subprocess.run([*command, 'check', '--message', 'fixup! feat: x'], cwd=REPO, capture_output=True)
+        self.assertEqual(local.returncode, 0)
+
+
 @unittest.skipUnless(shutil.which('sh') and commitizen(), 'sh and Commitizen (tools/requirements.txt) are needed')
 class HookTests(unittest.TestCase):
     """The hook in a throw-away repository with .cz.toml, as git runs it from the root of the clone."""

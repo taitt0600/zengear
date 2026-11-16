@@ -39,7 +39,8 @@ state are read from the event file of the workflow ($GITHUB_EVENT_PATH), never f
   9. Closes (DEC-148 (6), (10), DEC-150 (2)): every issue the body closes is an open issue; a feat title that ends with
      a Feature ID closes an open issue of type Feature whose field Feature ID is that ID, and at most one such issue is
      open; a Bug, Task or Design branch closes the issue of its name.
- 10. Blockers (DEC-148 (6)): the Feature issue of a feat pull request has no open blocked-by issue.
+ 10. Blockers (DEC-148 (6)): the Feature issue of a feat pull request has no open blocked-by issue that the body does
+     not close (a blocker may be done in the feature's own pull request).
  11. Body (DEC-150 (2)): the sections of .github/pull_request_template.md, the four parts of "Tóm tắt cho chủ dự án";
      a Needs decision section other than "Không có" needs a draft.
  12. Refs (DEC-150 (1)): every feat and fix commit has a Refs: footer that names #<n> of an issue the body closes.
@@ -458,7 +459,8 @@ def issue_errors(pr, closes, api):
                 errors.append(f'{fid} has more than one open Feature issue: '
                               + ', '.join(f'#{n}' for n in open_features) + ' (DEC-148 (6))')
             for number in mine:
-                for blocker in api.open_blockers(number):
+                # A blocker done in this pull request is closed by it (DEC-148 (6)): it does not fail the gate.
+                for blocker in (b for b in api.open_blockers(number) if b['number'] not in closes):
                     errors.append(f'#{number} is still blocked by the open issue #{blocker["number"]} '
                                   f'"{blocker.get("title", "")}": close it in this pull request or settle it first '
                                   '(DEC-148 (6))')

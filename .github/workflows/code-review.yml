@@ -6,6 +6,10 @@ name: code-review
 # that a verdict exists for the head, not that the agent ran (every session posts with the owner's account).
 # pull_request_target and issue_comment run this file and tools/ of main, and no code of the pull request runs. The
 # job is named review-check so that its own check run is not taken for code-review. dependabot[bot] is exempt.
+# The run of an issue_comment event carries neither the pull request nor its head: the run name holds the number, which
+# tools/github_pr.py checks reads to know that a verdict of this pull request is still being read.
+run-name: 'code-review #${{ github.event.pull_request.number || github.event.issue.number }}'
+
 on:
   pull_request_target:
     types: [opened, reopened, synchronize]

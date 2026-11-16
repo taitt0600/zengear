@@ -158,6 +158,18 @@ class FormTests(unittest.TestCase):
         self.assertIn(('DELETE', '/repos/taitt0600/zengear/issues/5/labels/invalid'), methods)
         self.assertIn(('DELETE', '/repos/taitt0600/zengear/issues/comments/9'), methods)
 
+    def test_lint_cleans_the_comment_the_owner_token_posted(self):
+        fixed = {'issue': an_issue(5, type_name='Task', title='x', labels=['docs'],
+                                   body=issue.render('task', {'source': 'a', 'done': 'b'}))}
+        comments = {5: [{'id': 9, 'body': ct.issue_lint(['x']), 'user': {'login': 'taitt0600'}},
+                        {'id': 10, 'body': ct.issue_lint(['x']), 'user': {'login': 'someone'}}]}
+        gh = FakeGitHub(comments=comments)
+        with contextlib.redirect_stdout(io.StringIO()):
+            issue.lint(fixed, gh)
+        deleted = [c[1] for c in gh.calls if c[0] == 'DELETE']
+        self.assertIn('/repos/taitt0600/zengear/issues/comments/9', deleted)
+        self.assertNotIn('/repos/taitt0600/zengear/issues/comments/10', deleted)
+
 
 class DepsTests(unittest.TestCase):
     """DEC-151 (1) and its Consequences."""
@@ -322,9 +334,70 @@ class ReaderTests(unittest.TestCase):
         mutation = [c[1] for c in gh.calls if c[0] == 'GRAPHQL' and 'value' in c[1]]
         self.assertEqual((mutation[0]['id'], mutation[0]['name']), ('I_12', 'Start date'))
 
+    def test_create_reuses_an_open_issue_and_sets_its_feature_id(self):
+        existing = dict(an_issue(30, type_name='Feature', title='STF-09 Approve staff accounts'), node_id='I_30',
+                        html_url='x')
+
+        class Gh(FakeGitHub):
+            def pages(self, path, limit=1000):
+                if path.endswith('/issues?state=open'):
+                    return [existing]
+                return super().pages(path, limit)
+
+        answers = {'updateIssue': {'updateIssue': {'issue': {'number': 30}}},
+                   'issueFieldValues': {'repository': {'issue': {'issueFieldValues': {'nodes': []}}}}}
+        gh = Gh(issues={30: existing}, graphql=answers)
+        with contextlib.redirect_stdout(io.StringIO()) as out:
+            issue.create(gh, 'feature', 'STF-09 Approve staff accounts', {'source': 'x'}, feature_id='STF-09')
+        self.assertIn('#30', out.getvalue())
+        self.assertFalse([c for c in gh.calls if c[0] == 'POST' and c[1].endswith('/issues')])
+        mutation = [c[1] for c in gh.calls if c[0] == 'GRAPHQL' and 'value' in c[1]]
+        self.assertEqual((mutation[0]['name'], mutation[0]['value']), ('Feature ID', 'STF-09'))
+
+    def test_create_reuse_keeps_a_matching_feature_id(self):
+        existing = dict(an_issue(30, type_name='Feature', title='STF-09 Approve staff accounts'), node_id='I_30',
+                        html_url='x')
+
+        class Gh(FakeGitHub):
+            def pages(self, path, limit=1000):
+                if path.endswith('/issues?state=open'):
+                    return [existing]
+                return super().pages(path, limit)
+
+        gh = Gh(issues={30: existing}, graphql={'issueFieldValues': self.fields_answer('STF-09')})
+        with contextlib.redirect_stdout(io.StringIO()):
+            issue.create(gh, 'feature', 'STF-09 Approve staff accounts', {'source': 'x'}, feature_id='STF-09')
+        self.assertFalse([c for c in gh.calls if c[0] == 'GRAPHQL' and 'value' in c[1]])
+
     def test_open_blockers(self):
         gh = FakeGitHub(blocked_by={10: [an_issue(12), an_issue(13, state='closed')]})
         self.assertEqual([b['number'] for b in issue.Reader(gh).open_blockers(10)], [12])
+
+
+class RoadmapTests(unittest.TestCase):
+    """DEC-148 (3), DEC-151 (3): Priority High exactly on the open issues that block a Roadmap sub-issue, any type."""
+
+    class Fake:
+        def roadmap(self):
+            return [40, 41]
+
+        def open_issues(self):
+            return [{'number': 40, 'title': 'STF-09 Approve', 'type': 'Feature', 'fields': {}},
+                    {'number': 41, 'title': 'Build the layout', 'type': 'Task', 'fields': {}},
+                    {'number': 50, 'title': 'Decide tax', 'type': 'Task', 'fields': {'Priority': 'High'}},
+                    {'number': 51, 'title': 'Rate limit', 'type': 'Task', 'fields': {'Priority': 'Medium'}},
+                    {'number': 52, 'title': 'Old high', 'type': 'Task', 'fields': {'Priority': 'High'}}]
+
+        def open_blockers(self, number):
+            return {40: [{'number': 50, 'title': 'Decide tax'}], 41: [{'number': 51, 'title': 'Rate limit'}]}[number]
+
+    def test_relations_of_every_sub_issue_and_the_mismatches(self):
+        text = '\n'.join(issue.roadmap_report(self.Fake()))
+        self.assertIn('#40 STF-09 Approve: blocked by #50', text)
+        self.assertIn('#41 Build the layout: blocked by #51', text)  # a Task sub-issue is read too
+        self.assertIn('#51 blocks a Roadmap sub-issue but its Priority is Medium', text)
+        self.assertIn('#52 has Priority High but blocks no Roadmap sub-issue', text)
+        self.assertNotIn('#50 blocks', text)
 
 
 class NextTests(unittest.TestCase):

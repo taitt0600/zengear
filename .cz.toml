@@ -5,7 +5,8 @@
 # tools/tests/test_commit_msg.py checks the pattern; change it with the test.
 [tool.commitizen]
 name = "cz_customize"
-# The messages of git that the old hook let through.
+# The messages of git that the old hook let through, for the local commit-msg hook only: the job pr-title passes
+# --allowed-prefixes with no value, so none of them reaches main (tools/tests/test_commit_msg.py).
 allowed_prefixes = ["Merge ", "Revert \"", "fixup! ", "squash! ", "amend! "]
 
 [tool.commitizen.customize]

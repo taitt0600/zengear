@@ -194,15 +194,18 @@ def latest_checks(gh, sha):
     return latest
 
 
-def review_running(gh):
-    path = f'/repos/{gh.repo}/actions/workflows/code-review.yml/runs?event=issue_comment&per_page=20'
+def review_running(gh, number):
+    """True while a code-review run started by a comment on this pull request is queued or running; its run name is
+    "code-review #<number>" (run-name of .github/workflows/code-review.yml)."""
+    path = f'/repos/{gh.repo}/actions/workflows/code-review.yml/runs?event=issue_comment&per_page=50'
     try:
         runs = gh.call('GET', path).get('workflow_runs', [])
     except GitHubError as error:
         if getattr(error, 'status', None) == 404:  # the workflow is not on main yet
             return False
         raise
-    return any(run.get('status') in ('queued', 'in_progress', 'waiting', 'pending', 'requested') for run in runs)
+    return any(run.get('display_title') == f'code-review #{number}'
+               and run.get('status') in ('queued', 'in_progress', 'waiting', 'pending', 'requested') for run in runs)
 
 
 def checks(gh, number, wait):
@@ -215,7 +218,7 @@ def checks(gh, number, wait):
         running = [item for item in [*workflows, *found.values()] if item['status'] != 'completed']
         # The run of code-review that a verdict comment starts (issue_comment) is not attached to the head, so it is
         # not in workflows: while one is queued or running, its failure of the push before is not final (DEC-150 (3)).
-        review_pending = found.get('code-review', {}).get('conclusion') == 'failure' and review_running(gh)
+        review_pending = found.get('code-review', {}).get('conclusion') == 'failure' and review_running(gh, number)
         if review_pending:
             running.append({'name': 'code-review', 'status': 'in_progress'})
         # A run cancelled by a newer one of the same workflow counts only once nothing runs any more.

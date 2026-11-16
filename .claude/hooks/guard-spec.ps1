@@ -97,7 +97,7 @@ $command = [string]$payload.tool_input.command
 # An environment prefix is stripped only for the names the tests of tools/ set, with a plain path as value; any other
 # (PYTHON*, LD_*, a command substitution) stays and is judged.
 $interpreter = '(?:(?:PR_GATES_SCRIPT|GUARD_SPEC_SCRIPT)=[\w./\\:-]+\s+)*(?:python3?|py|out[\\/]+\.venv[\\/]+(?:bin|Scripts)[\\/]+python(?:\.exe)?)'
-$runsTool = '(pr_gates\.py\s+(check-local|check|coverage)|github_pr\.py\s+(create|ready|auto-merge|checks|comment|template)|schema_compare\.py|message_keys\.py|issue\.py\s+(render|feature|next|start|create|link|unlink)|branch_name\.py\s+(make|check)|comment_templates\.py\s+(handoff|code-review|blocked-by|unblock|log)|screen_docs\.py|token_usage\.py|structure_metrics\.py)\b'
+$runsTool = '(pr_gates\.py\s+(check-local|check|coverage)|github_pr\.py\s+(create|ready|auto-merge|checks|comment|template)|schema_compare\.py|message_keys\.py|issue\.py\s+(render|feature|next|roadmap|start|create|link|unlink)|branch_name\.py\s+(make|check)|comment_templates\.py\s+(handoff|code-review|blocked-by|unblock|log)|screen_docs\.py|token_usage\.py|structure_metrics\.py)\b'
 $command = $command -replace "(^|[;&|]\s*)$interpreter\s+(\.\.[\\/]+)?tools[\\/]+$runsTool", '$1'
 $command = $command -replace "(^|[;&|]\s*)$interpreter\s+(\.\.[\\/]+)?tools[\\/]+feature_context\.py\s+[A-Z]{3}-[0-9]{2}(\s+--out\s+out[\\/](?![\w./\\-]*\.\.)[\w./\\-]*)?(\s+--no-issues)?(?=\s*(\z|[;&|]))", '$1'
 # An export of the workbook into out/ or /tmp/ (/check-docs, item 5) reads the specification only; any

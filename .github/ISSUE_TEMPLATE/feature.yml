@@ -8,6 +8,8 @@ body:
       value: |
         The blueprint stays the specification: point to it, do not copy it. Set the field **Feature ID** to the ID that
         starts the title (whole ID, e.g. `POS-01`), and the milestone of its Phase. One open Feature issue per Feature ID.
+        Setting the field starts no check: after it, edit the issue once (save its body) so that issue-lint runs again
+        and removes the label `invalid` it put on before the field was set.
         It closes only when its `feat` pull request merges with `Closes #<this issue>` (DEC-148 (6)).
   - type: input
     id: source

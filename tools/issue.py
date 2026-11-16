@@ -7,6 +7,7 @@ Local sessions (the GitHub token of gh):
   python tools/issue.py start <issue>
   python tools/issue.py feature <Feature ID>
   python tools/issue.py next
+  python tools/issue.py roadmap      the Roadmap sub-issues with their blockers, and Priority High against them
 Workflows (the event file of the workflow, GITHUB_TOKEN):
   python tools/issue.py lint <event file>          issue-lint.yml
   python tools/issue.py deps <event file>          issue-deps.yml
@@ -142,8 +143,10 @@ def lint(event, gh):
             if fid != prefix:
                 problems.append(f'the field Feature ID is {fid!r}, not the ID that starts the title ({prefix})')
     path = f'/repos/{gh.repo}/issues/{number}'
+    # The workflow posts as github-actions[bot]; a local `issue.py create` lints with the owner's token.
     mine = [c for c in gh.pages(f'{path}/comments')
-            if (c.get('user') or {}).get('login') == 'github-actions[bot]' and (ct.parse(c.get('body')) or ('',))[0] == 'issue-lint']
+            if (c.get('user') or {}).get('login') in ('github-actions[bot]', OWNER_LOGIN)
+            and (ct.parse(c.get('body')) or ('',))[0] == 'issue-lint']
     if problems:
         if 'invalid' not in labels_of(item):
             gh.call('POST', f'{path}/labels', {'labels': ['invalid']})
@@ -404,6 +407,23 @@ def next_work(reader, ready=screens_ready):
                 *offline_state()]
 
 
+def roadmap_report(reader):
+    """Every open sub-issue of the Roadmap (any Issue type) with its open blockers, then where Priority High differs
+    from the relations: High exactly on an open issue that blocks a sub-issue (DEC-148 (3), DEC-151 (3))."""
+    issues = {i['number']: i for i in reader.open_issues()}
+    lines, blocking = ['Roadmap sub-issues and their open blocked-by issues:'], set()
+    for number in reader.roadmap():
+        blockers = reader.open_blockers(number)
+        blocking |= {b['number'] for b in blockers}
+        named = ', '.join(f'#{b["number"]}' for b in blockers) or 'nothing'
+        lines.append(f'- #{number} {issues.get(number, {}).get("title", "")}: blocked by {named}')
+    mismatches = [f'- #{n} blocks a Roadmap sub-issue but its Priority is {issues.get(n, {}).get("fields", {}).get("Priority", "not set")}'
+                  for n in sorted(blocking) if issues.get(n, {}).get('fields', {}).get('Priority') != 'High']
+    mismatches += [f'- #{n} has Priority High but blocks no Roadmap sub-issue' for n, item in sorted(issues.items())
+                   if item['fields'].get('Priority') == 'High' and n not in blocking]
+    return lines + ['Priority High against the relations:'] + (mismatches or ['- none'])
+
+
 def offline_state():
     try:
         branches = subprocess.run(['git', 'branch', '--format=%(refname:short)'], capture_output=True, text=True,
@@ -436,6 +456,10 @@ def set_field(gh, number, name, value):
 def create(gh, name, title, fields, feature_id=None, extra_labels=()):
     for item in gh.pages(f'/repos/{gh.repo}/issues?state=open'):
         if not item.get('pull_request') and item['title'] == title:
+            # An issue made by hand may lack the field that the gates and the dossier read: set it, then lint again.
+            if feature_id and Reader(gh).feature_id(item['number']) != feature_id:
+                set_field(gh, item['number'], 'Feature ID', feature_id)
+                lint({'issue': gh.issue(item['number'])}, gh)
             print(f'#{item["number"]} {item["html_url"]} (already open)')
             return 0
     form = load_form(name)
@@ -497,6 +521,7 @@ def main(argv=None):
     commands.add_parser('start').add_argument('number', type=int)
     commands.add_parser('feature').add_argument('feature_id')
     commands.add_parser('next')
+    commands.add_parser('roadmap')
     for name in ('lint', 'deps', 'review-check'):
         commands.add_parser(name).add_argument('event')
     args = parser.parse_args(argv)
@@ -516,6 +541,9 @@ def main(argv=None):
             print('\n'.join(lines))
             return 3 if lines and lines[0].startswith('GitHub could not be read') else 0
         gh = GitHub()
+        if args.command == 'roadmap':
+            print('\n'.join(roadmap_report(Reader(gh))))
+            return 0
         if args.command == 'create':
             return create(gh, args.form, args.title, pairs(args.field), args.feature_id, args.label)
         if args.command in ('link', 'unlink'):

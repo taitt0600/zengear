@@ -17,9 +17,14 @@ if printf '%s\n' "$message" | grep -Eiq '^[[:space:]]*(Co-Authored-By|Claude-Ses
   exit 1
 fi
 
-# cz on PATH, else the module in python3 or python (Windows); no Commitizen stops the commit.
+# cz on PATH, else the venv out/.venv of CLAUDE.md (Local environment), else the module in python3 or python
+# (Windows); no Commitizen stops the commit. Git runs the hook from the root of the clone.
 if command -v cz >/dev/null 2>&1; then
   set -- cz check --commit-msg-file "$1"
+elif [ -x out/.venv/bin/cz ]; then
+  set -- out/.venv/bin/cz check --commit-msg-file "$1"
+elif [ -x out/.venv/Scripts/cz.exe ]; then
+  set -- out/.venv/Scripts/cz.exe check --commit-msg-file "$1"
 elif python3 -c 'import commitizen' >/dev/null 2>&1; then
   set -- python3 -m commitizen check --commit-msg-file "$1"
 elif python -c 'import commitizen' >/dev/null 2>&1; then

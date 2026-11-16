@@ -184,14 +184,26 @@ class ReviewRunningTests(unittest.TestCase):
                 raise self.error
             return {'workflow_runs': self.runs}
 
-    def test_a_queued_run(self):
-        self.assertTrue(github_pr.review_running(self.Gh([{'status': 'completed'}, {'status': 'queued'}])))
+    def test_a_queued_run_of_this_pull_request(self):
+        runs = [{'status': 'completed', 'display_title': 'code-review #7'},
+                {'status': 'queued', 'display_title': 'code-review #7'}]
+        self.assertTrue(github_pr.review_running(self.Gh(runs), 7))
+
+    def test_a_run_of_another_pull_request_does_not_count(self):
+        runs = [{'status': 'in_progress', 'display_title': 'code-review #70'},
+                {'status': 'queued', 'display_title': 'code-review #8'}]
+        self.assertFalse(github_pr.review_running(self.Gh(runs), 7))
 
     def test_no_run(self):
-        self.assertFalse(github_pr.review_running(self.Gh([{'status': 'completed'}])))
+        self.assertFalse(github_pr.review_running(self.Gh([{'status': 'completed', 'display_title': 'code-review #7'}]), 7))
 
     def test_workflow_not_on_main_yet(self):
-        self.assertFalse(github_pr.review_running(self.Gh(error=github_pr.GitHubError('HTTP 404', 404))))
+        self.assertFalse(github_pr.review_running(self.Gh(error=github_pr.GitHubError('HTTP 404', 404)), 7))
+
+    def test_the_run_name_of_the_workflow_holds_the_number(self):
+        text = (REPO / '.github' / 'workflows' / 'code-review.yml').read_text(encoding='utf-8')
+        self.assertIn("run-name: 'code-review #${{ github.event.pull_request.number || github.event.issue.number }}'",
+                      text)
 
 
 class TemplateTests(unittest.TestCase):
@@ -232,6 +244,29 @@ class AutoMergeIssueTests(unittest.TestCase):
 
     def test_issue_gaps_only_for_a_feat_pull_request_of_a_feature(self, _):
         self.assertEqual(github_pr.issue_gaps(FakeGitHub([]), {'title': 'docs: x', 'body': ''}), [])
+
+    def test_issue_gaps_skip_a_blocker_the_body_closes(self, _):
+        class Reader:
+            def __init__(self, gh):
+                pass
+
+            def issue(self, number):
+                return {'number': number, 'state': 'open', 'type': {'name': 'Feature' if number == 1 else 'Task'}}
+
+            def feature_id(self, number):
+                return 'POS-01' if number == 1 else None
+
+            def open_feature_issues(self, fid):
+                return [1]
+
+            def open_blockers(self, number):
+                return [{'number': 7, 'title': 'Decide'}, {'number': 8, 'title': 'Other'}]
+
+        pr = {'title': 'feat(api): sell (POS-01)', 'body': 'Closes #1, closes #7', 'head': {'ref': 'feat/pos-01'}}
+        with mock.patch('issue.Reader', Reader):
+            gaps = github_pr.issue_gaps(FakeGitHub([]), pr)
+        self.assertEqual(len(gaps), 1)
+        self.assertIn('open issue #8', gaps[0])
 
 
 if __name__ == '__main__':

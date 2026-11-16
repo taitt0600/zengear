@@ -62,6 +62,8 @@
       "Bash(python tools/issue.py feature *)",
       "Bash(python3 tools/issue.py next)",
       "Bash(python tools/issue.py next)",
+      "Bash(python3 tools/issue.py roadmap)",
+      "Bash(python tools/issue.py roadmap)",
       "Bash(python3 tools/issue.py start *)",
       "Bash(python tools/issue.py start *)",
       "Bash(python3 tools/issue.py create *)",
