@@ -1,0 +1,39 @@
+name: code-review
+
+# The check run code-review (DEC-150 (3)): success only when the latest unedited zengear:code-review comment of
+# taitt0600 for the head commit says pass, failure in every other case, so that each new commit is reviewed again.
+# The session that ran the code-reviewer agent posts that comment (tools/comment_templates.py code-review). It shows
+# that a verdict exists for the head, not that the agent ran (every session posts with the owner's account).
+# pull_request_target and issue_comment run this file and tools/ of main, and no code of the pull request runs. The
+# job is named review-check so that its own check run is not taken for code-review. dependabot[bot] is exempt.
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize]
+  issue_comment:
+    types: [created]
+
+permissions: {}
+
+jobs:
+  review-check:
+    name: review-check
+    if: ${{ github.event_name == 'pull_request_target' || github.event.issue.pull_request }}
+    runs-on: ubuntu-latest
+    permissions:
+      checks: write
+      pull-requests: read
+      issues: read
+      contents: read
+    # One run at a time per pull request, none cancelled: a run that read the comments before a pass cannot post its
+    # failure after the run that saw the pass.
+    concurrency:
+      group: code-review-${{ github.event.pull_request.number || github.event.issue.number }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Post the check run code-review on the head
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 tools/issue.py review-check "$GITHUB_EVENT_PATH"
