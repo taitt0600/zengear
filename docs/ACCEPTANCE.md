@@ -2,7 +2,7 @@
 
 Where the owner tests a finished feature as an end user before its pull request merges, and where `/finish-feature`
 runs the Postman collection first (DEC-100, `/finish-feature` steps 7 and 13). It is the development environment of
-`api/CLAUDE.md` (*Local database*): PostgreSQL 18, Redis and the Firebase Auth Emulator of `api/docker-compose.yml`,
+`api/AGENTS.md` (*Local database*): PostgreSQL 18, Redis and the Firebase Auth Emulator of `api/docker-compose.yml`,
 and the API run from the branch with the launch profile `http`. Each feature has a folder in the Postman collection
 `postman/collections/ZenGear`, whose tests check the status codes, the Problem Details types and the fields of every
 acceptance criterion and rule.

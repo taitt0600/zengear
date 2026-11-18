@@ -92,7 +92,7 @@ Target hosting: Vercel for the web, Azure for the API and database. More in
 
 I wrote the specification and the decisions, designed and approved every screen, and reviewed and tested every
 change before it merged. The implementation is AI-assisted (Claude Code), working under written rules
-([`CLAUDE.md`](CLAUDE.md)), reviewer agents and the CI gates above.
+([`AGENTS.md`](AGENTS.md), with [`CLAUDE.md`](CLAUDE.md) for Claude Code), reviewer agents and the CI gates above.
 
 ## Trade-offs
 
@@ -112,7 +112,7 @@ change before it merged. The implementation is AI-assisted (Claude Code), workin
 ## Run it locally
 
 Requires Docker Desktop, the .NET SDK of `api/global.json`, Node.js of `web/.nvmrc`, PowerShell 7, and Python 3 on
-PATH as `python`. First set the user-secrets of `ZenGear.Api` listed in [`api/CLAUDE.md`](api/CLAUDE.md)
+PATH as `python`. First set the user-secrets of `ZenGear.Api` listed in [`api/AGENTS.md`](api/AGENTS.md)
 (*Local database*); the sign-in accounts are in [`docs/ACCEPTANCE.md`](docs/ACCEPTANCE.md).
 
 ```bash

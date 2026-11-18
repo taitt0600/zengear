@@ -7,7 +7,7 @@ const send = createApiFetch({ baseUrl: env.NEXT_PUBLIC_API_BASE_URL, getIdToken:
 
 /**
  * The mutator of the generated client (web/orval.config.ts), with the ID token of the Firebase session: every call
- * of the app goes through it (web/CLAUDE.md). A function declaration, not the const that createApiFetch returns, so
+ * of the app goes through it (web/AGENTS.md). A function declaration, not the const that createApiFetch returns, so
  * that Orval reads its two parameters when it generates.
  */
 export function apiFetch<T>(url: string, init?: RequestInit): Promise<T> {

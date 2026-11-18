@@ -52,7 +52,7 @@ Every admin screen except the sign-in page sits in this layout.
   collapsed with the tooltip "Nhân viên" open; first drawn on the canvas of SCR-STF-02 and moved here); `Main` and
   `NarrowMenu`, named `[Đổi 14/11/2026 · #155]`, redraw it in place in this canvas's own style, approved by the merge
   of #155. It is built by the web part of
-  STF-09 (its item in the plan, `CLAUDE.md`, *Work state*, which this screen's Feature cell names), so no other item is
+  STF-09 (its item in the plan, `AGENTS.md`, *Work state*, which this screen's Feature cell names), so no other item is
   needed; until then the menu keeps the single entry "Nhân viên".
 - **Artboards**: desktop (1440 px) with the menu expanded, which collapses to icons when the canvas plays it;
   desktop with the menu collapsed and the user menu open; narrow (390 px) with the menu closed and open; states:

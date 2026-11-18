@@ -137,7 +137,7 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   `view="creator"`, `Stale` with `stale`, `Anonymized` with `anonymized`, `Disabled` with `disabled`, which gains the
   row "Dữ liệu cá nhân"), or that view under a dialog (`Withdraw`, `Anonymize`, `DarkAnonymize`), so they share its
   frame and sample data; `NarrowCreator` is a narrow artboard of its own.
-  - **Builds**: STF-09 (its web part, its item in the plan, `CLAUDE.md`, *Work state*) builds "Thu hồi" here and on SCR-STF-01,
+  - **Builds**: STF-09 (its web part, its item in the plan, `AGENTS.md`, *Work state*) builds "Thu hồi" here and on SCR-STF-01,
     and the `If-Match` of the three actions; STF-14 builds "Ẩn danh hóa" (the row, the confirmation, the ANONYMIZED
     page after it), in the card "Tài khoản" once issue #244 (STF-02 web) has built it, or in the status card the page has
     then. No other row is needed.

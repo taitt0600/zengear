@@ -53,7 +53,7 @@ the specification, the Layout pull requests of `/design-screen`), which never ge
 6. After a few days away, or in a new session, ask **"Việc tiếp theo là gì?"**: Claude answers in the order of
    DEC-148 (7) (open pull requests, drafts, Bug issues, issues with a handoff comment and no pull request, the first
    ready sub-issue of the Roadmap, Task issues whose trigger has occurred; `python tools/issue.py next` locally, the
-   GitHub MCP in a cloud session; CLAUDE.md, *Work state*). Say first whether the answer was right, then what it
+   GitHub MCP in a cloud session; AGENTS.md, *Work state*). Say first whether the answer was right, then what it
    missed; Claude logs that as a Re-entry line (below, *Metrics*).
 
 ## What runs by itself
@@ -74,10 +74,11 @@ together.
 
 ## Tools of local sessions (DEC-100, DEC-111, DEC-112)
 
-Claude Code on the owner's machine has these tools besides the repository's own commands, agents and skills. Plugins
+Claude Code on the owner's machine has these tools besides the repository's own skills and agents. Plugins
 and MCP servers run third-party code on the machine: adding one changes `.claude/settings.json` or `.mcp.json`, which
 only the owner merges. The repository's agents name their `model` and `effort` in their frontmatter (DEC-112 (3)):
-`plan-reviewer` and `code-reviewer` opus and high, `report-reviewer` sonnet and medium; a new agent names both too.
+`plan-reviewer` and `code-reviewer` opus and high, `report-reviewer` sonnet and medium, `Explore` haiku and low (it
+replaces the built-in Explore for broad read-only searches, DEC-152 (4)); a new agent names both too.
 
 | Tool | What it gives | Declared in |
 |---|---|---|
@@ -85,7 +86,7 @@ only the owner merges. The repository's agents name their `model` and `effort` i
 | Skill `shadcn` | The official shadcn/ui skill (components, composition, forms, styling, the CLI), with the project rules on top: the CLI only as `npm exec --no -- shadcn` from `web/`; `web/src/components/ui/` is code of the app, edited directly after a first commit that holds what `add` wrote, keeping the classes of shadcn's design; every official item, its texts through the message files; blocks as templates with lucide icons; an update of a component in a `chore(web)` pull request of its own, `--overwrite` only when none of its files was edited; the official registry only; packages checked before `add` (DEC-116, DEC-111 (2), (5)) | `.claude/skills/shadcn/`, copied from `shadcn-ui/ui` at a pinned commit (MIT), its source and changes in `SKILL.md` |
 | Web Interface Guidelines (Vercel) | Rules for accessible, fast interfaces, which `code-reviewer` applies to diffs under `web/` only (item 13 of its checklist); the project wins where they differ (WCAG 2.2 AA) | `.claude/guidelines/web-interface-guidelines.md`, copied at a pinned commit (MIT); an update copies a newer commit after reading it |
 | MCP server `postgres` (crystaldba postgres-mcp, image pinned by digest, unrestricted mode) | The schema and rows of the development database `zengear`; skill `db-inspect`. Read-only tools run without a prompt; `execute_sql` and `explain_query` always ask | `.mcp.json`, with `DATABASE_URI` from the user environment variable `ZENGEAR_MCP_DATABASE_URI` |
-| Hook `analyzer-check` (PostToolUse on Edit, Write and MultiEdit; kept by DEC-112 (6)) | After each edit of a `.cs` file under `api/`, a build of that project alone (`--no-dependencies`, about 2 s on the owner's machine) whose Sonar and CA errors go back to Claude at once instead of at the end. `api/CLAUDE.md` lists the rules that often fail | `.claude/hooks/analyzer-check.ps1`, `hooks` of `.claude/settings.json` |
+| Hook `analyzer-check` (PostToolUse on Edit, Write and MultiEdit; kept by DEC-112 (6)) | After each edit of a `.cs` file under `api/`, a build of that project alone (`--no-dependencies`, about 2 s on the owner's machine) whose Sonar and CA errors go back to Claude at once instead of at the end. `api/AGENTS.md` lists the rules that often fail | `.claude/hooks/analyzer-check.ps1`, `hooks` of `.claude/settings.json` |
 | Hook `eslint-check` (PostToolUse on Edit, Write and MultiEdit; DEC-104 (11)) | After each edit of a `.ts` or `.tsx` file under `web/`, ESLint on that file alone with the local binary of `web/node_modules`, without `--fix`; its errors go back to Claude at once. Warnings, parse errors and a failure of ESLint itself are left to the CI job `web-test` and the LSP; the `max-lines` warning is checked by `code-reviewer` (DEC-118 (3)). Nothing runs before `npm ci` in `web/` | `.claude/hooks/eslint-check.ps1`, `hooks` of `.claude/settings.json` |
 | Hook `stop-check` (Stop) | Before a turn ends: when `api/` changed, the build of `api/ZenGear.slnx` and `ZenGear.ArchitectureTests`; when `web/` changed (once `web/node_modules` exists), `next typegen` (the route types a fresh checkout lacks) and `tsc --noEmit` there with the local binaries (DEC-104 (11)). Each state is checked once, a failure goes back to Claude once and then only to the user; locked build output or no `tsc` in `web/node_modules` is only reported | `.claude/hooks/stop-check.ps1`, `hooks` of `.claude/settings.json` |
 | MCP server `zengear` (Docker MCP Toolkit gateway, profile `zengear`): Postman, minimal tool set | Reading the workspace ZenGear (collections, environments, specs); every tool that writes asks, since the collections of the repository are the source | `.mcp.json`; the profile and the API key are per machine |
@@ -108,7 +109,7 @@ Set-up, once per machine:
    `web/package.json`, DEC-122 (2); TypeScript 7.0.2 ships no `tsserver`, which the server needs:
    `npm view typescript@7.0.2 bin`); until the binary is
    on the `PATH`, the plugin cannot start its server and Claude Code reports that error (its wording is unchecked).
-2. The development database set up (`api/CLAUDE.md`, *Local database*): without the database `zengear` the
+2. The development database set up (`api/AGENTS.md`, *Local database*): without the database `zengear` the
    PostgreSQL server waits 30 s for it and Claude Code reports a timeout.
 3. `pwsh -NoProfile -File tools/mcp/setup.ps1` (`-WhatIf` first to see what it does). It creates the profile
    `zengear` with the Postman server, asks for your Postman API key in a hidden prompt and keeps it in

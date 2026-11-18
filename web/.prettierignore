@@ -3,5 +3,5 @@
 src/lib/api/generated/
 src/components/ui/
 package-lock.json
-# Markdown keeps its own wrapping (web/CLAUDE.md).
+# Markdown keeps its own wrapping (web/AGENTS.md).
 *.md

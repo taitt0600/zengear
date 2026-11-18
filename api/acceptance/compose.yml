@@ -67,7 +67,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_HTTP_PORTS: "8080"
-      # The schema owner until zengear_08_roles.sql can run on the migrated schema (DEC-089, api/CLAUDE.md).
+      # The schema owner until zengear_08_roles.sql can run on the migrated schema (DEC-089, api/AGENTS.md).
       ConnectionStrings__ZenGear: Host=postgres;Database=zengear;Username=postgres;Password=acceptance
       ConnectionStrings__Redis: redis:6379
       Firebase__ProjectId: demo-zengear
