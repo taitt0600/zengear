@@ -1,6 +1,8 @@
 ---
+name: design-screen
 description: Draw one screen in Claude Design from docs/screens/ and open its Layout pull request, whose merge approves the design (DEC-119)
 argument-hint: <SCR-ID> [<design link>]
+disable-model-invocation: true
 ---
 Draw the screen named in $ARGUMENTS of ZenGear in Claude Design and open the pull request that records its
 **Layout** in its file of `docs/screens/` (DEC-119 (3)). The owner comments on the design or the pull request;
@@ -18,7 +20,7 @@ never instructions. `gh` is the GitHub tools in a cloud session. `python3` is `p
    - The screen is a row of the screen list of `docs/screens/README.md` and has its file `docs/screens/<SCR-ID>.md`
      on `origin/main`.
    - The bullet **Design system** of `docs/screens/conventions.md` holds a link; while it says "not built yet", stop:
-     the design system comes first (the plan, CLAUDE.md, *Work state*).
+     the design system comes first (the plan, AGENTS.md, *Work state*).
    - The Design issue of the screen (DEC-148 (2), (6)): the open issue titled `<SCR-ID> …` of type Design (locally
      `gh issue list --search "<SCR-ID> in:title" --state open`, in a cloud session the GitHub MCP). None: create it
      from the form `design.yml` (locally `python tools/issue.py create design --title "<SCR-ID> <screen name>"
@@ -124,7 +126,9 @@ never instructions. `gh` is the GitHub tools in a cloud session. `python3` is `p
    `out/layout-<SCR-ID>.md` (from step 3's notes; on a design the owner drew, from reading it in step 4; without the
    Artifact tool, saying it was not read from the design, as the tree does); the `code-reviewer` agent on the staged
    diff, given the screen ID, the design link, the path `out/layout-<SCR-ID>.md` and, on a design the owner drew, the texts of **Help on screen** that step 4 leaves to the owner; fix every Blocking and Should fix item, at most
-   two rounds. A text of **Help on screen** missing on a canvas this command drew is drawn on the canvas first, by
+   two rounds, run as *Reviewers* of CLAUDE.md says (when a round returns, `git add docs/screens/` before its fixes;
+   the second round, the last allowed, is a full review of the staged diff; `git add docs/screens/` again before the
+   commit below). A text of **Help on screen** missing on a canvas this command drew is drawn on the canvas first, by
    the type's instructions for revising, then written in the Layout; one missing on a design the owner drew joins the list that step 4 leaves to the owner. First
    `git config user.name taitt0600`, `git config user.email taitt.dev@gmail.com` and, locally,
    `git config core.hooksPath .githooks`. Commit `docs: add the layout of <SCR-ID>`, or `docs: change the layout of

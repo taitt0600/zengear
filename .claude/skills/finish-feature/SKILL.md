@@ -1,6 +1,8 @@
 ---
+name: finish-feature
 description: Verify a finished feature, commit it, open the pull request, follow CI, have the owner test it before merge and report
 argument-hint: <Feature ID, e.g. AUT-04> [--checkpoints]
+disable-model-invocation: true
 ---
 Finish the feature named in $ARGUMENTS of ZenGear (CLAUDE.md, Workflow; DEC-100). It runs on the owner's machine and
 stops only to ask a Needs decision item, to wait for the owner to merge a package approval (**Package approval**
@@ -9,9 +11,13 @@ below), for the owner's test before merge (step 13), and, with `--checkpoints` i
 cannot be fixed under the policy of `/implement-feature` (step 4) becomes a Needs decision item, asked at once as its
 step 3 says (each option with the four qualities, DEC-139). Every fix of this command, of a review finding, a failed
 check or a defect, follows `/implement-feature` step 4, **Long-term and safe**.
-A command, skill or agent run inside a step (`/code-review`, `/security-review`, `api-run`, `api-collection`, the
-reviewer agents) returns its report to this run: keep its numbers for the report of step 14 and go on with the run
+A skill or agent run inside a step (`/code-review`, the skill `zengear-security-review`, `api-run`, `api-collection`,
+the reviewer agents) returns its report to this run: keep its numbers for the report of step 14 and go on with the run
 (the fixes of that step, or the next step) in the same turn. It never ends the run; only the stops above do.
+A step of another skill cited as "`/<name>` step N" is read from `.claude/skills/<name>/` (its `SKILL.md` and the
+reference file the step links) and followed in this run; it is never invoked, since those skills have
+`disable-model-invocation` (CLAUDE.md, Workflow). Steps 13 and 14 are in the reference files
+[test-before-merge.md](test-before-merge.md) and [report.md](report.md) beside this file.
 `python3` is `python` on Windows.
 
 **Handoff** (DEC-112 (4)): `/implement-feature` ends by writing `out/handoff-<ID>.md` and the owner starts this
@@ -90,8 +96,10 @@ step 11 when the pull request is open.
    (its `src/lib/api/generated/` belongs to the commit that changes the API), `npm run lint`, `npm run format`,
    `npm run typecheck`, `npm run test` and `npm run build`, the last
    with the five `NEXT_PUBLIC_*` values of `DEVELOPMENT_DEFAULTS` in `web/src/env-schema.ts` set for that command
-   only (`web/CLAUDE.md`, *Commands*), each under **Output** (`out/logs/step2-web-<script>.log`). Keep the result of
-   each for the report.
+   only (`web/AGENTS.md`, *Commands*), each under **Output** (`out/logs/step2-web-<script>.log`). `npm run lint`,
+   `npm run format` and `npm run test` write nothing shared and run together (DEC-152 (4)); the dotnet commands of
+   steps 2–3 (they share `bin/` and `obj/`) and `npm run typecheck` and `npm run build` (they write `.next/`) run
+   one after another. Keep the result of each for the report.
 3. **Drift check** (from `api/`): `dotnet ef migrations has-pending-model-changes -p src/ZenGear.Data -s src/ZenGear.Api`
    reports no changes.
 4. **Specification**: `python3 tools/pr_gates.py coverage <ID>` exits 0. If `api/db/`, `docs/DATABASE.md` or
@@ -102,7 +110,7 @@ step 11 when the pull request is open.
    or is a Needs decision item; the PR gates refuse the merge while one is open, and `tools/github_pr.py auto-merge`
    checks again. When the owner's answer to such an item puts the work after the merge, remove the relation
    (`python tools/issue.py unlink`) and give the issue its later trigger as **Owner's comments** says (an event in
-   the field Trigger, or a blocked-by relation on the issue of a later feature; CLAUDE.md, *Work state*).
+   the field Trigger, or a blocked-by relation on the issue of a later feature; AGENTS.md, *Work state*).
 5. **Code review**, two reviewers on the same diff (`git diff origin/main...HEAD` plus the working tree) in the
    first round:
    - the built-in `/code-review` on the diff;
@@ -111,8 +119,9 @@ step 11 when the pull request is open.
      each blocked-by issue, the issues this run added for a deferred item or an owner's comment,
      and each stopgap with its long-term fix and its Task issue (`/implement-feature` step 4).
    Fix every Blocking and Should fix item of the agent and every finding of `/code-review` you confirm, then run
-   steps 2–3 and review again, at most three rounds (DEC-112 (1)): in the later rounds the `code-reviewer` agent
-   reviews what was fixed, and `/code-review` runs once more, only once in the run, in the round after the first fix
+   steps 2–3 and review again, at most three rounds (DEC-112 (1)): the rounds of the `code-reviewer` agent, the
+   incremental ones, the `git add -A` when a round returns, before its fixes, and the full review before `pass`
+   follow *Reviewers* of CLAUDE.md (DEC-152 (3)), and `/code-review` runs once more, only once in the run, in the round after the first fix
    that changes the behavior of the code (a fix of tests, comments or documents alone does not count). An item you
    do not fix gets its reason in the report, and
    a Blocking item left after three rounds is a Needs decision item. Keep the final verdict, the number of Blocking
@@ -121,14 +130,15 @@ step 11 when the pull request is open.
    findings labelled `[over-engineering]` and `[duplication]` over all rounds (DEC-106). When each review returns its report,
    keep its numbers and go on at once (the other review, the fixes, the next round or step 6); it does not end the
    run.
-6. **Security review** (DEC-112 (1)): run `/security-review` when the branch touches payments, invoicing, a column
+6. **Security review** (DEC-112 (1)): run the skill `zengear-security-review` when the branch touches payments,
+   invoicing, a column
    listed under Personal data in `docs/DATABASE.md`, raw SQL, file uploads or a `[ShopEndpoint]` controller, or adds
    or changes authentication or authorization code (`ZenGear.Api/Authorization`, `Attributes`, `Middlewares`,
    `Extensions/AuthenticationSetup.cs`, how tokens are issued and checked); a branch that only adds keys to the
    permission catalog or changes the default permissions of a Role does not need it. Otherwise skip it and say so.
    After three runs under this trigger without a finding of its own, it is dropped. Fix every finding, or give the reason it is not a
    vulnerability; after a fix, run steps 2–3 again. Keep the number of findings and of fixed findings. When
-   `/security-review` returns its report, keep its numbers and go on at once (the fixes or step 7); its report is not
+   the skill returns its report, keep its numbers and go on at once (the fixes or step 7); its report is not
    the last reply of this run.
 7. **Postman run**: skill `api-run` with the Feature ID (the folder of the feature), then without one (the whole
    collection, for regressions). A failed test is a failed step: fix the code (or the request, when the request is
@@ -143,16 +153,17 @@ step 11 when the pull request is open.
    screenshots it leaves under `web/test-results/` for the guide (the next e2e run deletes them). CI also runs the
    flows when only `api/` or `postman/` changed; here they run only when `web/` changed.
 8. **Analyzer rules**: when a build of this run was red for an analyzer rule (`S…`, `CA…`) that the section
-   "Analyzer rules that often fail the build" of `api/CLAUDE.md` does not list yet, add one line for it there, in the
+   "Analyzer rules that often fail the build" of `api/AGENTS.md` does not list yet, add one line for it there, in the
    style of the existing lines (the rule, why it fails, how to write the code instead), committed with the docs.
 9. **Checkpoint 3** (`--checkpoints` only): show the owner `git diff --stat origin/main`, the results of steps 2–8
    and the verdicts of the reviewers, and commit only when they approve, after the changes they ask for and steps
    2–3 again.
-   **Commits**, per the `Commits` section of `CLAUDE.md`, without asking: first `git config user.name taitt0600`,
+   **Commits**, per the `Commits` section of `AGENTS.md`, without asking: first `git reset -q` (the rounds of step 5
+   staged the tree), `git config user.name taitt0600`,
    `git config user.email taitt.dev@gmail.com` and `git config core.hooksPath .githooks`. Then `feat(db)` for
    entities, configurations and migrations; `feat(api)` for behavior, endpoints, the OpenAPI document and their
    tests (with a regenerated `web/src/lib/api/generated/` and the web code it forces, `feat` without scope, as
-   `CLAUDE.md`, Commits, says); `feat(web)` for screens, their Vitest tests and Playwright flows; `test` for the
+   `AGENTS.md`, Commits, says); `feat(web)` for screens, their Vitest tests and Playwright flows; `test` for the
    Postman folder, its environments and fixtures; `test(api)` or `docs` for the rest — each with
    a body and a `Refs:` footer that names `#<the Feature issue>` in every `feat` and `fix` commit (DEC-150 (1)), and no `Co-Authored-By` or
    `Claude-Session` trailer. Never `--no-verify`, never amend a pushed commit. The commits of a `shadcn add` that
@@ -180,11 +191,12 @@ step 11 when the pull request is open.
       web-only run (`/implement-feature`, step 1) takes the title its handoff names, `feat(web): <subject> (<ID>)`.
     - Do not enable auto-merge: it waits for the owner's test (step 13).
     - **Code-review verdict** (DEC-150 (3)): post the final verdict of the `code-reviewer` agent of step 5 for the
-      pushed head, `python3 tools/comment_templates.py code-review --sha $(git rev-parse HEAD) --verdict pass
+      pushed head, after the full review of the head that *Reviewers* of CLAUDE.md asks before a `pass`,
+      `python3 tools/comment_templates.py code-review --sha $(git rev-parse HEAD) --verdict pass
       --summary "<counts>" > out/review-comment.md` and `python3 tools/github_pr.py comment <number> --body-file
       out/review-comment.md` (`blocking` when a Blocking item is left). After every later push (a fix of CI, a defect,
-      a rebase), the agent reviews what changed and a new comment names the new head: the check `code-review` passes
-      only for the head its latest comment names.
+      a rebase), the agent makes a full review of the new head and a new comment names it: the check `code-review`
+      passes only for the head its latest comment names.
 11. **CI**: `python3 tools/github_pr.py checks <number> --wait 540` with a Bash timeout of 10 minutes; exit code 3
     means still running, so run it again, at most six times. Exit code 0: every check passed. Exit code 4: GitHub was
     not reachable; run it again. Exit code 1:
@@ -200,112 +212,9 @@ step 11 when the pull request is open.
     - At most three rounds of fixes; then the failure is a Needs decision item, asked at once.
 12. No step since DEC-112 (1), which removed the review of the `code-review` plugin on the pull request; the steps
     after it keep their numbers.
-13. **Test before merge** — the owner tests the feature as an end user, from the guide alone. First read the
-    **Owner's comments** (above), at every pass of this step.
-    1. **Environment ready**: skill `api-run` with the Feature ID, leaving the API of the branch running in the
-       background until the owner answers (the reset, then the API from the branch). The branch stays checked out:
-       the Postman app follows the branch of the repository folder. When the branch changes `web/`, then start
-       `npm run dev` in `web/` in the background, only when `http://localhost:3000` does not answer (a second one
-       would take port 3001, which the CORS of the API refuses), and leave it running as the API is.
-    2. **Guide** `out/test-guide-<ID>.md`, in Vietnamese, one page at most; its first line is
-       `<!-- finish-feature -->` and its second `## Hướng dẫn kiểm thử <ID>`:
-       - **Các bước** (the environment is already running), when the API changed (**Changed areas**, step 2):
-         open Postman on the repository folder; check that it shows the branch `<branch>` (13.1 left it checked
-         out); choose environment `dev`; run the folder `<ID>` (Run folder); every test is
-         green. A branch that changes neither has no Postman step.
-       - When the branch changes `web/`: the screens to open at `http://localhost:3000`, the account to sign in with
-         (its password only by reference to `docs/ACCEPTANCE.md`, *Accounts*, never written in the guide), and for
-         each screen the Playwright screenshot of the expected result from step 7: its path under
-         `web/test-results/` on this machine, and the link of the `pipeline.yml` run of the head commit (from step
-         11, or `gh run list --commit <head sha> --workflow pipeline.yml`), whose artifact `playwright-*` of the
-         job `acceptance` holds the same screenshots. Beside each screenshot, the link of the screen's approved
-         design (its **Layout** in `docs/screens/<SCR-ID>.md`) for the owner to compare (DEC-119 (5)); a screen
-         without one says "chưa có bản vẽ (màn hình làm trước DEC-119)".
-       - **Kiểm tra tay**: at most three checks in total, screens included, that the collection and the flows cannot
-         make (a command, a screen, a value in the Emulator UI or the database), each with what to do, what to look
-         at and the expected result.
-       - **Phụ lục — Nếu môi trường chưa chạy**: `git switch <branch>`; `pwsh -NoProfile -File tools/dev_reset.ps1`;
-         `dotnet run --project api/src/ZenGear.Api --launch-profile http`; when the branch changes `web/`, in `web/`
-         `npm ci`, then `npm run dev`.
-       A defect (from `/fix-defect`) gives the steps that showed the defect, with the result now expected.
-    3. Give the guide, `out/feature-<ID>.md` and the facts (the pull request number and state, the check runs of its
-       head, the changed areas of step 2 among `api/`, `postman/`, `web/` and `api/openapi/`, the Postman runs of
-       step 7 and of 13.1, the web checks and the flows passed and failed) to the `report-reviewer` agent; fix
-       every Blocking and Should fix item, at most two rounds. Read the **Owner's comments** once more, then post
-       it with
-       `python3 tools/github_pr.py comment <number> --body-file out/test-guide-<ID>.md` and show it to the owner.
-    4. Ask with AskUserQuestion: the result — **Đạt** / **Có lỗi** / **Để sau** — and the minutes spent on this
-       feature so far — ≤ 10, 10–20, 20–40, more than 40.
-       - **Đạt**: first write, review and post the report of step 14, with **Kết quả** "Đạt — auto-merge bật" and
-         the five lines of **Kết quả** (step 14): the routine "ZenGear PR merged" starts on the merge event and
-         reads the report at once, so it must be on the pull request before anything can merge. Then
-         `python3 tools/github_pr.py auto-merge <number>` (not while the pull request is a draft). Exit code 5
-         means the owner merges it (it changes a file only the owner merges, or `main` does not enforce every
-         required check): say so, and add a one-line comment on the pull request that auto-merge stays off and the
-         owner merges it (`python3 tools/github_pr.py comment <number> --body-file out/automerge-note.md`, after
-         the line `<!-- finish-feature -->`).
-       - **Có lỗi**: for each defect the owner describes, write first a test that reproduces it (a unit or
-         integration test named after the rule, and a request in the folder through skill `api-collection`; for a
-         defect of a screen, a Vitest test or a Playwright flow in `web/e2e/`, run with `npm run e2e -- <spec>`
-         while the API of 13.1 runs, and the request only when the API is involved) and see it fail; then stop the
-         API (a running API locks the build output of steps 2–3; step 7 starts it again); fix it on the same
-         branch; steps 2–3, and the screen flows of step 7 when the branch changes `web/` (they also renew the
-         screenshots of the guide); commit, typed by what it changes (`fix` is only for a bug already on `main`);
-         `git push origin HEAD`; step 11; then 13.1 to 13.4 again, with the guide sent again.
-       - **Để sau**: stop here. The pull request stays open without auto-merge; a later `/finish-feature <ID>` on
-         the same branch resumes at this step (see **Resume** above).
-       Stop the API of 13.1, and the web if 13.1 started it (not one the owner was running already), once the owner
-       has answered (on **Có lỗi**, after the reproducing flow has failed), except after **Để sau**, where they may
-       keep running.
+13. **Test before merge** — the owner tests the feature as an end user, from the guide alone: read
+    [test-before-merge.md](test-before-merge.md) and follow it (the environment, the guide, its review, the
+    owner's answer **Đạt**, **Có lỗi** or **Để sau**).
 14. **Report** in Vietnamese, once, after the owner's answer at step 13 (before auto-merge on **Đạt**), or when the
-    run stops earlier: write it to
-    `out/report.md` (first line `<!-- finish-feature -->`), have it reviewed (below), post it with
-    `python3 tools/github_pr.py comment <number> --body-file out/report.md` when there is a pull request, and end
-    your last reply with the same text (without that first line) followed by the section
-    "Tóm tắt cho chủ dự án" (`CLAUDE.md`, Workflow), which is not posted in the report comment. Sections:
-    - **Kết quả**: "Đạt — auto-merge bật" (**Đạt**), waiting for the owner's test (**Để sau**), draft waiting
-      for a decision, or stopped at the ready check — with the pull request link; then the five lines
-      `Nơi chạy: local`, `Thời gian bạn tham gia: <the owner's answer at step 13> phút` (`?` when the run
-      stopped before step 13), `Phát hiện over-engineering / duplication: <a> / <b>` (the labelled findings of
-      plan-reviewer, from the **Handoff**, plus those of code-reviewer at step 5; a `/fix-defect` run, or a run
-      without the handoff file, counts code-reviewer alone) and
-      `Folder mỗi commit feat: <n1>, <n2>, …` (the last line of `python3 tools/structure_metrics.py --range
-      origin/main..HEAD`); when the run stopped before the code review (`/finish-feature` step 5), these two lines
-      are `Phát hiện over-engineering / duplication: ? / ?` and `Folder mỗi commit feat: ?` (no review or commit
-      yet); and the line printed by `python3 tools/token_usage.py --branch <branch> --line`, `Token: <total>
-      (chính <main> / agent <sub>; output <out>, ghi mới <fresh>), <calls> lần gọi, context lớn nhất <peak>`
-      (`Token: ?` when the command fails). The routine "ZenGear PR merged" copies the five lines to issue #24
-      (DEC-106; the Token line for the evaluation of DEC-112 (8), `docs/AUTOMATION.md`, *Metrics*).
-    - **Chức năng**: what a user can now do, in the words of the user story.
-    - **Cách chạy để kiểm thử**: the steps of the guide (step 13.2), appendix included.
-    - **Kịch bản kiểm thử**: when the API changed, one line per request of the folder: the criterion or rule it
-      checks, the account, the expected result (status, Problem Details `type`) and the result of the last run; when
-      the branch changes `web/`, then a sub-list **Luồng màn hình (Playwright)**, one line per flow of step 7 with its
-      result (kept apart, since the routine "ZenGear PR merged" counts the Postman lines); a web-only run says that
-      the rules of the feature are covered by its earlier pull request. Then the manual checks of the guide. A defect
-      repeats the steps that showed it, with the result now expected.
-    - **Rule đã có test**, **Quyết định Claude đã tự chọn** (each stopgap named temporary, with its long-term fix
-      and its Task issue), **Quyết định của bạn** (the owner's answers), **Cần bạn quyết định** (each item still
-      open with its options and their consequences, each option with the four qualities and its cost), **Đã kiểm tra** (steps
-      2–8, the web checks and the flows of step 7 included when the branch changes `web/`, CI and the owner's
-      test, with the numbers kept above, "Phát hiện riêng" and the labelled findings of each reviewer included;
-      while the trial of the plugin `security-guidance` runs (Task issue
-      #262 on DEC-112), also the line
-      `security-guidance: <a> cảnh báo / <b> phát hiện riêng`: its warnings on edits and its review findings at the
-      end of a turn and on commit or push, those of the **Handoff** added to this session's, and how many no other
-      reviewer found); when the branch changes `web/`, also the line
-      `Bố cục (DEC-119): <a> vòng Có lỗi / <b> phát hiện review do bố cục`: `<a>` the **Có lỗi** rounds caused by
-      the layout of a screen (`?` before the owner's answer at step 13), `<b>` the findings labelled `[layout]` of
-      plan-reviewer (from the **Handoff**) and code-reviewer, and those of `/code-review` about the layout of a
-      screen (`docs/AUTOMATION.md`, *Metrics*), and
-      for each screen whether its design was read or only its Layout tree, or "không có Layout" (a screen built
-      before DEC-119); a run without a plan (`/fix-defect`, or no handoff file) counts no plan-reviewer findings and
-      says so, as the over-engineering line does.
-    Before posting, give the `report-reviewer` agent `out/report.md`, `out/feature-<ID>.md` and the facts it reads:
-    the pull request number and state, the check runs of its head with their results, the areas the branch changes
-    (as in 13.3), the plan-reviewer and code-reviewer verdicts, whether the security review ran, the Postman runs, the
-    web checks and the flows with their results and the owner's answer. Fix every Blocking and Should fix item:
-    correct the report, or, when an item shows a check that was not made (a criterion without a request, a rule
-    without a refusal), add it with skill `api-collection`, run it with
-    `api-run` and fix what fails, running steps 2–3 again after a code change; at most two rounds. Add its final
-    verdict to **Đã kiểm tra**.
+    run stops earlier: read [report.md](report.md) and follow it (its sections, its review by `report-reviewer`, how
+    it is posted).

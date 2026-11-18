@@ -1,6 +1,8 @@
 ---
+name: fix-defect
 description: Fix a defect found in testing, with one command on the owner's machine (failing test → fix → pull request → test before merge)
 argument-hint: <Feature ID> <what is wrong, or #issue> [--checkpoints]
+disable-model-invocation: true
 ---
 Fix this defect of ZenGear (CLAUDE.md, Workflow; DEC-100): $ARGUMENTS
 
@@ -11,6 +13,9 @@ cause is found (step 4) and for the owner's test before merge
 Checkpoint 3 of `/finish-feature`. It runs in one session (DEC-112 (4)). Builds, tests and Postman runs write their
 output to `out/logs/` and bring only a summary into the context, as **Output** of `/finish-feature` says
 (DEC-112 (5)).
+A step of another skill cited as "`/<name>` step N" is read from `.claude/skills/<name>/` (its `SKILL.md` and the
+reference file the step links) and followed in this run; it is never invoked, since those skills have
+`disable-model-invocation` (CLAUDE.md, Workflow).
 `python3` is `python` on Windows.
 
 1. **Branch and ready check**: first, when `out/paused-<ID>.md` names this command, switch to the branch it names
@@ -75,8 +80,9 @@ output to `out/logs/` and bring only a summary into the context, as **Output** o
    next step and the stash of the failing test (`git stash push -u -m "<Feature ID>: needs a Layout"`, as step 4
    does). A defect that is itself a fault of the layout leaves only the stop. A `shadcn add` for the fix is
    committed alone, before any file it wrote is edited, as `/implement-feature` step 7 says (DEC-116 (1)).
-6. **Finish** with `/finish-feature` for this feature (and `--checkpoints` when it was given), in this session and
-   without reading a handoff file (pass it the facts of steps 2–5), with these differences:
+6. **Finish**: read `.claude/skills/finish-feature/SKILL.md` and follow it for this feature (with `--checkpoints`
+   when it was given), in this session and without reading a handoff file (pass it the facts of steps 2–5), with
+   these differences:
    - On a new `fix/` branch: one commit `fix(<scope>): <subject>` with `Refs: <Feature ID>, #<issue>` (DEC-150 (1)),
      after the commit of a `shadcn add` of step 5 when there is one; pull request
      title `fix(<scope>): <subject> (<Feature ID>)`, its body from `tools/github_pr.py template --closes <issue>`
