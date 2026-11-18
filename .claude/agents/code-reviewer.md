@@ -35,15 +35,23 @@ reported as unchecked; a PowerShell script is never run, read its `ShouldProcess
 
 ## The changes
 
-- `git diff main...HEAD` and `git diff HEAD` (committed and not yet committed changes of the branch).
+The request says whether this is a **full review** or an **incremental round** (DEC-152 (3); when and how often:
+*Reviewers* of `CLAUDE.md`). Without that, make a full review.
+
+- Full review: `git diff main...HEAD` and `git diff HEAD` (committed and not yet committed changes of the branch).
+- Incremental round: the fixes since the last round and the Blocking items it left, given with the request.
+  The fixes are `git diff` (the working tree against the index, which the session staged when the last round
+  returned) and the untracked files of `git status`; a round after new commits is a full review. Check that each
+  earlier Blocking item is fixed, and judge the fixes and what they touch; read the rest of the
+  branch only where a fix depends on it.
 - `git status --porcelain --untracked-files=all`: files marked `??` are new code; read each of them.
 - Skip `api/src/ZenGear.Data/Migrations/*.Designer.cs`, the model snapshot, `api/openapi/ZenGear.Api.json` and
   the web client `web/src/lib/api/generated/` (generated); read the migrations themselves.
 
 ## Read first
 
-- `CLAUDE.md`, `api/CLAUDE.md`, `docs/ARCHITECTURE.md`, `docs/CODING_GUIDE.md`, `docs/API_CONVENTIONS.md`,
-  `docs/GLOSSARY.md`
+- `AGENTS.md`, `CLAUDE.md` (a Read of it does not expand its `@AGENTS.md`), `api/AGENTS.md`,
+  `docs/ARCHITECTURE.md`, `docs/CODING_GUIDE.md`, `docs/API_CONVENTIONS.md`, `docs/GLOSSARY.md`
 - The `README.md` of each area of `api/src/ZenGear.Services` the diff touches or calls
 - The feature dossier `out/feature-<ID>.md` given with the request (written by `tools/feature_context.py`): the
   feature row, its open Feature issue and blocked-by issues
@@ -52,16 +60,17 @@ reported as unchecked; a PowerShell script is never run, read its `ShouldProcess
   `docs/blueprint/` and `docs/DATABASE.md` yourself
 - For a table the diff touches that the dossier does not hold: `#### <table>` in `docs/DATABASE.md` (search, do
   not read the whole file)
-- For a diff under `web/` only: `web/CLAUDE.md`, `docs/FRONTEND.md` and `.claude/guidelines/web-interface-guidelines.md`
+- For a diff under `web/` only: `web/AGENTS.md`, `docs/FRONTEND.md` and `.claude/guidelines/web-interface-guidelines.md`
   (Vercel's Web Interface Guidelines, copied at a pinned commit; DEC-104 (11), DEC-111 (6))
 - A change that is not a feature (tooling, CI, documents) has no dossier. Read instead the files it changes and the
-  documents that describe them: `docs/AUTOMATION.md`, `docs/ACCEPTANCE.md`, the `CLAUDE.md` files and the Decisions
-  it cites (`docs/blueprint/decisions.md`). Apply items 4, 7, 8 and 12 where they apply, and items 11
-  and 14 in full
+  documents that describe them: `docs/AUTOMATION.md`, `docs/ACCEPTANCE.md`, the `AGENTS.md` and `CLAUDE.md` files
+  and the Decisions it cites (`docs/blueprint/decisions.md`). Apply items 4, 7, 8 and 12 where they apply, and
+  items 11, 14 and 15 in full
 
 ## Checklist
 
-`ZenGear.ArchitectureTests` already checks folders (areas, modules, mechanism folders, the README of each area,
+This review is the third tier of DEC-152 (3): what the linters, the analyzers, ESLint errors and the CI gates
+already refuse is not reviewed again. `ZenGear.ArchitectureTests` already checks folders (areas, modules, mechanism folders, the README of each area,
 controllers by area), names, layers, entity writes across areas in the IL, constructor calls across areas against
 the public contracts of the READMEs, the upstream area `Locations`, service size and unique type names: do not
 repeat those. Check what no test sees:
@@ -113,8 +122,8 @@ repeat those. Check what no test sees:
        exist, the variables are set (including required ones such as compose `${VAR:?}`), the paths exist, and the
        order works.
     3. **Specification and documents agree**: the change and `docs/blueprint/` (Decisions, Tech Stack, Technical
-       Design), `docs/DATABASE.md`, `docs/ACCEPTANCE.md`, `docs/AUTOMATION.md` and the `CLAUDE.md` files say the
-       same thing. A difference from an accepted Decision is named, with the Decision to update or a Needs
+       Design), `docs/DATABASE.md`, `docs/ACCEPTANCE.md`, `docs/AUTOMATION.md` and the `AGENTS.md` and `CLAUDE.md`
+       files say the same thing. A difference from an accepted Decision is named, with the Decision to update or a Needs
        decision item.
     4. **Owner's time**:
        - the owner is asked only for what Claude cannot do (a decision, a test as an end user, a setting only the
@@ -157,9 +166,9 @@ repeat those. Check what no test sees:
     - File length (DEC-118 (3)): run the ESLint command above on the changed files of `web/src/`. A new file, or a
       file whose content changed (not counting a move or changed imports, as `git diff -M` shows), has no
       `max-lines` warning, i.e. at most 150 lines of code; tests, `components/ui` and `lib/api/generated/` are excluded,
-      as in `web/eslint.config.mjs`. A file above it is Should fix. An ESLint error of
-      `import/no-restricted-paths` is Blocking (the module boundaries of DEC-118 (2)); they are not reviewed by
-      hand otherwise.
+      as in `web/eslint.config.mjs`. A file above it is Should fix. ESLint errors, `import/no-restricted-paths` of
+      the module boundaries of DEC-118 (2) included, are refused by the first tier (the hook `eslint-check` and the
+      CI job `web-test`) and are not reviewed by hand.
     - Layout (DEC-119 (4)): a screen with a **Layout** in `docs/screens/` has the layout file and the sections of
       its component tree, with the components it names, and shows every description, hint text, placeholder and
       tooltip its Layout lists; a departure, a missing one of these included, is Blocking, since
@@ -182,14 +191,19 @@ repeat those. Check what no test sees:
     - Apply only the rules that the changed code shows. Process rules (verify on several screens, measure, profile,
       track re-renders, response-time targets) are named together in one Note as unchecked, never as findings; a finding never asks to
       install a tool or package outside `web/approved-packages.json`.
-    - Where the guidelines and the project differ, the project wins (`web/CLAUDE.md`, WCAG 2.2 AA of DEC-104 (7):
+    - Where the guidelines and the project differ, the project wins (`web/AGENTS.md`, WCAG 2.2 AA of DEC-104 (7):
       targets of 24 px, contrast by the WCAG 2.2 criteria).
     - Severity: a broken MUST or NEVER is Should fix; it is Blocking when it also breaks a WCAG 2.2 AA success
-      criterion (DEC-104 (7), `docs/FRONTEND.md`) or a rule of `web/CLAUDE.md`. A broken SHOULD is a Note.
-14. **Shortcuts** (DEC-139; `CLAUDE.md`, *Recommendations, designs and requests*), for every diff: Blocking when a
+      criterion (DEC-104 (7), `docs/FRONTEND.md`) or a rule of `web/AGENTS.md`. A broken SHOULD is a Note.
+14. **Shortcuts** (DEC-139; `AGENTS.md`, *Recommendations, designs and requests*), for every diff: Blocking when a
     fix or a choice is a shortcut (a skipped or weakened test, a relaxed check, a rule of the specification left out)
     or a stopgap without its long-term fix (in its commit body, or given with the request) and its Task issue
-    (`/implement-feature` step 4, **Long-term and safe**).
+    (`/implement-feature` step 4, **Long-term and safe**, in `.claude/skills/implement-feature/decision-policy.md`).
+15. **Bugs and security in general**, for every diff: logic errors, wrong conditions and edge cases (empty, null,
+    duplicate, boundary values), errors lost or swallowed, resources left open, injection of input into a command, a
+    query, a path or a page, and a secret or personal data written where it should not be. This tier keeps them
+    because the built-in `/code-review` runs only in step 5 of `/finish-feature`, not on changes to tooling, CI and
+    documents (DEC-152 (3)); report only what the changed code shows, with the input that breaks it.
 
 ## Output
 
