@@ -60,6 +60,9 @@ BUILD_SUFFIXES = ('.csproj', '.props', '.targets')
 # What decides how the code is built, checked or merged: changed only in pull requests the owner merges.
 OWNER_PATHS = SPEC_PATHS + ('.claude/', '.githooks/', '.github/', '.gitleaks.toml', '.mcp.json', '.config/', 'tools/',
                             '.cz.toml',
+                            # The configuration of the quality gates of DEC-152 (5), (7).
+                            '.jscpd.json', '.markdownlint-cli2.jsonc', 'lychee.toml', 'web/knip.json',
+                            'web/stryker.config.json', 'api/stryker-config.json',
                             'docs/ARCHITECTURE.md', 'api/tests/ZenGear.ArchitectureTests/', 'api/global.json',
                             'api/.config/', 'api/.editorconfig', 'nuget.config', 'NuGet.Config',
                             # The web build files of DEC-104 (3); web/package.json goes by content.

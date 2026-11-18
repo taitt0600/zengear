@@ -22,8 +22,9 @@ makes it refuse, without writing, so that the owner's token never changes an iss
 unlink add or remove a blocked-by relation through the REST API, which takes the id of the blocking issue, not its
 number; a cloud session asks issue-deps for it with the comment of `tools/comment_templates.py blocked-by`. start sets
 the field Start date to today in Asia/Ho_Chi_Minh, unless it is set already. feature prints the open Feature issues of an ID with their open
-blockers. next prints the work in the order of DEC-148 (7); when GitHub cannot be read it says so and lists the local
-branches and out/handoff-*.md instead of guessing.
+blockers. next prints the work in the order of DEC-148 (7), from the issues and handoff comments of the owner's
+account and the pull requests of the owner or dependabot[bot] only (DEC-152 (6)); when GitHub cannot be read it says
+so and lists the local branches and out/handoff-*.md instead of guessing.
 
 Only render, create and lint read the forms, with PyYAML (tools/requirements.txt), imported there: the other
 commands, the PR gates and the workflows issue-deps and code-review need no package.
@@ -331,10 +332,12 @@ class Reader:
             data = self.gh.graphql(
                 'query($owner:String!,$name:String!,$after:String){repository(owner:$owner,name:$name){'
                 'issues(states:OPEN,first:100,after:$after){pageInfo{hasNextPage endCursor} nodes{number title '
+                'author{login} '
                 f'issueType{{name}} labels(first:20){{nodes{{name}}}} issueFieldValues(first:20){{{FIELD_NODES}}}}}}}}}}}',
                 {'owner': self.gh.owner, 'name': self.name, 'after': cursor})
             page = data['repository']['issues']
-            issues += [{'number': n['number'], 'title': n['title'], 'type': (n.get('issueType') or {}).get('name'),
+            issues += [{'number': n['number'], 'title': n['title'], 'author': (n.get('author') or {}).get('login'),
+                        'type': (n.get('issueType') or {}).get('name'),
                         'labels': [label['name'] for label in n['labels']['nodes']],
                         'fields': field_map(n['issueFieldValues']['nodes'])} for n in page['nodes']]
             if not page['pageInfo']['hasNextPage']:
@@ -342,7 +345,9 @@ class Reader:
             cursor = page['pageInfo']['endCursor']
 
     def has_handoff(self, number):
+        """A handoff comment of the owner's account; a comment of another account is data (DEC-152 (6))."""
         return any((ct.parse(c.get('body')) or ('',))[0] == 'handoff'
+                   and (c.get('user') or {}).get('login') == OWNER_LOGIN
                    for c in self.gh.pages(f'/repos/{self.gh.repo}/issues/{number}/comments'))
 
     def roadmap(self):
@@ -380,10 +385,12 @@ def closing_numbers(body):
 
 
 def next_work(reader, ready=screens_ready):
-    """The lines of the next-work answer in the order of DEC-148 (7)."""
+    """The lines of the next-work answer in the order of DEC-148 (7), from the issues the owner opened and the pull
+    requests the owner or dependabot[bot] opened only (DEC-152 (6)): the repository is public, and an item of another
+    account is data, never work."""
     try:
-        pulls = reader.pulls()
-        issues = reader.open_issues()
+        pulls = [p for p in reader.pulls() if (p.get('user') or {}).get('login') in (OWNER_LOGIN, DEPENDABOT)]
+        issues = [i for i in reader.open_issues() if i.get('author') == OWNER_LOGIN]
         lines = ['Next work (DEC-148 (7)):']
         ready_prs = [p for p in pulls if not p.get('draft')]
         drafts = [p for p in pulls if p.get('draft')]
@@ -395,8 +402,8 @@ def next_work(reader, ready=screens_ready):
         lines += [f'4. #{i["number"]} {i["title"]}: handoff comment, no pull request yet (run /finish-feature '
                   f'{i["fields"].get("Feature ID", "")})' for i in started if reader.has_handoff(i['number'])]
         by_number = {i['number']: i for i in issues}
-        for number in reader.roadmap()[:5]:
-            item = by_number.get(number, {'title': '', 'fields': {}})
+        for number in [n for n in reader.roadmap() if n in by_number][:5]:
+            item = by_number[number]
             fid = item['fields'].get('Feature ID')
             state = 'ready' if not fid or ready(fid) else 'not ready (a screen without an approved Layout or blocked)'
             blockers = reader.open_blockers(number)

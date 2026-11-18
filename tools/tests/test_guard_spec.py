@@ -79,6 +79,15 @@ CASES = [
     ({'command': 'rm docs/ARCHITECTURE.md'}, 'deny', 'ask'),
     ({'command': 'cp /tmp/a.py tools/pr_gates.py'}, 'deny', 'ask'),
     ({'command': 'cp /tmp/a.py tools/tests/test_pr_gates.py'}, 'deny', 'ask'),
+    # The configuration files of the quality gates (DEC-152 (5)).
+    ({'command': 'echo {} > .jscpd.json'}, 'deny', 'ask'),
+    ({'command': 'cp x .markdownlint-cli2.jsonc'}, 'deny', 'ask'),
+    ({'command': 'rm lychee.toml'}, 'deny', 'ask'),
+    ({'command': 'cd web && echo {} > knip.json'}, 'deny', 'ask'),
+    ({'command': 'Set-Content -Path web/stryker.config.json -Value 1'}, 'deny', 'ask'),
+    ({'command': 'cp x api/stryker-config.json'}, 'deny', 'ask'),
+    ({'command': 'cat web/knip.json lychee.toml'}, 'allow', 'allow'),
+    ({'command': 'cp x web/my-knip.json'}, 'allow', 'allow'),
     # A level B target in any part denies the command unattended, before a level A target could allow it.
     ({'command': 'cp a docs/blueprint/x && cp b .claude/settings.json'}, 'deny', 'ask'),
     # blueprint_apply.py writes the workbook without naming it (level A); its other arguments are still judged.
@@ -132,6 +141,12 @@ CASES = [
     ({'file_path': str(REPO / 'tools' / 'feature_context.py')}, 'deny', 'ask'),
     ({'file_path': str(REPO / '.github' / 'pull_request_template.md')}, 'deny', 'ask'),
     ({'file_path': str(REPO / '.cz.toml')}, 'deny', 'ask'),
+    ({'file_path': str(REPO / '.jscpd.json')}, 'deny', 'ask'),
+    ({'file_path': str(REPO / '.markdownlint-cli2.jsonc')}, 'deny', 'ask'),
+    ({'file_path': str(REPO / 'lychee.toml')}, 'deny', 'ask'),
+    ({'file_path': str(REPO / 'web' / 'knip.json')}, 'deny', 'ask'),
+    ({'file_path': str(REPO / 'web' / 'stryker.config.json')}, 'deny', 'ask'),
+    ({'file_path': str(REPO / 'api' / 'stryker-config.json')}, 'deny', 'ask'),
     ({'file_path': str(REPO / 'docs' / 'AUTOMATION.md')}, 'allow', 'allow'),
     ({'file_path': str(REPO / 'CLAUDE.md')}, 'allow', 'allow'),
     ({'file_path': str(REPO / 'docs' / 'blueprint' / 'features.md')}, 'allow', 'ask'),

@@ -485,6 +485,15 @@ class WebGateTests(GitRepositoryTestCase):
         self.assertEqual(code, 0, out)
         self.assertEqual(self.notices(out), sorted(paths))
 
+    def test_the_gate_configuration_files_of_dec_152_are_owner_paths(self):
+        paths = ['.jscpd.json', '.markdownlint-cli2.jsonc', 'lychee.toml', 'web/knip.json', 'web/stryker.config.json',
+                 'api/stryker-config.json']
+        files = {path: '{}\n' for path in paths}
+        files['README.md'] = '# ZenGear\n'
+        code, out = self.check(files)
+        self.assertEqual(code, 0, out)
+        self.assertEqual(self.notices(out), sorted(paths))
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -437,18 +437,23 @@ class RoadmapTests(unittest.TestCase):
 
 class NextTests(unittest.TestCase):
     def test_order_of_dec_148_7(self):
+        owner = 'taitt0600'
         open_issues = [
-            {'number': 31, 'title': 'AUT-04: locked account', 'type': 'Bug', 'fields': {}},
-            {'number': 40, 'title': 'STF-09 Approve staff', 'type': 'Feature',
+            {'number': 31, 'title': 'AUT-04: locked account', 'author': owner, 'type': 'Bug', 'fields': {}},
+            {'number': 40, 'title': 'STF-09 Approve staff', 'author': owner, 'type': 'Feature',
              'fields': {'Feature ID': 'STF-09', 'Start date': '2026-11-10'}},
-            {'number': 41, 'title': 'Storefront rate limit', 'type': 'Task', 'fields': {'Trigger': 'storefront deploy'}},
-            {'number': 42, 'title': 'STF-13 Activity', 'type': 'Feature', 'fields': {'Feature ID': 'STF-13'}},
+            {'number': 41, 'title': 'Storefront rate limit', 'author': owner, 'type': 'Task',
+             'fields': {'Trigger': 'storefront deploy'}},
+            {'number': 42, 'title': 'STF-13 Activity', 'author': owner, 'type': 'Feature',
+             'fields': {'Feature ID': 'STF-13'}},
         ]
 
         class Fake:
             def pulls(self):
-                return [{'number': 70, 'title': 'feat(api): x (STF-15)', 'draft': False, 'body': 'Closes #50'},
-                        {'number': 71, 'title': 'feat(api): y (STF-11)', 'draft': True, 'body': ''}]
+                return [{'number': 70, 'title': 'feat(api): x (STF-15)', 'draft': False, 'body': 'Closes #50',
+                         'user': {'login': owner}},
+                        {'number': 71, 'title': 'feat(api): y (STF-11)', 'draft': True, 'body': '',
+                         'user': {'login': owner}}]
 
             def open_issues(self):
                 return open_issues
@@ -467,6 +472,61 @@ class NextTests(unittest.TestCase):
         order = [text.index(marker) for marker in ('#70', '#71', '#31', '#40', '#42', '#41')]
         self.assertEqual(order, sorted(order), text)
         self.assertIn('not ready', text)
+
+    def test_only_the_owner_and_dependabot_items_dec_152_6(self):
+        open_issues = [
+            {'number': 31, 'title': 'AUT-04: owner bug', 'author': 'taitt0600', 'type': 'Bug', 'fields': {}},
+            {'number': 32, 'title': 'AUT-04: stranger bug', 'author': 'someone', 'type': 'Bug', 'fields': {}},
+            {'number': 33, 'title': 'Stranger task', 'author': 'someone', 'type': 'Task', 'fields': {'Trigger': 'x'}},
+            {'number': 34, 'title': 'Ghost task', 'author': None, 'type': 'Task', 'fields': {'Trigger': 'y'}},
+            {'number': 35, 'title': 'STF-09 Approve', 'author': 'taitt0600', 'type': 'Feature',
+             'fields': {'Feature ID': 'STF-09', 'Start date': '2026-11-10'}},
+        ]
+
+        class Fake:
+            def pulls(self):
+                return [{'number': 70, 'title': 'owner pr', 'draft': False, 'body': '', 'user': {'login': 'taitt0600'}},
+                        {'number': 71, 'title': 'bump x', 'draft': False, 'body': '',
+                         'user': {'login': 'dependabot[bot]'}},
+                        {'number': 72, 'title': 'fork pr', 'draft': False, 'body': 'Closes #35',
+                         'user': {'login': 'someone'}},
+                        {'number': 73, 'title': 'fork draft', 'draft': True, 'body': '', 'user': None}]
+
+            def open_issues(self):
+                return open_issues
+
+            def has_handoff(self, number):
+                return number == 35
+
+            def roadmap(self):
+                return [33, 31]
+
+            def open_blockers(self, number):
+                return []
+
+        text = '\n'.join(issue.next_work(Fake(), ready=lambda fid: True))
+        # A stranger's "Closes #35" does not hide the owner's started issue with a handoff.
+        for shown in ('#70', '#71', 'Bug #31', 'Roadmap #31', '4. #35'):
+            self.assertIn(shown, text)
+        for hidden in ('#72', '#73', '#32', '#33', '#34'):
+            self.assertNotIn(hidden, text)
+
+    def test_a_handoff_counts_only_from_the_owner(self):
+        body = ct.handoff('STF-09', 9)
+        gh = FakeGitHub(comments={40: [{'body': body, 'user': {'login': 'taitt0600'}}],
+                                  41: [{'body': body, 'user': {'login': 'someone'}}, {'body': body, 'user': None}]})
+        reader = issue.Reader(gh)
+        self.assertTrue(reader.has_handoff(40))
+        self.assertFalse(reader.has_handoff(41))
+
+    def test_open_issues_carry_their_author(self):
+        node = {'number': 5, 'title': 'x', 'author': {'login': 'someone'}, 'issueType': None,
+                'labels': {'nodes': []}, 'issueFieldValues': {'nodes': []}}
+        ghost = dict(node, number=6, author=None)
+        page = {'repository': {'issues': {'pageInfo': {'hasNextPage': False, 'endCursor': None},
+                                          'nodes': [node, ghost]}}}
+        issues = issue.Reader(FakeGitHub(graphql={'issues(states:OPEN': page})).open_issues()
+        self.assertEqual([(i['number'], i['author']) for i in issues], [(5, 'someone'), (6, None)])
 
     def test_unreadable_github_says_so(self):
         class Broken:

@@ -13,7 +13,8 @@
 # Levels of DEC-149: level A (the specification: api/db/, docs/blueprint/, docs/DATABASE.md, the workbook, running
 # tools/blueprint_apply.py, and running tools/export_blueprint.py into docs/blueprint) is asked locally and allowed in an unattended cloud session
 # (CLAUDE_CODE_REMOTE=true), whose pull request the owner merges; level B (all of .claude/, .github/, .githooks/,
-# tools/, .mcp.json, .gitleaks.toml, .cz.toml, docs/ARCHITECTURE.md, the architecture tests) is asked locally and
+# tools/, .mcp.json, .gitleaks.toml, .cz.toml, docs/ARCHITECTURE.md, the architecture tests, the configuration files of
+# the quality gates of DEC-152 (5)) is asked locally and
 # denied unattended, whatever else the command does; build files are asked locally and left to the CI gates
 # (tools/pr_gates.py) unattended. The rest of docs/ is not asked.
 # A guardrail, not a security boundary: the CI gates and branch protection decide what reaches main.
@@ -55,8 +56,11 @@ $protectedPrefixes = @(
     'docs/product-domain-blueprint-MVP.xlsx'
 )
 
+# The configuration files of the quality gates (DEC-152 (5)) judge changes too.
+$gateFiles = @('.jscpd.json', '.markdownlint-cli2.jsonc', 'lychee.toml', 'web/knip.json', 'web/stryker.config.json',
+    'api/stryker-config.json')
 $codePrefixes = @('.claude/', '.githooks/', '.github/', '.gitleaks.toml', '.mcp.json', '.cz.toml', 'tools/',
-    'api/tests/ZenGear.ArchitectureTests/', 'docs/ARCHITECTURE.md')
+    'api/tests/ZenGear.ArchitectureTests/', 'docs/ARCHITECTURE.md') + $gateFiles
 $codeSuffixes = @('.csproj', '.props', '.targets')
 
 # File tools: compare the path relative to the repository root, with forward slashes, after resolving
@@ -114,7 +118,7 @@ if ($command) {
     $mentionsSpec = '(api[\\/]+db[\\/]|(^|[\s''"=])db[\\/]+zengear_|docs[\\/]+blueprint\b|DATABASE\.md|product-domain-blueprint-MVP\.xlsx|(?<![\w-])blueprint_apply\b)'
     $canWrite = '(>(?!>?\s*(&|/dev/null\b|\$null\b))|\btee\b|\bsed\b[^|;&]*\s-i|\bperl\b[^|;&]*\s-i|(^|[;&|(]\s*|\b(do|then|else|xargs|sudo|exec|env)\s+)(cp|mv|rm|ln|truncate|touch|dd|install|unzip|tar|py(?=\s))\b|\bmklink\b|\bgit\s+(checkout|restore|apply|mv|rm|reset|stash)\b|Out-File|Set-Content|Add-Content|Remove-Item|Move-Item|Copy-Item|New-Item|Rename-Item|\bpython\d*\b|\bnode\b|\bpwsh\b|\bpowershell\b)'
     # All of tools/ but the two writers of the specification above, which are level A.
-    $mentionsTooling = '(\.(claude|githooks|github)(?=[\\/\s''"]|$)|\.gitleaks\.toml|\.mcp\.json|\.cz\.toml|(?<![\w.-])(?<!(?<![\w.-])out[\\/])tools[\\/]+|(?<![\w.-])(pr_gates\.py|github_pr\.py|schema_snapshot\.sql|schema_compare\.py|message_keys\.py)|ZenGear\.ArchitectureTests[\\/]|ARCHITECTURE\.md)'
+    $mentionsTooling = '(\.(claude|githooks|github)(?=[\\/\s''"]|$)|\.gitleaks\.toml|\.mcp\.json|\.cz\.toml|\.jscpd\.json|\.markdownlint-cli2\.jsonc|(?<![\w.-])lychee\.toml|(?<![\w.-])knip\.json|(?<![\w.-])stryker[.-]config\.json|(?<![\w.-])(?<!(?<![\w.-])out[\\/])tools[\\/]+|(?<![\w.-])(pr_gates\.py|github_pr\.py|schema_snapshot\.sql|schema_compare\.py|message_keys\.py)|ZenGear\.ArchitectureTests[\\/]|ARCHITECTURE\.md)'
     $mentionsGenerated = 'web[\\/]+src[\\/]+lib[\\/]+api[\\/]+generated\b'
     $mentionsBuild = '\.(csproj|props|targets)\b'
     # The first target of each kind; asked in the order spec, tooling, generated, build once every part is judged.
