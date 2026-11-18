@@ -202,7 +202,7 @@ A 400 on a value of the URL means the URL was edited by hand: the list falls bac
     `staff-job-dialog.tsx` take the action `withdraw` (its title, description, list, submit, progress and result
     texts above); `../hooks/use-staff-job.ts` sends `items` of the selected withdrawable rows' `{id, version}`.
 - **Builds**: the screen exists in `web/`, so each feature's run builds its part of this Layout in its `feat` pull
-  request, in the order of the plan (`CLAUDE.md`, *Work state*): STF-09 the status links, the tab Chờ duyệt, the column Email moved under
+  request, in the order of the plan (`AGENTS.md`, *Work state*): STF-09 the status links, the tab Chờ duyệt, the column Email moved under
   the name, the badge Chờ duyệt and the PENDING items of the row menu; STF-06 the search over the API, the filters, the
   chips, the column Đăng nhập gần nhất, "Chưa đổi mật khẩu", the page size and the numbered pages; STF-07 the checkbox
   column, the bar with "Khóa" and "Khôi phục", the progress and the result; STF-08 "Xuất CSV", "Xuất {count}" and the

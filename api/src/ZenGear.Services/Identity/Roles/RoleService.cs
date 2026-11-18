@@ -126,7 +126,7 @@ public sealed class RoleService(
         }
 
         // The fifth copy of this check (BusinessLocationService, CurrentUserService, BrandService, ProductSeriesService),
-        // kept until the Decision planned "before PRD-01" (2) (CLAUDE.md, Work state) gives it a shared place.
+        // kept until the Decision planned "before PRD-01" (2) (AGENTS.md, Work state) gives it a shared place.
         if (expectedVersion is { } expected)
         {
             // A role with nothing to change issues no UPDATE, so the stored version is compared here as well as on save.

@@ -6,7 +6,7 @@ import { contentSecurityPolicy, securityHeaders } from './src/lib/security-heade
 const production = process.env.NODE_ENV === 'production'
 
 const nextConfig: NextConfig = {
-  // next dev would write and restore an AGENTS.md when it detects a coding agent; web/CLAUDE.md holds the rules.
+  // next dev would write and restore its own AGENTS.md when it detects a coding agent; web/AGENTS.md holds the rules.
   agentRules: false,
   // Read when the app builds or serves, not when next typegen loads this file.
   async headers() {

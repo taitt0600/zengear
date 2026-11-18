@@ -76,7 +76,7 @@ const TEXT_SELECTORS = [
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
-  // Every text the user sees goes through next-intl, in the shadcn components too (web/CLAUDE.md, DEC-104 (6),
+  // Every text the user sees goes through next-intl, in the shadcn components too (web/AGENTS.md, DEC-104 (6),
   // DEC-116 (2)); tests write the texts they expect.
   {
     files: ['src/**/*.tsx'],

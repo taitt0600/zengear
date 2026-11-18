@@ -25,7 +25,7 @@ export function createQueryClient(): QueryClient {
   })
 }
 
-/** Server state lives in TanStack Query (web/CLAUDE.md); one client per browser session. */
+/** Server state lives in TanStack Query (web/AGENTS.md); one client per browser session. */
 export function QueryProvider({ children }: { children: ReactNode }) {
   const [client] = useState(createQueryClient)
   return <QueryClientProvider client={client}>{children}</QueryClientProvider>

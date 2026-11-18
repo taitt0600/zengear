@@ -30,7 +30,7 @@ Decision: DEC-106, amended by DEC-107.
 > | Pull request (DEC-106, Consequences) | Brings |
 > |---|---|
 > | 1. Documentation | this guide |
-> | 2. Owner path | `docs/ARCHITECTURE.md`, `api/CLAUDE.md`, the architecture tests, the review questions in `plan-reviewer` and `code-reviewer`, step 7 of `/implement-feature`, `tools/structure_metrics.py` at module level |
+> | 2. Owner path | `docs/ARCHITECTURE.md`, the rules of the API area (now `api/AGENTS.md`), the architecture tests, the review questions in `plan-reviewer` and `code-reviewer`, step 7 of `/implement-feature`, `tools/structure_metrics.py` at module level |
 > | 3. Refactor A | `<Area>/<Module>/` folders and namespaces (`git mv`), area `Locations`, the README of each area |
 > | 4. Refactor B | `/api/v1/admin/` and `/api/v1/shop/` added by a convention, `[ShopEndpoint]` (the fallback policy was already in place), `*Public*` renamed `*Shop*`, the admin list of business locations, `IUserAccessReader` without its interface, the comments that copied the specification cut, `docs/API_CONVENTIONS.md` (URLs, Authentication) |
 >
@@ -162,7 +162,7 @@ STF-05 (the staff list); paths are those of section 5.
    - The entity in `ZenGear.Data/Entities/<Area>/`, its configuration in `Configurations/<Area>/`; a rule on one
      entity is a method of the entity.
    - In `api/`: `dotnet ef migrations add <Name> -p src/ZenGear.Data -s src/ZenGear.Api`, then the schema comparison
-     of `api/CLAUDE.md` (the CI job `schema` runs it too).
+     of `api/AGENTS.md` (the CI job `schema` runs it too).
 4. **Tests first**, named after the rule they prove:
    - unit tests of validators and entity methods in `ZenGear.Services.Tests/<Area>/<Module>/`;
    - endpoint, transaction and constraint tests in `ZenGear.Api.IntegrationTests/<Area>/<Module>/`, deriving from
