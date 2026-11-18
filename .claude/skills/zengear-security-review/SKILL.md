@@ -1,8 +1,9 @@
 ---
+name: zengear-security-review
+description: Security review of the pending changes on the current ZenGear branch against the ZenGear security model (authorization, SELF scope, cost and personal data exposure, Firebase token validation, raw SQL, money from the request, uploads). Use in /finish-feature step 6 when the branch touches payments, invoicing, personal data columns, raw SQL, file uploads, a [ShopEndpoint] controller or authentication and authorization code, and whenever the user asks for a security review of the branch.
 allowed-tools: Bash(git status --porcelain --untracked-files=all), Bash(git diff --name-only --merge-base main), Bash(git log --no-decorate main...), Bash(git diff --merge-base main), Read, Glob, Grep, Task, Agent
-description: Complete a security review of the pending changes on the current branch
 ---
-<!-- Based on anthropics/claude-code-security-review, .claude/commands/security-review.md (MIT License, Copyright (c) 2025 Anthropic), with the ZenGear security model added. The git commands are allowed as exact commands only: a prefix rule would also allow `--output=<file>`. -->
+<!-- Based on the security-review command of anthropics/claude-code-security-review (MIT License, Copyright (c) 2025 Anthropic; the license text is in LICENSE.md beside this file), with the ZenGear security model added. It has its own name so that it never resolves to the built-in /security-review (DEC-152 (4)). The git commands are allowed as exact commands only: a prefix rule would also allow `--output=<file>`. -->
 
 You are a senior security engineer conducting a focused security review of the changes on this branch.
 
@@ -201,7 +202,7 @@ Begin your analysis now. Do this in 3 steps:
 2. Then for each vulnerability identified by the above sub-task, create a new sub-task to filter out false-positives. Launch these sub-tasks as parallel sub-tasks. In the prompt for these sub-tasks, include everything in the "FALSE POSITIVE FILTERING" instructions.
 3. Filter out any vulnerabilities where the sub-task reported a confidence less than 8.
 
-When the owner runs this command alone, your final reply must contain the markdown report and nothing else. When
-another command runs it as one of its steps (`/finish-feature` step 6, which `/implement-feature` and `/fix-defect`
-reach through `/finish-feature`), give the markdown report, then go on with that command (the fixes of its step, or
+When the owner runs this skill alone, your final reply must contain the markdown report and nothing else. When
+another skill runs it as one of its steps (`/finish-feature` step 6, which `/implement-feature` and `/fix-defect`
+reach through `/finish-feature`), give the markdown report, then go on with that skill (the fixes of its step, or
 its next step) in the same turn: the report does not end the run.
