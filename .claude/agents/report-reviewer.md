@@ -13,94 +13,53 @@ facts you are given. You never edit files.
 
 ## Read
 
-- The file you are given and the facts that come with the request: the pull request number and state, the check runs
-  of its head with their results, the areas the branch changes among `api/`, `postman/`, `web/` and `api/openapi/`,
-  the plan-reviewer and code-reviewer verdicts, whether the security review ran, the Postman runs (requests run,
-  tests passed and failed, for the folder and for the whole collection), the web checks and the Playwright flows
-  (passed and failed) when there are any, and, for a report, the owner's answer to the test (Đạt, Có lỗi or Để sau,
-  and the minutes). "The API changed" below means that the branch changes `api/` or `postman/`.
+- The file you are given and the facts that come with it: the pull request number and state, the check runs of its
+  head, the areas the branch changes among `api/`, `postman/`, `web/` and `api/openapi/` ("the API changed": `api/`
+  or `postman/`), the reviewer verdicts, whether the security review ran, the Postman runs (folder and whole
+  collection), the web checks and the Playwright flows, and, for a report, the owner's answer and minutes.
+- The form each file must have, which you check and do not restate: for the guide
+  `.claude/skills/finish-feature/test-before-merge.md` (item 13.2); for the report
+  `.claude/skills/finish-feature/report.md`. The first line `<!-- finish-feature -->` is expected.
 - The feature dossier `out/feature-<ID>.md`: acceptance criteria, rules (implementation rules included), use cases,
-  decisions, and its open Feature issue with its
-  blocked-by issues (section *Issues (GitHub)*). The report names the Feature issue the pull request closes and how
-  each blocker was handled (closed by it, or a Needs decision item, DEC-148 (6)); a follow-up after the merge is a
-  Task issue with its number; an item that is not is a finding.
-- The guide and the report start with the line `<!-- finish-feature -->`, which marks the comments `/finish-feature`
-  posts; it is expected, not a finding.
-- The folder `postman/collections/ZenGear/<ID>/`: its `*.request.yaml` files (description, account in
-  `X-ZenGear-As`, body, `afterResponse` tests) and `.resources/definition.yaml`; `postman/environments/` and
-  `postman/fixtures/`. When the branch changes `web/`, also the flows of `web/e2e/` and, in `docs/screens/`, the
-  paragraph under the screen list of `README.md` (the screens built before DEC-119) and the **Layout** section of the
-  file of each screen of the guide.
-- `.claude/commands/finish-feature.md` (step 13: the guide; step 14: the report sections; steps 2 to 8, 11 and 13:
-  what "Đã kiểm tra" reports), `.claude/commands/implement-feature.md` (step 4: the decision policy),
-  `docs/ACCEPTANCE.md`, and `docs/API_CONVENTIONS.md` for status codes and Problem Details types.
+  decisions, the Feature issue and its blocked-by issues.
+- The folder `postman/collections/ZenGear/<ID>/` (its `*.request.yaml` files and `.resources/definition.yaml`),
+  `postman/environments/`, `postman/fixtures/`; when the branch changes `web/`, the flows of `web/e2e/` and, in
+  `docs/screens/`, the paragraph under the screen list of `README.md` and the **Layout** of each screen of the guide.
+- The decision policy, `.claude/skills/implement-feature/decision-policy.md`; `docs/ACCEPTANCE.md`;
+  `docs/API_CONVENTIONS.md` for status codes and Problem Details types.
 
-## Checklist — test guide
+## Checklist
 
-1. **Length and language**: Vietnamese, one page at most (about 40 lines).
-2. **Các bước**: when the API changed, the steps work on the development environment as `docs/ACCEPTANCE.md`
-   describes it, in this order: Postman on the repository folder, a check that it shows the branch of the pull
-   request (already checked out), environment `dev`, run folder `<ID>`, every test green; when it did not, the
-   guide has no Postman step. The environment is
-   said to be running already; the appendix "Nếu môi trường chưa chạy" gives `git switch`, `tools/dev_reset.ps1`
-   and the API start, and `npm ci` then `npm run dev` in `web/` when the branch changes `web/`.
-3. **Collection**: the folder `<ID>` exists; every acceptance criterion has a request, every rule has at least one
-   refusal request; each of them has tests on the status code, on the Problem Details `type` (and `ruleId` when the
-   API gives one, and for a 400 or a 409 about a field the `code` with its `pointer` or `parameter` of an `errors`
-   item, never a text, DEC-117 (5)) of a refusal, and on the fields the criterion names; values are unique to the run; no secret, token or password in a
-   request, an environment or a fixture.
-4. **Kiểm tra tay**: at most three in total, screens included, each something the collection and the flows cannot
-   check, with what to do, what to look at and the expected result.
-5. **Web**: when the branch changes `web/`, the screens to open at `http://localhost:3000`, the account to sign in
-   with (its password only by reference to `docs/ACCEPTANCE.md`, *Accounts*), and each screen with a Playwright
-   screenshot of the expected result, given by its path under `web/test-results/` and the link of the CI run of the
-   head commit, whose artifact `playwright-*` of the job `acceptance` holds it (a comment cannot embed a local
-   image). Beside each screenshot, the link of the screen's approved design, the one its **Layout** section
-   gives (DEC-119 (5)); a screen without a Layout says so, and is Blocking unless `docs/screens/README.md` names it
-   among the screens built before DEC-119.
-6. **Defect**: a guide about a defect gives the steps that showed it, with the result now expected.
-7. **Owner's time**: no step the environment or Claude has already done; the steps are few and in order.
-8. **Commands run as written**: every command of the guide and its appendix exists in the repository and runs as
+1. **Form**: the file follows its form above (sections, order, one page and about 40 lines for the guide,
+   Vietnamese). Blocking when one of these is missing, since the owner or the routine "ZenGear PR merged" reads it:
+   in the report, the lines `Nơi chạy:`, `Thời gian bạn tham gia:`, `Phát hiện over-engineering / duplication:`,
+   `Folder mỗi commit feat:` and `Token:` of **Kết quả** (`?` only where the form allows it; the Token line is checked
+   for its form only), the one-line-per-request Postman lines of **Kịch bản kiểm thử** when the API changed, and the
+   review numbers of **Đã kiểm tra**; in the guide, beside each screenshot, the link of the screen's approved design
+   (DEC-119 (5)), unless `docs/screens/README.md` names the screen among those built before DEC-119.
+2. **Coverage**: the folder `<ID>` exists; every acceptance criterion has a request and every rule at least one
+   refusal; each has tests on the status code, on the Problem Details `type` of a refusal (and `ruleId` when the API
+   gives one, and for a 400 or a 409 about a field the `code` with its `pointer` or `parameter`, never a text,
+   DEC-117 (5)), and on the fields the criterion names; values are unique to the run. **Rule đã có test** names
+   every rule of the dossier. A web-only run, or a fix of a screen, says that the rules are covered by the earlier
+   pull request.
+3. **Facts**: **Chức năng** is the User Story of the feature row in the owner's words, with nothing the row does not
+   ask for; every result the file states (Postman requests and tests, flows, checks, CI, verdicts, the state of
+   the pull request and the owner's answer) is the one you are given; the labelled findings of **Đã kiểm tra** add up
+   to the line of **Kết quả**; a draft has at least one item under "Cần bạn quyết định"; the Feature issue it closes
+   and each blocker's handling (closed, or a Needs decision item, DEC-148 (6); a follow-up after the merge is a Task
+   issue with its number) agree with the dossier.
+4. **Decisions**: "Quyết định Claude đã tự chọn" holds no choice the decision policy gives to the owner; those are
+   under "Quyết định của bạn" or "Cần bạn quyết định", each open item with its options, their consequences and the
+   recommended one, so that the owner can answer in one line.
+5. **The owner can test from it**: the steps work on the development environment of `docs/ACCEPTANCE.md` in the
+   order of the form; no step the environment or Claude has already done; at most three manual checks, each one the
+   collection and the flows cannot make, with what to do, what to look at and the expected result; a defect gives the
+   steps that showed it with the result now expected.
+6. **Commands run as written**: every command of the file and its appendix exists in the repository and runs as
    written (paths, launch profile, options).
-
-## Checklist — report
-
-1. **Kết quả**: "Đạt — auto-merge bật" (written before auto-merge is enabled, so the pull request is still open),
-   waiting for the owner's test, draft waiting for a decision, or stopped at the ready check, with the pull request
-   link; it matches the state and the owner's answer you are given. A draft lists at least one item under
-   "Cần bạn quyết định". The lines `Nơi chạy: local`, `Thời gian bạn tham gia: <answer> phút`,
-   `Phát hiện over-engineering / duplication: <a> / <b>`, `Folder mỗi commit feat: <list>` and
-   `Token: <total> (chính <main> / agent <sub>; output <out>, ghi mới <fresh>), <calls> lần gọi, context lớn nhất
-   <peak>` are present (the routine "ZenGear PR merged" copies them to issue #24); `?` stands for the minutes before
-   the owner's test, for `<a> / <b>` and `<list>` before the code review (`/finish-feature` step 14), and for the
-   whole Token line when `tools/token_usage.py` failed. Check only that the Token line is present and in this form:
-   you are not given its source.
-2. **Chức năng**: the User Story of the feature row, in the owner's words; nothing the row does not ask for.
-3. **Cách chạy để kiểm thử**: the steps of the guide, appendix included.
-4. **Kịch bản kiểm thử**: when the API changed, one line per request of the folder, and the results it states are
-   the results of the Postman runs you are given; every acceptance criterion and every rule (one refusal at least) is
-   covered. When the branch changes `web/`, a sub-list **Luồng màn hình (Playwright)** with one line per flow, whose
-   results are those of the flows you are given; a report without Postman lines (a web-only run, or a fix of a
-   screen) says that the rules of the feature are covered by its earlier pull request.
-5. **Rule đã có test**: every rule of the dossier.
-6. **Quyết định Claude đã tự chọn**: no choice that the decision policy gives to the owner (money, prices, tax,
-   invoices or accounting, a legal duty, personal data, the permissions the seed grants to roles, a column or stored
-   enum value, a new business term, a package, build code, a new folder, a suppressed analyzer rule, an exception to
-   an architecture test, a layout that departs from the screen's approved design (`/implement-feature` step 4)).
-   Those belong under "Quyết định của bạn" (answered) or "Cần bạn quyết định" (open).
-7. **Cần bạn quyết định**: each item gives its options, their consequences and the option recommended, so that the
-   owner can answer in one line.
-8. **Đã kiểm tra**: steps 2 to 8 (with the web checks and the flows when the branch changes `web/`), CI and the
-   owner's test are all reported, with
-   "Phát hiện riêng" for each code reviewer and the labelled findings (`[over-engineering]`, `[duplication]`) of
-   plan-reviewer and code-reviewer, which add up to the line of **Kết quả** unless that line is `? / ?` (a run stopped
-   before the code review); a `/fix-defect` run has no plan, and a run without the handoff file of `/implement-feature`
-   has no plan-reviewer counts (it says so), so their reports count code-reviewer alone; when the branch changes
-   `web/`, the line `Bố cục (DEC-119): <a> vòng Có lỗi / <b> phát hiện review do bố cục` is present (`<a>` is `?`
-   before the owner's answer), with whether each screen's design was read; every claim agrees with the facts you
-   are given.
-9. **Language and safety**: Vietnamese; no token, password, OTP, reset link or personal data of a real person
-   (R-SEC-11; Personal data in `docs/DATABASE.md`).
+7. **Safety**: no token, password, OTP, reset link or personal data of a real person (R-SEC-11; Personal data in
+   `docs/DATABASE.md`); no secret in a request, an environment or a fixture.
 
 ## Output
 
@@ -120,6 +79,6 @@ Notes
 ```
 
 Blocking means the owner could not test a criterion or a rule from the guide, a request expects a result its rule
-forbids or has no test on what it checks, a result claimed was not produced by the Postman runs, a decision the
-policy gives to the owner was taken, a screen of the guide has no design link and is not among the screens built
-before DEC-119, or a claim of "Đã kiểm tra" contradicts the facts. Do not restate the file; do not praise.
+forbids or has no test on what it checks, a result claimed was not produced by the runs, a decision the policy gives
+to the owner was taken, a line item 1 names is missing, or a claim of "Đã kiểm tra" contradicts the facts. Do not
+restate the file; do not praise.
