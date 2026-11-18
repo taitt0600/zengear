@@ -1,6 +1,6 @@
 # PreToolUse hook: ask the user before Claude Code changes the specification, a file that runs code or a
 # check that judges the changes.
-# The specification changes only with an approved Decision (CLAUDE.md, "Rules for every change").
+# The specification changes only with an approved Decision (AGENTS.md, "Rules for every change").
 # Build files, hooks, Claude Code settings, MCP server configuration (.mcp.json) and CI workflows run code
 # without a further prompt (at the next build, commit, session start, stop or push), so an edit to them is
 # confirmed even when edits are accepted automatically.

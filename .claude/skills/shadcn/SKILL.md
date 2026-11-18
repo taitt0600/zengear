@@ -65,7 +65,7 @@ ZenGear rules, DEC-116, DEC-111 (2), (5). Where this file or the files it links 
     picker, with the locale `vi` of `date-fns/locale`); a date shown anywhere else stays `Intl.DateTimeFormat` in
     Asia/Ho_Chi_Minh, and the time zones of date-fns are not used.
 - The rest (theming in `web/src/app/globals.css` and `web/components.json`, `lucide-react` icons, next-intl for
-  every text) is in `web/CLAUDE.md`.
+  every text) is in `web/AGENTS.md`.
 
 ## Source
 

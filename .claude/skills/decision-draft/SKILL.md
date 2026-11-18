@@ -7,7 +7,7 @@ allowed-tools: Read, Grep, Glob, Edit(out/*.patch.json), Bash(grep *), Bash(git 
 Draft a Decision for: $ARGUMENTS
 
 Drafts only: change no tracked file and commit nothing; the one file written is the untracked patch of step 6
-(`out/` is git-ignored). The specification changes only in the workbook, by the owner (CLAUDE.md, Rules for every
+(`out/` is git-ignored). The specification changes only in the workbook, by the owner (AGENTS.md, Rules for every
 change), who applies the patch with `tools/blueprint_apply.py` in their own terminal; never run that tool. Answer
 in Vietnamese; every cell of the row is in Vietnamese, in the style of the rows of `docs/blueprint/decisions.md`.
 
@@ -25,7 +25,7 @@ in Vietnamese; every cell of the row is in Vietnamese, in the style of the rows 
 4. **The row**, as a table with the columns of the sheet:
    Decision ID | Topic | Context | Decision | Consequences | Source | Phase | Status
    - Topic: at most about eight words. Context: the problem, the constraints and the options compared on performance,
-     scalability (at the scale of the specification), security and reliability (`CLAUDE.md`, *Recommendations,
+     scalability (at the scale of the specification), security and reliability (`AGENTS.md`, *Recommendations,
      designs and requests*), with the facts behind them. Decision: what is chosen, stated so that code and tests can
      follow it, ending with "Không chọn: …" for each rejected option, why, and which of the four it loses. A
      shortcut or a temporary patch is never the recommended option, and is neither offered nor chosen unless the
@@ -39,7 +39,7 @@ in Vietnamese; every cell of the row is in Vietnamese, in the style of the rows 
 5. **Rows that change with it**: for each feature or rule, its ID, the column, the current text and the new text; a
    new rule as a full row of `docs/blueprint/business-rules.md`:
    Rule ID | Rule | Type | Static/Dynamic | Enforced At | Source | Features | Tables | Phase.
-   Then, as a separate list marked **not in the patch**, the work items the Decision settles or creates (CLAUDE.md,
+   Then, as a separate list marked **not in the patch**, the work items the Decision settles or creates (AGENTS.md,
    *Work state*; DEC-148): the issues to close (number and title; a Feature issue is never closed this way, it closes
    with its `feat` pull request), the issues to create (Issue type, title, form and its fields, labels, the fields
    Priority, Feature ID and Trigger, and each blocked-by relation, for a trigger "before <Feature ID>"); the Task
@@ -59,7 +59,7 @@ in Vietnamese; every cell of the row is in Vietnamese, in the style of the rows 
    - In `new` and in new rows, a line break of the cell is `\n`: the lines of Acceptance Criteria are joined by `\n`.
    - Locally, write it to `out/dec-0xx.patch.json`. In a cloud session, send it as a file when the session can attach
      one, otherwise as a fenced `json` block that the owner saves as `out/dec-0xx.patch.json`.
-7. **Commit message**, Conventional Commits as in `CLAUDE.md`, in the style of the commit that recorded DEC-096
+7. **Commit message**, Conventional Commits as in `AGENTS.md`, in the style of the commit that recorded DEC-096
    (`git log --grep "DEC-096" -1 --format=%B`): subject `docs: record DEC-0xx for <topic>`, body wrapped at 72
    characters, footer `Refs: DEC-0xx` followed by the features and rules it changes.
 8. **The owner's steps**, numbered, each with its check:

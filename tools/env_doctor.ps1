@@ -1,5 +1,5 @@
 # Read-only check of the local environment: Docker, the SDK, the services of api/docker-compose.yml, the
-# database set-up of api/CLAUDE.md ("Local database"), the user-secrets and the running API.
+# database set-up of api/AGENTS.md ("Local database"), the user-secrets and the running API.
 # Usage, from anywhere: pwsh -NoProfile -File tools/env_doctor.ps1 [-Json]
 # Prints one row per check (PASS, WARN, FAIL or SKIP) with the fix to try; exit code 1 when a check fails.
 # Changes nothing. Never prints a secret: user-secrets are reported by key name only; the only value compared is
@@ -68,7 +68,7 @@ if ($emulator) {
         'The acceptance compose is for CI only and holds 9099/4000: `docker compose -p zengear-acceptance down -v`, then start the dev services.' 'WARN'
 }
 
-# 3. Database set-up, in the order of api/CLAUDE.md ("Local database").
+# 3. Database set-up, in the order of api/AGENTS.md ("Local database").
 $postgres = if ($dockerUp) { Get-PortContainer 5432 } else { $null }
 if (-not $postgres) {
     Add-Result 'Database checks' 'SKIP' 'No running container publishes port 5432 (a PostgreSQL outside Docker is not checked).'
@@ -103,7 +103,7 @@ foreach ($key in 'ConnectionStrings:ZenGear', 'ConnectionStrings:ZenGearMigratio
     # Without Redis every request reads PostgreSQL: slower, still correct (R-SEC-07).
     $level = if ($k -eq 'ConnectionStrings:Redis') { 'WARN' } else { 'FAIL' }
     Check "Secret $k is set" { $keys -contains $k } `
-        "dotnet user-secrets set `"$k`" `"<value>`" --project api/src/ZenGear.Api (api/CLAUDE.md, Local database)." $level
+        "dotnet user-secrets set `"$k`" `"<value>`" --project api/src/ZenGear.Api (api/AGENTS.md, Local database)." $level
 }
 $redisLine = $secretLines | Where-Object { ($_ -split ' = ', 2)[0].Trim() -eq 'ConnectionStrings:Redis' } | Select-Object -First 1
 if ($redisLine) {
@@ -113,7 +113,7 @@ if ($redisLine) {
         Select-Object -First 1)
     $redisHost = if ($endpoint) { ($endpoint -split ':')[0] } else { '' }
     Check 'Secret ConnectionStrings:Redis names 127.0.0.1' { $redisHost -eq '127.0.0.1' } `
-        'dotnet user-secrets set "ConnectionStrings:Redis" "127.0.0.1:6379" --project api/src/ZenGear.Api (localhost resolves to ::1 first, where Redis is not published; api/CLAUDE.md, Local database).' 'WARN'
+        'dotnet user-secrets set "ConnectionStrings:Redis" "127.0.0.1:6379" --project api/src/ZenGear.Api (localhost resolves to ::1 first, where Redis is not published; api/AGENTS.md, Local database).' 'WARN'
 }
 $secretLines = $null; $redisLine = $null; $endpoint = $null
 
