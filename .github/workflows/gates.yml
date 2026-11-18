@@ -44,7 +44,7 @@ jobs:
         run: python3 tools/pr_gates.py check "$BASE_SHA" "$HEAD_SHA" "$GITHUB_EVENT_PATH"
 
   # The title becomes the subject of the merge, and every commit keeps its message (rebase): cz check judges both
-  # with .cz.toml of main (CLAUDE.md, Commits). The packages come from tools/requirements.txt of main, with hashes.
+  # with .cz.toml of main (AGENTS.md, Commits). The packages come from tools/requirements.txt of main, with hashes.
   pr-title:
     name: pr-title
     runs-on: ubuntu-latest

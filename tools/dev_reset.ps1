@@ -1,5 +1,5 @@
 # Brings the development environment back to the state right after the seed (DEC-100), so a Postman run always
-# starts the same way: database zengear recreated in the set-up order of api/CLAUDE.md ("Local database"), the
+# starts the same way: database zengear recreated in the set-up order of api/AGENTS.md ("Local database"), the
 # accounts of the Firebase Auth Emulator deleted, the Admin account created again with bootstrap-admin (DEC-096),
 # the dev-only fixtures of postman/fixtures applied, Redis cleared.
 # Usage, from anywhere: pwsh -NoProfile -File tools/dev_reset.ps1 [-WhatIf]
@@ -61,11 +61,11 @@ function Get-HostPort([string]$value, [int]$defaultPort) {
 
 foreach ($key in 'ConnectionStrings:ZenGearMigrations', 'ConnectionStrings:ZenGear') {
     if (-not $secrets.ContainsKey($key)) {
-        Stop-With 1 "user-secret $key is not set: dotnet user-secrets set `"$key`" `"<value>`" --project api/src/ZenGear.Api (api/CLAUDE.md, Local database)."
+        Stop-With 1 "user-secret $key is not set: dotnet user-secrets set `"$key`" `"<value>`" --project api/src/ZenGear.Api (api/AGENTS.md, Local database)."
     }
 }
 if (-not $secrets.ContainsKey('Firebase:DefaultStaffPassword')) {
-    Stop-With 1 'user-secret Firebase:DefaultStaffPassword is not set: without it POST /api/v1/admin/staff fails (api/CLAUDE.md, Local database).'
+    Stop-With 1 'user-secret Firebase:DefaultStaffPassword is not set: without it POST /api/v1/admin/staff fails (api/AGENTS.md, Local database).'
 }
 
 $launch = Get-Content (Join-Path $api 'Properties/launchSettings.json') -Raw | ConvertFrom-Json

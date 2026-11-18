@@ -1,19 +1,19 @@
 #!/bin/sh
-# Rejects commit messages that do not follow Conventional Commits as described in CLAUDE.md (Commits): the identity
+# Rejects commit messages that do not follow Conventional Commits as described in AGENTS.md (Commits): the identity
 # and trailer rules here, the format through Commitizen and .cz.toml (DEC-150 (1)), the same check as the job pr-title.
 # Enable once per clone: git config core.hooksPath .githooks
 # Install Commitizen once: python -m pip install --require-hashes -r tools/requirements.txt
 
 message=$(tr -d '\r' < "$1" | grep -v '^#')
 
-# Every commit carries the owner's name only (CLAUDE.md, Commits); the PR gates check it again.
+# Every commit carries the owner's name only (AGENTS.md, Commits); the PR gates check it again.
 case "$(git var GIT_AUTHOR_IDENT) $(git var GIT_COMMITTER_IDENT)" in
   *"<noreply@anthropic.com>"*)
-    echo "commit-msg: commit as the owner: set git user.name and user.email (CLAUDE.md, Commits)" >&2
+    echo "commit-msg: commit as the owner: set git user.name and user.email (AGENTS.md, Commits)" >&2
     exit 1 ;;
 esac
 if printf '%s\n' "$message" | grep -Eiq '^[[:space:]]*(Co-Authored-By|Claude-Session)[[:space:]]*:'; then
-  echo "commit-msg: remove the Co-Authored-By and Claude-Session trailers (CLAUDE.md, Commits)" >&2
+  echo "commit-msg: remove the Co-Authored-By and Claude-Session trailers (AGENTS.md, Commits)" >&2
   exit 1
 fi
 
@@ -35,7 +35,7 @@ else
   exit 1
 fi
 if ! "$@" >/dev/null 2>&1; then
-  echo "commit-msg: the message does not follow the convention (.cz.toml, CLAUDE.md, section Commits)" >&2
+  echo "commit-msg: the message does not follow the convention (.cz.toml, AGENTS.md, section Commits)" >&2
   echo "  got:      $(printf '%s\n' "$message" | sed -n '1p')" >&2
   echo "  expected: <type>(<scope>): <subject>, then a blank line" >&2
   echo "  types: feat fix docs refactor perf test build ci chore revert   scopes: api web db seed docs ci" >&2

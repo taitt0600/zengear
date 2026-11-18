@@ -19,7 +19,7 @@ state are read from the event file of the workflow ($GITHUB_EVENT_PATH), never f
      PreBuildEvent, PostBuildEvent, Analyzer, Sdk) to a *.csproj, *.props or *.targets file names a decision the
      same way.
   4. Commit identity: no commit is authored or committed as Claude (noreply@anthropic.com), and no commit
-     message carries a Co-Authored-By or Claude-Session trailer (CLAUDE.md, Commits).
+     message carries a Co-Authored-By or Claude-Session trailer (AGENTS.md, Commits).
   5. Owner merges: a pull request that changes a file of owner_paths has auto-merge off (DEC-149 (1)); the event
      auto_merge_enabled runs the gates again, so turning it on after they passed fails them.
   6. Retired with docs/STATUS.md by DEC-148 (11) (D): the plan is the GitHub Issues, and gate 10 checks the blockers
@@ -101,7 +101,7 @@ TEST_METHOD = re.compile(r'\b(?:Task|ValueTask|void)\s+(R_[A-Z]+_\d+)_\w*\s*\(')
 AGENT_EMAIL = 'noreply@anthropic.com'
 AGENT_TRAILER = re.compile(r'^\s*(Co-Authored-By|Claude-Session)\s*:', re.IGNORECASE | re.MULTILINE)
 DEPENDABOT = 'dependabot[bot]'
-# The one identity of every commit (DEC-150 (1), CLAUDE.md, Commits), as git log prints "%an <%ae>".
+# The one identity of every commit (DEC-150 (1), AGENTS.md, Commits), as git log prints "%an <%ae>".
 OWNER = 'taitt0600 <taitt.dev@gmail.com>'
 # The closing keywords of GitHub: close, closes, closed, fix, fixes, fixed, resolve, resolves, resolved.
 CLOSING = re.compile(r'\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?):?\s+#([1-9][0-9]*)\b', re.IGNORECASE)
@@ -476,10 +476,10 @@ def identity_errors(commit, author, committer):
     errors = []
     if AGENT_EMAIL in (author.lower(), committer.lower()):
         errors.append(f'commit {commit} is authored or committed as Claude ({AGENT_EMAIL}): '
-                      'set git user.name and user.email to the owner (CLAUDE.md, Commits)')
+                      'set git user.name and user.email to the owner (AGENTS.md, Commits)')
     elif author != OWNER or committer != OWNER:
         errors.append(f'commit {commit} is authored by {author} and committed by {committer}, not by the owner '
-                      f'{OWNER} (DEC-150 (1), CLAUDE.md, Commits)')
+                      f'{OWNER} (DEC-150 (1), AGENTS.md, Commits)')
     return errors
 
 
@@ -541,7 +541,7 @@ def check(base, head, event, api=None):
         if not dependabot:
             errors += identity_errors(commit, author, committer)
         if AGENT_TRAILER.search(message):
-            errors.append(f'commit {commit} has a Co-Authored-By or Claude-Session trailer (CLAUDE.md, Commits)')
+            errors.append(f'commit {commit} has a Co-Authored-By or Claude-Session trailer (AGENTS.md, Commits)')
 
     errors += web_package_errors(head, accepted)
     if api is None and not dependabot:

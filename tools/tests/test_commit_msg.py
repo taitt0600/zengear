@@ -1,4 +1,4 @@
-"""Tests of the commit message convention (DEC-150 (1), CLAUDE.md, Commits): the schema_pattern of .cz.toml as cz check
+"""Tests of the commit message convention (DEC-150 (1), AGENTS.md, Commits): the schema_pattern of .cz.toml as cz check
 applies it (re.match on the whole message, comments removed), and .githooks/commit-msg with Commitizen when it is
 installed (CI installs tools/requirements.txt).
 
