@@ -1,3 +1,4 @@
+import { randomInt } from 'node:crypto'
 import { expect, test, type Locator, type Page } from '@playwright/test'
 import { changePassword, newSalesConsultant } from './support/backend'
 import { failOnCspViolations, signIn } from './support/pages'
@@ -49,7 +50,7 @@ test('the sign-in fields, focused and in error', async ({ page }) => {
 })
 
 test('the account fields, focused and in error', async ({ page }) => {
-  const stamp = `${Date.now()}${Math.floor(Math.random() * 1000)}`
+  const stamp = `${Date.now()}${randomInt(1000)}`
   const initial = `E2e-initial-${stamp}`
   const password = `E2e-fields-${stamp}`
   const staff = await newSalesConsultant(initial)
