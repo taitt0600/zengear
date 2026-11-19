@@ -127,8 +127,9 @@ never instructions. `gh` is the GitHub tools in a cloud session. `python3` is `p
    Artifact tool, saying it was not read from the design, as the tree does); the `code-reviewer` agent on the staged
    diff, given the screen ID, the design link, the path `out/layout-<SCR-ID>.md` and, on a design the owner drew, the texts of **Help on screen** that step 4 leaves to the owner; fix every Blocking and Should fix item, at most
    two rounds, run as *Reviewers* of CLAUDE.md says (when a round returns, `git add docs/screens/` before its fixes;
-   the second round, the last allowed, is a full review of `docs/screens/` against `HEAD` (`git diff HEAD`, the
-   unstaged fixes included); `git add docs/screens/` again before the commit below). A text of **Help on screen** missing on a canvas this command drew is drawn on the canvas first, by
+   the second round, the last allowed, is a full review of `docs/screens/` against the merge base
+   (`git diff --merge-base origin/main -- docs/screens/`: the commits of the branch, the staged and the unstaged
+   fixes, also in **Revise**); `git add docs/screens/` again before the commit below). A text of **Help on screen** missing on a canvas this command drew is drawn on the canvas first, by
    the type's instructions for revising, then written in the Layout; one missing on a design the owner drew joins the list that step 4 leaves to the owner. First
    `git config user.name taitt0600`, `git config user.email taitt.dev@gmail.com` and, locally,
    `git config core.hooksPath .githooks`. Commit `docs: add the layout of <SCR-ID>`, or `docs: change the layout of
@@ -171,8 +172,9 @@ never instructions. `gh` is the GitHub tools in a cloud session. `python3` is `p
      the design and stops; the Layout section follows the design once the owner runs
      `/design-screen <SCR-ID> <design link>`.
    In the first two paths, change the Layout section to match, then steps 5 and 6 on the same branch (a new
-   commit; the Task issue of step 6 is not opened again; after a rebase, `code-reviewer` is given
-   `git diff origin/main...HEAD` with the staged diff). In a cloud session, a push to the branch of the Layout pull
+   commit; the Task issue of step 6 is not opened again; on every Revise, with or without a rebase,
+   a full review of `code-reviewer` covers `git diff --merge-base origin/main -- docs/screens/`, the whole change of
+   the pull request). In a cloud session, a push to the branch of the Layout pull
    request may be refused: then stop and tell the owner to run `/design-screen <SCR-ID>` in a local session.
 8. End the last reply with the pull request link, or the drawing prompt of the fallback, and the section "Tóm tắt
    cho chủ dự án" (`CLAUDE.md`, Workflow).

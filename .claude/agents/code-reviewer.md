@@ -24,7 +24,7 @@ change nothing:
 - `python3 -m unittest discover -s tools/tests` (`python` on Windows);
 - for a diff under `web/src/`, `cd web && npm exec --no -- eslint --no-warn-ignored <files>`, with the paths
   relative to `web/` (`src/…`, the `web/` prefix removed) of the changed files that still exist, committed or not:
-  `git diff --name-only --diff-filter=AMR main...HEAD -- web/src`, `git diff --name-only --diff-filter=AMR HEAD --
+  `git diff --name-only --diff-filter=AMR origin/main...HEAD -- web/src`, `git diff --name-only --diff-filter=AMR HEAD --
   web/src` and the `??` paths under `web/src/` of `git status --porcelain --untracked-files=all`, each of these paths
   quoted in the ESLint command (route folders such as `(admin)` break an unquoted shell command); in the default
   output (never `--format json`, which copies each file's source); never with `--fix`, `--cache` or
@@ -38,7 +38,7 @@ reported as unchecked; a PowerShell script is never run, read its `ShouldProcess
 The request says whether this is a **full review** or an **incremental round** (DEC-152 (3); when and how often:
 *Reviewers* of `CLAUDE.md`). Without that, make a full review.
 
-- Full review: `git diff main...HEAD` and `git diff HEAD` (committed and not yet committed changes of the branch).
+- Full review: `git diff origin/main...HEAD` and `git diff HEAD` (committed and not yet committed changes of the branch).
 - Incremental round: the fixes since the last round and the Blocking items it left, given with the request.
   The fixes are `git diff` (the working tree against the index, which the session staged when the last round
   returned) and the untracked files of `git status`; a round after new commits is a full review. Check that each
