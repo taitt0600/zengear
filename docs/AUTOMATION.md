@@ -234,7 +234,8 @@ Playwright's CDN run only after the image and the bundle are published, and `e2e
 WCAG 2.2 AA on every screen; the quality gates of DEC-152 (7), each with its own paths: `docs-lint` (any `.md`:
 markdownlint-cli2 with `.markdownlint-cli2.jsonc`, then lychee `--offline` with `lychee.toml`), `quality-api` (pull
 requests that change `api/`: Stryker.NET on the unit tests of `ZenGear.Services`, `--since` the base, with
-`api/stryker-config.json`), `quality-web` (`web/`, `api/src/` or `.jscpd.json`: knip, jscpd over `api/src` and
+`api/stryker-config.json`; `tools/mutation_score.py` judges only the mutants the unit tests cover, since most
+services are covered by the integration tests, which are not mutation tested), `quality-web` (`web/`, `api/src/` or `.jscpd.json`: knip, jscpd over `api/src` and
 `web/src`, and on a pull request StrykerJS on the changed files of `web/src`) and `dependency-review` (pull requests
 that change a manifest, a lockfile or a workflow: a new dependency with a vulnerability of severity high or above, or
 licensed GPL or AGPL, fails it); the ratchets are `thresholds.break` of the two Stryker files and `threshold` of
