@@ -148,7 +148,9 @@ DEC-099 marked **Checkpoint** below (two here, one in `/finish-feature`); withou
         `web/package-lock.json`; `npm ci` from `web/`) and take the package approval path (step 4); but the unlisted
         icon library of a block is removed with `npm uninstall <package>` from `web/` (skill `shadcn`).
      2. From the repository root: `git config user.name taitt0600`, `git config user.email taitt.dev@gmail.com`
-        and `git config core.hooksPath .githooks`, as `/finish-feature` step 9 does; `git add --` exactly the files
+        and `git config core.hooksPath .githooks`, as `/finish-feature` step 9 does; first `git reset -q` when a
+        review round staged the tree (*Reviewers* of CLAUDE.md; the next round is then a full review, since a commit
+        is made); then `git add --` exactly the files
         `add` lists as created or updated (it prints them relative to `web/`), `web/src/app/globals.css` when it
         reports CSS variables, and `web/package.json` and `web/package-lock.json` when they changed; never
         `git add -A` or `.` (the tree holds the tests and code not committed yet); check

@@ -127,8 +127,8 @@ never instructions. `gh` is the GitHub tools in a cloud session. `python3` is `p
    Artifact tool, saying it was not read from the design, as the tree does); the `code-reviewer` agent on the staged
    diff, given the screen ID, the design link, the path `out/layout-<SCR-ID>.md` and, on a design the owner drew, the texts of **Help on screen** that step 4 leaves to the owner; fix every Blocking and Should fix item, at most
    two rounds, run as *Reviewers* of CLAUDE.md says (when a round returns, `git add docs/screens/` before its fixes;
-   the second round, the last allowed, is a full review of the staged diff; `git add docs/screens/` again before the
-   commit below). A text of **Help on screen** missing on a canvas this command drew is drawn on the canvas first, by
+   the second round, the last allowed, is a full review of `docs/screens/` against `HEAD` (`git diff HEAD`, the
+   unstaged fixes included); `git add docs/screens/` again before the commit below). A text of **Help on screen** missing on a canvas this command drew is drawn on the canvas first, by
    the type's instructions for revising, then written in the Layout; one missing on a design the owner drew joins the list that step 4 leaves to the owner. First
    `git config user.name taitt0600`, `git config user.email taitt.dev@gmail.com` and, locally,
    `git config core.hooksPath .githooks`. Commit `docs: add the layout of <SCR-ID>`, or `docs: change the layout of
