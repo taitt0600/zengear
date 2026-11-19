@@ -48,7 +48,7 @@ export const paged = (
 }
 
 /** The id of the signed-in user when a test names none: an account the sample rows do not hold. */
-export const USER_ID = '0199a0f3-0000-7000-8000-000000000009'
+const USER_ID = '0199a0f3-0000-7000-8000-000000000009'
 
 const user = (permissions: string[], id: string): CurrentUser => ({
   id,

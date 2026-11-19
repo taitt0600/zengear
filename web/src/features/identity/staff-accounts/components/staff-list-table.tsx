@@ -31,9 +31,12 @@ export function StaffTable({
     />
   )
   return (
+    // A region that scrolls sideways takes the focus, so that a keyboard user can scroll it (WCAG 2.1.1, axe
+    // scrollable-region-focusable); jsx-a11y does not know that use of a region.
     <div
       ref={ref}
       role="region"
+      // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
       tabIndex={0}
       aria-label={t('tableLabel')}
       aria-busy={busy}

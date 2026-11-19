@@ -25,7 +25,7 @@ export function landingPath(permissions: readonly string[]): string {
 }
 
 /** The code of a Firebase error (`auth/...`), or undefined for any other error. */
-export function firebaseCode(error: unknown): string | undefined {
+function firebaseCode(error: unknown): string | undefined {
   if (typeof error !== 'object' || error === null || !('code' in error)) return undefined
   return typeof error.code === 'string' && error.code.startsWith('auth/') ? error.code : undefined
 }

@@ -1,4 +1,5 @@
 import type { GetApiV1AdminStaffSort, StaffListItemDto } from '@/lib/api/generated/model'
+import { ApiError } from '@/lib/api/problems'
 
 // The rows of a page of SCR-STF-01 (docs/screens/SCR-STF-01.md) and the sort the API takes when the URL names none
 // (DEC-105).
@@ -55,6 +56,46 @@ export function numbered<T>(
 /** The pages of `totalCount` accounts, one at least, so that an empty list is page 1 of 1. */
 export function pageCount(totalCount: number, pageSize = PAGE_SIZE): number {
   return Math.max(1, Math.ceil(totalCount / pageSize))
+}
+
+/** The status, sort and page of the URL as they come; an empty value (`?status=`) is no value: the default. */
+export function listParams(searchParams: Pick<URLSearchParams, 'get'>) {
+  return {
+    status: searchParams.get('status') || undefined,
+    sort: searchParams.get('sort') || undefined,
+    page: searchParams.get('page') || undefined,
+  }
+}
+
+/** The list's URL with `changes` applied to its query `url`: a value `undefined` removes that key. */
+export function listHref(
+  pathname: string,
+  url: string,
+  changes: Record<string, string | undefined>,
+): string {
+  const next = new URLSearchParams(url)
+  for (const [key, value] of Object.entries(changes)) {
+    if (value === undefined) next.delete(key)
+    else next.set(key, value)
+  }
+  const text = next.toString()
+  return text ? `${pathname}?${text}` : pathname
+}
+
+/** Whether an answer sends the URL back: to the default filters (`resetting`), or to page 1 (`pastEnd`). */
+export function listRedirect(
+  error: unknown,
+  url: string,
+  result: { items: unknown[] } | undefined,
+  totalCount: number,
+  page: number,
+) {
+  return {
+    // A URL edited by hand: back to the default filters. With nothing left to reset, the 400 shows like any failure.
+    resetting: error instanceof ApiError && error.status === 400 && url !== '',
+    // A page past the end (an account disabled or gone since the link was made): back to page 1.
+    pastEnd: !!result && result.items.length === 0 && totalCount > 0 && page > 1,
+  }
 }
 
 /** How a day shows on SCR-STF-01 and SCR-STF-03: `dd/MM/yyyy`, through `useDay`. */

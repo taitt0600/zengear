@@ -53,7 +53,7 @@ export const calls = (fetch: ReturnType<typeof vi.fn>) =>
 
 /** The body a call sent. */
 export const body = (fetch: ReturnType<typeof vi.fn>, index: number) =>
-  JSON.parse(String((fetch.mock.calls[index][1] as RequestInit).body))
+  JSON.parse((fetch.mock.calls[index][1] as RequestInit).body as string)
 
 /** SCR-STF-03 as its page composes it, for the account `id`. */
 export function renderAccount(id = manager.id, permissions = ['staff.read', 'staff.disable']) {

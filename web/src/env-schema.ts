@@ -5,7 +5,7 @@ import { z } from 'zod'
 // a secret.
 const HOST_AND_PORT = /^[A-Za-z0-9.-]+:[0-9]{2,5}$/
 
-export const envSchema = z.object({
+const envSchema = z.object({
   NEXT_PUBLIC_API_BASE_URL: z
     .url({ protocol: /^https?$/ })
     .refine((url) => !url.endsWith('/'), { error: 'no trailing slash' }),

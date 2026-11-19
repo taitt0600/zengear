@@ -22,7 +22,7 @@ import { ApiError, hasProblemType } from '@/lib/api/problems'
  * (409 concurrency-conflict), or unknown (a 500, or no answer: it may be disabled with its sessions still open, R-SEC-04).
  * An answer about the session is left to the admin layout's rules: a reload would only fail the same way.
  */
-export function reloadsAfter(error: unknown): boolean {
+function reloadsAfter(error: unknown): boolean {
   if (sessionOutcome(error)) return false
   if (!(error instanceof ApiError)) return true
   return (

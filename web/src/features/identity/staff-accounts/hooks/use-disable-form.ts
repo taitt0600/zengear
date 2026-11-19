@@ -2,7 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslations } from 'next-intl'
-import { useState } from 'react'
+import { useState, type BaseSyntheticEvent } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { NO_FORM_PROBLEMS } from '@/components/app/form-problems'
@@ -58,7 +58,7 @@ export function useDisableForm(account: DisableAccount, onDone: () => void) {
     onDone()
   }
 
-  const submit = form.handleSubmit(async ({ leaving, leftDate }) => {
+  const send = form.handleSubmit(async ({ leaving, leftDate }) => {
     setProblems(NO_FORM_PROBLEMS)
     try {
       await disable.mutateAsync({ id: account.id, data: { leftDate: leaving ? leftDate : null } })
@@ -69,6 +69,8 @@ export function useDisableForm(account: DisableAccount, onDone: () => void) {
     toast.success(t('disabled'))
     onDone()
   })
+  // The form's submit event expects nothing back: the promise is handled inside send.
+  const submit = (event: BaseSyntheticEvent) => void send(event)
 
   return {
     form,

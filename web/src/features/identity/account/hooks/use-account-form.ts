@@ -3,7 +3,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslations } from 'next-intl'
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type BaseSyntheticEvent } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import type { z } from 'zod'
@@ -99,7 +99,8 @@ export function useAccountForm(loaded: LoadedCurrentUser) {
     sending: form.formState.isSubmitting,
     // Without a version nothing can be saved: the API would answer 428.
     canSave: Boolean(etag),
-    onSubmit: form.handleSubmit(onSubmit),
+    // The form's submit event expects nothing back: the promise is handled inside onSubmit.
+    onSubmit: (event: BaseSyntheticEvent) => void form.handleSubmit(onSubmit)(event),
   }
 }
 
