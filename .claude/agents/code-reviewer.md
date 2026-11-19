@@ -164,12 +164,12 @@ repeat those. Check what no test sees:
     A finding of questions 1 to 3 starts with the label `[over-engineering]` (1 and 2) or `[duplication]` (3).
 13. **Web interface** (diffs under `web/` only): each changed screen or component follows
     `.claude/guidelines/web-interface-guidelines.md`; a finding cites its rule (`MUST: …`).
-    - File length (DEC-118 (3)): run the ESLint command above on the changed files of `web/src/`. A new file, or a
-      file whose content changed (not counting a move or changed imports, as `git diff -M` shows), has no
-      `max-lines` warning, i.e. at most 150 lines of code; tests, `components/ui` and `lib/api/generated/` are excluded,
-      as in `web/eslint.config.mjs`. A file above it is Should fix. ESLint errors, `import/no-restricted-paths` of
-      the module boundaries of DEC-118 (2) included, are refused by the first tier (the hook `eslint-check` and the
-      CI job `web-test`) and are not reviewed by hand.
+    - The first tier refuses, and this review does not judge by hand (DEC-152 (3), (7)): the ESLint errors of
+      `web/eslint.config.mjs` (file length, complexity, depth, the module boundaries of DEC-118 (2), the
+      recommended set of jsx-a11y, the typed rules, unknown or conflicting Tailwind classes and colours outside the
+      theme's tokens), the violations axe finds in `web/e2e/accessibility.spec.ts`, and the duplication count of
+      jscpd. Run the ESLint command above on the changed files of `web/src/` only to confirm it passes; judge what
+      the machine cannot: WCAG 2.2 AA criteria axe does not test, whether a duplication is intentional (item 12).
     - Layout (DEC-119 (4)): a screen with a **Layout** in `docs/screens/` has the layout file and the sections of
       its component tree, with the components it names, and shows every description, hint text, placeholder and
       tooltip its Layout lists; a departure, a missing one of these included, is Blocking, since
@@ -178,8 +178,8 @@ repeat those. Check what no test sees:
       the mutator `web/src/lib/api/api.ts` and the rest of `web/src/lib/api/` are reviewed as code.
       Review `web/src/components/ui/` like other web code (DEC-116 (8)), and check there:
       - the design is kept (DEC-116 (1)): an existing component keeps the classes that set its look (colour,
-        spacing, radius, font size, shadow) unless the change fixes accessibility, and a new variant uses the tokens
-        of the theme;
+        spacing, radius, font size, shadow) unless the change fixes accessibility (a new variant's colours are
+        tokens of the theme, which ESLint checks);
       - in a branch with a `shadcn add`, the first commit of the item holds only what `add` wrote (its files,
         `web/src/app/globals.css` when it added CSS variables, `web/package.json` and the lockfile; an unapproved
         icon library of a block removed with `npm uninstall`, as the shadcn skill says) and the edits come in later
@@ -210,7 +210,7 @@ repeat those. Check what no test sees:
 
 Answer in this format and nothing else, at most 10 items in total:
 
-```
+```text
 Verdict: READY | CHANGES REQUIRED
 
 Blocking
