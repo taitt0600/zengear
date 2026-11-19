@@ -10,13 +10,23 @@ failOnCspViolations()
 
 const WCAG_AA = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22a', 'wcag22aa']
 
-/** Fails with the rule, its help and the elements of every violation axe finds on the page as it stands. */
+/**
+ * Fails with the rule, its help and each element with axe's summary (for a contrast, the two colours and the ratio)
+ * of every violation axe finds on the page once it is still. The shadcn components animate their colours
+ * (transition-all), and a colour read in the middle of a transition is no colour of the theme, so the colour
+ * transitions running then (CSS transitions, not the infinite animations of a spinner) end first.
+ */
 async function expectNoViolations(page: Page) {
+  await page.waitForFunction(() =>
+    document.getAnimations().every((animation) => !(animation instanceof CSSTransition)),
+  )
   const { violations } = await new AxeBuilder({ page }).withTags(WCAG_AA).analyze()
   const found = violations.map((violation) => ({
     rule: violation.id,
     help: violation.help,
-    elements: violation.nodes.map((node) => node.target.join(' ')),
+    elements: violation.nodes.map(
+      (node) => `${node.target.join(' ')}: ${node.failureSummary ?? ''}`,
+    ),
   }))
   expect(found).toEqual([])
 }
