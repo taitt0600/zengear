@@ -35,7 +35,8 @@ def load_gates():
 
 
 BODY = ('## Summary\n\nWhat changed.\n\nCloses #{closes}\n\n## Needs decision\n\nKhông có\n\n## Deviations\n\n'
-        'Không có\n\n## Test\n\nUnit tests.\n\n## Tóm tắt cho chủ dự án\n\n1. **Làm gì**: x\n'
+        'Không có\n\n## Test\n\nUnit tests.\n\n## How to review\n\nThe service first.\n\n'
+        '## Tóm tắt cho chủ dự án\n\n1. **Làm gì**: x\n'
         '2. **Lệch so với yêu cầu**: Không có\n3. **Rủi ro và kết quả rà**: x\n4. **Bạn cần quyết định**: Không có\n')
 
 
