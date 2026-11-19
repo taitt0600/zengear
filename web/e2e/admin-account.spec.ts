@@ -43,7 +43,8 @@ test('a staff member renames their account and sees the name in the user menu', 
   await save(page).click()
   await expect(page.getByText('Đã lưu.')).toBeVisible()
   await expect(nameField(page)).toHaveValue('Nhân viên E2E')
-  await expect(page.getByRole('button', { name: 'Nhân viên E2E' })).toBeVisible()
+  // The user menu is named by the name and email it shows.
+  await expect(page.getByRole('button', { name: `Nhân viên E2E ${staff.email}` })).toBeVisible()
   await page.screenshot({ path: test.info().outputPath('account.png'), fullPage: true })
 })
 

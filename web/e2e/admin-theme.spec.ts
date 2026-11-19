@@ -77,7 +77,7 @@ test('the Admin switches to the dark theme, which stays after a reload and on th
 
   // SCR-AUT-01 has no switch of its own and follows the choice.
   await choose(page, 'Tối')
-  await page.getByRole('button', { name: 'Chủ cửa hàng', exact: true }).click()
+  await page.getByRole('button', { name: /^Chủ cửa hàng/ }).click()
   await page.getByRole('menuitem', { name: 'Đăng xuất' }).click()
   await expect(page).toHaveURL(/\/admin\/sign-in/)
   await expect(page.getByRole('button', { name: 'Đăng nhập' })).toBeEnabled()
