@@ -15,7 +15,7 @@ Backend building blocks of ZenGear (arc42 section 5). Decision: DEC-091 in `docs
 
 One repository for backend, web and specifications (DEC-093). The backend is a 3-Layer (N-Layer) solution: Presentation, Business Logic, Data Access.
 
-```
+```text
 zengear/
 ├─ api/
 │  ├─ ZenGear.slnx             solution (.slnx is the .NET 10 default; .sln works the same)
@@ -85,7 +85,7 @@ Each area of `ZenGear.Services` has a `README.md`: its purpose, its modules, its
 
 `ZenGear.Services` is organised by business area (table above, same names) and, inside an area, by module. `ZenGear.Api` keeps its technical folders, with the controllers by area. `ZenGear.Data` keeps its technical folders at the top and the areas inside `Entities` and `Configurations`: the modules of an area share its entities. Decision: DEC-106, which replaced the folders by kind of DEC-097.
 
-```
+```text
 ZenGear.Api/
 ├─ Controllers/<Area>/   one controller per service, named after it, in the area of that service
 ├─ ExceptionHandling/    IExceptionHandler implementations, the Problem Details they write and their texts

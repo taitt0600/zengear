@@ -4,7 +4,7 @@
 
 ## Layout
 
-```
+```text
 api/
 ├─ src/ZenGear.Api/            Presentation: Controllers/<Area>/ and technical folders (ExceptionHandling/, Middlewares/, Extensions/, …)
 ├─ src/ZenGear.Services/       Business Logic: <Area>/README.md, <Area>/<Module>/ (flat: services, requests, DTOs, validators, jobs; a mechanism folder inside), Common/

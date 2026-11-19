@@ -16,7 +16,7 @@ When a rule here and those pages disagree, the pages win: fix this file in the s
 
 ## Layout
 
-```
+```text
 postman/
   collections/ZenGear/                      the collection root: any folder can be one
     .resources/definition.yaml              collection metadata, variables, collection scripts

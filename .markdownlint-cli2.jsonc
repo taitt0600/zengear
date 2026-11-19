@@ -1,0 +1,38 @@
+// markdownlint-cli2 (job docs-lint, DEC-152 (7)): every Markdown file of the repository but the generated, vendored
+// and installed ones. A rule turned off says why.
+{
+  "globs": ["**/*.md"],
+  "ignores": [
+    // Generated from the workbook by tools/export_blueprint.py.
+    "docs/blueprint/**",
+    "**/node_modules/**",
+    "out/**",
+    "**/bin/**",
+    "**/obj/**",
+    "web/playwright-report/**",
+    "web/test-results/**",
+    "api/TestResults/**",
+    // Vendored as published: Vercel's Web Interface Guidelines (DEC-111 (6)) and the shadcn skill.
+    ".claude/guidelines/web-interface-guidelines.md",
+    ".claude/skills/shadcn/**"
+  ],
+  "gitignore": true,
+  "config": {
+    "default": true,
+    // The house style writes one paragraph or item per line, wrapped by the editor (AGENTS.md, CLAUDE.md).
+    "MD013": false,
+    // Tables are written compact, without padding the cells to align their pipes.
+    "MD060": false,
+    // GitHub, where these files are read, links a bare URL itself.
+    "MD034": false,
+    // Placeholders such as <issue> and <Feature ID> are written as in the commands they stand for.
+    "MD033": false,
+    // A code span quotes text whose spaces matter: the required marker ` *`, the title prefix `type(scope): `.
+    "MD038": false,
+    // Skills and agents start with their front matter and instructions, CLAUDE.md files with an import, LICENSE files
+    // with their text, and the pull request template with the sections gate 11 reads.
+    "MD041": false,
+    // The step files of a skill continue the numbering of its SKILL.md (step 13, step 14).
+    "MD029": false
+  }
+}

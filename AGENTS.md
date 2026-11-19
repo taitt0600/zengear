@@ -51,7 +51,7 @@ This section records the owner's standing instruction (DEC-139): every session, 
 
 Every commit follows Conventional Commits 1.0.0, in English:
 
-```
+```text
 <type>(<scope>): <subject>
 
 <body>
