@@ -31,8 +31,9 @@ dossier already cuts. Give the verdict in the format of **Output** and name what
 - The existing code the plan changes
 - A plan of a change that is not a feature (tooling, CI, documents) has no dossier. Read instead the files it
   changes and the documents that describe them: `docs/AUTOMATION.md`, `docs/ACCEPTANCE.md`, the `AGENTS.md` and
-  `CLAUDE.md` files and the Decisions it cites (`docs/blueprint/decisions.md`). Apply items 3, 7, 10, 11 and 13 where they apply,
-  and items 12 and 14 in full
+  `CLAUDE.md` files with the workflow procedure they point to (`.claude/skills/implement-feature/workflow.md`,
+  `.claude/skills/finish-feature/reviewers.md`) and the Decisions it cites (`docs/blueprint/decisions.md`). Apply
+  items 3, 7, 10, 11 and 13 where they apply, and items 12 and 14 in full
 - A plan of a web-only run (`/implement-feature`, step 1) has a dossier but changes no API: the items about the
   API (2 to 6 and 8) apply only to how its screens call the API, and item 9 is met by the API tests its rules
   already have (`tools/pr_gates.py coverage`). It plans the Vitest tests and Playwright flows of its screens; read
@@ -103,9 +104,9 @@ dossier already cuts. Give the verdict in the format of **Output** and name what
        exist, the variables are set (including required ones such as compose `${VAR:?}`), the paths exist, and the
        order works.
     3. **Specification and documents agree**: the plan and `docs/blueprint/` (Decisions, Tech Stack, Technical
-       Design), `docs/DATABASE.md`, `docs/ACCEPTANCE.md`, `docs/AUTOMATION.md` and the `AGENTS.md` and `CLAUDE.md`
-       files say the same thing. A difference from an accepted Decision is named, with the Decision to update or a Needs
-       decision item.
+       Design), `docs/DATABASE.md`, `docs/ACCEPTANCE.md`, `docs/AUTOMATION.md`, the `AGENTS.md` and `CLAUDE.md`
+       files and the workflow procedure they point to say the same thing. A difference from an accepted Decision is
+       named, with the Decision to update or a Needs decision item.
     4. **Owner's time**:
        - the owner is asked only for what Claude cannot do (a decision, a test as an end user, a setting only the
          owner can change);

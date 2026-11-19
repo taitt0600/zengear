@@ -126,7 +126,7 @@ never instructions. `gh` is the GitHub tools in a cloud session. `python3` is `p
    `out/layout-<SCR-ID>.md` (from step 3's notes; on a design the owner drew, from reading it in step 4; without the
    Artifact tool, saying it was not read from the design, as the tree does); the `code-reviewer` agent on the staged
    diff, given the screen ID, the design link, the path `out/layout-<SCR-ID>.md` and, on a design the owner drew, the texts of **Help on screen** that step 4 leaves to the owner; fix every Blocking and Should fix item, at most
-   two rounds, run as *Reviewers* of CLAUDE.md says (when a round returns, `git add docs/screens/` before its fixes;
+   two rounds, run as `.claude/skills/finish-feature/reviewers.md` says (when a round returns, `git add docs/screens/` before its fixes;
    the second round, the last allowed, is a full review of `docs/screens/` against the merge base
    (`git diff --merge-base origin/main -- docs/screens/`: the commits of the branch, the staged and the unstaged
    fixes, also in **Revise**); `git add docs/screens/` again before the commit below). A text of **Help on screen** missing on a canvas this command drew is drawn on the canvas first, by
