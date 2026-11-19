@@ -219,7 +219,7 @@ GitHub, no workflow file), secret scanning with push protection and private vuln
 the ruleset `main` holds Restrict deletions, Block force pushes and Require code scanning results for CodeQL, while
 the four required checks stay in the branch protection of `main` that `tools/github_pr.py` reads (DEC-152 (6)).
 
-Two workflows decide a merge. `.github/workflows/pipeline.yml` runs on every pull request to `main`, every push to `main` and on
+Two workflows run the checks of the code. `.github/workflows/pipeline.yml` runs on every pull request to `main`, every push to `main` and on
 demand: `changes` reads the changed paths; `secrets`, `tools-test`, `api-test`, `schema` and `web-test` run in
 parallel, each only when its paths changed (`api-test` and `schema` always on `main`); `web-test` (when `web/`,
 `api/openapi/` or `tools/message_keys.py` changed) checks the keys of the message files, then, once
@@ -236,7 +236,8 @@ markdownlint-cli2 with `.markdownlint-cli2.jsonc`, then lychee `--offline` with 
 requests that change `api/`: Stryker.NET on the unit tests of `ZenGear.Services`, `--since` the base, with
 `api/stryker-config.json`; `tools/mutation_score.py` judges only the mutants the unit tests cover, since most
 services are covered by the integration tests, which are not mutation tested), `quality-web` (`web/`, `api/src/` or `.jscpd.json`: knip, jscpd over `api/src` and
-`web/src`, and on a pull request StrykerJS on the changed files of `web/src`) and `dependency-review` (pull requests
+`web/src`, and on a pull request StrykerJS on the changed files of `web/src` but the routes of `src/app/`, its covered
+mutants judged by `tools/mutation_score.py` too) and `dependency-review` (pull requests
 that change a manifest, a lockfile or a workflow: a new dependency with a vulnerability of severity high or above, or
 licensed GPL or AGPL, fails it); the ratchets are `thresholds.break` of the two Stryker files and `threshold` of
 `.jscpd.json`; `ci-ok` aggregates them all and is the required check. The weekly schedule runs only the full-history

@@ -2,15 +2,16 @@
 
   python tools/mutation_score.py <mutation-report.json> --break <0-100>
 
-The job quality-api runs Stryker.NET on the unit tests of ZenGear.Services, only on the code a pull request changed.
-Most services are tested by the integration tests of ZenGear.Api.IntegrationTests instead, which mutation testing
-cannot run (one run of that suite per mutant), so their mutants are NoCoverage for the unit tests. Stryker's own
-break counts NoCoverage as undetected, and would fail every pull request that changes such a service; it has no
-threshold on the covered code alone. This script reads the report Stryker wrote (the mutation-testing-elements
-schema, statuses Killed, Survived, Timeout, NoCoverage, CompileError, RuntimeError, Ignored) and fails only when the
-score of the covered mutants, (Killed + Timeout) / (Killed + Timeout + Survived) in percent, is below the break of
-api/stryker-config.json. NoCoverage mutants are listed per file, not counted. No covered mutant passes. The whole
-project keeps Stryker's own break in weekly-quality.yml.
+The jobs quality-api and quality-web run Stryker only on the code a pull request changed. Most services are tested by
+the integration tests of ZenGear.Api.IntegrationTests, and some web files only by the screen flows, which mutation
+testing cannot run (one run of the suite per mutant), so their mutants are NoCoverage for the unit tests. Stryker's
+own break counts NoCoverage as undetected and would fail such a pull request with no defect behind it; neither
+Stryker.NET nor StrykerJS has a threshold on the covered code alone. This script reads the report Stryker wrote (the
+mutation-testing-elements schema, statuses Killed, Survived, Timeout, NoCoverage, CompileError, RuntimeError,
+Ignored) and fails only when the score of the covered mutants, (Killed + Timeout) / (Killed + Timeout + Survived) in
+percent, is below the break of api/stryker-config.json or web/stryker.config.json, which the job passes. NoCoverage
+mutants are listed per file, not counted. No covered mutant passes. The whole projects keep Stryker's own break in
+weekly-quality.yml.
 
 The summary goes to stdout and, in GitHub Actions, to the job summary ($GITHUB_STEP_SUMMARY). Exit 0 at or above the
 break, 1 below it, 2 for a report that cannot be read.
@@ -52,7 +53,7 @@ def summary(statuses, uncovered, score, threshold):
         verdict = 'passes' if score >= threshold else 'is below'
         lines.append(f'Covered score {score:.2f} % {verdict} the break of {threshold} %.')
     if uncovered:
-        lines += ['', 'Not covered by the unit tests (their integration tests are not mutation tested):']
+        lines += ['', 'Not covered by the unit tests (integration tests and screen flows are not mutation tested):']
         lines += [f'- `{path}`: {count}' for path, count in sorted(uncovered.items())]
     return '\n'.join(lines) + '\n'
 

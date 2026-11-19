@@ -8,13 +8,15 @@
     "!src/**/*.test.{ts,tsx}",
     "!src/**/*.fixtures.{ts,tsx}",
     "!src/test/**",
+    "!src/app/**",
     "!src/components/ui/**",
     "!src/lib/api/generated/**"
   ],
   "coverageAnalysis": "perTest",
   "ignoreStatic": true,
-  "reporters": ["progress", "clear-text", "html"],
+  "reporters": ["progress", "clear-text", "html", "json"],
   "htmlReporter": { "fileName": "../out/stryker-web/mutation-report.html" },
+  "jsonReporter": { "fileName": "../out/stryker-web/mutation-report.json" },
   "tempDirName": "../out/stryker-web/tmp",
   "thresholds": { "high": 80, "low": 60, "break": 75 }
 }
