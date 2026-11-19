@@ -47,10 +47,12 @@ in Vietnamese; every cell of the row is in Vietnamese, in the style of the rows 
    that applies the Decision, does them at step 8.4.
 6. **The patch**, every row and cell change of steps 4 and 5 as JSON for `tools/blueprint_apply.py` (its docstring
    has the format):
+
    ```json
    {"rows":  [{"sheet": "Decisions", "after": "DEC-0xx", "values": {"Decision ID": "DEC-0xx", "Topic": "…", "Status": "Accepted"}}],
     "cells": [{"sheet": "Features", "id": "AUT-04", "column": "Acceptance Criteria", "old": "…", "new": "…"}]}
    ```
+
    - `rows`: keys are the column headers of the sheet, every value is text. `after` is the ID of the row above: the
      last DEC ID for the Decision (`"end"` also works), the rule above for a new rule (a row added earlier in the
      patch may be named).

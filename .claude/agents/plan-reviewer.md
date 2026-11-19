@@ -146,7 +146,7 @@ dossier already cuts. Give the verdict in the format of **Output** and name what
 
 Answer in this format and nothing else:
 
-```
+```text
 Verdict: READY | CHANGES REQUIRED
 
 Blocking

@@ -205,6 +205,7 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
                                         or no answer, the toast of the answers table and the same invalidation
                                         — alert-dialog, checkbox
     ```
+
 - **Change of 2026-11-14, #158** (DEC-141 (4)): on the one page of this canvas, canvas version `1794731137-483d` (the
   version approved before it: `1794684856-bf72`), drawn with the design system of 2026-11-13 (commit 563a162); every
   artboard whose drawing changed is named `[Đổi 14/11/2026 · #158]`; approved by the merge of the pull request that

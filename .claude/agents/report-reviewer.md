@@ -65,7 +65,7 @@ facts you are given. You never edit files.
 
 Answer in this format and nothing else:
 
-```
+```text
 Verdict: READY | CHANGES REQUIRED
 
 Blocking
