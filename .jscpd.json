@@ -1,0 +1,22 @@
+{
+  "path": ["api/src", "web/src"],
+  "format": ["csharp", "typescript", "tsx"],
+  "ignore": [
+    "**/bin/**",
+    "**/obj/**",
+    "**/Migrations/**",
+    "**/*.Designer.cs",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.fixtures.tsx",
+    "**/src/test/**",
+    "**/src/components/ui/**",
+    "**/src/lib/api/generated/**"
+  ],
+  "minTokens": 70,
+  "reporters": ["console", "json"],
+  "output": "out/jscpd",
+  "absolute": false,
+  "gitignore": true,
+  "threshold": 0.5
+}

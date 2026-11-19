@@ -1,0 +1,9 @@
+{
+  "stryker-config": {
+    "project": "ZenGear.Services.csproj",
+    "test-projects": ["../../tests/ZenGear.Services.Tests/ZenGear.Services.Tests.csproj"],
+    "configuration": "Release",
+    "reporters": ["progress", "html", "markdown"],
+    "thresholds": { "high": 80, "low": 60, "break": 23 }
+  }
+}
