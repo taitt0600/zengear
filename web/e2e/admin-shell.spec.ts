@@ -85,7 +85,8 @@ test('a new staff member changes the password first, then sees no entry without 
   await signIn(page, staff.email, changed)
   await expect(page).toHaveURL('/admin/account')
   // No entry: once the frame shows, the menu has no group "Menu", only the store name and the user.
-  await expect(page.getByRole('button', { name: /^E2E \d+$/ })).toBeVisible()
+  // The user menu, named by the name and email it shows.
+  await expect(page.getByRole('button', { name: staff.email })).toBeVisible()
   await expect(menu(page)).toHaveCount(0)
 
   await page.goto('/admin/staff')
