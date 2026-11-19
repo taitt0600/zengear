@@ -181,7 +181,8 @@ step 11 when the pull request is open.
       and the owner's answers), a section "Needs decision" with each item still open, its options and the recommended
       one first, each with the four qualities and its cost (`/implement-feature` step 3), how it was verified (steps 2–8, the plan and code-reviewer verdicts with the Blocking items found and
       fixed, the security review findings or why it was skipped, the Postman runs, and the web checks and the flows
-      when the branch changes `web/`). The body ends with the section "Tóm tắt cho chủ dự án" in Vietnamese
+      when the branch changes `web/`), and the section "How to review": where to start and in what order, what
+      carries the risk, what is generated or moved. The body ends with the section "Tóm tắt cho chủ dự án" in Vietnamese
       (`CLAUDE.md`, Workflow); its part "Bạn cần quyết định" points to the section "Needs decision" instead of
       repeating it, since the routine "ZenGear PR needs decision" reads that section.
     - `python3 tools/github_pr.py create --title "<title>" --body-file out/pr-body.md`: ready, or with `--draft` only

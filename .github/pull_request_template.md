@@ -24,6 +24,10 @@ Không có
 
 <!-- Builds, tests, Postman folder, web checks, what was not checked. -->
 
+## How to review
+
+<!-- Where to start and in what order, what carries the risk, what is generated or moved and can be skimmed. -->
+
 ## Tóm tắt cho chủ dự án
 
 1. **Làm gì**:

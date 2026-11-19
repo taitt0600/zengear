@@ -39,7 +39,8 @@ state are read from the event file of the workflow ($GITHUB_EVENT_PATH), never f
      open; a Bug, Task or Design branch closes the issue of its name.
  10. Blockers (DEC-148 (6)): the Feature issue of a feat pull request has no open blocked-by issue that the body does
      not close (a blocker may be done in the feature's own pull request).
- 11. Body (DEC-150 (2)): the sections of .github/pull_request_template.md, the four parts of "Tóm tắt cho chủ dự án";
+ 11. Body (DEC-150 (2)): the sections of .github/pull_request_template.md (How to review since DEC-152 (7)), the four
+     parts of "Tóm tắt cho chủ dự án";
      a Needs decision section other than "Không có" needs a draft.
  12. Refs (DEC-150 (1)): every feat and fix commit has a Refs: footer that names #<n> of an issue the body closes.
 Gates 8 to 12 and the commit identity skip a pull request opened by dependabot[bot] (DEC-148 (10)). Gates 9 and 10 read
@@ -111,7 +112,7 @@ CODE_COMMIT = re.compile(r'^(feat|fix)(\([^)]*\))?!?:')
 SECTION = re.compile(r'^##[ \t]+(.+?)[ \t]*$', re.MULTILINE)
 COMMENT = re.compile(r'<!--.*?-->', re.DOTALL)
 SUMMARY = 'Tóm tắt cho chủ dự án'
-BODY_SECTIONS = (SUMMARY, 'Needs decision', 'Deviations', 'Test')
+BODY_SECTIONS = (SUMMARY, 'Needs decision', 'Deviations', 'Test', 'How to review')
 SUMMARY_PARTS = ('Làm gì', 'Lệch so với yêu cầu', 'Rủi ro và kết quả rà', 'Bạn cần quyết định')
 NOTHING = ('không có', 'none')
 

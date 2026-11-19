@@ -183,6 +183,14 @@ class BodyErrorTests(unittest.TestCase):
         template = (Path(__file__).resolve().parents[2] / '.github' / 'pull_request_template.md').read_text(encoding='utf-8')
         self.assertEqual(gates.body_errors(template, draft=False), [])
 
+    def test_a_body_without_how_to_review_is_refused(self):
+        # DEC-152 (7): the section the template gained with the CI quality gates.
+        gates = load_gates()
+        template = (Path(__file__).resolve().parents[2] / '.github' / 'pull_request_template.md').read_text(encoding='utf-8')
+        body = template.replace('## How to review', '## Notes')
+        self.assertIn('the body has no section "## How to review" of .github/pull_request_template.md',
+                      gates.body_errors(body, draft=False))
+
     def test_closing_keywords(self):
         gates = load_gates()
         self.assertEqual(gates.closing_issues('Closes #3, fixes #4\nResolved: #5\nprefix #6 <!-- closes #7 -->'), [3, 4, 5])
