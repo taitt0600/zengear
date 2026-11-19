@@ -2,7 +2,7 @@
 
 Every admin screen except the sign-in page sits in this layout.
 
-- **Store name and user**: the store name at the top of the menu, and at its foot the signed-in user's `name` (from
+- **Store name and user**: the store name at the top of the menu, and at its foot the signed-in user's `name` and `email` (from
   `GET /api/v1/admin/me`) with a menu: "Tài khoản của tôi" (SCR-ACC-01) and "Đăng xuất" (signs out of Firebase,
   clears the query cache, goes to SCR-AUT-01). The header holds the menu button and where the page sits (**Layout**).
 - **Menu**: "Nhân viên" → "Danh sách nhân viên" (SCR-STF-01, needs `staff.read`), "Thêm nhân viên" (SCR-STF-02,
@@ -53,7 +53,11 @@ Every admin screen except the sign-in page sits in this layout.
   `NarrowMenu`, named `[Đổi 14/11/2026 · #155]`, redraw it in place in this canvas's own style, approved by the merge
   of #155. It is built by the web part of
   STF-09 (its item in the plan, `AGENTS.md`, *Work state*, which this screen's Feature cell names), so no other item is
-  needed; until then the menu keeps the single entry "Nhân viên".
+  needed; until then the menu keeps the single entry "Nhân viên". Changed 2026-11-19 in the text only, by the Layout
+  pull request that closes #293: the user menu is named by the text it shows, `name` and `email` (`user-menu.tsx` in
+  the component tree below), since axe (DEC-152 (3)) found that its name `name` alone broke WCAG 2.5.3 Label in
+  Name; the canvas is not edited (an accessible name is not drawn), so its version stays `1794685376-aa45`, the one
+  approved above; built by #292.
 - **Artboards**: desktop (1440 px) with the menu expanded, which collapses to icons when the canvas plays it;
   desktop with the menu collapsed and the user menu open; narrow (390 px) with the menu closed and open; states:
   loading, error of `GET /me`, no permission, not found; for the theme: the desktop's "Giao diện" menu works in Play
@@ -138,7 +142,8 @@ Every admin screen except the sign-in page sits in this layout.
   │   │                              query string counts for "Chờ duyệt"); collapsed, an entry shows its label
   │   │                              in a Tooltip and a click on a group expands the menu with that group open;
   │   │                              the current entry isActive with aria-current="page" — collapsible, tooltip
-  │   └── user-menu.tsx              SidebarMenuButton size="lg" named by `name`: Avatar (aria-hidden) with the
+  │   └── user-menu.tsx              SidebarMenuButton size="lg" named by the text it shows, `name` and `email`
+  │                                  (no aria-label, WCAG 2.5.3 Label in Name): Avatar (aria-hidden) with the
   │                                  first letters of the first and last words of `name`, then `name` and `email`
   │                                  (`name` alone when `email` is null), ChevronsUpDownIcon; DropdownMenu (side
   │                                  right; bottom on a narrow screen): the same header, "Tài khoản của tôi"
