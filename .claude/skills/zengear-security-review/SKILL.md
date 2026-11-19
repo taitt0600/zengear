@@ -1,7 +1,7 @@
 ---
 name: zengear-security-review
 description: Security review of the pending changes on the current ZenGear branch against the ZenGear security model (authorization, SELF scope, cost and personal data exposure, Firebase token validation, raw SQL, money from the request, uploads). Use in /finish-feature step 6 when the branch touches payments, invoicing, personal data columns, raw SQL, file uploads, a [ShopEndpoint] controller or authentication and authorization code, and whenever the user asks for a security review of the branch.
-allowed-tools: Bash(git status --porcelain --untracked-files=all), Bash(git diff --name-only --merge-base main), Bash(git log --no-decorate main...), Bash(git diff --merge-base main), Read, Glob, Grep, Task, Agent
+allowed-tools: Bash(git status --porcelain --untracked-files=all), Bash(git diff --name-only --merge-base origin/main), Bash(git log --no-decorate origin/main...), Bash(git diff --merge-base origin/main), Read, Glob, Grep, Task, Agent
 ---
 <!-- Based on the security-review command of anthropics/claude-code-security-review (MIT License, Copyright (c) 2025 Anthropic; the license text is in LICENSE.md beside this file), with the ZenGear security model added. It has its own name so that it never resolves to the built-in /security-review (DEC-152 (4)). The git commands are allowed as exact commands only: a prefix rule would also allow `--output=<file>`. -->
 
@@ -16,19 +16,19 @@ GIT STATUS:
 FILES MODIFIED:
 
 ```
-!`git diff --name-only --merge-base main`
+!`git diff --name-only --merge-base origin/main`
 ```
 
 COMMITS:
 
 ```
-!`git log --no-decorate main...`
+!`git log --no-decorate origin/main...`
 ```
 
 DIFF CONTENT:
 
 ```
-!`git diff --merge-base main`
+!`git diff --merge-base origin/main`
 ```
 
 Review the complete diff above. Files marked `??` in GIT STATUS are new and not in the diff: read each of them. Skip the generated files `api/src/ZenGear.Data/Migrations/*.Designer.cs`, the model snapshot, `api/openapi/ZenGear.Api.json` and the web client `web/src/lib/api/generated/` (its mutator `web/src/lib/api/api.ts` and `client.ts` are reviewed).
