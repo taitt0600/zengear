@@ -1,0 +1,5 @@
+{
+  "$schema": "https://unpkg.com/knip@6.45.1/schema.json",
+  "ignore": ["src/lib/api/generated/**", "src/components/ui/**"],
+  "ignoreDependencies": ["jscpd"]
+}

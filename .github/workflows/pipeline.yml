@@ -2,7 +2,8 @@ name: pipeline
 
 # One CI/CD pipeline (DEC-100 (8)): every check of a pull request and of main, then the deploy. The required check
 # of main is ci-ok, which aggregates the jobs below; gates.yml holds the checks that run as pull_request_target
-# (pr-gates, pr-title). Every job is named after its id, in lower case. The weekly schedule runs only the full-history secret scan.
+# (pr-gates, pr-title). Every job is named after its id, in lower case. The weekly schedule runs only the full-history secret scan;
+# weekly-quality.yml runs the whole mutation testing and the external links, and scorecard.yml the OpenSSF Scorecard.
 on:
   pull_request:
     branches: [main]
@@ -36,6 +37,9 @@ jobs:
       postman: ${{ steps.diff.outputs.postman }}
       tools: ${{ steps.diff.outputs.tools }}
       docs: ${{ steps.diff.outputs.docs }}
+      deps: ${{ steps.diff.outputs.deps }}
+      markdown: ${{ steps.diff.outputs.markdown }}
+      quality: ${{ steps.diff.outputs.quality }}
       web: ${{ steps.diff.outputs.web }}
       workflow: ${{ steps.diff.outputs.workflow }}
     steps:
@@ -72,6 +76,12 @@ jobs:
           set_output docs '^docs/'
           # The web client comes from the OpenAPI contract; web-test also runs the web check of tools/.
           set_output web '^(web/|api/openapi/|tools/message_keys\.py$)'
+          # docs-lint: every Markdown file and the two configurations it reads.
+          set_output markdown '(\.md$|^\.markdownlint-cli2\.jsonc$|^lychee\.toml$)'
+          # quality-web: knip and StrykerJS judge web/, jscpd counts duplication in api/src and web/src.
+          set_output quality '^(web/|api/src/|\.jscpd\.json$)'
+          # dependency-review: the manifests and lockfiles of every ecosystem, and the actions the workflows use.
+          set_output deps '(^web/package(-lock)?\.json$|\.csproj$|^api/Directory\.Packages\.props$|^api/\.config/dotnet-tools\.json$|^tools/requirements\.txt$|^\.github/workflows/)'
 
   # Secret scan with gitleaks (.gitleaks.toml): the commits of every pull request and push to main, and the whole
   # history every week and on demand. Free for repositories of a personal account.
@@ -269,6 +279,126 @@ jobs:
       - name: Build
         if: steps.web.outputs.exists == 'true'
         run: npm exec --no -- next build
+
+  # The Markdown files (DEC-152 (7)): markdownlint-cli2 with .markdownlint-cli2.jsonc, then lychee --offline on the
+  # links between files of the repository (lychee.toml); the external links are checked weekly (weekly-quality.yml).
+  docs-lint:
+    name: docs-lint
+    needs: changes
+    if: needs.changes.outputs.markdown == 'true' || needs.changes.outputs.workflow == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: DavidAnson/markdownlint-cli2-action@696eb3f2509270d7b882d2aa68347bc676e7af34 # v25.0.0 (markdownlint-cli2 0.24.0)
+        with:
+          globs: '**/*.md'
+      - uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0 (lychee v0.24.2)
+        with:
+          args: --offline --config lychee.toml './**/*.md'
+          fail: true
+          jobSummary: false
+
+  # Mutation testing of the business logic (DEC-152 (7)): Stryker.NET (api/.config/dotnet-tools.json) on the unit tests
+  # of ZenGear.Services (api/stryker-config.json), only on the code the pull request changed (--since, fetch-depth 0);
+  # thresholds.break is the ratchet. The whole project runs every week in weekly-quality.yml.
+  quality-api:
+    name: quality-api
+    needs: changes
+    if: github.event_name == 'pull_request' && (needs.changes.outputs.api == 'true' || needs.changes.outputs.workflow == 'true')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30   # the whole project took 4 minutes on the owner's machine (2026-11-19)
+    defaults:
+      run:
+        working-directory: api/src/ZenGear.Services
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0   # --since compares with origin/<base>
+          persist-credentials: false
+      - uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
+        with:
+          global-json-file: api/global.json
+      - run: dotnet tool restore
+      # Run from the project: in api/ Stryker.NET would take the solution, where it refuses the test-projects option.
+      # No changed code gives no mutant and exits 0.
+      - name: Stryker.NET on the changed code
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: dotnet stryker --config-file ../../stryker-config.json --since:"origin/$BASE_REF" --output "$RUNNER_TEMP/stryker-api"
+      - name: Upload the mutation report
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: stryker-api-${{ github.sha }}
+          path: ${{ runner.temp }}/stryker-api/reports
+          if-no-files-found: ignore
+          retention-days: 14
+
+  # The web's quality (DEC-152 (7)): knip (web/knip.json: unused files, exports and packages), jscpd over api/src and
+  # web/src (.jscpd.json, its threshold the ratchet), and on a pull request StrykerJS (web/stryker.config.json) on the
+  # source files it changed. Every tool from web/node_modules, as in web-test.
+  quality-web:
+    name: quality-web
+    needs: changes
+    if: needs.changes.outputs.quality == 'true' || needs.changes.outputs.workflow == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45   # the whole of web/src took 43 minutes on the owner's machine (2026-11-19), before ignoreStatic
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0   # the files changed against origin/<base>
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: web/.nvmrc
+          package-manager-cache: false
+      - name: Install
+        run: npm ci --no-audit --no-fund
+      - name: knip
+        run: npm exec --no -- knip
+      - name: jscpd
+        working-directory: .
+        run: web/node_modules/.bin/jscpd --config .jscpd.json --output "$RUNNER_TEMP/jscpd"
+      # The source files StrykerJS judges (its mutate list), changed by the pull request; none skips it.
+      - name: StrykerJS on the changed files
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          files=$(git diff --name-only --diff-filter=AMR "origin/$BASE_REF...HEAD" -- 'src/*.ts' 'src/*.tsx' \
+            | grep -vE '\.test\.tsx?$|\.fixtures\.tsx?$|^web/src/test/|^web/src/components/ui/|^web/src/lib/api/generated/' \
+            | sed 's#^web/##' | paste -sd, - || true)
+          if [ -z "$files" ]; then
+            echo "::notice::no source file of web/src changed: StrykerJS skipped"
+            exit 0
+          fi
+          echo "$files" | tr ',' '\n'
+          npm exec --no -- stryker run --mutate "$files"
+
+  # New dependencies of a pull request (DEC-152 (7)): a known vulnerability of severity high or above, or a strong
+  # copyleft licence the owner chose to refuse, fails it. It adds to web/approved-packages.json, which still decides
+  # which web packages may come in.
+  dependency-review:
+    name: dependency-review
+    needs: changes
+    if: github.event_name == 'pull_request' && (needs.changes.outputs.deps == 'true' || needs.changes.outputs.workflow == 'true')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/dependency-review-action@bbc44d14a204704ccc493733616cd1e93a0321ec # v5.0.1
+        with:
+          fail-on-severity: high
+          # Development packages run in CI too, the job that pushes to GHCR included (the default is runtime only).
+          fail-on-scopes: runtime, development, unknown
+          # Inputs of v5.0.1 read from its action.yml at the pinned commit.
+          deny-licenses: GPL-2.0-only, GPL-2.0-or-later, GPL-3.0-only, GPL-3.0-or-later, AGPL-3.0-only, AGPL-3.0-or-later
+          comment-summary-in-pr: never
 
   # Package and acceptance in one job, so that the image tested is the image pushed and never moves between jobs:
   # the API image and the migration bundle are built once, the acceptance compose (api/acceptance/compose.yml,
@@ -520,7 +650,7 @@ jobs:
   ci-ok:
     name: ci-ok
     if: always()
-    needs: [changes, secrets, tools-test, api-test, schema, web-test, acceptance]
+    needs: [changes, secrets, tools-test, api-test, schema, web-test, docs-lint, quality-api, quality-web, dependency-review, acceptance]
     runs-on: ubuntu-latest
     steps:
       - name: Every job passed or was skipped
