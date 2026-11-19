@@ -79,7 +79,7 @@ jobs:
           # docs-lint: every Markdown file and the two configurations it reads.
           set_output markdown '(\.md$|^\.markdownlint-cli2\.jsonc$|^lychee\.toml$)'
           # quality-web: knip and StrykerJS judge web/, jscpd counts duplication in api/src and web/src.
-          set_output quality '^(web/|api/src/|\.jscpd\.json$)'
+          set_output quality '^(web/|api/src/|\.jscpd\.json$|tools/mutation_score\.py$)'
           # dependency-review: the manifests and lockfiles of every ecosystem, and the actions the workflows use.
           set_output deps '(^web/package(-lock)?\.json$|\.csproj$|^api/Directory\.Packages\.props$|^api/\.config/dotnet-tools\.json$|^tools/requirements\.txt$|^\.github/workflows/)'
 
@@ -372,21 +372,33 @@ jobs:
       - name: jscpd
         working-directory: .
         run: web/node_modules/.bin/jscpd --config .jscpd.json --output "$RUNNER_TEMP/jscpd"
-      # The source files StrykerJS judges (its mutate list), changed by the pull request; none skips it.
+      # The source files StrykerJS judges (its mutate list, which leaves out the routes of src/app/: they hold no
+      # logic and only the screen flows cover them), changed by the pull request; none skips it. StrykerJS's own break
+      # is off in a copy of the config (it has no command-line option for it), and, as in quality-api,
+      # tools/mutation_score.py judges the covered mutants against the break of web/stryker.config.json.
       - name: StrykerJS on the changed files
+        id: stryker
         if: github.event_name == 'pull_request'
         env:
           BASE_REF: ${{ github.base_ref }}
         run: |
           files=$(git diff --name-only --diff-filter=AMR "origin/$BASE_REF...HEAD" -- 'src/*.ts' 'src/*.tsx' \
-            | grep -vE '\.test\.tsx?$|\.fixtures\.tsx?$|^web/src/test/|^web/src/components/ui/|^web/src/lib/api/generated/' \
+            | grep -vE '\.test\.tsx?$|\.fixtures\.tsx?$|^web/src/test/|^web/src/app/|^web/src/components/ui/|^web/src/lib/api/generated/' \
             | sed 's#^web/##' | paste -sd, - || true)
           if [ -z "$files" ]; then
             echo "::notice::no source file of web/src changed: StrykerJS skipped"
             exit 0
           fi
           echo "$files" | tr ',' '\n'
-          npm exec --no -- stryker run --mutate "$files"
+          jq '.thresholds.break = null' stryker.config.json > stryker.pr.config.json
+          npm exec --no -- stryker run stryker.pr.config.json --mutate "$files"
+          echo "ran=true" >> "$GITHUB_OUTPUT"
+      - name: Mutation score of the covered code
+        if: steps.stryker.outputs.ran == 'true'
+        working-directory: .
+        run: |
+          threshold=$(jq -r '.thresholds.break' web/stryker.config.json)
+          python3 tools/mutation_score.py out/stryker-web/mutation-report.json --break "$threshold"
 
   # New dependencies of a pull request (DEC-152 (7)): a known vulnerability of severity high or above, or a strong
   # copyleft licence the owner chose to refuse, fails it. It adds to web/approved-packages.json, which still decides
