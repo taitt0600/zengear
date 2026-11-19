@@ -15,7 +15,9 @@ updates:
       actions:
         patterns: ['*']
 
-  # Security updates for api/ read this entry for their title prefix; no version updates are opened.
+  # Security updates for api/ read this entry for their title prefix; no version updates are opened. The local tools of
+  # api/.config/dotnet-tools.json (dotnet-ef, dotnet-stryker) are updated by hand: an allow list here might also limit
+  # the security updates of the other packages, which GitHub Docs (Dependabot options reference) leave unsaid.
   - package-ecosystem: nuget
     directory: /api
     schedule:
