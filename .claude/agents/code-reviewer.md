@@ -36,7 +36,7 @@ reported as unchecked; a PowerShell script is never run, read its `ShouldProcess
 ## The changes
 
 The request says whether this is a **full review** or an **incremental round** (DEC-152 (3); when and how often:
-*Reviewers* of `CLAUDE.md`). Without that, make a full review.
+`.claude/skills/finish-feature/reviewers.md`). Without that, make a full review.
 
 - Full review: `git diff origin/main...HEAD` and `git diff HEAD` (committed and not yet committed changes of the branch).
 - Incremental round: the fixes since the last round and the Blocking items it left, given with the request.
@@ -64,8 +64,9 @@ The request says whether this is a **full review** or an **incremental round** (
   (Vercel's Web Interface Guidelines, copied at a pinned commit; DEC-104 (11), DEC-111 (6))
 - A change that is not a feature (tooling, CI, documents) has no dossier. Read instead the files it changes and the
   documents that describe them: `docs/AUTOMATION.md`, `docs/ACCEPTANCE.md`, the `AGENTS.md` and `CLAUDE.md` files
-  and the Decisions it cites (`docs/blueprint/decisions.md`). Apply items 4, 7, 8 and 12 where they apply, and
-  items 11, 14 and 15 in full
+  with the workflow procedure they point to (`.claude/skills/implement-feature/workflow.md`,
+  `.claude/skills/finish-feature/reviewers.md`) and the Decisions it cites (`docs/blueprint/decisions.md`). Apply
+  items 4, 7, 8 and 12 where they apply, and items 11, 14 and 15 in full
 
 ## Checklist
 
@@ -122,9 +123,9 @@ repeat those. Check what no test sees:
        exist, the variables are set (including required ones such as compose `${VAR:?}`), the paths exist, and the
        order works.
     3. **Specification and documents agree**: the change and `docs/blueprint/` (Decisions, Tech Stack, Technical
-       Design), `docs/DATABASE.md`, `docs/ACCEPTANCE.md`, `docs/AUTOMATION.md` and the `AGENTS.md` and `CLAUDE.md`
-       files say the same thing. A difference from an accepted Decision is named, with the Decision to update or a Needs
-       decision item.
+       Design), `docs/DATABASE.md`, `docs/ACCEPTANCE.md`, `docs/AUTOMATION.md`, the `AGENTS.md` and `CLAUDE.md`
+       files and the workflow procedure they point to say the same thing. A difference from an accepted Decision is
+       named, with the Decision to update or a Needs decision item.
     4. **Owner's time**:
        - the owner is asked only for what Claude cannot do (a decision, a test as an end user, a setting only the
          owner can change);

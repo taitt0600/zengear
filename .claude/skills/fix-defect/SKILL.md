@@ -15,7 +15,7 @@ output to `out/logs/` and bring only a summary into the context, as **Output** o
 (DEC-112 (5)).
 A step of another skill cited as "`/<name>` step N" is read from `.claude/skills/<name>/` (its `SKILL.md` and the
 reference file the step links) and followed in this run; it is never invoked, since those skills have
-`disable-model-invocation` (CLAUDE.md, Workflow).
+`disable-model-invocation` (`.claude/skills/implement-feature/workflow.md`, *Runs*).
 `python3` is `python` on Windows.
 
 1. **Branch and ready check**: first, when `out/paused-<ID>.md` names this command, switch to the branch it names

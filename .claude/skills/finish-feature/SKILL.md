@@ -16,7 +16,7 @@ the reviewer agents) returns its report to this run: keep its numbers for the re
 (the fixes of that step, or the next step) in the same turn. It never ends the run; only the stops above do.
 A step of another skill cited as "`/<name>` step N" is read from `.claude/skills/<name>/` (its `SKILL.md` and the
 reference file the step links) and followed in this run; it is never invoked, since those skills have
-`disable-model-invocation` (CLAUDE.md, Workflow). Steps 13 and 14 are in the reference files
+`disable-model-invocation` (`.claude/skills/implement-feature/workflow.md`, *Runs*). Steps 13 and 14 are in the reference files
 [test-before-merge.md](test-before-merge.md) and [report.md](report.md) beside this file.
 `python3` is `python` on Windows.
 
@@ -121,7 +121,7 @@ step 11 when the pull request is open.
    Fix every Blocking and Should fix item of the agent and every finding of `/code-review` you confirm, then run
    steps 2–3 and review again, at most three rounds (DEC-112 (1)): the rounds of the `code-reviewer` agent, the
    incremental ones, the `git add -A` when a round returns, before its fixes, and the full review before `pass`
-   follow *Reviewers* of CLAUDE.md (DEC-152 (3)), and `/code-review` runs once more, only once in the run, in the round after the first fix
+   follow [reviewers.md](reviewers.md) (DEC-152 (3)), and `/code-review` runs once more, only once in the run, in the round after the first fix
    that changes the behavior of the code (a fix of tests, comments or documents alone does not count). An item you
    do not fix gets its reason in the report, and
    a Blocking item left after three rounds is a Needs decision item. Keep the final verdict, the number of Blocking
@@ -191,7 +191,7 @@ step 11 when the pull request is open.
       web-only run (`/implement-feature`, step 1) takes the title its handoff names, `feat(web): <subject> (<ID>)`.
     - Do not enable auto-merge: it waits for the owner's test (step 13).
     - **Code-review verdict** (DEC-150 (3)): post the final verdict of the `code-reviewer` agent of step 5 for the
-      pushed head, after the full review of the head that *Reviewers* of CLAUDE.md asks before a `pass`,
+      pushed head, after the full review of the head that [reviewers.md](reviewers.md) asks before a `pass`,
       `python3 tools/comment_templates.py code-review --sha $(git rev-parse HEAD) --verdict pass
       --summary "<counts>" > out/review-comment.md` and `python3 tools/github_pr.py comment <number> --body-file
       out/review-comment.md` (`blocking` when a Blocking item is left). After every later push (a fix of CI, a defect,
