@@ -1,3 +1,5 @@
+import { randomInt } from 'node:crypto'
+
 // Set-up of the screen flows through the API and the Firebase Auth Emulator, on the development environment
 // (docs/ACCEPTANCE.md) or the acceptance environment of CI. Test values only: the emulator accepts any API key, and
 // its admin endpoints take the token "owner"; nothing here is a real credential.
@@ -59,7 +61,7 @@ export async function newSalesConsultant(
   password: string,
   mailbox = 'e2e',
 ): Promise<{ id: string; email: string }> {
-  const stamp = `${Date.now()}${Math.floor(Math.random() * 1000)}`
+  const stamp = `${Date.now()}${randomInt(1000)}`
   const email = `${mailbox}.${stamp}@zengear.test`
   const admin = await idToken(accounts.admin, PASSWORD)
   const staff = await api(admin, '/api/v1/admin/staff', {
