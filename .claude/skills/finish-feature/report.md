@@ -12,9 +12,11 @@ The steps named below are those of `.claude/skills/finish-feature/SKILL.md` and 
     - **Kết quả**: "Đạt — auto-merge bật" (**Đạt**), waiting for the owner's test (**Để sau**), draft waiting
       for a decision, or stopped at the ready check — with the pull request link; then the five lines
       `Nơi chạy: local`, `Thời gian bạn tham gia: <the owner's answer at step 13> phút` (`?` when the run
-      stopped before step 13), `Phát hiện over-engineering / duplication: <a> / <b>` (the labelled findings of
+      stopped before step 13), `Phát hiện over-engineering / duplication: <a> / <b>` (<a>: the labelled findings of
       plan-reviewer, from the **Handoff**, plus those of code-reviewer at step 5; a `/fix-defect` run, or a run
-      without the handoff file, counts code-reviewer alone) and
+      without the handoff file, counts code-reviewer alone; <b>: the percentage of duplicated lines in the line
+      `Total:` of `web/node_modules/.bin/jscpd --config .jscpd.json` at the head, as the job quality-web counts it,
+      DEC-152 (8), with "(series break)" after it on the first such line) and
       `Folder mỗi commit feat: <n1>, <n2>, …` (the last line of `python3 tools/structure_metrics.py --range
       origin/main..HEAD`); when the run stopped before the code review (`/finish-feature` step 5), these two lines
       are `Phát hiện over-engineering / duplication: ? / ?` and `Folder mỗi commit feat: ?` (no review or commit

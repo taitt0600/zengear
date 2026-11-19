@@ -6,7 +6,7 @@ Structure of the ZenGear web app in `web/`. Stack: sheet `Tech Stack` of the blu
 
 One Next.js app (App Router) serves the storefront, the admin pages and the POS, separated by route groups so each part has its own layout:
 
-```
+```text
 web/src/
 ├─ app/                    routes only: parameters, guard, a feature's layout and sections composed; no logic
 │  ├─ (shop)/              storefront pages: home, category, product, cart, checkout, account (API /api/v1/shop/)
@@ -56,7 +56,7 @@ Each screen is built in three layers (DEC-118 (3)), so that a change of layout t
 - a section is one block of the screen's approved design (DEC-119), or of the current screen when it has none; it gets its data through hooks and holds the behavior;
 - a presentational component renders its props only.
 
-The page in `app/` composes the layout with the sections; when one piece of client state feeds several sections (the staff session of SCR-AUT-02), a section provides it to the others through a context. The tests of sections and presentational components find elements by role and label, never by the structure of the DOM. ESLint's `max-lines` warns above 150 lines of code per file (blank lines and comments not counted), except tests, `components/ui` and `lib/api/generated/`; a warning fails neither lint nor CI, and `code-reviewer` checks that a new file, or a file whose content changed, has none.
+The page in `app/` composes the layout with the sections; when one piece of client state feeds several sections (the staff session of SCR-AUT-02), a section provides it to the others through a context. The tests of sections and presentational components find elements by role and label, never by the structure of the DOM. ESLint refuses more than 150 lines of code per file (`max-lines`, blank lines and comments not counted), a complexity above 15 and blocks nested deeper than 3, except in tests, `components/ui` and `lib/api/generated/` (errors of the first tier, DEC-118 (3), DEC-152 (7)); the hook `eslint-check` reports a `max-lines` error without blocking while a file is being written, and CI refuses it.
 
 ## Rendering
 
