@@ -35,20 +35,10 @@ public sealed class UserAccessReader(ZenGearDbContext db, IAccessCache cache, IL
     private async Task<UserAccess?> ReadThroughCacheAsync(string firebaseUid, bool retryStaleMapping,
         CancellationToken cancellationToken)
     {
-        // 1. uid → id: holds only the id, never state.
-        var userId = await cache.GetUserIdAsync(firebaseUid);
+        var userId = await CachedUserIdAsync(firebaseUid, cancellationToken);
         if (userId is null)
         {
-            userId = await db.Users.AsNoTracking()
-                .Where(u => u.FirebaseUid == firebaseUid)
-                .Select(u => (Guid?)u.Id)
-                .SingleOrDefaultAsync(cancellationToken);
-            if (userId is null)
-            {
-                return null;
-            }
-
-            await cache.SetUserIdAsync(firebaseUid, userId.Value);
+            return null;
         }
 
         // 2–3. The user, under the version read before the query.
@@ -72,28 +62,55 @@ public sealed class UserAccessReader(ZenGearDbContext db, IAccessCache cache, IL
                 : await ReadDatabaseAsync(firebaseUid, cancellationToken);
         }
 
-        // 5–6. The roles, missing ones in one query, each under the version read before it.
-        var roleIds = user.RoleIds;
+        var roles = await CachedRolesAsync(user.RoleIds, cancellationToken);
+        return ToAccess(userId.Value, user, roles.OfType<CachedRole>());
+    }
+
+    /// <summary>1. uid → id: holds only the id, never state; null when no user has that uid.</summary>
+    private async Task<Guid?> CachedUserIdAsync(string firebaseUid, CancellationToken cancellationToken)
+    {
+        var userId = await cache.GetUserIdAsync(firebaseUid);
+        if (userId is not null)
+        {
+            return userId;
+        }
+
+        userId = await db.Users.AsNoTracking()
+            .Where(u => u.FirebaseUid == firebaseUid)
+            .Select(u => (Guid?)u.Id)
+            .SingleOrDefaultAsync(cancellationToken);
+        if (userId is not null)
+        {
+            await cache.SetUserIdAsync(firebaseUid, userId.Value);
+        }
+
+        return userId;
+    }
+
+    /// <summary>5–6. The roles, missing ones in one query, each under the version read before it.</summary>
+    private async Task<CachedRole?[]> CachedRolesAsync(Guid[] roleIds, CancellationToken cancellationToken)
+    {
         var roleVersions = await cache.GetRoleVersionsAsync(roleIds);
         var roles = await cache.GetRolesAsync(roleIds, roleVersions);
         var missing = roleIds.Where((_, i) => roles[i] is null).ToList();
-        if (missing.Count > 0)
+        if (missing.Count == 0)
         {
-            var loaded = await LoadRolesAsync(missing, cancellationToken);
-            var toCache = new List<(Guid, AccessVersion, CachedRole)>();
-            for (var i = 0; i < roleIds.Length; i++)
-            {
-                if (roles[i] is null && loaded.TryGetValue(roleIds[i], out var role))
-                {
-                    roles[i] = role;
-                    toCache.Add((roleIds[i], roleVersions[i], role));
-                }
-            }
-
-            await cache.SetRolesAsync(toCache);
+            return roles;
         }
 
-        return ToAccess(userId.Value, user, roles.OfType<CachedRole>());
+        var loaded = await LoadRolesAsync(missing, cancellationToken);
+        var toCache = new List<(Guid, AccessVersion, CachedRole)>();
+        for (var i = 0; i < roleIds.Length; i++)
+        {
+            if (roles[i] is null && loaded.TryGetValue(roleIds[i], out var role))
+            {
+                roles[i] = role;
+                toCache.Add((roleIds[i], roleVersions[i], role));
+            }
+        }
+
+        await cache.SetRolesAsync(toCache);
+        return roles;
     }
 
     private async Task<UserAccess?> ReadDatabaseAsync(string firebaseUid, CancellationToken cancellationToken)

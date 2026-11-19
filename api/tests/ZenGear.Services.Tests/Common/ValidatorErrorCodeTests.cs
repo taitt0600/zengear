@@ -75,29 +75,22 @@ public partial class ValidatorErrorCodeTests
         foreach (var rule in validator.CreateDescriptor().Rules)
         {
             var path = Join(prefix, rule.PropertyName ?? "") + (IsCollectionRule(rule) ? "[]" : "");
-            foreach (var component in rule.Components)
+            foreach (var check in rule.Components.SelectMany(component => ComponentChecks(rule, component, path, recurse)))
             {
-                if (component.Validator is IChildValidatorAdaptor)
-                {
-                    if (recurse)
-                    {
-                        foreach (var check in Checks(ChildValidator(component.Validator), path))
-                        {
-                            yield return check;
-                        }
-                    }
-
-                    continue;
-                }
-
-                if (IsCustom(rule, component))
-                {
-                    continue;
-                }
-
-                yield return new Check(path, component.ErrorCode, component.Validator.Name);
+                yield return check;
             }
         }
+    }
+
+    /// <summary>The checks of one component of a rule: those of its child validator, none for a Custom rule, or itself.</summary>
+    private static IEnumerable<Check> ComponentChecks(IValidationRule rule, IRuleComponent component, string path, bool recurse)
+    {
+        if (component.Validator is IChildValidatorAdaptor)
+        {
+            return recurse ? Checks(ChildValidator(component.Validator), path) : [];
+        }
+
+        return IsCustom(rule, component) ? [] : [new Check(path, component.ErrorCode, component.Validator.Name)];
     }
 
     private static string Join(string prefix, string name)
