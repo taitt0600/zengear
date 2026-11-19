@@ -36,34 +36,7 @@ public sealed class StaffService(
     {
         await validator.ValidateAndThrowAsync(request, cancellationToken);
 
-        var roleIds = request.RoleIds!.Distinct().ToList();
-        if (roleIds.Count == 0)
-        {
-            throw new BusinessRuleException("R-SEC-01", "role-required", nameof(StaffCreateRequest.RoleIds));
-        }
-
-        var roles = await db.Roles.Where(r => roleIds.Contains(r.Id)).ToListAsync(cancellationToken);
-        var unknown = roleIds.Except(roles.Select(r => r.Id)).ToList();
-        if (unknown.Count > 0)
-        {
-            throw UnknownRole();
-        }
-
-        if (roles.Any(r => r.ScopingType != ScopingType.None))
-        {
-            throw new BusinessRuleException("R-USR-01", "role-not-for-staff", nameof(StaffCreateRequest.RoleIds));
-        }
-
-        // R-TX-11 by the role name, like the R-SEC-02 trigger: it only refuses, so no access depends on a role name (R-SEC-03).
-        if (roles.Any(r => r.Name == PermissionCatalog.AdminRoleName) && !await HoldsAdminRoleAsync(actorId, cancellationToken))
-        {
-            throw new BusinessRuleException("R-TX-11", "admin-role-not-assignable", nameof(StaffCreateRequest.RoleIds));
-        }
-
-        if (!(await ManageableRolesOfAsync(actorId, cancellationToken)).Covers(roleIds))
-        {
-            throw new BusinessRuleException("R-SEC-12", "role-out-of-scope", nameof(StaffCreateRequest.RoleIds));
-        }
+        var roles = await AssignableRolesAsync(request.RoleIds!, actorId, cancellationToken);
 
         var email = User.NormalizeEmail(request.Email!);
         if (await db.Users.AnyAsync(u => u.Email == email, cancellationToken))
@@ -120,7 +93,8 @@ public sealed class StaffService(
             throw;
         }
 
-        logger.LogInformation("Staff account {UserId} created by {ActorId} with roles {RoleIds}", user.Id, actorId, roleIds);
+        logger.LogInformation("Staff account {UserId} created by {ActorId} with roles {RoleIds}", user.Id, actorId,
+            roles.Select(r => r.Id).ToList());
         return (await GetAsync(user.Id, CancellationToken.None))!;
     }
 
@@ -249,6 +223,45 @@ public sealed class StaffService(
             .ThenByDescending(u => u.StaffProfile!.JoinedDate).ThenBy(u => u.Id),
         _ => throw new ArgumentOutOfRangeException(nameof(sort), "A sort accepted by the validator has no order."),
     };
+
+    /// <summary>
+    /// The roles of a new staff account, each rule checked in this order: at least one (R-SEC-01), all known, none
+    /// scoped (R-USR-01), Admin only by an Admin (R-TX-11), all within what the actor manages (R-SEC-12).
+    /// </summary>
+    private async Task<List<Role>> AssignableRolesAsync(IEnumerable<Guid> requested, Guid actorId,
+        CancellationToken cancellationToken)
+    {
+        var roleIds = requested.Distinct().ToList();
+        if (roleIds.Count == 0)
+        {
+            throw new BusinessRuleException("R-SEC-01", "role-required", nameof(StaffCreateRequest.RoleIds));
+        }
+
+        var roles = await db.Roles.Where(r => roleIds.Contains(r.Id)).ToListAsync(cancellationToken);
+        var unknown = roleIds.Except(roles.Select(r => r.Id)).ToList();
+        if (unknown.Count > 0)
+        {
+            throw UnknownRole();
+        }
+
+        if (roles.Any(r => r.ScopingType != ScopingType.None))
+        {
+            throw new BusinessRuleException("R-USR-01", "role-not-for-staff", nameof(StaffCreateRequest.RoleIds));
+        }
+
+        // R-TX-11 by the role name, like the R-SEC-02 trigger: it only refuses, so no access depends on a role name (R-SEC-03).
+        if (roles.Any(r => r.Name == PermissionCatalog.AdminRoleName) && !await HoldsAdminRoleAsync(actorId, cancellationToken))
+        {
+            throw new BusinessRuleException("R-TX-11", "admin-role-not-assignable", nameof(StaffCreateRequest.RoleIds));
+        }
+
+        if (!(await ManageableRolesOfAsync(actorId, cancellationToken)).Covers(roleIds))
+        {
+            throw new BusinessRuleException("R-SEC-12", "role-out-of-scope", nameof(StaffCreateRequest.RoleIds));
+        }
+
+        return roles;
+    }
 
     /// <summary>
     /// Compensation: deletes the Firebase account created by this request unless a user row holds it. Best effort; a

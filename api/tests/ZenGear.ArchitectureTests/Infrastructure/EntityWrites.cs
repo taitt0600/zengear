@@ -43,14 +43,7 @@ internal static class EntityWrites
 
         if (isEntity(declaring))
         {
-            return called switch
-            {
-                ConstructorInfo => declaring,
-                MethodInfo { IsSpecialName: true } accessor => accessor.Name.StartsWith("set_", StringComparison.Ordinal) ? declaring : null,
-                MethodInfo { IsStatic: true } factory => factory.ReturnType == declaring ? declaring : null,
-                MethodInfo instance => instance.ReturnType == typeof(void) ? declaring : null,
-                _ => null,
-            };
+            return EntityMemberWrite(called, declaring);
         }
 
         if (declaring.IsGenericType && declaring.GetGenericTypeDefinition() == typeof(DbSet<>) && DbSetWrites.Contains(called.Name))
@@ -62,6 +55,16 @@ internal static class EntityWrites
 
         Type? EntityOrNull(Type type) => isEntity(type) ? type : null;
     }
+
+    /// <summary>The entity a call of its own member writes: a constructor, a setter, a factory or a void method.</summary>
+    private static Type? EntityMemberWrite(MethodBase called, Type entity) => called switch
+    {
+        ConstructorInfo => entity,
+        MethodInfo { IsSpecialName: true } accessor => accessor.Name.StartsWith("set_", StringComparison.Ordinal) ? entity : null,
+        MethodInfo { IsStatic: true } factory => factory.ReturnType == entity ? entity : null,
+        MethodInfo instance => instance.ReturnType == typeof(void) ? entity : null,
+        _ => null,
+    };
 
     /// <summary>Every method and constructor defined in the assembly, whatever its accessibility.</summary>
     private static List<MethodBase> Methods(Assembly assembly)
