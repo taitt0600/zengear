@@ -1,7 +1,8 @@
 """Tests of .claude/hooks/eslint-check.ps1 with a fake eslint in a throw-away project (DEC-104 (11), DEC-111 (7)):
 an edited .ts or .tsx file under web/ is linted alone with the local binary and without --fix, its errors go back to
-Claude (exit 2), and everything else (another file, no web/node_modules, a parse error, ESLint's own failure) is
-silent. Skipped when pwsh is missing.
+Claude (exit 2), a max-lines error alone as context that does not block, the typed rules are left to CI (DEC-152
+(7)), and everything else (another file, no web/node_modules, a parse error, ESLint's own failure) is silent.
+Skipped when pwsh is missing.
 Run from the repository root: python3 -m unittest discover -s tools/tests -v
 """
 import json
@@ -22,7 +23,8 @@ HOOK = Path(os.environ.get('ESLINT_CHECK_SCRIPT', REPO / '.claude' / 'hooks' / '
 # The fake eslint logs its working folder and arguments, then prints FAKE_ESLINT_OUTPUT and exits FAKE_ESLINT_EXIT.
 FAKE = '''import json, os, sys
 with open(os.environ['FAKE_ESLINT_LOG'], 'a', encoding='utf-8') as log:
-    log.write(json.dumps({'cwd': os.getcwd(), 'args': sys.argv[1:]}) + '\\n')
+    log.write(json.dumps({'cwd': os.getcwd(), 'args': sys.argv[1:],
+                          'untyped': os.environ.get('ZENGEAR_ESLINT_UNTYPED')}) + '\\n')
 sys.stdout.write(os.environ.get('FAKE_ESLINT_OUTPUT', '[]'))
 sys.exit(int(os.environ.get('FAKE_ESLINT_EXIT', '0')))
 '''
@@ -79,6 +81,28 @@ class EslintCheckTests(unittest.TestCase):
         self.assertEqual(call['args'][:4], ['--quiet', '--no-warn-ignored', '--format', 'json'])
         self.assertEqual(Path(call['args'][4]).as_posix(), 'src/app/page.tsx')
         self.assertFalse([a for a in call['args'] if a.startswith('--fix')])
+
+    def test_the_typed_rules_are_left_to_ci(self):
+        # DEC-152 (7): web/eslint.config.mjs drops the typed rules and the unused-directive report when it is set.
+        self.run_hook(self.file('web/src/a.ts'))
+        [call] = self.calls()
+        self.assertEqual(call['untyped'], '1')
+
+    def test_a_max_lines_error_alone_is_reported_without_blocking(self):
+        length = {**ERROR, 'ruleId': 'max-lines', 'line': 151, 'column': 1,
+                  'message': 'File has too many lines (151). Maximum allowed is 150.'}
+        run = self.run_hook(self.file('web/src/a.ts'), results(length), 1)
+        self.assertEqual((run.returncode, run.stderr), (0, ''))
+        output = json.loads(run.stdout)['hookSpecificOutput']
+        self.assertEqual(output['hookEventName'], 'PostToolUse')
+        self.assertIn('web/src/a.ts:151:1 max-lines File has too many lines', output['additionalContext'])
+
+    def test_a_max_lines_error_beside_another_error_blocks_with_both(self):
+        length = {**ERROR, 'ruleId': 'max-lines', 'line': 151, 'column': 1, 'message': 'Too many lines.'}
+        run = self.run_hook(self.file('web/src/a.ts'), results(length, ERROR), 1)
+        self.assertEqual(run.returncode, 2, run.stderr)
+        self.assertIn(':3:7 no-unused-vars', run.stderr)
+        self.assertIn(':151:1 max-lines', run.stderr)
 
     def test_a_route_with_brackets_and_parentheses(self):
         run = self.run_hook(self.file('web/src/app/[locale]/(shop)/page.tsx'), results(ERROR), 1)
