@@ -4,9 +4,11 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { GetApiV1AdminStaffParams } from '@/lib/api/generated/model'
 import { useGetApiV1AdminStaff } from '@/lib/api/generated/staff/staff'
-import { ApiError } from '@/lib/api/problems'
 import {
   DEFAULT_SORT,
+  listHref,
+  listParams,
+  listRedirect,
   matchesSearch,
   nextSort,
   numbered,
@@ -28,10 +30,7 @@ export function useStaffList() {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const url = searchParams.toString()
-  // An empty value (`?status=`) is no value: the default.
-  const status = searchParams.get('status') || undefined
-  const sort = searchParams.get('sort') || undefined
-  const page = searchParams.get('page') || undefined
+  const { status, sort, page } = listParams(searchParams)
 
   // The URL's values as they come: the API checks them (R-USR-13), and its 400 resets the URL below.
   const params = { status, sort, page, pageSize: PAGE_SIZE } as GetApiV1AdminStaffParams
@@ -57,24 +56,13 @@ export function useStaffList() {
   )
 
   const href = useCallback(
-    (changes: Record<string, string | undefined>) => {
-      const next = new URLSearchParams(url)
-      for (const [key, value] of Object.entries(changes)) {
-        if (value === undefined) next.delete(key)
-        else next.set(key, value)
-      }
-      const text = next.toString()
-      return text ? `${pathname}?${text}` : pathname
-    },
+    (changes: Record<string, string | undefined>) => listHref(pathname, url, changes),
     [pathname, url],
   )
   const go = (changes: Record<string, string | undefined>) =>
     router.push(href(changes), { scroll: false })
 
-  // A URL edited by hand: back to the default filters. With nothing left to reset, the 400 shows like any failure.
-  const resetting = query.error instanceof ApiError && query.error.status === 400 && url !== ''
-  // A page past the end (an account disabled or gone since the link was made): back to page 1.
-  const pastEnd = !!result && result.items.length === 0 && totalCount > 0 && currentPage > 1
+  const { resetting, pastEnd } = listRedirect(query.error, url, result, totalCount, currentPage)
   useEffect(() => {
     if (resetting) router.replace(pathname)
     else if (pastEnd) router.replace(href({ page: undefined }))

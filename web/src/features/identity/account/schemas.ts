@@ -4,10 +4,10 @@ import { z } from 'zod'
 // decides (R-USR-11 also refuses the default password, the blocklist and "zengear"; R-USR-04 the display name).
 
 /** R-USR-11: in Unicode code points, as the API counts them. */
-export const PASSWORD_MIN_LENGTH = 12
-export const PASSWORD_MAX_LENGTH = 128
+const PASSWORD_MIN_LENGTH = 12
+const PASSWORD_MAX_LENGTH = 128
 /** The display name after trimming, in UTF-16 units, as the API counts it (`Trim().Length`). */
-export const NAME_MAX_LENGTH = 100
+const NAME_MAX_LENGTH = 100
 
 const codePoints = (value: string) => [...value].length
 

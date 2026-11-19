@@ -1,3 +1,4 @@
+import type { AbstractIntlMessages } from 'next-intl'
 import { getRequestConfig } from 'next-intl/server'
 import { defaultLocale } from './config'
 
@@ -5,5 +6,8 @@ import { defaultLocale } from './config'
 export default getRequestConfig(async () => ({
   locale: defaultLocale,
   timeZone: 'Asia/Ho_Chi_Minh',
-  messages: (await import(`../../messages/${defaultLocale}.json`)).default,
+  // A dynamic import of JSON is typed any: the message files hold the messages of next-intl.
+  messages: (
+    (await import(`../../messages/${defaultLocale}.json`)) as { default: AbstractIntlMessages }
+  ).default,
 }))

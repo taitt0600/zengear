@@ -1,6 +1,58 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { apiDate, matchesSearch, nextSort, numbered, pageCount, sortDirection } from './staff-list'
+import { ApiError } from '@/lib/api/problems'
+import {
+  apiDate,
+  listHref,
+  listParams,
+  listRedirect,
+  matchesSearch,
+  nextSort,
+  numbered,
+  pageCount,
+  sortDirection,
+} from './staff-list'
+
+describe('the URL of SCR-STF-01', () => {
+  it('reads the status, sort and page, an empty value as none', () => {
+    expect(listParams(new URLSearchParams('status=&sort=-name&page=2'))).toEqual({
+      status: undefined,
+      sort: '-name',
+      page: '2',
+    })
+  })
+
+  it('sets and removes values, keeping the others', () => {
+    expect(
+      listHref('/admin/staff', 'status=ACTIVE&page=3', { page: undefined, sort: 'name' }),
+    ).toBe('/admin/staff?status=ACTIVE&sort=name')
+  })
+
+  it('is the path alone once no value is left', () => {
+    expect(listHref('/admin/staff', 'page=2', { page: undefined })).toBe('/admin/staff')
+  })
+})
+
+describe('where an answer sends the URL of SCR-STF-01', () => {
+  const page = (count: number) => ({ items: Array.from({ length: count }, () => ({})) })
+
+  it.each([
+    ['a 400 with values in the URL resets them', new ApiError(400), 'status=X', undefined, true],
+    ['a 400 with no value left does not', new ApiError(400), '', undefined, false],
+    ['another failure does not', new ApiError(500), 'status=X', undefined, false],
+  ])('%s', (_, error, url, result, resetting) => {
+    expect(listRedirect(error, url, result, 0, 1).resetting).toBe(resetting)
+  })
+
+  it.each([
+    ['an empty page past the end goes back to page 1', page(0), 5, 3, true],
+    ['an empty first page stays', page(0), 0, 1, false],
+    ['a page with rows stays', page(2), 22, 2, false],
+    ['no answer yet stays', undefined, 0, 2, false],
+  ])('%s', (_, result, totalCount, current, pastEnd) => {
+    expect(listRedirect(null, '', result, totalCount, current).pastEnd).toBe(pastEnd)
+  })
+})
 
 describe('the sort of SCR-STF-01', () => {
   it.each([

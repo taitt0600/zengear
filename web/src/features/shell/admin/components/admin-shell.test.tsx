@@ -1,6 +1,6 @@
 import { act, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest'
 import type { CurrentUser } from '@/features/identity/access'
 import { reportApiError } from '@/lib/api/api-errors'
 import { ApiError } from '@/lib/api/problems'
@@ -19,8 +19,9 @@ vi.mock('next/navigation', () => ({
   usePathname: () => navigation.pathname,
 }))
 
-const session = vi.hoisted(() => ({
-  state: 'signed-in' as AuthState,
+// Typed by the argument, so that the tests can set any state.
+const session = vi.hoisted<{ state: AuthState; signOutAndClear: Mock }>(() => ({
+  state: 'signed-in',
   signOutAndClear: vi.fn(),
 }))
 vi.mock('@/lib/auth/session', () => ({

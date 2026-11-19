@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useQueryClient } from '@tanstack/react-query'
 import { useTranslations } from 'next-intl'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type BaseSyntheticEvent } from 'react'
 import { useForm } from 'react-hook-form'
 import type { z } from 'zod'
 import {
@@ -158,5 +158,7 @@ export function useSignIn() {
   }
 
   const sending = form.formState.isSubmitting || leaving || !sessionRead
-  return { form, onSubmit: form.handleSubmit(onSubmit), error, passwordChanged, sending }
+  // The form's submit event expects nothing back: the promise is handled inside onSubmit.
+  const submit = (event: BaseSyntheticEvent) => void form.handleSubmit(onSubmit)(event)
+  return { form, onSubmit: submit, error, passwordChanged, sending }
 }

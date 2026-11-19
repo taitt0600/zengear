@@ -5,7 +5,7 @@ import type { CurrentUser } from '../api/me'
 import type { SignOut } from './use-staff-session'
 
 /** What the admin layout shares with its sections and pages: the user, the sign-out and the no-permission page. */
-export type CurrentUserContextValue = {
+type CurrentUserContextValue = {
   me: CurrentUser
   signOut: SignOut
   // A 403 permission-denied holds for the current path: the page slot shows the no-permission page.

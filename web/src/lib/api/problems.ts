@@ -49,7 +49,7 @@ export function isNetworkError(error: unknown): boolean {
 }
 
 /** The web's own texts of a failed call, for when the API gave none. */
-export type ProblemTextKey = 'problems.network' | 'problems.unknown'
+type ProblemTextKey = 'problems.network' | 'problems.unknown'
 
 /** What to show for a failed call: the API's text, or the key of the web's own text. */
 export type ProblemText = { text: string } | { key: ProblemTextKey }

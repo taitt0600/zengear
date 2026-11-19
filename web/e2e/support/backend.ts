@@ -34,7 +34,7 @@ const emulator = (method: string, body: unknown) =>
   })
 
 /** An ID token of an emulator account. */
-export async function idToken(email: string, password: string): Promise<string> {
+async function idToken(email: string, password: string): Promise<string> {
   const result = await emulator('accounts:signInWithPassword', {
     email,
     password,

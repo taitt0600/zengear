@@ -6,7 +6,7 @@ export type MenuEntry = { key: 'staff' | 'businessLocation'; href: string; permi
 export type MenuGroup = { key: 'settings'; entries: MenuEntry[] }
 export type MenuItem = MenuEntry | MenuGroup
 
-export const adminMenu: readonly MenuItem[] = [
+const adminMenu: readonly MenuItem[] = [
   { key: 'staff', href: adminRoutes.staff, permission: 'staff.read' },
   {
     key: 'settings',

@@ -97,7 +97,7 @@ function ReauthForm({
   }
 
   return (
-    <form noValidate onSubmit={form.handleSubmit(onSubmit)}>
+    <form noValidate onSubmit={(event) => void form.handleSubmit(onSubmit)(event)}>
       <FieldGroup>
         {email && <AccountName email={email} />}
         {error && (
