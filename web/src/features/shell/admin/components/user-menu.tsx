@@ -82,7 +82,6 @@ export function UserMenu({
                 <SidebarMenuButton
                   ref={button}
                   size="lg"
-                  aria-label={name}
                   className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                 >
                   <UserName name={name} email={email} />

@@ -138,7 +138,7 @@ describe('on a wide screen', () => {
   it('shows the user with the email in the user menu', async () => {
     renderFrame()
     const user = userEvent.setup()
-    await user.click(await screen.findByRole('button', { name: 'Chủ cửa hàng' }))
+    await user.click(await screen.findByRole('button', { name: /^Chủ cửa hàng/ }))
 
     const content = await screen.findByRole('menu')
     expect(within(content).getByText('owner@zengear.test')).toBeInTheDocument()
@@ -149,7 +149,7 @@ describe('on a wide screen', () => {
     api.me.mockResolvedValue({ ...admin, permissions: [] })
     renderFrame()
 
-    expect(await screen.findByRole('button', { name: 'Chủ cửa hàng' })).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: /^Chủ cửa hàng/ })).toBeInTheDocument()
     expect(screen.queryByRole('navigation', { name: 'Menu' })).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'ZenGear' })).toHaveAttribute('href', '/admin')
   })
@@ -186,7 +186,7 @@ describe('on a narrow screen', () => {
     await user.click(await screen.findByRole('button', { name: 'Mở menu' }))
     const sheet = await screen.findByRole('dialog', { name: 'Menu' })
     if (role === 'menuitem') {
-      await user.click(within(sheet).getByRole('button', { name: 'Chủ cửa hàng' }))
+      await user.click(within(sheet).getByRole('button', { name: /^Chủ cửa hàng/ }))
     }
     await user.click(await screen.findByRole(role, { name }))
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
@@ -223,7 +223,7 @@ describe('the theme', () => {
     expect(radio('Tối')).toHaveAttribute('aria-checked', 'true')
     await user.keyboard('{Escape}')
 
-    await user.click(screen.getByRole('button', { name: 'Chủ cửa hàng' }))
+    await user.click(screen.getByRole('button', { name: /^Chủ cửa hàng/ }))
     await screen.findByRole('menuitem', { name: 'Đăng xuất' })
     expect(screen.queryByRole('menuitem', { name: 'Giao diện' })).not.toBeInTheDocument()
   })
@@ -249,7 +249,7 @@ describe('the theme', () => {
     expect(screen.queryByRole('button', { name: 'Giao diện' })).not.toBeInTheDocument()
     await user.click(openMenu)
     const sheet = await screen.findByRole('dialog', { name: 'Menu' })
-    await user.click(within(sheet).getByRole('button', { name: 'Chủ cửa hàng' }))
+    await user.click(within(sheet).getByRole('button', { name: /^Chủ cửa hàng/ }))
     await user.click(await screen.findByRole('menuitem', { name: 'Giao diện' }))
     expect(await screen.findByRole('menuitemradio', { name: 'Tối' })).toHaveAttribute(
       'aria-checked',

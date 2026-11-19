@@ -209,7 +209,7 @@ describe('the layout', () => {
     renderShell()
 
     expect(await screen.findByText('Nội dung trang')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Chủ cửa hàng' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^Chủ cửa hàng/ })).toBeInTheDocument()
     const menu = screen.getByRole('navigation', { name: 'Menu' })
     expect(within(menu).getByRole('link', { name: 'Nhân viên' })).toHaveAttribute(
       'aria-current',
@@ -242,7 +242,7 @@ describe('the layout', () => {
     renderShell()
     const user = userEvent.setup()
 
-    await user.click(await screen.findByRole('button', { name: 'Chủ cửa hàng' }))
+    await user.click(await screen.findByRole('button', { name: /^Chủ cửa hàng/ }))
     await user.click(await screen.findByRole('menuitem', { name: 'Đăng xuất' }))
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Đã có lỗi xảy ra.')
@@ -253,7 +253,7 @@ describe('the layout', () => {
     renderShell()
     const user = userEvent.setup()
 
-    await user.click(await screen.findByRole('button', { name: 'Chủ cửa hàng' }))
+    await user.click(await screen.findByRole('button', { name: /^Chủ cửa hàng/ }))
     expect(await screen.findByRole('menuitem', { name: 'Tài khoản của tôi' })).toHaveAttribute(
       'href',
       '/admin/account',
