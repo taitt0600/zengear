@@ -279,8 +279,12 @@ step 14); the owner's minutes per design, from the comment `Phút duyệt: <minu
 
 Since the repository went public on 2026-11-18, GitHub settings add CodeQL code scanning (default setup, managed by
 GitHub, no workflow file), secret scanning with push protection and private vulnerability reporting (`SECURITY.md`);
-the ruleset `main` holds Restrict deletions, Block force pushes and Require code scanning results for CodeQL, while
-the four required checks stay in the branch protection of `main` that `tools/github_pr.py` reads (DEC-152 (6)).
+the ruleset `main` holds Restrict deletions, Block force pushes, Require code scanning results for CodeQL, Require a
+pull request before merging (0 approvals, merge method Rebase only), Require linear history and Require status
+checks to pass with the four required checks (branches up to date before merging), with nobody in its bypass list
+(ruleset 27545700, read through the REST API on 2026-11-20).
+The classic branch protection of `main` was deleted (DEC-153 (3), replacing that part of DEC-152 (6)):
+`tools/github_pr.py` reads the required checks and the bypass list from the ruleset only.
 
 Two workflows run the checks of the code. `.github/workflows/pipeline.yml` runs on every pull request to `main`, every push to `main` and on
 demand: `changes` reads the changed paths; `secrets`, `tools-test`, `api-test`, `schema` and `web-test` run in
@@ -308,8 +312,9 @@ that change a manifest, a lockfile or a workflow: a new dependency with a vulner
 licensed GPL or AGPL, fails it); the ratchets are `thresholds.break` of the two Stryker files and `threshold` of
 `.jscpd.json`; `ci-ok` aggregates them all and is the required check. The weekly schedule runs only the full-history
 secret scan; `.github/workflows/weekly-quality.yml` (Sunday) runs the whole mutation testing of both and lychee with
-the external links, and `.github/workflows/scorecard.yml` the OpenSSF Scorecard (on `main`, weekly and on a change of
-the branch protection; its SARIF goes to code scanning and never blocks a merge). `deploy-staging` (OIDC to Azure, bundle, slot `staging`, smoke) and
+the external links, and `.github/workflows/scorecard.yml` the OpenSSF Scorecard (on `main` and weekly; its trigger
+`branch_protection_rule` is documented for classic branch protection rules only, which `main` no longer has, and
+whether a ruleset change fires it is unchecked; its SARIF goes to code scanning and never blocks a merge). `deploy-staging` (OIDC to Azure, bundle, slot `staging`, smoke) and
 `deploy-production` (swap after the environment's approval; rollback is swapping again) are written but run only
 when the repository variable `DEPLOY_ENABLED` is `true`, once the Azure resources exist.
 `.github/workflows/gates.yml` (`pull_request_target`, code of `main` only; also on `edited`, `ready_for_review`,
