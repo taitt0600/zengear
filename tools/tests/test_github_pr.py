@@ -175,12 +175,126 @@ class FakeGitHub:
         return {'number': number, 'state': 'open', 'base': {'ref': 'main'}, 'draft': False, 'node_id': 'PR_x',
                 'head': {'sha': next(self.heads)}, 'auto_merge': {'merge_method': 'rebase'}}
 
+    def pages(self, path, limit=1000):
+        return self.call('GET', f'{path}?per_page=100&page=1')
+
     def call(self, method, path, body=None):
         self.calls.append((method, path))
+        if '/rules/branches/main' in path:
+            return []
         if path.endswith('/branches/main'):
             return {'protection': {'required_status_checks': {'contexts': list(REQUIRED_CHECKS),
                                                               'enforcement_level': 'everyone'}}}
         return None
+
+
+def status_rule(*contexts):
+    return {'type': 'required_status_checks',
+            'parameters': {'strict_required_status_checks_policy': True,
+                           'required_status_checks': [{'context': c} for c in contexts]}}
+
+
+class ProtectionGitHub:
+    """The GETs of protection_gaps, on the exact paths GitHub.pages and GitHub.call send."""
+    repo = 'taitt0600/zengear'
+
+    def __init__(self, rules=(), rulesets=(), classic=None):
+        self.rules, self.rulesets, self.classic = list(rules), {r['id']: r for r in rulesets}, classic
+        self.calls = []
+
+    def pages(self, path, limit=1000):
+        return self.call('GET', f'{path}?per_page=100&page=1')
+
+    def call(self, method, path, body=None):
+        self.calls.append(path)
+        base = f'/repos/{self.repo}'
+        if path == f'{base}/rules/branches/main?per_page=100&page=1':
+            return self.rules
+        if path == f'{base}/rulesets?per_page=100&page=1':
+            return [{'id': i} for i in self.rulesets]
+        if path.startswith(f'{base}/rulesets/'):
+            return self.rulesets[int(path.rsplit('/', 1)[1])]
+        if path == f'{base}/branches/main':
+            return {'protection': self.classic} if self.classic else {'protection': {
+                'enabled': False, 'required_status_checks': {'enforcement_level': 'off', 'contexts': []}}}
+        raise AssertionError(path)
+
+
+def ruleset(rid=1, checks=REQUIRED_CHECKS, bypass=(), **extra):
+    data = {'id': rid, 'name': 'main', 'target': 'branch', 'enforcement': 'active', 'bypass_actors': list(bypass),
+            'rules': [{'type': 'deletion'}, status_rule(*checks)]}
+    data.update(extra)
+    return data
+
+
+ADMIN = {'actor_id': 5, 'actor_type': 'RepositoryRole', 'bypass_mode': 'always'}
+
+
+class ProtectionGapsTests(unittest.TestCase):
+    def test_a_ruleset_with_the_four_checks_and_no_bypass_is_enough(self):
+        gh = ProtectionGitHub([status_rule(*REQUIRED_CHECKS)], [ruleset()])
+        self.assertEqual(github_pr.protection_gaps(gh), [])
+
+    def test_a_check_the_ruleset_misses_is_a_gap(self):
+        checks = [c for c in REQUIRED_CHECKS if c != 'pr-title']
+        gh = ProtectionGitHub([status_rule(*checks)], [ruleset(checks=checks)])
+        self.assertEqual(github_pr.protection_gaps(gh), ['main does not require "pr-title"'])
+
+    def test_a_bypass_actor_is_a_gap(self):
+        for mode in ('always', 'pull_request', 'exempt'):
+            with self.subTest(mode=mode):
+                gh = ProtectionGitHub([status_rule(*REQUIRED_CHECKS)], [ruleset(bypass=[dict(ADMIN, bypass_mode=mode)])])
+                gaps = github_pr.protection_gaps(gh)
+                self.assertEqual(len(gaps), 1)
+                self.assertIn('ruleset "main" (#1) lets someone bypass', gaps[0])
+                self.assertIn(f'RepositoryRole 5 ({mode})', gaps[0])
+
+    def test_bypass_actors_not_returned_is_a_gap(self):
+        data = ruleset()
+        del data['bypass_actors']
+        gaps = github_pr.protection_gaps(ProtectionGitHub([status_rule(*REQUIRED_CHECKS)], [data]))
+        self.assertEqual(len(gaps), 1)
+        self.assertIn('cannot read who bypasses ruleset "main" (#1)', gaps[0])
+
+    def test_checks_without_a_readable_ruleset_are_a_gap(self):
+        gh = ProtectionGitHub([status_rule(*REQUIRED_CHECKS)], [ruleset(enforcement='disabled')])
+        gaps = github_pr.protection_gaps(gh)
+        self.assertEqual(len(gaps), 1)
+        self.assertIn('cannot find the ruleset', gaps[0])
+
+    def test_rulesets_without_status_checks_or_of_tags_are_not_judged(self):
+        gh = ProtectionGitHub([status_rule(*REQUIRED_CHECKS)],
+                              [ruleset(), ruleset(2, bypass=[ADMIN], rules=[{'type': 'deletion'}]),
+                               ruleset(3, bypass=[ADMIN], target='tag')])
+        self.assertEqual(github_pr.protection_gaps(gh), [])
+
+    def test_each_ruleset_is_read_once(self):
+        gh = ProtectionGitHub([status_rule('ci-ok', 'pr-gates'), status_rule('pr-title', 'code-review')],
+                              [ruleset(rules=[status_rule('ci-ok', 'pr-gates'), status_rule('pr-title', 'code-review')])])
+        self.assertEqual(github_pr.protection_gaps(gh), [])
+        self.assertEqual(gh.calls.count('/repos/taitt0600/zengear/rulesets/1'), 1)
+
+    def test_the_classic_protection_alone_is_enough(self):
+        classic = {'required_status_checks': {'contexts': list(REQUIRED_CHECKS), 'enforcement_level': 'everyone'}}
+        gh = ProtectionGitHub(classic=classic)
+        self.assertEqual(github_pr.protection_gaps(gh), [])
+        self.assertNotIn('/repos/taitt0600/zengear/rulesets?per_page=100&page=1', gh.calls)
+
+    def test_a_classic_protection_administrators_bypass_is_a_gap_even_with_a_complete_ruleset(self):
+        classic = {'required_status_checks': {'contexts': ['ci-ok'], 'enforcement_level': 'non_admins'}}
+        gh = ProtectionGitHub([status_rule(*REQUIRED_CHECKS)], [ruleset()], classic)
+        self.assertEqual(github_pr.protection_gaps(gh),
+                         ['main lets administrators bypass the required checks ("Do not allow bypassing" is off)'])
+
+    def test_checks_split_between_the_two_sources_are_enough(self):
+        classic = {'required_status_checks': {'contexts': ['ci-ok', 'pr-gates'], 'enforcement_level': 'everyone'}}
+        gh = ProtectionGitHub([status_rule('pr-title', 'code-review')],
+                              [ruleset(checks=('pr-title', 'code-review'))], classic)
+        self.assertEqual(github_pr.protection_gaps(gh), [])
+
+    def test_no_protection_at_all_misses_every_check(self):
+        self.assertEqual(github_pr.protection_gaps(ProtectionGitHub()),
+                         [f'main does not require "{name}"' for name in REQUIRED_CHECKS])
 
 
 @mock.patch('github_pr.owned_files', return_value=[])

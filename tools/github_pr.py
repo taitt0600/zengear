@@ -13,7 +13,8 @@ refuses a body without the sections of the template, or with a Needs decision it
 tools/pr_gates.py would. auto-merge refuses when the pull request changes a file that only the owner
 merges (owner_paths in tools/pr_gates.py, which judges web/package.json by content: the branch
 of the pull request and main are fetched here and compared from their merge-base, DEC-111 (4)), or when main does
-not require every check in REQUIRED_CHECKS or lets someone bypass them, so that nothing merges unchecked; it turns
+not require every check in REQUIRED_CHECKS, by its rulesets or its classic branch protection, or lets someone bypass
+either (bypass_actors of a ruleset, DEC-153 (3)), so that nothing merges unchecked; it turns
 auto-merge off again when the head moved while it was being enabled. REQUIRED_CHECKS are job names, each equal to its job id:
 ci-ok aggregates every job of .github/workflows/pipeline.yml, and pr-gates and pr-title run in
 .github/workflows/gates.yml; code-review is the check run that the job review-check of .github/workflows/code-review.yml
@@ -114,13 +115,57 @@ def ready(gh, number):
     print(f'#{number} is ready for review')
 
 
-def protection_gaps(gh):
+def has_status_checks(rules):
+    return any(rule.get('type') == 'required_status_checks' for rule in rules or [])
+
+
+def ruleset_checks(gh):
+    """The checks the active rulesets require of main (GET /rules/branches/<branch>, REST 2022-11-28), and the gaps
+    of every active branch ruleset that requires checks: someone in its bypass_actors (any bypass_mode, exempt
+    included), or bypass_actors not returned (only to a token with write access to the ruleset: unverifiable).
+    The items of /rules/branches carry no documented ruleset id, so every such ruleset is judged, not only main's."""
+    rules = gh.pages(f'/repos/{gh.repo}/rules/branches/{BASE}')
+    required = {check['context'] for rule in rules if rule.get('type') == 'required_status_checks'
+                for check in (rule.get('parameters') or {}).get('required_status_checks', [])}
+    if not required:
+        return required, []
+    gaps, found = [], False
+    for summary in gh.pages(f'/repos/{gh.repo}/rulesets'):
+        ruleset = gh.call('GET', f'/repos/{gh.repo}/rulesets/{summary["id"]}')
+        if ruleset.get('target') != 'branch' or ruleset.get('enforcement') != 'active' \
+                or not has_status_checks(ruleset.get('rules')):
+            continue
+        found = True
+        name = f'ruleset "{ruleset.get("name")}" (#{ruleset["id"]})'
+        if 'bypass_actors' not in ruleset:
+            gaps.append(f'cannot read who bypasses {name} (the token has no write access to it)')
+        elif ruleset['bypass_actors']:
+            actors = ', '.join(f'{a.get("actor_type")} {a.get("actor_id")} ({a.get("bypass_mode", "always")})'
+                               for a in ruleset['bypass_actors'])
+            gaps.append(f'{name} lets someone bypass the required checks: {actors}')
+    if not found:
+        gaps.append(f'cannot find the ruleset that requires checks of {BASE}, so cannot verify who bypasses it')
+    return required, gaps
+
+
+def classic_checks(gh):
+    """The checks the classic branch protection of main requires, and its gap: administrators may bypass them."""
     protection = gh.call('GET', f'/repos/{gh.repo}/branches/{BASE}').get('protection') or {}
     checks = protection.get('required_status_checks') or {}
-    gaps = [f'{BASE} does not require "{name}"' for name in REQUIRED_CHECKS if name not in checks.get('contexts', [])]
-    if checks.get('enforcement_level') != 'everyone':
-        gaps.append(f'{BASE} lets administrators bypass the required checks ("Do not allow bypassing" is off)')
-    return gaps
+    required = set(checks.get('contexts') or [])
+    if required and checks.get('enforcement_level') != 'everyone':
+        return required, [f'{BASE} lets administrators bypass the required checks ("Do not allow bypassing" is off)']
+    return required, []
+
+
+def protection_gaps(gh):
+    """Every check of REQUIRED_CHECKS is required of main by its rulesets or its classic protection, and neither
+    source that requires checks can be bypassed (DEC-153 (3))."""
+    from_rulesets, gaps = ruleset_checks(gh)
+    from_classic, classic_gaps = classic_checks(gh)
+    required = from_rulesets | from_classic
+    return [f'{BASE} does not require "{name}"' for name in REQUIRED_CHECKS if name not in required] \
+        + gaps + classic_gaps
 
 
 def issue_gaps(gh, pr):
