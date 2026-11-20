@@ -40,7 +40,7 @@ The steps named below are those of `.claude/skills/finish-feature/SKILL.md`; **O
     4. Ask with AskUserQuestion: the result — **Đạt** / **Có lỗi** / **Để sau** — and the minutes spent on this
        feature so far — ≤ 10, 10–20, 20–40, more than 40.
        - **Đạt**: first write, review and post the report of step 14, with **Kết quả** "Đạt — auto-merge bật" and
-         the five lines of **Kết quả** (step 14): the routine "ZenGear PR merged" starts on the merge event and
+         the lines of **Kết quả** (step 14): the routine "ZenGear PR merged" starts on the merge event and
          reads the report at once, so it must be on the pull request before anything can merge. Then
          `python3 tools/github_pr.py auto-merge <number>` (not while the pull request is a draft). Exit code 5
          means the owner merges it (it changes a file only the owner merges, or `main` does not enforce every

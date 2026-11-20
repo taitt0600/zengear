@@ -10,7 +10,7 @@ The steps named below are those of `.claude/skills/finish-feature/SKILL.md` and 
     your last reply with the same text (without that first line) followed by the section
     "Tóm tắt cho chủ dự án" (`CLAUDE.md`, Workflow), which is not posted in the report comment. Sections:
     - **Kết quả**: "Đạt — auto-merge bật" (**Đạt**), waiting for the owner's test (**Để sau**), draft waiting
-      for a decision, or stopped at the ready check — with the pull request link; then the five lines
+      for a decision, or stopped at the ready check — with the pull request link; then the six lines
       `Nơi chạy: local`, `Thời gian bạn tham gia: <the owner's answer at step 13> phút` (`?` when the run
       stopped before step 13), `Phát hiện over-engineering / duplication: <a> / <b>` (<a>: the labelled findings of
       plan-reviewer, from the **Handoff**, plus those of code-reviewer at step 5; a `/fix-defect` run, or a run
@@ -20,10 +20,13 @@ The steps named below are those of `.claude/skills/finish-feature/SKILL.md` and 
       `Folder mỗi commit feat: <n1>, <n2>, …` (the last line of `python3 tools/structure_metrics.py --range
       origin/main..HEAD`); when the run stopped before the code review (`/finish-feature` step 5), these two lines
       are `Phát hiện over-engineering / duplication: ? / ?` and `Folder mỗi commit feat: ?` (no review or commit
-      yet); and the line printed by `python3 tools/token_usage.py --branch <branch> --line`, `Token: <total>
-      (chính <main> / agent <sub>; output <out>, ghi mới <fresh>), <calls> lần gọi, context lớn nhất <peak>`
-      (`Token: ?` when the command fails). The routine "ZenGear PR merged" copies the five lines to issue #24
-      (DEC-106; the Token line for the evaluation of DEC-112 (8), `docs/AUTOMATION.md`, *Metrics*).
+      yet); and the two lines printed by `python3 tools/token_usage.py --branch <branch> --line`, `Token: <total>
+      (chính <main> / agent <sub>; output <out>, ghi mới <fresh>), <calls> lần gọi, context lớn nhất <peak>` and
+      `Sessions: <id>|<id>…`, the session ids of the run, the join key with the OpenTelemetry events of DEC-152 (8)
+      (`Token: ?` and `Sessions: ?` when the command fails). The routine "ZenGear PR merged" copies the first five
+      lines to issue #24 (DEC-106; the Token line for the evaluation of DEC-112 (8), `docs/AUTOMATION.md`,
+      *Metrics*); the line `Sessions:` stays in the report comment, which keeps the ids after Claude Code deletes
+      old transcripts.
     - **Chức năng**: what a user can now do, in the words of the user story.
     - **Cách chạy để kiểm thử**: the steps of the guide (step 13.2), appendix included.
     - **Kịch bản kiểm thử**: when the API changed, one line per request of the folder: the criterion or rule it

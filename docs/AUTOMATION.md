@@ -155,7 +155,7 @@ over-engineering and duplication and the folders touched per `feat` commit (`too
 features with it before changing the workflow.
 
 For the evaluation of DEC-152 (8) (its Task issue has the trigger "10 `feat` or `fix` pull requests after the pull
-request of the CI gates"), the report also carries the line `Token:` of `python3 tools/token_usage.py --branch <branch> --line`, read from this project's
+request of the CI gates"), the report also carries the lines `Token:` and `Sessions:` of `python3 tools/token_usage.py --branch <branch> --line`, read from this project's
 Claude Code transcripts on the owner's machine: the tokens of the main session and of the subagents, the output
 tokens (thinking is billed as output tokens, per Anthropic's extended-thinking documentation, so a change of effort
 shows there), the fresh input (input plus cache
@@ -197,12 +197,13 @@ line stays the one of `tools/token_usage.py`, copied to issue #24; the evaluatio
   of the run. The container has no restart policy, so it does not hold the WSL2 memory between runs. While it is
   down, Claude Code works as usual and its events are lost without a message (measured 2026-11-20): a session opened
   before it misses its first calls, and its reading is not compared.
-- **Reading a run**: `python tools/token_usage.py --branch <branch>` (`python3` outside Windows) prints the line
-  `Sessions:` with the session ids of the run joined by `|`; OpenTelemetry has no branch, so the ids are the join key.
-  The owner reads it when the report gives the Token line (no skill prints the ids yet: `--line` leaves them out, and
-  Task #300 adds them to the report of `/finish-feature` before STF-09) and keeps the ids and the totals with that
-  line, since Claude Code deletes old transcripts (`cleanupPeriodDays`) and the query looks back 30 days from the end
-  of its time range. In Grafana → Explore → Loki, with the query type **Instant** and the end of the time range after
+- **Reading a run**: `python tools/token_usage.py --branch <branch>` (`python3` outside Windows), with or without
+  `--line`, prints the line `Sessions:` with the session ids of the run joined by `|`; OpenTelemetry has no branch,
+  so the ids are the join key. The report of `/finish-feature` step 14 (and so of `/fix-defect`) gives that line
+  under its Token line, from the same reading, and its comment on the pull request keeps the ids after Claude Code
+  deletes old transcripts (`cleanupPeriodDays`). The ids include the session that writes the report, whose
+  report-reviewer rounds and posting are outside the Token line. The query looks back 30 days from the end of its
+  time range. In Grafana → Explore → Loki, with the query type **Instant** and the end of the time range after
   the run (now, or the end of an older run), replace `<ids>` and run:
 
   ```text
