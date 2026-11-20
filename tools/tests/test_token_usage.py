@@ -170,6 +170,18 @@ class OutputTest(unittest.TestCase):
         for word in ('main', 'agent', 'total', 'plan-reviewer', 'claude-opus-5-5'):
             self.assertIn(word, out)
 
+    def test_table_lists_the_sessions_of_the_selection_sorted_and_joined_by_a_bar(self):
+        with tempfile.TemporaryDirectory() as root:
+            write(root, 'bbb2.jsonl', [call('m1', usage(1))])
+            write(root, 'aaa1.jsonl', [call('m2', usage(1))])
+            write(root, 'ccc3.jsonl', [call('m3', usage(1), branch='main')])
+            agent(root, 'ccc3', 'agent-a', [call('a1', usage(1))])
+            code, out, err = run(root, '--branch', BRANCH)
+            _, line_out, _ = run(root, '--branch', BRANCH, '--line')
+        self.assertEqual(code, 0, err)
+        self.assertIn('Sessions: aaa1|bbb2|ccc3\n', out)
+        self.assertNotIn('Sessions', line_out)
+
     def test_a_missing_folder_exits_2_without_a_traceback(self):
         with tempfile.TemporaryDirectory() as root:
             code, out, err = run(Path(root, 'absent'), '--branch', BRANCH)

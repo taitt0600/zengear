@@ -1,0 +1,26 @@
+# The OpenTelemetry back end of Claude Code on the owner's machine (DEC-152 (8); docs/AUTOMATION.md, Metrics):
+# grafana/otel-lgtm (an OpenTelemetry Collector with Loki, Prometheus, Tempo and Grafana in one image), beside
+# tools/token_usage.py, which stays the source of the line "Token:". Development only, never in CI. Started by hand
+# before a run, never with Docker Desktop (no restart policy):
+#   docker compose -f tools/telemetry/compose.yml up -d     (Grafana at http://localhost:3300)
+#   docker compose -f tools/telemetry/compose.yml down -v   (stops it and deletes the recorded events)
+# Every port is published on 127.0.0.1 only: the receivers take OTLP without authentication. The image is pinned by
+# digest and updated by hand, after reading its release notes.
+name: zengear-telemetry
+
+services:
+  lgtm:
+    image: grafana/otel-lgtm:0.41.0@sha256:2e3290657f2f2a256c7a9175f097424a3ac5b54840741ace433e108e109348b6
+    environment:
+      # Anonymous access as Editor, enough for Explore, instead of the image's Admin (which may install plugins).
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Editor
+    ports:
+      - "127.0.0.1:3300:3000"   # Grafana
+      - "127.0.0.1:4317:4317"   # OTLP gRPC, the endpoint of the user settings of Claude Code
+      - "127.0.0.1:4318:4318"   # OTLP HTTP
+    volumes:
+      # The events kept across restarts: Loki has no retention set in the image, so they stay until "down -v".
+      - lgtm:/data
+
+volumes:
+  lgtm:

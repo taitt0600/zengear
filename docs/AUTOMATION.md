@@ -89,6 +89,7 @@ replaces the built-in Explore for broad read-only searches, DEC-152 (4)); a new 
 | Hook `analyzer-check` (PostToolUse on Edit, Write and MultiEdit; kept by DEC-112 (6)) | After each edit of a `.cs` file under `api/`, a build of that project alone (`--no-dependencies`, about 2 s on the owner's machine) whose Sonar and CA errors go back to Claude at once instead of at the end; compiler errors, locked files and a needed restore are left to the LSP and to stop-check (DEC-100 (9)). `api/AGENTS.md` lists the rules that often fail | `.claude/hooks/analyzer-check.ps1`, `hooks` of `.claude/settings.json` |
 | Hook `eslint-check` (PostToolUse on Edit, Write and MultiEdit; DEC-104 (11)) | After each edit of a `.ts` or `.tsx` file under `web/`, ESLint on that file alone with the local binary of `web/node_modules`, without `--fix`; its errors go back to Claude at once, a `max-lines` error alone as context that does not block, since a file may grow before it is split (DEC-152 (7)). It runs without the typed rules (`ZENGEAR_ESLINT_UNTYPED`: 6.3 s against 2.6 s a file, 2026-11-19), which CI runs. Warnings, parse errors and a failure of ESLint itself are left to the CI job `web-test` and the LSP. Nothing runs before `npm ci` in `web/` | `.claude/hooks/eslint-check.ps1`, `hooks` of `.claude/settings.json` |
 | Hook `stop-check` (Stop) | Before a turn ends: when `api/` changed, the build of `api/ZenGear.slnx` and `ZenGear.ArchitectureTests`; when `web/` changed (once `web/node_modules` exists), `next typegen` (the route types a fresh checkout lacks) and `tsc --noEmit` there with the local binaries (DEC-104 (11)). Each state is checked once, a failure goes back to Claude once and then only to the user; locked build output or no `tsc` in `web/node_modules` is only reported. It never runs the Docker tests: `/finish-feature` and CI do | `.claude/hooks/stop-check.ps1`, `hooks` of `.claude/settings.json` |
+| OpenTelemetry back end (grafana/otel-lgtm, DEC-152 (8)) | The token events of Claude Code on this machine, read in Grafana beside the `Token:` line of `tools/token_usage.py` (*Metrics*); started by hand before a run | `tools/telemetry/compose.yml`; the `env` of the user settings `~/.claude/settings.json` |
 | MCP server `zengear` (Docker MCP Toolkit gateway, profile `zengear`): Postman, minimal tool set | Reading the workspace ZenGear (collections, environments, specs); every tool that writes asks, since the collections of the repository are the source | `.mcp.json`; the profile and the API key are per machine |
 
 `typescript-lsp` and `frontend-design` are on since the third web-tooling pull request (DEC-111 (6), (7)), and
@@ -168,6 +169,62 @@ to issue #24. DEC-112 (8) was evaluated by DEC-152 (9) on the first five runs af
 (pull requests #82, #87, #96, #110 and #117; #96 was a fix): the median total of the `feat` runs, about 58.7 M tokens, missed its
 target of 70% of 52.6 M. Only the token criterion was evaluated; escaped defects, output and fresh input were not.
 DEC-152 (3) and (8) replace its remedies; Task issue #262 keeps its other items.
+
+DEC-152 (8) adds a second reading beside the `Token:` line: the OpenTelemetry events of Claude Code, recorded on
+the owner's machine by `tools/telemetry/compose.yml` (grafana/otel-lgtm pinned by digest; Grafana at
+http://localhost:3300 with anonymous Editor access, OTLP on 4317 and 4318, every port on 127.0.0.1 only). The Token
+line stays the one of `tools/token_usage.py`, copied to issue #24; the evaluation Task of DEC-152 (8) reads both.
+
+- **Set-up, once per machine**: the `env` block below in the user settings `~/.claude/settings.json`, then restart
+  VS Code. Claude Code ignores these variables in the repository's `.claude/settings.json` and does not pass `OTEL_*`
+  variables to its subprocesses (Claude Code docs, *Monitoring*, read 2026-11-20), whereas Windows user environment
+  variables would reach every OpenTelemetry SDK of the machine; this is how "user level" of DEC-152 (8) is applied.
+  Only the events are exported; no content variable is set (`OTEL_LOG_USER_PROMPTS`, `OTEL_LOG_ASSISTANT_RESPONSES`,
+  `OTEL_LOG_TOOL_DETAILS`, `OTEL_LOG_TOOL_CONTENT` and `OTEL_LOG_RAW_API_BODIES` stay off), so no prompt, response,
+  tool input or file content is recorded. The variables record the sessions of every project on the machine.
+
+  ```json
+  "env": {
+    "CLAUDE_CODE_ENABLE_TELEMETRY": "1",
+    "OTEL_METRICS_EXPORTER": "none",
+    "OTEL_LOGS_EXPORTER": "otlp",
+    "OTEL_EXPORTER_OTLP_PROTOCOL": "grpc",
+    "OTEL_EXPORTER_OTLP_ENDPOINT": "http://127.0.0.1:4317"
+  }
+  ```
+
+- **Before a run**: the owner runs `docker compose -f tools/telemetry/compose.yml up -d` before opening the session
+  of the run. The container has no restart policy, so it does not hold the WSL2 memory between runs. While it is
+  down, Claude Code works as usual and its events are lost without a message (measured 2026-11-20): a session opened
+  before it misses its first calls, and its reading is not compared.
+- **Reading a run**: `python3 tools/token_usage.py --branch <branch>` prints the line `Sessions:` with the session
+  ids of the run joined by `|`; OpenTelemetry has no branch, so the ids are the join key. The owner reads it when the
+  report gives the Token line (no skill prints the ids yet: `--line` leaves them out) and keeps the ids and the
+  totals with that line, since Claude Code deletes old transcripts
+  (`cleanupPeriodDays`) and the query looks back 30 days from the end of its time range. In Grafana → Explore →
+  Loki, with the query type **Instant** and the end of the time range after the run (now, or the end of an older
+  run), replace `<ids>` and run:
+
+  ```text
+  sum by (query_source) (sum_over_time({service_name="claude-code"} | event_name="api_request" | session_id=~"<ids>" | label_format tokens=`{{ add (add .input_tokens .output_tokens) (add .cache_read_tokens .cache_creation_tokens) }}` | unwrap tokens [30d]))
+  ```
+
+  The rows `agent:<name>` are the subagents (part `agent` of the Token line; the repository's agents are named
+  `custom`, DEC-152 (8)). The main thread (`sdk` in a headless session; the value of an interactive session is not
+  measured yet) matches part `chính`. The other rows, such as `generate_session_title`, are auxiliary calls that the
+  transcripts do not hold. The query also counts the calls of these sessions on other branches (the few on `main`
+  before `git switch -c`, which the Token line leaves out), so the OpenTelemetry total is at least the Token total;
+  a reading below the Token line is a finding (`token_usage.py --session <id>`, which counts every branch, joins one
+  session exactly). The calls of the `security-guidance` plugin run in a process with its own session ids and are
+  in neither reading. Whether a resumed session keeps its session id is not measured yet.
+- **First comparison** (2026-11-20, Claude Code 2.1.328, three `claude -p` sessions): Token 66 306 (main 66 306)
+  against `sdk` 66 306 and `generate_session_title` 1 188; Token 181 979 (142 188 / 39 791) against `sdk` 142 188,
+  `agent:custom` 39 791 and 1 234; Token 182 011 (142 196 / 39 815) against `sdk` 142 196, `agent:custom` 39 815 and
+  1 234. On every main and subagent call the two readings agree to the token.
+- **Personal data and removal**: the events carry the account e-mail and the account and organization ids, kept only
+  in the Docker volume of the project `zengear-telemetry` (Loki sets no retention in this image). When the
+  evaluation Task of DEC-152 (8) is done: `docker compose -f tools/telemetry/compose.yml down -v`, and remove the
+  `env` block from `~/.claude/settings.json`.
 
 DEC-152 (8) and (10) read the change failure rate of DORA through a proxy, since the store has no production deploy
 yet: the number of `fix` pull requests per `feat` pull request over the last 10 of them in issue #24 (0.67 on
