@@ -143,6 +143,8 @@ def measure(folder, branch=None, session=None):
         for group in parts:
             group.add(model, counts)
     stats['sessions'] = len(sessions)
+    # The join key with the OpenTelemetry events, which carry no branch (docs/AUTOMATION.md, Metrics).
+    stats['ids'] = '|'.join(sorted(name(owner) for owner in sessions))
     return groups, {kind: types[kind] for kind in sorted(types) if types[kind].calls}, stats
 
 def line(groups):
@@ -155,6 +157,7 @@ def table(selection, groups, types, stats):
     rows = [*groups.items(), ('total', groups['main'].merged(groups['agent']))]
     print(f'Tokens of {selection}: {stats["sessions"]} sessions, {stats["skipped"]} lines skipped, '
           f'{rows[-1][1].no_usage} calls without usage')
+    print(f'Sessions: {stats["ids"]}')
     print(f'  {"":6} {"calls":>6} {"input":>10} {"cache new":>11} {"cache read":>12} {"output":>9} {"fresh":>10} '
           f'{"total":>12} {"peak":>8}  models')
     for label, group in rows:
