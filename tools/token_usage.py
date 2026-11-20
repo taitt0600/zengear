@@ -2,7 +2,7 @@
 from this project's Claude Code transcripts, for the main session and for subagents apart.
 Usage, from any folder of the repository:
   python tools/token_usage.py --branch feat/prd-03          (a table, with a part per agent type)
-  python tools/token_usage.py --branch feat/prd-03 --line   (the line "Token:" of the acceptance report)
+  python tools/token_usage.py --branch feat/prd-03 --line   (the lines "Token:" and "Sessions:" of the report)
   python tools/token_usage.py --session <id or prefix> [--dir <transcript folder>]
 
 Transcripts, as observed on Claude Code 2.1 (not documented): ~/.claude/projects/<repository path with every
@@ -179,7 +179,8 @@ def main(argv):
     which = parser.add_mutually_exclusive_group(required=True)
     which.add_argument('--branch')
     which.add_argument('--session')
-    parser.add_argument('--line', action='store_true', help='print only the line "Token:" of the report')
+    parser.add_argument('--line', action='store_true',
+                        help='print only the lines "Token:" and "Sessions:" of the report')
     parser.add_argument('--dir', type=Path, default=None, help='transcript folder of the project')
     args = parser.parse_args(argv)
     folder = args.dir or default_dir()
@@ -199,7 +200,9 @@ def main(argv):
         print(f'token_usage: no model call of {selection} in {folder}', file=sys.stderr)
         return 1
     if args.line:
+        # One reading for both lines, so the ids are those of the sessions the Token line counts.
         print(line(groups))
+        print(f'Sessions: {stats["ids"]}')
     else:
         table(selection, groups, types, stats)
     return 0

@@ -33,8 +33,9 @@ facts you are given. You never edit files.
 1. **Form**: the file follows its form above (sections, order, one page and about 40 lines for the guide,
    Vietnamese). Blocking when one of these is missing, since the owner or the routine "ZenGear PR merged" reads it:
    in the report, the lines `Nơi chạy:`, `Thời gian bạn tham gia:`, `Phát hiện over-engineering / duplication:`,
-   `Folder mỗi commit feat:` and `Token:` of **Kết quả** (`?` only where the form allows it; the Token line is checked
-   for its form only), the one-line-per-request Postman lines of **Kịch bản kiểm thử** when the API changed, and the
+   `Folder mỗi commit feat:`, `Token:` and `Sessions:` of **Kết quả** (`?` only where the form allows it; the Token
+   and Sessions lines are checked for their form only), the one-line-per-request Postman lines of
+   **Kịch bản kiểm thử** when the API changed, and the
    review numbers of **Đã kiểm tra**; in the guide, beside each screenshot, the link of the screen's approved design
    (DEC-119 (5)), unless `docs/screens/README.md` names the screen among those built before DEC-119.
 2. **Coverage**: the folder `<ID>` exists; every acceptance criterion has a request and every rule at least one

@@ -152,14 +152,15 @@ class CountingTest(unittest.TestCase):
 
 
 class OutputTest(unittest.TestCase):
-    def test_line_gives_total_main_agent_output_fresh_calls_and_peak(self):
+    def test_line_gives_total_main_agent_output_fresh_calls_and_peak_then_the_sessions(self):
         with tempfile.TemporaryDirectory() as root:
             write(root, 's1.jsonl', [call('m1', usage(10, 20, 300, 40)), call('m2', usage(1, 2, 1000, 3))])
             agent(root, 's1', 'agent-a', [call('a1', usage(5, 6, 7, 8))])
             code, out, err = run(root, '--branch', BRANCH, '--line')
         self.assertEqual(code, 0, err)
-        self.assertEqual(out.strip(), 'Token: 1402 (chính 1376 / agent 26; output 51, ghi mới 44), 3 lần gọi, '
-                                      'context lớn nhất 1003')
+        self.assertEqual(out.splitlines(), [
+            'Token: 1402 (chính 1376 / agent 26; output 51, ghi mới 44), 3 lần gọi, context lớn nhất 1003',
+            'Sessions: s1'])
 
     def test_table_names_the_groups_and_the_agent_types(self):
         with tempfile.TemporaryDirectory() as root:
@@ -170,7 +171,7 @@ class OutputTest(unittest.TestCase):
         for word in ('main', 'agent', 'total', 'plan-reviewer', 'claude-opus-5-5'):
             self.assertIn(word, out)
 
-    def test_table_lists_the_sessions_of_the_selection_sorted_and_joined_by_a_bar(self):
+    def test_table_and_line_list_the_sessions_of_the_selection_sorted_and_joined_by_a_bar(self):
         with tempfile.TemporaryDirectory() as root:
             write(root, 'bbb2.jsonl', [call('m1', usage(1))])
             write(root, 'aaa1.jsonl', [call('m2', usage(1))])
@@ -180,7 +181,7 @@ class OutputTest(unittest.TestCase):
             _, line_out, _ = run(root, '--branch', BRANCH, '--line')
         self.assertEqual(code, 0, err)
         self.assertIn('Sessions: aaa1|bbb2|ccc3\n', out)
-        self.assertNotIn('Sessions', line_out)
+        self.assertIn('Sessions: aaa1|bbb2|ccc3\n', line_out)
 
     def test_a_missing_folder_exits_2_without_a_traceback(self):
         with tempfile.TemporaryDirectory() as root:
