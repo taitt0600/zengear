@@ -1,6 +1,7 @@
 """Split the changed source files of web/src into the shards of StrykerJS (DEC-152 (7), Task #296).
 
-  git diff --name-only --diff-filter=AMR origin/<base>...HEAD -- web/src | python3 tools/mutation_shards.py --root web
+  git -c core.quotePath=false diff --name-only --diff-filter=AMR origin/<base>...HEAD -- web/src \
+    | python3 tools/mutation_shards.py --root web
 
 StrykerJS on one runner tested about 0.65 mutant per second (pull request #292: 930 mutants, 22 minutes), and a
 feature-sized pull request changes 12 to 25 files of web/src, so the job pipeline.yml runs it in a matrix: this script
@@ -12,7 +13,9 @@ Stryker's incremental mode was measured and rejected: it never reuses the mutant
 Output, one JSON object on stdout: {"count": n, "shards": [0, ..., n-1], "files": ["a.ts,b.tsx", ...]}, the files
 relative to <root>, one comma-joined string per shard as `stryker run --mutate` takes it. No file: count 0.
 Exit 2 for a mutate list this script cannot read as Stryker does (a glob beyond **, *, ? and {a,b}, or a positive
-glob after a negated one), or a path with a comma.
+glob after a negated one), or a mutated path with a comma (it would split the list) or a [ or ] (StrykerJS reads
+--mutate as globs). A path git quoted (a ", \ or control character in the name) is skipped with a ::warning:: on
+stderr, which keeps stdout the JSON the workflow parses.
 """
 import argparse
 import json
@@ -111,6 +114,10 @@ def main(argv=None, stdin=None):
     weights = {}
     for line in (stdin or sys.stdin).read().splitlines():
         path = line.strip()
+        if path.startswith('"' + root):
+            print(f'::warning::{path}: git quoted this path (a ", \\ or control character in the name);'
+                  ' StrykerJS does not mutate it', file=sys.stderr)
+            continue
         if not path.startswith(root):
             continue
         relative = path[len(root):]
@@ -118,6 +125,9 @@ def main(argv=None, stdin=None):
             continue
         if ',' in relative:
             print(f'::error::{path}: a comma in a path would split the --mutate list of StrykerJS')
+            return 2
+        if '[' in relative or ']' in relative:
+            print(f'::error::{path}: StrykerJS reads --mutate as globs, a [ or ] in a path would be a character class')
             return 2
         weights[relative] = weight(path)
     shards = partition(weights)
