@@ -10,7 +10,7 @@ import re
 import sys
 import tempfile
 import unittest
-from contextlib import redirect_stdout
+from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
@@ -94,11 +94,12 @@ class MainTests(unittest.TestCase):
                 for path, lines in files.items():
                     Path(path).parent.mkdir(parents=True, exist_ok=True)
                     Path(path).write_text('x\n\n' * lines, encoding='utf-8')
-                out = io.StringIO()
-                with redirect_stdout(out):
+                out, err = io.StringIO(), io.StringIO()
+                with redirect_stdout(out), redirect_stderr(err):
                     code = mutation_shards.main(['--root', 'web'], stdin=io.StringIO(stdin))
             finally:
                 os.chdir(cwd)
+        self.stderr = err.getvalue()
         return code, out.getvalue()
 
     def test_the_output_the_workflow_reads(self):
@@ -116,6 +117,33 @@ class MainTests(unittest.TestCase):
         code, out = self.run_main({'web/src/a,b.ts': 10}, 'web/src/a,b.ts\n')
         self.assertEqual(code, 2)
         self.assertIn('::error::web/src/a,b.ts', out)
+
+    def test_a_bracket_in_a_mutated_path_is_an_error(self):
+        for path in ('web/src/[id].ts', 'web/src/a]b.ts'):
+            with self.subTest(path=path):
+                code, out = self.run_main({path: 10}, path + '\n')
+                self.assertEqual(code, 2)
+                self.assertIn(f'::error::{path}', out)
+
+    def test_a_bracket_in_a_path_not_mutated_is_fine(self):
+        code, out = self.run_main({'web/src/app/[locale]/page.tsx': 10}, 'web/src/app/[locale]/page.tsx\n')
+        self.assertEqual(code, 0, out)
+        self.assertEqual(json.loads(out)['count'], 0)
+
+    def test_a_quoted_path_is_skipped_with_a_warning_on_stderr(self):
+        # The forms git prints for a ", a tab and a newline in a name: one line, with a literal backslash.
+        for quoted in (r'"web/src/a\"b.ts"', r'"web/src/a\tb.ts"', r'"web/src/a\nb.ts"'):
+            with self.subTest(quoted=quoted):
+                code, out = self.run_main({'web/src/c.ts': 10}, f'{quoted}\nweb/src/c.ts\n')
+                self.assertEqual(code, 0, out)
+                self.assertEqual(json.loads(out), {'count': 1, 'shards': [0], 'files': ['src/c.ts']})
+                self.assertIn(f'::warning::{quoted}', self.stderr)
+
+    def test_a_quoted_path_outside_the_root_is_ignored(self):
+        code, out = self.run_main({}, '"api/src/a\\tb.cs"\n')
+        self.assertEqual(code, 0, out)
+        self.assertEqual(json.loads(out)['count'], 0)
+        self.assertEqual(self.stderr, '')
 
     def test_an_unsupported_glob_of_the_config_is_an_error(self):
         code, out = self.run_main({}, '', mutate=['src/**/*.ts', '!src/[ab]/**'])
