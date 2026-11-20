@@ -130,4 +130,4 @@ cd web && npm ci && npm run dev                     # http://localhost:3000/admi
 
 ## License
 
-All rights reserved; third-party code (shadcn/ui, Vercel's Web Interface Guidelines) keeps its MIT license.
+All rights reserved (`LICENSE`); third-party code (shadcn/ui, Vercel's Web Interface Guidelines) keeps its MIT license.
