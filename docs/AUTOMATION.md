@@ -197,26 +197,31 @@ line stays the one of `tools/token_usage.py`, copied to issue #24; the evaluatio
   of the run. The container has no restart policy, so it does not hold the WSL2 memory between runs. While it is
   down, Claude Code works as usual and its events are lost without a message (measured 2026-11-20): a session opened
   before it misses its first calls, and its reading is not compared.
-- **Reading a run**: `python3 tools/token_usage.py --branch <branch>` prints the line `Sessions:` with the session
-  ids of the run joined by `|`; OpenTelemetry has no branch, so the ids are the join key. The owner reads it when the
-  report gives the Token line (no skill prints the ids yet: `--line` leaves them out) and keeps the ids and the
-  totals with that line, since Claude Code deletes old transcripts
-  (`cleanupPeriodDays`) and the query looks back 30 days from the end of its time range. In Grafana → Explore →
-  Loki, with the query type **Instant** and the end of the time range after the run (now, or the end of an older
-  run), replace `<ids>` and run:
+- **Reading a run**: `python tools/token_usage.py --branch <branch>` (`python3` outside Windows) prints the line
+  `Sessions:` with the session ids of the run joined by `|`; OpenTelemetry has no branch, so the ids are the join key.
+  The owner reads it when the report gives the Token line (no skill prints the ids yet: `--line` leaves them out, and
+  Task #300 adds them to the report of `/finish-feature` before STF-09) and keeps the ids and the totals with that
+  line, since Claude Code deletes old transcripts (`cleanupPeriodDays`) and the query looks back 30 days from the end
+  of its time range. In Grafana → Explore → Loki, with the query type **Instant** and the end of the time range after
+  the run (now, or the end of an older run), replace `<ids>` and run:
 
   ```text
   sum by (query_source) (sum_over_time({service_name="claude-code"} | event_name="api_request" | session_id=~"<ids>" | label_format tokens=`{{ add (add .input_tokens .output_tokens) (add .cache_read_tokens .cache_creation_tokens) }}` | unwrap tokens [30d]))
   ```
 
   The rows `agent:<name>` are the subagents (part `agent` of the Token line; the repository's agents are named
-  `custom`, DEC-152 (8)). The main thread (`sdk` in a headless session; the value of an interactive session is not
-  measured yet) matches part `chính`. The other rows, such as `generate_session_title`, are auxiliary calls that the
-  transcripts do not hold. The query also counts the calls of these sessions on other branches (the few on `main`
-  before `git switch -c`, which the Token line leaves out), so the OpenTelemetry total is at least the Token total;
-  a reading below the Token line is a finding (`token_usage.py --session <id>`, which counts every branch, joins one
-  session exactly). The calls of the `security-guidance` plugin run in a process with its own session ids and are
-  in neither reading. Whether a resumed session keeps its session id is not measured yet.
+  `custom`, DEC-152 (8)). The main thread matches part `chính`: `sdk` in a headless session; the Monitoring docs name
+  `repl_main_thread` among the values of `query_source`, and that it is the main thread of an interactive session is
+  not measured yet. The other rows, such as `generate_session_title`, are auxiliary calls that the transcripts do not
+  hold; a `compact` row is a compaction, and whether the Token line counts it is not measured yet. The query also
+  counts the calls of these sessions on other branches (the few on `main` before `git switch -c`, which the Token line
+  leaves out), so the OpenTelemetry total is at least the Token total; a reading below the Token line is a finding
+  (`token_usage.py --session <id>`, which counts every branch, joins one session exactly). The calls of the
+  `security-guidance` plugin run in a process with its own session ids and are in neither reading. A session resumed
+  without forking keeps its session id, and `/clear` starts a new one (the Monitoring docs, read 2026-11-20), so the
+  sessions of `/implement-feature` and `/finish-feature` are two ids of the line `Sessions:`, both counted in the
+  Token line. That a transcript's id equals its OpenTelemetry `session.id` is measured on `claude -p` sessions only,
+  not yet across a `/clear`.
 - **First comparison** (2026-11-20, Claude Code 2.1.328, three `claude -p` sessions): Token 66 306 (main 66 306)
   against `sdk` 66 306 and `generate_session_title` 1 188; Token 181 979 (142 188 / 39 791) against `sdk` 142 188,
   `agent:custom` 39 791 and 1 234; Token 182 011 (142 196 / 39 815) against `sdk` 142 196, `agent:custom` 39 815 and
