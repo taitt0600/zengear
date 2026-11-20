@@ -17,7 +17,7 @@
 # the quality gates of DEC-152 (5)) is asked locally and
 # denied unattended, whatever else the command does; build files are asked locally and left to the CI gates
 # (tools/pr_gates.py) unattended. The rest of docs/ is not asked.
-# A guardrail, not a security boundary: the CI gates and branch protection decide what reaches main.
+# A guardrail, not a security boundary: the CI gates and the ruleset of main decide what reaches main.
 $ErrorActionPreference = 'Stop'
 # An error blocks the tool call (exit code 2) instead of letting it through unchecked.
 trap {

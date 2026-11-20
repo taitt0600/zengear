@@ -180,12 +180,16 @@ class FakeGitHub:
 
     def call(self, method, path, body=None):
         self.calls.append((method, path))
-        if '/rules/branches/main' in path:
-            return []
-        if path.endswith('/branches/main'):
-            return {'protection': {'required_status_checks': {'contexts': list(REQUIRED_CHECKS),
-                                                              'enforcement_level': 'everyone'}}}
-        return None
+        base = f'/repos/{self.repo}'
+        if method != 'GET':
+            return None
+        if path == f'{base}/rules/branches/main?per_page=100&page=1':
+            return [status_rule(*REQUIRED_CHECKS)]
+        if path == f'{base}/rulesets?per_page=100&page=1':
+            return [{'id': 1}]
+        if path == f'{base}/rulesets/1':
+            return ruleset()
+        raise AssertionError(path)
 
 
 def status_rule(*contexts):
@@ -198,8 +202,8 @@ class ProtectionGitHub:
     """The GETs of protection_gaps, on the exact paths GitHub.pages and GitHub.call send."""
     repo = 'taitt0600/zengear'
 
-    def __init__(self, rules=(), rulesets=(), classic=None):
-        self.rules, self.rulesets, self.classic = list(rules), {r['id']: r for r in rulesets}, classic
+    def __init__(self, rules=(), rulesets=()):
+        self.rules, self.rulesets = list(rules), {r['id']: r for r in rulesets}
         self.calls = []
 
     def pages(self, path, limit=1000):
@@ -214,9 +218,6 @@ class ProtectionGitHub:
             return [{'id': i} for i in self.rulesets]
         if path.startswith(f'{base}/rulesets/'):
             return self.rulesets[int(path.rsplit('/', 1)[1])]
-        if path == f'{base}/branches/main':
-            return {'protection': self.classic} if self.classic else {'protection': {
-                'enabled': False, 'required_status_checks': {'enforcement_level': 'off', 'contexts': []}}}
         raise AssertionError(path)
 
 
@@ -273,24 +274,6 @@ class ProtectionGapsTests(unittest.TestCase):
                               [ruleset(rules=[status_rule('ci-ok', 'pr-gates'), status_rule('pr-title', 'code-review')])])
         self.assertEqual(github_pr.protection_gaps(gh), [])
         self.assertEqual(gh.calls.count('/repos/taitt0600/zengear/rulesets/1'), 1)
-
-    def test_the_classic_protection_alone_is_enough(self):
-        classic = {'required_status_checks': {'contexts': list(REQUIRED_CHECKS), 'enforcement_level': 'everyone'}}
-        gh = ProtectionGitHub(classic=classic)
-        self.assertEqual(github_pr.protection_gaps(gh), [])
-        self.assertNotIn('/repos/taitt0600/zengear/rulesets?per_page=100&page=1', gh.calls)
-
-    def test_a_classic_protection_administrators_bypass_is_a_gap_even_with_a_complete_ruleset(self):
-        classic = {'required_status_checks': {'contexts': ['ci-ok'], 'enforcement_level': 'non_admins'}}
-        gh = ProtectionGitHub([status_rule(*REQUIRED_CHECKS)], [ruleset()], classic)
-        self.assertEqual(github_pr.protection_gaps(gh),
-                         ['main lets administrators bypass the required checks ("Do not allow bypassing" is off)'])
-
-    def test_checks_split_between_the_two_sources_are_enough(self):
-        classic = {'required_status_checks': {'contexts': ['ci-ok', 'pr-gates'], 'enforcement_level': 'everyone'}}
-        gh = ProtectionGitHub([status_rule('pr-title', 'code-review')],
-                              [ruleset(checks=('pr-title', 'code-review'))], classic)
-        self.assertEqual(github_pr.protection_gaps(gh), [])
 
     def test_no_protection_at_all_misses_every_check(self):
         self.assertEqual(github_pr.protection_gaps(ProtectionGitHub()),

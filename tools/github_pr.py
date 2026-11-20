@@ -13,8 +13,8 @@ refuses a body without the sections of the template, or with a Needs decision it
 tools/pr_gates.py would. auto-merge refuses when the pull request changes a file that only the owner
 merges (owner_paths in tools/pr_gates.py, which judges web/package.json by content: the branch
 of the pull request and main are fetched here and compared from their merge-base, DEC-111 (4)), or when main does
-not require every check in REQUIRED_CHECKS, by its rulesets or its classic branch protection, or lets someone bypass
-either (bypass_actors of a ruleset, DEC-153 (3)), so that nothing merges unchecked; it turns
+not require every check in REQUIRED_CHECKS by its rulesets, or lets someone bypass them (bypass_actors of a ruleset,
+DEC-153 (3)), so that nothing merges unchecked; it turns
 auto-merge off again when the head moved while it was being enabled. REQUIRED_CHECKS are job names, each equal to its job id:
 ci-ok aggregates every job of .github/workflows/pipeline.yml, and pr-gates and pr-title run in
 .github/workflows/gates.yml; code-review is the check run that the job review-check of .github/workflows/code-review.yml
@@ -148,24 +148,11 @@ def ruleset_checks(gh):
     return required, gaps
 
 
-def classic_checks(gh):
-    """The checks the classic branch protection of main requires, and its gap: administrators may bypass them."""
-    protection = gh.call('GET', f'/repos/{gh.repo}/branches/{BASE}').get('protection') or {}
-    checks = protection.get('required_status_checks') or {}
-    required = set(checks.get('contexts') or [])
-    if required and checks.get('enforcement_level') != 'everyone':
-        return required, [f'{BASE} lets administrators bypass the required checks ("Do not allow bypassing" is off)']
-    return required, []
-
-
 def protection_gaps(gh):
-    """Every check of REQUIRED_CHECKS is required of main by its rulesets or its classic protection, and neither
-    source that requires checks can be bypassed (DEC-153 (3))."""
-    from_rulesets, gaps = ruleset_checks(gh)
-    from_classic, classic_gaps = classic_checks(gh)
-    required = from_rulesets | from_classic
-    return [f'{BASE} does not require "{name}"' for name in REQUIRED_CHECKS if name not in required] \
-        + gaps + classic_gaps
+    """Every check of REQUIRED_CHECKS is required of main by its rulesets, and no ruleset that requires checks can be
+    bypassed (DEC-153 (3); the classic branch protection of main was deleted and is not read)."""
+    required, gaps = ruleset_checks(gh)
+    return [f'{BASE} does not require "{name}"' for name in REQUIRED_CHECKS if name not in required] + gaps
 
 
 def issue_gaps(gh, pr):
