@@ -66,6 +66,37 @@ class MutationScoreTests(unittest.TestCase):
         code, out, _ = self.run_score(report(), 23)
         self.assertEqual(code, 0, out)
 
+    def run_many(self, raws, threshold):
+        with tempfile.TemporaryDirectory() as folder:
+            paths = []
+            for i, raw in enumerate(raws):
+                path = Path(folder) / f'shard-{i}' / 'mutation-report.json'
+                path.parent.mkdir()
+                path.write_text(raw, encoding='utf-8')
+                paths.append(str(path))
+            out = io.StringIO()
+            with mock.patch.dict(os.environ, {'GITHUB_STEP_SUMMARY': ''}), redirect_stdout(out):
+                code = mutation_score.main(paths + ['--break', str(threshold)])
+        return code, out.getvalue()
+
+    def test_the_reports_of_the_shards_make_one_score(self):
+        # Shard 0 alone is 100 %, shard 1 alone 0 %: together 2 detected of 4 covered = 50 %.
+        shard0 = report(('web/src/a.ts', ['Killed', 'Timeout', 'NoCoverage']))
+        shard1 = report(('web/src/b.ts', ['Survived', 'Survived', 'NoCoverage']))
+        code, out = self.run_many([json.dumps(shard0), json.dumps(shard1)], 50)
+        self.assertEqual(code, 0, out)
+        self.assertIn('Covered score 50.00 % passes the break of 50.0 %', out)
+        self.assertIn('no coverage 2', out)
+        self.assertIn('`web/src/a.ts`: 1', out)
+        self.assertIn('`web/src/b.ts`: 1', out)
+        code, out = self.run_many([json.dumps(shard0), json.dumps(shard1)], 51)
+        self.assertEqual(code, 1, out)
+
+    def test_one_unreadable_shard_report_is_an_error(self):
+        code, out = self.run_many([json.dumps(report(('web/src/a.ts', ['Killed']))), 'not json'], 23)
+        self.assertEqual(code, 2)
+        self.assertIn('shard-1', out)
+
     def test_an_unreadable_report_is_an_error(self):
         for raw in ('not json', json.dumps({'schemaVersion': '2'})):
             with self.subTest(raw=raw):

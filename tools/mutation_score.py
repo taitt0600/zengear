@@ -1,8 +1,9 @@
-"""The mutation score of the code the tests cover, from a Stryker JSON report (DEC-152 (7)).
+"""The mutation score of the code the tests cover, from Stryker JSON reports (DEC-152 (7)).
 
-  python tools/mutation_score.py <mutation-report.json> --break <0-100>
+  python tools/mutation_score.py <mutation-report.json>... --break <0-100>
 
-The jobs quality-api and quality-web run Stryker only on the code a pull request changed. Most services are tested by
+The jobs quality-api and mutation-web-shard run Stryker only on the code a pull request changed; mutation-web-score
+passes the reports of every shard (tools/mutation_shards.py), whose counts are summed into one score. Most services are tested by
 the integration tests of ZenGear.Api.IntegrationTests, and some web files only by the screen flows, which mutation
 testing cannot run (one run of the suite per mutant), so their mutants are NoCoverage for the unit tests. Stryker's
 own break counts NoCoverage as undetected and would fail such a pull request with no defect behind it; neither
@@ -60,16 +61,20 @@ def summary(statuses, uncovered, score, threshold):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument('report')
+    parser.add_argument('reports', nargs='+')
     parser.add_argument('--break', dest='threshold', type=float, required=True)
     args = parser.parse_args(argv)
-    try:
-        with open(args.report, encoding='utf-8') as file:
-            report = json.load(file)
-        statuses, uncovered = counts(report)
-    except (OSError, ValueError, KeyError, TypeError) as error:
-        print(f'::error::the mutation report {args.report} cannot be read: {error}')
-        return 2
+    statuses, uncovered = Counter(), Counter()
+    for path in args.reports:
+        try:
+            with open(path, encoding='utf-8') as file:
+                report = json.load(file)
+            report_statuses, report_uncovered = counts(report)
+        except (OSError, ValueError, KeyError, TypeError) as error:
+            print(f'::error::the mutation report {path} cannot be read: {error}')
+            return 2
+        statuses += report_statuses
+        uncovered += report_uncovered
     score = covered_score(statuses)
     text = summary(statuses, uncovered, score, args.threshold)
     print(text, end='')

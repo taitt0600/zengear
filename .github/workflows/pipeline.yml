@@ -78,8 +78,9 @@ jobs:
           set_output web '^(web/|api/openapi/|tools/message_keys\.py$)'
           # docs-lint: every Markdown file and the two configurations it reads.
           set_output markdown '(\.md$|^\.markdownlint-cli2\.jsonc$|^lychee\.toml$)'
-          # quality-web: knip and StrykerJS judge web/, jscpd counts duplication in api/src and web/src.
-          set_output quality '^(web/|api/src/|\.jscpd\.json$|tools/mutation_score\.py$)'
+          # quality-web: knip judges web/, jscpd counts duplication in api/src and web/src. The three mutation-web-* jobs
+          # share this filter: StrykerJS on the changed files of web/src, with the two tools that plan and judge it.
+          set_output quality '^(web/|api/src/|\.jscpd\.json$|tools/mutation_score\.py$|tools/mutation_shards\.py$)'
           # dependency-review: the manifests and lockfiles of every ecosystem, and the actions the workflows use.
           set_output deps '(^web/package(-lock)?\.json$|\.csproj$|^api/Directory\.Packages\.props$|^api/\.config/dotnet-tools\.json$|^tools/requirements\.txt$|^\.github/workflows/)'
 
@@ -344,22 +345,21 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
-  # The web's quality (DEC-152 (7)): knip (web/knip.json: unused files, exports and packages), jscpd over api/src and
-  # web/src (.jscpd.json, its threshold the ratchet), and on a pull request StrykerJS (web/stryker.config.json) on the
-  # source files it changed. Every tool from web/node_modules, as in web-test.
+  # The web's quality (DEC-152 (7)): knip (web/knip.json: unused files, exports and packages) and jscpd over api/src and
+  # web/src (.jscpd.json, its threshold the ratchet). Every tool from web/node_modules, as in web-test. StrykerJS runs in
+  # the three mutation-web-* jobs below.
   quality-web:
     name: quality-web
     needs: changes
     if: needs.changes.outputs.quality == 'true' || needs.changes.outputs.workflow == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 45   # the whole of web/src took 43 minutes on the owner's machine (2026-11-19), before ignoreStatic
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: web
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 0   # the files changed against origin/<base>
           persist-credentials: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
@@ -372,33 +372,119 @@ jobs:
       - name: jscpd
         working-directory: .
         run: web/node_modules/.bin/jscpd --config .jscpd.json --output "$RUNNER_TEMP/jscpd"
-      # The source files StrykerJS judges (its mutate list, which leaves out the routes of src/app/: they hold no
-      # logic and only the screen flows cover them), changed by the pull request; none skips it. StrykerJS's own break
-      # is off in a copy of the config (it has no command-line option for it), and, as in quality-api,
-      # tools/mutation_score.py judges the covered mutants against the break of web/stryker.config.json.
-      - name: StrykerJS on the changed files
-        id: stryker
-        if: github.event_name == 'pull_request'
+
+  # StrykerJS (web/stryker.config.json) on the source files of web/src a pull request changed, over a job matrix
+  # (Task #296): on one runner it took 22 minutes for the 17 files of #292, and its incremental mode never reuses the
+  # mutants of a new file, which most of a feature is. tools/mutation_shards.py picks the files of the mutate list
+  # (which leaves out the routes of src/app/: they hold no logic and only the screen flows cover them) and spreads them
+  # by lines over 1 to 6 shards (docs/AUTOMATION.md); none skips the three jobs.
+  mutation-web-plan:
+    name: mutation-web-plan
+    needs: changes
+    if: github.event_name == 'pull_request' && (needs.changes.outputs.quality == 'true' || needs.changes.outputs.workflow == 'true')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      count: ${{ steps.plan.outputs.count }}
+      shards: ${{ steps.plan.outputs.shards }}
+      files: ${{ steps.plan.outputs.files }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0   # the files changed against origin/<base>
+          persist-credentials: false
+      - name: Plan the shards
+        id: plan
         env:
           BASE_REF: ${{ github.base_ref }}
         run: |
-          files=$(git diff --name-only --diff-filter=AMR "origin/$BASE_REF...HEAD" -- 'src/*.ts' 'src/*.tsx' \
-            | grep -vE '\.test\.tsx?$|\.fixtures\.tsx?$|^web/src/test/|^web/src/app/|^web/src/components/ui/|^web/src/lib/api/generated/' \
-            | sed 's#^web/##' | paste -sd, - || true)
-          if [ -z "$files" ]; then
-            echo "::notice::no source file of web/src changed: StrykerJS skipped"
-            exit 0
+          set -o pipefail
+          # Unquoted paths (core.quotePath), so that a non-ASCII name still starts with web/; the tool's ::error::
+          # line goes to stdout, shown before the step fails.
+          if ! plan=$(git -c core.quotePath=false diff --name-only --diff-filter=AMR "origin/$BASE_REF...HEAD" -- web/src \
+            | python3 tools/mutation_shards.py --root web); then
+            echo "$plan"
+            exit 1
           fi
-          echo "$files" | tr ',' '\n'
+          echo "$plan" | jq .
+          {
+            echo "count=$(echo "$plan" | jq -c .count)"
+            echo "shards=$(echo "$plan" | jq -c .shards)"
+            echo "files=$(echo "$plan" | jq -c .files)"
+          } >> "$GITHUB_OUTPUT"
+          if [ "$(echo "$plan" | jq .count)" = 0 ]; then
+            echo "::notice::no source file of web/src changed: StrykerJS skipped"
+          fi
+
+  # One shard. StrykerJS's own break is off in a copy of the config (it has no command-line option for it):
+  # mutation-web-score judges the covered mutants of every shard together.
+  mutation-web-shard:
+    name: mutation-web-shard
+    needs: mutation-web-plan
+    if: needs.mutation-web-plan.result == 'success' && needs.mutation-web-plan.outputs.count != '0'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ${{ fromJSON(needs.mutation-web-plan.outputs.shards) }}
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: web/.nvmrc
+          package-manager-cache: false
+      - name: Install
+        run: npm ci --no-audit --no-fund
+      - name: StrykerJS on the files of the shard
+        env:
+          FILES: ${{ fromJSON(needs.mutation-web-plan.outputs.files)[matrix.shard] }}
+        run: |
+          echo "$FILES" | tr ',' '\n'
           jq '.thresholds.break = null' stryker.config.json > stryker.pr.config.json
-          npm exec --no -- stryker run stryker.pr.config.json --mutate "$files"
-          echo "ran=true" >> "$GITHUB_OUTPUT"
+          npm exec --no -- stryker run stryker.pr.config.json --mutate "$FILES"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mutation-web-${{ github.run_id }}-${{ matrix.shard }}
+          path: out/stryker-web/mutation-report.json
+          if-no-files-found: error
+          overwrite: true   # "Re-run failed jobs" keeps the run id and the name
+          retention-days: 7
+
+  # As in quality-api, tools/mutation_score.py judges the covered mutants, summed over every shard, against the break of
+  # web/stryker.config.json. A shard that failed or never ran fails it.
+  mutation-web-score:
+    name: mutation-web-score
+    needs: [mutation-web-plan, mutation-web-shard]
+    if: ${{ !cancelled() && needs.mutation-web-plan.result == 'success' && needs.mutation-web-plan.outputs.count != '0' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Every shard passed
+        env:
+          SHARDS: ${{ needs.mutation-web-shard.result }}
+        run: |
+          if [ "$SHARDS" != success ]; then
+            echo "::error::a shard of StrykerJS ended with '$SHARDS'"
+            exit 1
+          fi
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: mutation-web-${{ github.run_id }}-*
+          path: ${{ runner.temp }}/mutation-web
       - name: Mutation score of the covered code
-        if: steps.stryker.outputs.ran == 'true'
-        working-directory: .
         run: |
           threshold=$(jq -r '.thresholds.break' web/stryker.config.json)
-          python3 tools/mutation_score.py out/stryker-web/mutation-report.json --break "$threshold"
+          find "$RUNNER_TEMP/mutation-web" -name mutation-report.json -print0 | sort -z \
+            | xargs -0 python3 tools/mutation_score.py --break "$threshold"
 
   # New dependencies of a pull request (DEC-152 (7)): a known vulnerability of severity high or above, or a strong
   # copyleft licence the owner chose to refuse, fails it. It adds to web/approved-packages.json, which still decides
@@ -669,7 +755,7 @@ jobs:
   ci-ok:
     name: ci-ok
     if: always()
-    needs: [changes, secrets, tools-test, api-test, schema, web-test, docs-lint, quality-api, quality-web, dependency-review, acceptance]
+    needs: [changes, secrets, tools-test, api-test, schema, web-test, docs-lint, quality-api, quality-web, mutation-web-plan, mutation-web-shard, mutation-web-score, dependency-review, acceptance]
     runs-on: ubuntu-latest
     steps:
       - name: Every job passed or was skipped
