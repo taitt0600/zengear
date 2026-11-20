@@ -235,9 +235,12 @@ WCAG 2.2 AA on every screen; the quality gates of DEC-152 (7), each with its own
 markdownlint-cli2 with `.markdownlint-cli2.jsonc`, then lychee `--offline` with `lychee.toml`), `quality-api` (pull
 requests that change `api/`: Stryker.NET on the unit tests of `ZenGear.Services`, `--since` the base, with
 `api/stryker-config.json`; `tools/mutation_score.py` judges only the mutants the unit tests cover, since most
-services are covered by the integration tests, which are not mutation tested), `quality-web` (`web/`, `api/src/` or `.jscpd.json`: knip, jscpd over `api/src` and
-`web/src`, and on a pull request StrykerJS on the changed files of `web/src` but the routes of `src/app/`, its covered
-mutants judged by `tools/mutation_score.py` too) and `dependency-review` (pull requests
+services are covered by the integration tests, which are not mutation tested), `quality-web` (`web/`, `api/src/`, `.jscpd.json`, `tools/mutation_score.py` or `tools/mutation_shards.py`: knip, jscpd over `api/src` and
+`web/src`), the three jobs of StrykerJS on the paths of `quality-web` (pull requests only: `mutation-web-plan` picks
+with `tools/mutation_shards.py` the changed files of `web/src` that the `mutate` list of `web/stryker.config.json`
+mutates, so not the routes of `src/app/`, and spreads them, the most lines first, over ceil(non-blank lines / 250)
+shards, 1 to 6; `mutation-web-shard` runs StrykerJS on one shard per job of a matrix; `mutation-web-score` judges the
+covered mutants of every shard together with `tools/mutation_score.py`, see *StrykerJS per pull request* below) and `dependency-review` (pull requests
 that change a manifest, a lockfile or a workflow: a new dependency with a vulnerability of severity high or above, or
 licensed GPL or AGPL, fails it); the ratchets are `thresholds.break` of the two Stryker files and `threshold` of
 `.jscpd.json`; `ci-ok` aggregates them all and is the required check. The weekly schedule runs only the full-history
@@ -257,6 +260,43 @@ takes the number from the event file and reads the issue as it is now from the A
 only) and `code-review` (job `review-check`: the check run `code-review` of DEC-150 (3) from the verdict comments).
 Every job is named after its id, in lower case, and the required checks of `main` are `ci-ok`, `pr-gates`, `pr-title`
 and the check run `code-review` that the job `review-check` posts (`REQUIRED_CHECKS` of `tools/github_pr.py`).
+
+### StrykerJS per pull request
+
+Task #296 had a target: a pull request that changes `web/` adds at most about 3 minutes to CI compared with `main`
+before #292. Before #292 the critical path of such a pull request was `acceptance`, which took 3.9 to 5.5 minutes.
+The measurements, taken on 2026-11-20, are below.
+
+**What one runner costs.** On #292, `quality-web` ran StrykerJS on one runner and took 23.0 minutes.
+
+- StrykerJS itself took 22.4 minutes: 17 files, 930 mutants, 4 test runner processes, about 0.65 mutant per
+  second.
+- The initial test run took 43 seconds.
+- Without StrykerJS the job takes 0.6 minutes.
+
+**What a feature-sized pull request is.** One changes 12 to 25 mutated files, most of them new: pull requests
+110, 117, 87 and 118. A dry run at the head of #117 counted 668 mutants, 360 of them in its 14 new files. The
+changed files hold 0.48 (#117) to 0.71 (#292) mutant per non-blank line.
+
+**Why not incremental mode.** Incremental mode (StrykerJS 10.1.1, `docs/incremental.md`) reuses a result only when
+the mutant's code and the tests that cover it are unchanged. So it never reuses the mutants of a new file:
+
+- At best, #117 would still take about 10.7 minutes.
+- It does not see a change in a module that a mutated file imports, so a cached result could be stale.
+
+StrykerJS has no sharding of its own.
+
+**What the matrix costs.** The matrix of `mutation-web-shard` uses 250 lines per shard, about 120 to 180 mutants,
+about 3 to 4.5 minutes. With the plan, the install, the initial run and the score, the mutation path of a measured
+feature takes about 5 to 6.5 minutes, at most about 1.5 minutes over `acceptance`.
+
+- The cap of 6 shards keeps a pull request, with its other jobs, under the 20 concurrent jobs of the Free plan
+  (docs.github.com, *Actions limits*).
+- Beyond about 1500 changed lines, the time grows with the size of the change. #82, with 3019 lines, would take
+  about 10 minutes.
+
+These figures are estimates until the first feature pull request that changes `web/src` measures them. The Task
+issue #297 records that measurement; its trigger is that pull request.
 
 ## Phase 0 (DEC-100)
 
