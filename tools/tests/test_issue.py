@@ -413,11 +413,16 @@ class RoadmapTests(unittest.TestCase):
     """DEC-148 (3), DEC-151 (3): Priority High exactly on the open issues that block a Roadmap sub-issue, any type."""
 
     class Fake:
-        def roadmap(self):
+        def roadmap_issue(self):
+            return 30
+
+        def roadmap(self, parent=None):
+            assert parent == 30, parent
             return [40, 41]
 
         def open_issues(self):
-            return [{'number': 40, 'title': 'STF-09 Approve', 'type': 'Feature', 'fields': {}},
+            return [{'number': 30, 'title': 'Roadmap', 'type': 'Task', 'fields': {'Priority': 'High'}},
+                    {'number': 40, 'title': 'STF-09 Approve', 'type': 'Feature', 'fields': {}},
                     {'number': 41, 'title': 'Build the layout', 'type': 'Task', 'fields': {}},
                     {'number': 50, 'title': 'Decide tax', 'type': 'Task', 'fields': {'Priority': 'High'}},
                     {'number': 51, 'title': 'Rate limit', 'type': 'Task', 'fields': {'Priority': 'Medium'}},
@@ -433,6 +438,22 @@ class RoadmapTests(unittest.TestCase):
         self.assertIn('#51 blocks a Roadmap sub-issue but its Priority is Medium', text)
         self.assertIn('#52 has Priority High but blocks no Roadmap sub-issue', text)
         self.assertNotIn('#50 blocks', text)
+
+    def test_the_roadmap_issue_itself_is_left_out(self):
+        text = '\n'.join(issue.roadmap_report(self.Fake()))
+        self.assertNotIn('#30', text)
+
+    def test_no_pinned_roadmap(self):
+        class NoRoadmap(self.Fake):
+            def roadmap_issue(self):
+                return None
+
+            def roadmap(self, parent=None):
+                raise AssertionError('no Roadmap to read')
+
+        text = '\n'.join(issue.roadmap_report(NoRoadmap()))
+        self.assertIn('#52 has Priority High but blocks no Roadmap sub-issue', text)
+        self.assertIn('#30 has Priority High', text)  # without a pinned Roadmap, an issue titled so is not left out
 
 
 class NextTests(unittest.TestCase):
