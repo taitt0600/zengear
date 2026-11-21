@@ -87,8 +87,8 @@
   The Layout pull request has a table of the six with how the design meets each, and names any trade-off between
   them.
 - **Design system** (DEC-119 (2)): <https://claude.ai/artifact/DAYPEgxSLaHrHYG99Tmntb>, built 2026-10-31 from
-  `web/src/app/globals.css` and `web/src/components/ui/` and updated 2026-11-13 to commit 563a162 (from 39485c9:
-  comments only, nothing to sync); `/design-screen`
+  `web/src/app/globals.css` and `web/src/components/ui/` and updated 2026-11-21 to commit 8c9d8f6 (from 563a162: a
+  lint comment in `input-group.tsx` only, nothing to sync); `/design-screen`
   brings the system up to date when those files changed since, and then the update's date and commit.
 - **Design canvas** (the owner's choice, 2026-11-14): each screen has one canvas with one page that always shows the
   whole screen as it is now. A change edits the artboards it changes in place and adds the new ones beside the
