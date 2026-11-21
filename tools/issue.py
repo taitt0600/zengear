@@ -313,7 +313,7 @@ class Reader:
     def open_feature_issues(self, fid):
         data = self.gh.graphql(
             'query($q:String!){search(query:$q,type:ISSUE,first:50){nodes{... on Issue{number title issueType{name} '
-            f'issueFieldValues(first:20){{{FIELD_NODES}}}}}}}}}',
+            f'issueFieldValues(first:20){{{FIELD_NODES}}}}}}}}}}}',
             {'q': f'repo:{self.gh.repo} is:issue is:open in:title "{fid}"'})
         return sorted(node['number'] for node in data['search']['nodes']
                       if node and (node.get('issueType') or {}).get('name') == 'Feature'
@@ -350,15 +350,20 @@ class Reader:
                    and (c.get('user') or {}).get('login') == OWNER_LOGIN
                    for c in self.gh.pages(f'/repos/{self.gh.repo}/issues/{number}/comments'))
 
-    def roadmap(self):
-        """The open sub-issues of the pinned issue titled Roadmap, in order; [] when there is none yet."""
+    def roadmap_issue(self):
+        """The number of the pinned issue titled Roadmap; None when there is none yet."""
         data = self.gh.graphql('query($owner:String!,$name:String!){repository(owner:$owner,name:$name){'
                                'pinnedIssues(first:3){nodes{issue{number title}}}}}',
                                {'owner': self.gh.owner, 'name': self.name})
         pinned = [n['issue'] for n in data['repository']['pinnedIssues']['nodes'] if n['issue']['title'] == 'Roadmap']
-        if not pinned:
+        return pinned[0]['number'] if pinned else None
+
+    def roadmap(self, parent=None):
+        """The open sub-issues of the Roadmap issue (parent, or the pinned one), in order; [] when there is none yet."""
+        parent = parent or self.roadmap_issue()
+        if parent is None:
             return []
-        subs = self.gh.pages(f'/repos/{self.gh.repo}/issues/{pinned[0]["number"]}/sub_issues')
+        subs = self.gh.pages(f'/repos/{self.gh.repo}/issues/{parent}/sub_issues')
         return [s['number'] for s in subs if s.get('state') == 'open']
 
 
@@ -420,10 +425,12 @@ def next_work(reader, ready=screens_ready):
 
 def roadmap_report(reader):
     """Every open sub-issue of the Roadmap (any Issue type) with its open blockers, then where Priority High differs
-    from the relations: High exactly on an open issue that blocks a sub-issue (DEC-148 (3), DEC-151 (3))."""
-    issues = {i['number']: i for i in reader.open_issues()}
+    from the relations: High exactly on an open issue that blocks a sub-issue (DEC-148 (3), DEC-151 (3)). The Roadmap
+    issue itself is the order, not work, and is left out, as next leaves out the log #24."""
+    parent = reader.roadmap_issue()
+    issues = {i['number']: i for i in reader.open_issues() if i['number'] != parent}
     lines, blocking = ['Roadmap sub-issues and their open blocked-by issues:'], set()
-    for number in reader.roadmap():
+    for number in (reader.roadmap(parent) if parent else []):
         blockers = reader.open_blockers(number)
         blocking |= {b['number'] for b in blockers}
         named = ', '.join(f'#{b["number"]}' for b in blockers) or 'nothing'
