@@ -14,12 +14,12 @@ vào làm when it creates the account (R-USR-24, DEC-145 (1)), and the web never
 pull request of R-USR-24 merges: the API still takes `employeeCode` and `email`).
 
 1. "Tạo tài khoản" sends `POST /api/v1/admin/staff`.
-2. 201 opens SCR-STF-03 of the new account with "Đã tạo tài khoản {username}." and "Mã nhân viên {employeeCode},
-   email {email}. Nhân viên đăng nhập bằng tên đăng nhập hoặc email với mật khẩu mặc định và phải đổi mật khẩu ngay
-   lần đầu.", the three values from the answer. The web never shows or knows the default password. With STF-09, a 201
-   whose `status` is `PENDING` shows "Đã tạo tài khoản {username}, đang chờ duyệt." and "Mã nhân viên {employeeCode},
-   email {email}. Nhân viên đăng nhập được sau khi một người có quyền duyệt tài khoản này." instead: the web shows the
-   status the API answers and never decides it.
+2. 201 opens SCR-STF-03 of the new account with "Đã tạo tài khoản {name}." and "Tên đăng nhập {username}, mã
+   nhân viên {employeeCode}, email {email}. Nhân viên đăng nhập bằng tên đăng nhập hoặc email với mật khẩu mặc định
+   và phải đổi mật khẩu ngay lần đầu.", the values from the answer. The web never shows or knows the default
+   password. With STF-09, a 201 whose `status` is `PENDING` shows "Đã tạo tài khoản {name}, đang chờ duyệt." and
+   "Tên đăng nhập {username}, mã nhân viên {employeeCode}, email {email}. Nhân viên đăng nhập được sau khi một người
+   có quyền duyệt tài khoản này." instead: the web shows the status the API answers and never decides it.
 
 **A PENDING account** (STF-09, R-USR-17, DEC-128 (3)): an account created by someone without `staff.approve` waits
 for another person's approval and cannot sign in until then. For a user whose `permissions` (`GET /api/v1/admin/me`)
@@ -57,7 +57,7 @@ form takes only the staff profile and the sign-in account, collecting no persona
   (the button "Mở menu" of 44 px and the breadcrumb "Nhân viên › Thêm nhân viên"); the desktop artboards already
   draw the frame of SCR-ADM-01 with its submenu and breadcrumb. Approved by the merge of the pull request that wrote
   this bullet.
-- **Change of 2026-11-21, #318** (DEC-145 (1), R-USR-24, gap 15; issue #316): canvas version `1795231763-959c` (the
+- **Change of 2026-11-21, #318** (DEC-145 (1), R-USR-24, gap 15; issue #316): canvas version `1795232160-2ce9` (the
   version approved before it: `1794731136-0a34`); every artboard is named `[Đổi 21/11/2026 · #318]`. The fields Mã
   nhân viên and Email công ty are out of the form, which keeps Họ tên, Ngày vào làm and SĐT công việc in "Hồ sơ nhân
   viên" and Vai trò in "Tài khoản"; the hints of Họ tên and Ngày vào làm and the description of "Tài khoản" say what
@@ -72,16 +72,17 @@ form takes only the staff profile and the sign-in account, collecting no persona
   - STF-09 (its web part, with its parts of SCR-STF-01 and SCR-STF-03): the notice and the toast of a PENDING account;
     `staff.approve` and the status `PENDING` are not in the API yet (`UserStatus` has `ACTIVE`, `DISABLED`,
     `ANONYMIZED`). Whichever of the two runs comes second adds its part to the page as it is then.
-  - The change of #318 needs the API of R-USR-24 (issue #246: no `employeeCode` or `email` in the request, `username`
-    in the answer); a run that builds this page before #246 merges builds it as this Layout has it and waits for that
-    API, never the two fields of the old Layout.
+  - The change of #318 needs the API of R-USR-24 (issue #246: no `employeeCode` or `email` in the request,
+    `username` in the answer), so the screen is blocked by gap 15 (`docs/screens/README.md`) until that pull request
+    merges; the web-only run of STF-01 builds the page after it, never with the two fields of the old Layout.
 - **Artboards**, desktop 1440 px unless named: the form signed in as the fixture admin (every assignable role, today in
   Ngày vào làm); the form signed in as the fixture IT Support, filled with Võ Thị Lan of the cast of DEC-146
   (0900000006, Cashier ticked), with the notice and the date picker open, its month and year dropdowns and the
   tooltip "Tháng sau" open; errors under their fields (the checks of Họ tên and Vai trò on one submit); the same in
   dark (DEC-123 (5): the `destructive` texts and borders); loading (the roles as Skeleton); empty (no role the user
-  may give); error (the roles failed to load); sending (the button busy); the toasts after a 201, ACTIVE (AnNVZG260004)
-  and PENDING (LanVTZG260006), over SCR-STF-03 (not drawn again). Narrow (390 px): the IT Support form, the frame's menu as a sheet, the buttons stacked at full width
+  may give); error (the roles failed to load); sending (the button busy); the toasts after a 201, ACTIVE (Nguyễn Văn
+  An, AnNVZG260004) and PENDING (Võ Thị Lan, LanVTZG260006), over SCR-STF-03 (not drawn again). Narrow (390 px):
+  the IT Support form, the frame's menu as a sheet, the buttons stacked at full width
   with the primary on top. No permission is the page of SCR-ADM-01 (`RequirePermission` with `staff.create`, as the
   placeholder has it). The only icon-only buttons are the calendar's month buttons, in a `Tooltip` as
   `components/ui/calendar.tsx` has them; no label is cut short.
@@ -93,7 +94,8 @@ form takes only the staff profile and the sign-in account, collecting no persona
   at most 672px wide (`max-w-2xl`) and centred in the page area, one column of fields like the other admin forms
   (SCR-ACC-01, SCR-LOC-01). Inside, two `FieldSet`s split by a `FieldSeparator` group the fields as SCR-STF-03 groups
   the account's cards: "Hồ sơ nhân viên" (Họ tên, Ngày vào làm, SĐT công việc) and "Tài khoản" (Vai trò; its
-  description says the API generates the code, the username and the email, which SCR-STF-03 shows once created). The notice comes first in the content, before anything is typed. The actions sit in the
+  description says the API generates the code, the username and the email, which SCR-STF-03 shows once created).
+  The notice comes first in the content, before anything is typed. The actions sit in the
   `CardFooter`, right-aligned: "Hủy" (a link to SCR-STF-01) then "Tạo tài khoản".
 - **Behaviour**: every field but SĐT công việc is required and marked ` *` (**Required fields**). Ngày vào làm starts
   on today in Asia/Ho_Chi_Minh; its calendar has month and year dropdowns from 50 years back to 1 year ahead (a store
@@ -103,9 +105,12 @@ form takes only the staff profile and the sign-in account, collecting no persona
   again. While the roles load, fail or come back empty, "Tạo tài khoản" is disabled; a failed load keeps what was
   typed and offers "Thử lại", disabled while the retry is pending. While the request runs the button is disabled with
   LoaderCircleIcon and the fields stay as typed. A 201 opens SCR-STF-03 of the new account (`Location`, or the `id` of
-  the body) with the toast of its `status`, a title and a description with the `username`, `employeeCode` and `email`
-  of the answer, shown for 10 seconds instead of sonner's default 4, since the creator reads the username to
-  pass it on (the header of SCR-STF-03 shows the email and the code too, the username once issue #272 draws it). An error moves the focus to the first field that shows one; items no
+  the body) with the toast of its `status`: the title names the account by its `name`, as the other account toasts
+  of SCR-STF-03 do, and the description gives the `username`, `employeeCode` and `email` of the answer; it shows
+  for 10 seconds instead of sonner's default 4, since the creator reads the username to pass it on. Nothing is lost
+  when it closes: the header of SCR-STF-03 shows the email, whose part before @ is the username in lower case
+  (R-USR-24), and the code; issue #272 adds the username there. An error moves the focus to the first field that
+  shows one; items no
   field shows go in `FormProblems` (`components/app/form-problems.tsx`) at the top of the card's content, under the
   notice; `FormProblems` takes the focus when no field shows an error, as on the other admin forms.
 - **Wording**: the hints say the limits only (no "Không bắt buộc", which the ` *` of the other fields now carries);
@@ -136,17 +141,19 @@ form takes only the staff profile and the sign-in account, collecting no persona
   `.yearDropdown` "Chọn năm" (*new*, the labels of the two dropdowns, which `components/ui/calendar.tsx` leaves out
   while no screen shows them); the checks of the web (*new*)
   `validation.nameRequired` "Vui lòng nhập họ tên.", `.nameTooLong` "Họ tên tối đa 100 ký tự.", `.workPhoneInvalid`
-  "SĐT công việc gồm 8 đến 15 chữ số, có thể bắt đầu bằng dấu +.", `.rolesRequired` "Vui lòng chọn ít nhất một vai trò." and `.rolesTooMany` "Chọn tối đa 20 vai trò."; the Empty of no
+  "SĐT công việc gồm 8 đến 15 chữ số, có thể bắt đầu bằng dấu +.", `.rolesRequired` "Vui lòng chọn ít nhất một vai
+  trò." and `.rolesTooMany` "Chọn tối đa 20 vai trò."; the Empty of no
   role `noRoles.title` "Bạn chưa được phép gán vai trò nào." with `noRoles.description` "Vai trò của bạn chưa được
   giao quản lý vai trò nào, nên chưa tạo được tài khoản. Liên hệ quản trị viên để được cấp." (*new*); the Empty of a
   failed load, titled with the problem's `detail` or the web's text of *Conventions* (then with `rolesError.description`
   "Chưa tải được danh sách vai trò, nên chưa tạo được tài khoản. Những gì bạn đã nhập vẫn được giữ.", *new*, since
   the web's own text says nothing of the form), with `admin.retry`; the buttons `staff.account.cancel` "Hủy" and
   `submit` "Tạo tài khoản" (*new*); the toasts (changed by #318, each a title and a `description`) `created` "Đã tạo
-  tài khoản {username}." with `createdDescription` "Mã nhân viên {employeeCode}, email {email}. Nhân viên đăng nhập
-  bằng tên đăng nhập hoặc email với mật khẩu mặc định và phải đổi mật khẩu ngay lần đầu." (*new*) and `createdPending`
-  "Đã tạo tài khoản {username}, đang chờ duyệt." with `createdPendingDescription` "Mã nhân viên {employeeCode}, email
-  {email}. Nhân viên đăng nhập được sau khi một người có quyền duyệt tài khoản này." (*new*, STF-09); the notice (STF-09)
+  tài khoản {name}." with `createdDescription` "Tên đăng nhập {username}, mã nhân viên {employeeCode}, email
+  {email}. Nhân viên đăng nhập bằng tên đăng nhập hoặc email với mật khẩu mặc định và phải đổi mật khẩu ngay lần
+  đầu." (*new*) and `createdPending` "Đã tạo tài khoản {name}, đang chờ duyệt." with `createdPendingDescription`
+  "Tên đăng nhập {username}, mã nhân viên {employeeCode}, email {email}. Nhân viên đăng nhập được sau khi một người
+  có quyền duyệt tài khoản này." (*new*, STF-09); the notice (STF-09)
   `pendingNotice.title` "Tài khoản bạn tạo sẽ chờ duyệt" and `pendingNotice.description` "Bạn không có quyền duyệt tài
   khoản, nên tài khoản mới ở trạng thái Chờ duyệt. Nhân viên chưa đăng nhập được cho tới khi một người khác có quyền
   duyệt tài khoản này." (*new*).
@@ -165,7 +172,8 @@ form takes only the staff profile and the sign-in account, collecting no persona
   ├── (problems slot)                     `FormProblems` of `components/app/form-problems.tsx`
   ├── staff-create-profile-section.tsx    FieldSet: FieldLegend `profile.title`, FieldDescription
   │                                       `profile.description`; FieldGroup of: Họ tên * (Input `required`,
-  │                                       FieldDescription `nameHint`), Ngày vào làm *, SĐT công việc (Input `type="tel"`, placeholder `workPhonePlaceholder`,
+  │                                       FieldDescription `nameHint`), Ngày vào làm *, SĐT công việc
+  │                                       (Input `type="tel"`, placeholder `workPhonePlaceholder`,
   │                                       FieldDescription `workPhoneHint`); each FieldError under its input, before
   │                                       the hint; the ` *` a span `aria-hidden` inside FieldLabel
   │   └── staff-joined-date-field.tsx     presentational — Popover with Calendar (date-fns, locale `vi`, Monday first,
@@ -199,6 +207,6 @@ form takes only the staff profile and the sign-in account, collecting no persona
                                           `pointer` names (`#/roleIds` and `#/roleIds/<n>` under Vai trò), the rest
                                           in FormProblems; on 201 invalidates the staff list and the count waiting,
                                           then routes to SCR-STF-03 with the toast of the answer's `status` (title
-                                          and description with its `username`, `employeeCode` and `email`,
-                                          `duration` 10000)
+                                          with its `name`, description with its `username`, `employeeCode` and
+                                          `email`, `duration` 10000)
   ```

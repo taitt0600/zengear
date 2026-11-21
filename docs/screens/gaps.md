@@ -81,7 +81,8 @@ gap is built once the gap is closed. A closed gap keeps its number, since other 
 15. **Generated staff identifiers.** `POST /api/v1/admin/staff` still takes `employeeCode` and `email` typed by the
     creator, no account has a username, and sign-in takes an email only, while DEC-145 has the system generate the
     employee code, the username and the company email (R-USR-24) and lets staff sign in with either (AUT-01). The
-    approved Layouts follow the old API: SCR-STF-02 has the fields Mã nhân viên and Email công ty, SCR-AUT-01 the
+    Layout of SCR-STF-02 follows DEC-145 since #318 (no field for the code or the email, the generated identity in
+    the toasts), so SCR-STF-02 waits for this gap; the approved Layout of SCR-AUT-01 still follows the old API: the
     field Email công ty and the error "Email hoặc mật khẩu không đúng.". Settled by DEC-145; closes when the pull
     request that builds R-USR-24 in STF-01 merges. Since that pull request changes the API and the web together, a
     Layout pull request of SCR-STF-02 (the fields out, the generated code, username and email shown after creation)
