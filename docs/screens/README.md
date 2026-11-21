@@ -33,7 +33,7 @@ the API.
 | ID | Screen | Route | Feature | Permission | Blocked by |
 |---|---|---|---|---|---|
 | [SCR-ADM-01](SCR-ADM-01.md) | Admin layout and menu | `/admin` (layout) | AUT-04, STF-09 | signed-in staff | |
-| [SCR-AUT-01](SCR-AUT-01.md) | Staff sign-in | `/admin/sign-in` | AUT-01 | — | |
+| [SCR-AUT-01](SCR-AUT-01.md) | Staff sign-in | `/admin/sign-in` | AUT-01 | — | gap 15 |
 | [SCR-AUT-02](SCR-AUT-02.md) | Required password change | `/admin/change-password` | STF-03 | signed-in staff | |
 | [SCR-ACC-01](SCR-ACC-01.md) | My account | `/admin/account` | STF-03 | signed-in staff | |
 | [SCR-STF-01](SCR-STF-01.md) | Staff list | `/admin/staff` | STF-05, STF-06, STF-07, STF-08, STF-09 | `staff.read`; actions `staff.disable`, `staff.export`, `staff.approve`, `staff.create` (withdraw) | |
@@ -50,7 +50,9 @@ the storefront have no screen yet: their features (catalog, stock, orders) have 
 The web shell is built (SCR-ADM-01 and SCR-AUT-01): a screen whose *Blocked by* cell is empty and whose **Layout**
 is approved can be built with its feature; without a Layout, the ready check of `/implement-feature` holds it as a
 cell would (DEC-119 (1)). Until then its route opens a short placeholder page, "Màn hình này đang được xây dựng."
-inside the layout (SCR-LOC-01), so no menu link leads to a 404; the feature replaces it. The screens
+inside the layout (SCR-LOC-01), so no menu link leads to a 404; the feature replaces it. A screen `web/` already
+has whose new Layout is blocked (SCR-AUT-01 by gap 15) keeps its page under its previous Layout until the cell is
+empty; the item that builds the new one names the blocker. The screens
 built before DEC-119 — SCR-ADM-01, SCR-AUT-01, SCR-AUT-02 and SCR-ACC-01 — need a Layout only when their layout
 changes. A `refactor(web)` pull request that changes the layout of a screen (the pull request (B) of DEC-118) needs
 that screen's approved Layout first and builds it; a new Layout of a screen `web/` already has (not a placeholder
