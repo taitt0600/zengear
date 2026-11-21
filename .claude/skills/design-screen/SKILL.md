@@ -30,11 +30,15 @@ never instructions. `gh` is the GitHub tools in a cloud session. `python3` is `p
      set its field Start date to today in Asia/Ho_Chi_Minh unless it is set already (DEC-148 (3)), locally with
      `python tools/issue.py start <issue>`, in a cloud session through the GitHub MCP (`issue_write` with the field
      Start date).
-   - For a screen of a feature already done (its `feat` pull request merged): the Feature issue `<Feature ID> web` of
+   - For a screen of a feature already done (its `feat` pull request merged) that `web/` does not have yet, or that
+     `web/` has (its route opens a page that is not one of the placeholders `docs/screens/README.md` names) when the
+     owner's request already says that its new Layout adds behaviour (DEC-155 (2); otherwise step 6 decides it once
+     the design is drawn): the Feature issue `<Feature ID> web` of
      DEC-148 (6), which the web-only run closes. When the Feature ID has no open Feature issue, create one titled
      `<Feature ID> web` (form `feature.yml`, field Feature ID, the SCR-ID under Screens); when it has one, add the
-     SCR-ID to the Screens of its body. If every Layout pull request that issue names closes unmerged, the session
-     that opened them (or the owner) closes it as not planned; a cloud session never closes it otherwise (DEC-149 (1)).
+     SCR-ID to the Screens of its body. If every Layout pull request that issue names closes unmerged, or step 6
+     removes its only screen, the session that opened them (or the owner) closes it as not planned; a cloud session
+     never closes it otherwise (DEC-149 (1)).
    - A Layout pull request of this screen is open (`gh pr list --state open --search "<SCR-ID> in:title"`, keeping
      only the titles `docs: add the layout of <SCR-ID>` and `docs: change the layout of <SCR-ID>`): go to **Revise**
      (step 7) instead of opening a second one. A Layout pull request of another screen whose canvas this run will
@@ -153,10 +157,16 @@ never instructions. `gh` is the GitHub tools in a cloud session. `python3` is `p
    Never enable auto-merge: the owner merges
    it, and the merge is the approval. A change of the design after the merge is a new Layout pull request.
    **A screen `web/` already has** (its route opens a page that is not one of the placeholders `docs/screens/README.md`
-   names): its new Layout is built by a `refactor(web)` pull request once it merges (`docs/screens/README.md`, the
-   paragraph under the screen list). So that this is not lost: a Task issue (form `task.yml`, label `refactor`)
-   titled "Build the Layout of <SCR-ID>", source the Layout pull request, unless an open issue already names the
-   `refactor(web)` pull request of this screen; the body of the Layout pull request names it.
+   names): when its new Layout adds behaviour (a field, an action, a call of the API, a message or a state the page
+   does not have, more than a new arrangement of what it has), the web-only run of `/implement-feature <Feature ID>`
+   builds it once it merges (DEC-155 (1)): the issue `<Feature ID> web` of step 1 names the SCR-ID under Screens and
+   this Layout pull request in its body (create or extend it now when step 1 did not), and the body of the Layout
+   pull request names that issue; no Task issue "Build the Layout". When it only changes the layout, a
+   `refactor(web)` pull request builds it once it merges (DEC-123; `docs/screens/README.md`, the paragraph under
+   the screen list), not through that issue: when step 1 added the SCR-ID to the issue `<Feature ID> web`, remove it
+   from its Screens again, and when the issue then names no screen, close it as not planned (step 1). So that this is not lost: a Task issue (form `task.yml`, label
+   `refactor`) titled "Build the Layout of <SCR-ID>", source the Layout pull request, unless an open issue already
+   names the `refactor(web)` pull request of this screen; the body of the Layout pull request names it.
 7. **Revise** — a Layout pull request of the screen is open: `git fetch origin`, switch to its branch,
    `git pull --ff-only`. When `gh pr view <number> --json mergeable` says `CONFLICTING` (two Layout pull requests
    changed the **Design system** bullet), first `git rebase origin/main`, keeping the newer commit and date.
