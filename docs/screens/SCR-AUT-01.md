@@ -62,7 +62,7 @@ hàng."
     request of R-USR-24 (issue #246), since a username signs in only once accounts have one; the row of
     `docs/screens/README.md` holds the screen on gap 15.
   - The change of #319 is built after that merge by a `feat(web): … (AUT-01)` pull request on `feat/aut-01-web`
-    (issue #320 `AUT-01 web`, blocked by #246; DEC-148 (6), DEC-123), with the domain setting `Staff:EmailDomain` of
+    (issue #320 `AUT-01 web`, blocked by #246 and #321; DEC-148 (6), DEC-123), with the domain setting `Staff:EmailDomain` of
     the web; the web-only run of `/implement-feature AUT-01` makes it once Task #321 has applied the owner's answer
     of 2026-11-21 to #319 (a web-only run takes a screen `web/` already has when its `<ID> web` issue names it).
   - The open Task #250 (`refactor(web)`) builds only the required marks of #158 on "Email công ty" and "Mật khẩu";
@@ -83,7 +83,7 @@ hàng."
   hint does not repeat), the check `signIn.validation.identifierRequired` "Vui lòng nhập tên đăng nhập hoặc email."
   (*new*, in place of `emailRequired`; `emailInvalid` stays, for a value with `@`) and `signIn.errors.wrongCredentials` "Tên đăng nhập,
   email hoặc mật khẩu không đúng." (changed); the password, only required, has neither hint nor placeholder; under
-  the button `signIn.forgotPassword` "Quên mật khẩu? Liên hệ quản trị viên." (*new*; text only, since
+  the button `signIn.forgotPassword` "Quên mật khẩu? Liên hệ quản trị viên." (text only, since
   Phase 1 has no reset flow); the show/hide button's tooltip is its `aria-label` `signIn.showPassword` "Hiện mật
   khẩu". The delays of **Help on screen** come from one `TooltipProvider` per page, so that the next tooltip opens
   at once: one in `app/(admin)/admin/layout.tsx` (sign-in, password change and the shell) with `delayDuration` 700
