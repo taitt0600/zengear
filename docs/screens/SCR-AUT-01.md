@@ -63,7 +63,8 @@ hàng."
     `docs/screens/README.md` holds the screen on gap 15.
   - The change of #319 is built after that merge by a `feat(web): … (AUT-01)` pull request on `feat/aut-01-web`
     (issue #320 `AUT-01 web`, blocked by #246; DEC-148 (6), DEC-123), with the domain setting `Staff:EmailDomain` of
-    the web; which run makes that pull request for a screen `web/` already has is a Needs decision item of #319.
+    the web; the web-only run of `/implement-feature AUT-01` makes it once Task #321 has applied the owner's answer
+    of 2026-11-21 to #319 (a web-only run takes a screen `web/` already has when its `<ID> web` issue names it).
   - The open Task #250 (`refactor(web)`) builds only the required marks of #158 on "Email công ty" and "Mật khẩu";
     gap 15 does not hold it, and it builds nothing of #319.
 - **Artboards**: desktop (1440 px), where the show/hide button and "Đăng nhập" (busy) work in Play; narrow (390 px);
