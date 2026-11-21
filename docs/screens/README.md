@@ -56,7 +56,10 @@ empty; the item that builds the new one names the blocker. The screens
 built before DEC-119 — SCR-ADM-01, SCR-AUT-01, SCR-AUT-02 and SCR-ACC-01 — need a Layout only when their layout
 changes. A `refactor(web)` pull request that changes the layout of a screen (the pull request (B) of DEC-118) needs
 that screen's approved Layout first and builds it; a new Layout of a screen `web/` already has (not a placeholder
-page) is built the same way, by a `refactor(web)` pull request of a local session when it only changes the layout,
-or by a `feat(web): … (<Feature ID>)` pull request on `feat/<id>-web` when it adds behaviour (DEC-123), which the plan keeps in view (`AGENTS.md`, *Work state*): `/design-screen` adds
-that item beside the Layout pull request (a Task issue), unless an open issue already names that pull request. A
-date picker uses the shadcn calendar with date-fns (DEC-116 (6)).
+page) is built the same way, by a `refactor(web)` pull request of a local session when it only changes the layout
+(DEC-123): `/design-screen` adds that item beside the Layout pull request (a Task issue), unless an open issue
+already names that pull request. When it adds behaviour, the web-only run of `/implement-feature <Feature ID>`
+builds it, by a `feat(web): … (<Feature ID>)` pull request on `feat/<id>-web` that closes the issue
+`<Feature ID> web`, once that issue names the screen under Screens, its new Layout has merged and its *Blocked by*
+cell is empty (DEC-155); `/design-screen` creates or extends that issue instead of the Task issue, so the plan keeps
+it in view (`AGENTS.md`, *Work state*). A date picker uses the shadcn calendar with date-fns (DEC-116 (6)).

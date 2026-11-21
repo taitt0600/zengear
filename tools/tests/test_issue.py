@@ -6,6 +6,7 @@ Run from the repository root: python3 -m unittest discover -s tools/tests -v
 """
 import contextlib
 import io
+import tempfile
 import subprocess
 import sys
 import unittest
@@ -488,7 +489,7 @@ class NextTests(unittest.TestCase):
             def open_blockers(self, number):
                 return [{'number': 41, 'title': 'x'}] if number == 42 else []
 
-        lines = issue.next_work(Fake(), ready=lambda fid: fid != 'STF-13')
+        lines = issue.next_work(Fake(), ready=lambda fid, screens: fid != 'STF-13')
         text = '\n'.join(lines)
         order = [text.index(marker) for marker in ('#70', '#71', '#31', '#40', '#42', '#41')]
         self.assertEqual(order, sorted(order), text)
@@ -525,7 +526,7 @@ class NextTests(unittest.TestCase):
             def open_blockers(self, number):
                 return []
 
-        text = '\n'.join(issue.next_work(Fake(), ready=lambda fid: True))
+        text = '\n'.join(issue.next_work(Fake(), ready=lambda fid, screens: True))
         # A stranger's "Closes #35" does not hide the owner's started issue with a handoff.
         for shown in ('#70', '#71', 'Bug #31', 'Roadmap #31', '4. #35'):
             self.assertIn(shown, text)
@@ -549,13 +550,99 @@ class NextTests(unittest.TestCase):
         issues = issue.Reader(FakeGitHub(graphql={'issues(states:OPEN': page})).open_issues()
         self.assertEqual([(i['number'], i['author']) for i in issues], [(5, 'someone'), (6, None)])
 
+    def test_a_roadmap_item_is_judged_by_the_screens_it_names(self):
+        owner = 'taitt0600'
+        open_issues = [{'number': 42, 'title': 'AUT-01 web', 'author': owner, 'type': 'Feature',
+                        'fields': {'Feature ID': 'AUT-01'}, 'screens': ['SCR-AUT-01']}]
+        seen = []
+
+        class Fake:
+            def pulls(self):
+                return []
+
+            def open_issues(self):
+                return open_issues
+
+            def roadmap(self):
+                return [42]
+
+            def open_blockers(self, number):
+                return []
+
+        text = '\n'.join(issue.next_work(Fake(), ready=lambda fid, screens: seen.append((fid, screens)) or True))
+        self.assertEqual(seen, [('AUT-01', ['SCR-AUT-01'])])
+        self.assertIn('AUT-01 web: ready', text)
+
+        class LayoutOpen(Fake):
+            def pulls(self):
+                return [{'number': 80, 'title': 'docs: change the layout of SCR-AUT-01', 'draft': False, 'body': '',
+                         'user': {'login': owner}},
+                        {'number': 81, 'title': 'docs: change the layout of SCR-AUT-01', 'draft': False, 'body': '',
+                         'user': {'login': 'someone'}}]
+
+        text = '\n'.join(issue.next_work(LayoutOpen(), ready=lambda fid, screens: True))
+        self.assertIn('AUT-01 web: not ready', text)  # its new Layout is still under review (DEC-155 (1))
+
+        class StrangerLayout(Fake):
+            def pulls(self):
+                return [{'number': 81, 'title': 'docs: change the layout of SCR-AUT-01', 'draft': False, 'body': '',
+                         'user': {'login': 'someone'}}]
+
+        text = '\n'.join(issue.next_work(StrangerLayout(), ready=lambda fid, screens: True))
+        self.assertIn('AUT-01 web: ready', text)  # a pull request of another account is data (DEC-152 (6))
+
+    def test_open_issues_carry_the_screens_of_their_body(self):
+        node = {'number': 5, 'title': 'AUT-01 web', 'author': {'login': 'taitt0600'}, 'issueType': None,
+                'body': '### Source\n\nx\n\n### Screens\n\nSCR-AUT-01, SCR-ADM-01\n\n### Notes\n\nSCR-STF-02',
+                'labels': {'nodes': []}, 'issueFieldValues': {'nodes': []}}
+        empty = dict(node, number=6, body='### Screens\n\n_No response_\n')
+        page = {'repository': {'issues': {'pageInfo': {'hasNextPage': False, 'endCursor': None},
+                                          'nodes': [node, empty, dict(node, number=7, body=None)]}}}
+        issues = issue.Reader(FakeGitHub(graphql={'issues(states:OPEN': page})).open_issues()
+        self.assertEqual([i['screens'] for i in issues], [['SCR-ADM-01', 'SCR-AUT-01'], [], []])
+
     def test_unreadable_github_says_so(self):
         class Broken:
             def pulls(self):
                 raise GitHubError('HTTP 401')
 
-        lines = issue.next_work(Broken(), ready=lambda fid: True)
+        lines = issue.next_work(Broken(), ready=lambda fid, screens: True)
         self.assertIn('could not be read', lines[0])
+
+
+class ScreensReadyTests(unittest.TestCase):
+    """DEC-148 (6) and DEC-155 (1): the screens an issue names, else every screen of its feature."""
+    HEADER = '| ID | Screen | Route | Feature | Permission | Blocked by |\n|---|---|---|---|---|---|\n'
+
+    def folder(self, rows, layouts):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        folder = Path(tmp.name)
+        lines = ''.join(f'| [{sid}]({sid}.md) | x | `/x` | {fid} | staff | {blocked} |\n' for sid, fid, blocked in rows)
+        (folder / 'README.md').write_text(f'# Screens\n\n## Screen list\n\n### Admin\n\n{self.HEADER}{lines}',
+                                          encoding='utf-8')
+        for sid, _, _ in rows:
+            text = f'# {sid}\n\n' + ('## Layout\n\nx\n' if sid in layouts else '')
+            (folder / f'{sid}.md').write_text(text, encoding='utf-8')
+        return folder
+
+    def test_without_named_screens_every_screen_of_the_feature_counts(self):
+        folder = self.folder([('SCR-STF-02', 'STF-09', ''), ('SCR-STF-03', 'STF-09', 'gap 4')],
+                             {'SCR-STF-02', 'SCR-STF-03'})
+        self.assertFalse(issue.screens_ready('STF-09', folder=folder))
+        self.assertTrue(issue.screens_ready('STF-13', folder=folder))
+
+    def test_named_screens_alone_count(self):
+        folder = self.folder([('SCR-STF-02', 'STF-09', ''), ('SCR-STF-03', 'STF-09', 'gap 4')],
+                             {'SCR-STF-02', 'SCR-STF-03'})
+        self.assertTrue(issue.screens_ready('STF-09', ['SCR-STF-02'], folder=folder))
+        self.assertFalse(issue.screens_ready('STF-09', ['SCR-STF-02', 'SCR-STF-03'], folder=folder))
+
+    def test_a_named_screen_web_has_already_needs_its_new_layout_and_an_empty_cell(self):
+        folder = self.folder([('SCR-AUT-01', 'AUT-01', 'gap 15'), ('SCR-AUT-02', 'AUT-01', '—')], {'SCR-AUT-02'})
+        self.assertFalse(issue.screens_ready('AUT-01', ['SCR-AUT-01'], folder=folder))
+        self.assertFalse(issue.screens_ready('AUT-01', ['SCR-AUT-02', 'SCR-AUT-09'], folder=folder))
+        self.assertTrue(issue.screens_ready('AUT-01', ['SCR-AUT-02'], folder=folder))
 
 
 if __name__ == '__main__':

@@ -57,6 +57,8 @@ TITLES = {'feature': (re.compile(r'[A-Z]{3}-[0-9]{2} \S.*'), '<Feature ID> <feat
 EXAMPLE_TITLES = {'feature': 'STF-09 Approve staff accounts', 'task': 'Describe the roadmap',
                   'design': 'SCR-STF-04 Phân quyền', 'defect': 'AUT-04: a locked account signs in'}
 HEADING = re.compile(r'^### (.+?)\s*$', re.MULTILINE)
+SCREEN_ID = re.compile(r'\bSCR-[A-Z]{3}-[0-9]{2}\b')
+LAYOUT_TITLE = re.compile(r'docs: (?:add|change) the layout of (SCR-[A-Z]{3}-[0-9]{2})')  # /design-screen step 5
 ZONE = datetime.timezone(datetime.timedelta(hours=7))  # Asia/Ho_Chi_Minh, no daylight saving
 FIELD_NODES = ('nodes{__typename ... on IssueFieldTextValue{value field{... on IssueFieldText{name}}} '
                '... on IssueFieldDateValue{value field{... on IssueFieldDate{name}}} '
@@ -331,12 +333,13 @@ class Reader:
         while True:
             data = self.gh.graphql(
                 'query($owner:String!,$name:String!,$after:String){repository(owner:$owner,name:$name){'
-                'issues(states:OPEN,first:100,after:$after){pageInfo{hasNextPage endCursor} nodes{number title '
+                'issues(states:OPEN,first:100,after:$after){pageInfo{hasNextPage endCursor} nodes{number title body '
                 'author{login} '
                 f'issueType{{name}} labels(first:20){{nodes{{name}}}} issueFieldValues(first:20){{{FIELD_NODES}}}}}}}}}}}',
                 {'owner': self.gh.owner, 'name': self.name, 'after': cursor})
             page = data['repository']['issues']
             issues += [{'number': n['number'], 'title': n['title'], 'author': (n.get('author') or {}).get('login'),
+                        'screens': screen_ids(n.get('body')),
                         'type': (n.get('issueType') or {}).get('name'),
                         'labels': [label['name'] for label in n['labels']['nodes']],
                         'fields': field_map(n['issueFieldValues']['nodes'])} for n in page['nodes']]
@@ -367,17 +370,28 @@ class Reader:
         return [s['number'] for s in subs if s.get('state') == 'open']
 
 
-def screens_ready(fid):
-    """Definition of Ready of DEC-148 (6) for the screens: every screen of the feature in docs/screens/README.md has no
-    "Blocked by" and a Layout section; /implement-feature checks it again at its ready check."""
+def screen_ids(body):
+    """The SCR-IDs of the section Screens of an issue body written from the Feature form."""
+    return sorted(set(SCREEN_ID.findall(body_values(body).get('Screens', ''))))
+
+
+def screens_ready(fid, screens=(), folder=None):
+    """Definition of Ready of DEC-148 (6) for the screens: every screen the issue names in its section Screens (an issue
+    "<Feature ID> web" names the screens it builds, those web/ has already included, DEC-155 (1)), or, when it names
+    none, every screen of the feature in docs/screens/README.md, has no "Blocked by" and a Layout section; a named
+    screen missing from the list is not ready. /implement-feature checks it again at its ready check."""
     import screen_docs
-    folder = ROOT / 'docs' / 'screens'
+    folder = folder or ROOT / 'docs' / 'screens'
     if not (folder / 'README.md').is_file():
         return True
-    for row in screen_docs.screen_list(folder):
-        if fid in screen_docs.features(row):
+    rows = {screen_docs.row_id(row): row for row in screen_docs.screen_list(folder)}
+    named = set(screens)
+    if named - set(rows):
+        return False
+    for sid, row in rows.items():
+        if (sid in named) if named else (fid in screen_docs.features(row)):
             blocked = row.get('Blocked by', '').strip()
-            screen = folder / f'{screen_docs.row_id(row)}.md'
+            screen = folder / f'{sid}.md'
             if (blocked and blocked != '—') or not screen.is_file() or \
                     not re.search(r'^#{2,3} Layout\b', screen.read_text(encoding='utf-8'), re.MULTILINE):
                 return False
@@ -406,11 +420,15 @@ def next_work(reader, ready=screens_ready):
         started = [i for i in issues if i['fields'].get('Start date') and i['number'] not in closed_by_prs]
         lines += [f'4. #{i["number"]} {i["title"]}: handoff comment, no pull request yet (run /finish-feature '
                   f'{i["fields"].get("Feature ID", "")})' for i in started if reader.has_handoff(i['number'])]
+        # A screen an issue names whose new Layout is still under review waits for its merge (DEC-155 (1)).
+        layouts_open = {m.group(1) for p in pulls if (m := LAYOUT_TITLE.fullmatch(p.get('title') or ''))}
         by_number = {i['number']: i for i in issues}
         for number in [n for n in reader.roadmap() if n in by_number][:5]:
             item = by_number[number]
             fid = item['fields'].get('Feature ID')
-            state = 'ready' if not fid or ready(fid) else 'not ready (a screen without an approved Layout or blocked)'
+            screens = item.get('screens', [])
+            state = 'ready' if not fid or (ready(fid, screens) and not set(screens) & layouts_open) \
+                else 'not ready (a screen without an approved Layout, its Layout pull request open, or blocked)'
             blockers = reader.open_blockers(number)
             extra = f'; blocked by {", ".join("#" + str(b["number"]) for b in blockers)} (handled in its plan)' \
                 if blockers else ''

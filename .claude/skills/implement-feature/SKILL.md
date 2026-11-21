@@ -38,12 +38,25 @@ DEC-099 marked **Checkpoint** below (two here, one in `/finish-feature`); withou
      of it whose cell in the column *Blocked by* is empty, that has an approved design (its section **Layout**,
      which the merge of its Layout pull request approves, DEC-119 (1); without it the screen is blocked as by that
      cell, also for this web-only run, and the stop names `/design-screen <SCR-ID>` as the next step) and that
-     `web/` does not have yet (its route has no page, or still opens one of the placeholders that the paragraph
-     under the screen list of `docs/screens/README.md` names).
+     either `web/` does not have yet (its route has no page, or still opens one of the placeholders that the
+     paragraph under the screen list of `docs/screens/README.md` names), or `web/` has already while its new Layout
+     adds behaviour (DEC-155 (1)): the open Feature issue `<ID> web` (its number from
+     `python tools/issue.py feature <ID>`, below; its body from `gh issue view <n> --json body`) names its SCR-ID
+     in its section Screens, and the Layout pull request that body names for it has merged
+     (`gh pr view <number> --json state`; it merged after the page was built, since `/design-screen` step 6 names
+     it there only for a screen `web/` has). For such a screen, the plan builds the change of its new Layout on the
+     page `web/` has, and leaves the rest of the page as it is.
+     When the issue `<ID> web` is open, the run builds every screen its section Screens names, since its pull
+     request closes that issue: when one of them is not ready (its *Blocked by* cell is not empty, it has no
+     approved Layout, it is missing from the screen list, or a Layout pull request of it is still open:
+     `gh pr list --state open --search "<SCR-ID> in:title"`, keeping the titles `docs: add the layout of <SCR-ID>`
+     and `docs: change the layout of <SCR-ID>`, as `python tools/issue.py next` counts them), stop and name what
+     holds it, instead of building the others.
      Then the run is a **web-only run**: the plan, the tests and the code cover only those screens, and steps 5 and
      6 are skipped; it changes no API, migration or Postman folder (a screen that needs one is a Needs decision
-     item, step 4); its branch is `feat/<id in lowercase>-web` and its pull request title
-     `feat(web): <subject> (<ID>)`.
+     item, step 4); its branch is `feat/<id in lowercase>-web` (`-web-2`, `-web-3`… when that name merged already,
+     the `--taken` of the last item) and its pull request title `feat(web): <subject> (<ID>)`, and it closes the
+     issue `<ID> web`.
    - `dotnet --version` is the SDK of `api/global.json`, `dotnet tool restore` succeeds, `docker info` answers
      (the integration tests start PostgreSQL with Testcontainers), `pwsh -v` answers (without PowerShell 7 the
      hooks of `.claude/settings.json` do not run, and nothing guards the specification), `postman --version`
