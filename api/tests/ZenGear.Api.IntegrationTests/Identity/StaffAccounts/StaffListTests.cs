@@ -35,17 +35,17 @@ public class StaffListTests : IntegrationTestBase
             await TestRoles.GrantAsync(role, PermissionKeys.StaffRead);
         }
 
-        _adminId = await InsertStaffAsync(new Staff("Quản trị", "AD01", Uid: AdminUid), _adminRole);
-        _managerId = await InsertStaffAsync(new Staff("Quản lý", "QL01", Uid: ManagerUid), managerRole);
+        _adminId = await InsertStaffAsync(new Staff("Quản trị", "ZG200001", Uid: AdminUid), _adminRole);
+        _managerId = await InsertStaffAsync(new Staff("Quản lý", "ZG220001", Uid: ManagerUid), managerRole);
     }
 
     [Test]
     public async Task R_USR_13_lists_staff_accounts_only_with_their_list_fields()
     {
-        var active = await InsertStaffAsync(new Staff("Bình", "NV01", new DateOnly(2026, 1, 5)), _cashierRole);
+        var active = await InsertStaffAsync(new Staff("Bình", "ZG210001", new DateOnly(2026, 1, 5)), _cashierRole);
         var disabled = await InsertStaffAsync(
-            new Staff("Dũng", "NV02", new DateOnly(2026, 2, 1), new DateOnly(2026, 9, 30), "DISABLED"), _cashierRole, _salesRole);
-        await InsertStaffAsync(new Staff("Ẩn danh", "NV03", Status: "ANONYMIZED"), _salesRole);
+            new Staff("Dũng", "ZG210002", new DateOnly(2026, 2, 1), new DateOnly(2026, 9, 30), "DISABLED"), _cashierRole, _salesRole);
+        await InsertStaffAsync(new Staff("Ẩn danh", "ZG210003", Status: "ANONYMIZED"), _salesRole);
         await TestUsers.InsertAsync("uid-customer", isStaff: false);
 
         var page = await ListAsync(AdminUid, "");
@@ -57,8 +57,8 @@ public class StaffListTests : IntegrationTestBase
 
         var row = Items(page).Single(i => i.GetProperty("id").GetGuid() == disabled);
         row.GetProperty("name").GetString().ShouldBe("Dũng");
-        row.GetProperty("email").GetString().ShouldBe("nv02@zengear.test");
-        row.GetProperty("employeeCode").GetString().ShouldBe("NV02");
+        row.GetProperty("email").GetString().ShouldBe("zg210002@zengear.test");
+        row.GetProperty("employeeCode").GetString().ShouldBe("ZG210002");
         row.GetProperty("joinedDate").GetString().ShouldBe("2026-02-01");
         row.GetProperty("leftDate").GetString().ShouldBe("2026-09-30");
         row.GetProperty("status").GetString().ShouldBe("DISABLED");
@@ -72,7 +72,7 @@ public class StaffListTests : IntegrationTestBase
     [Test]
     public async Task R_USR_13_filters_by_status()
     {
-        var disabled = await InsertStaffAsync(new Staff("Dũng", "NV02", Status: "DISABLED"), _cashierRole);
+        var disabled = await InsertStaffAsync(new Staff("Dũng", "ZG210002", Status: "DISABLED"), _cashierRole);
 
         Ids(await ListAsync(AdminUid, "?status=DISABLED")).ShouldBe([disabled]);
         Ids(await ListAsync(AdminUid, "?status=ACTIVE")).ShouldBe([_managerId, _adminId]);
@@ -81,9 +81,9 @@ public class StaffListTests : IntegrationTestBase
     [Test]
     public async Task R_USR_13_filters_by_role_and_keeps_every_role_of_the_row()
     {
-        var both = await InsertStaffAsync(new Staff("Bình", "NV01"), _cashierRole, _salesRole);
-        var cashier = await InsertStaffAsync(new Staff("Dũng", "NV02"), _cashierRole);
-        var sales = await InsertStaffAsync(new Staff("Đức", "NV03"), _salesRole);
+        var both = await InsertStaffAsync(new Staff("Bình", "ZG210001"), _cashierRole, _salesRole);
+        var cashier = await InsertStaffAsync(new Staff("Dũng", "ZG210002"), _cashierRole);
+        var sales = await InsertStaffAsync(new Staff("Đức", "ZG210003"), _salesRole);
 
         var cashiers = await ListAsync(AdminUid, $"?roleId={_cashierRole}");
         Ids(cashiers).ShouldBe([both, cashier]);
@@ -94,9 +94,9 @@ public class StaffListTests : IntegrationTestBase
     [Test]
     public async Task R_USR_13_combines_status_and_role_filters()
     {
-        await InsertStaffAsync(new Staff("Bình", "NV01"), _cashierRole);
-        var disabledCashier = await InsertStaffAsync(new Staff("Dũng", "NV02", Status: "DISABLED"), _cashierRole);
-        await InsertStaffAsync(new Staff("Đức", "NV03", Status: "DISABLED"), _salesRole);
+        await InsertStaffAsync(new Staff("Bình", "ZG210001"), _cashierRole);
+        var disabledCashier = await InsertStaffAsync(new Staff("Dũng", "ZG210002", Status: "DISABLED"), _cashierRole);
+        await InsertStaffAsync(new Staff("Đức", "ZG210003", Status: "DISABLED"), _salesRole);
 
         Ids(await ListAsync(AdminUid, $"?status=DISABLED&roleId={_cashierRole}")).ShouldBe([disabledCashier]);
     }
@@ -115,7 +115,7 @@ public class StaffListTests : IntegrationTestBase
     {
         foreach (var (name, i) in new[] { "Bình", "Ánh", "Đức", "Dũng", "Ân" }.Select((n, i) => (n, i)))
         {
-            await InsertStaffAsync(new Staff(name, $"NV0{i}"), _cashierRole);
+            await InsertStaffAsync(new Staff(name, $"ZG21000{i}"), _cashierRole);
         }
 
         // Byte order would put Bình and Dũng before Ánh and Ân, and Đức after Quản.
@@ -128,12 +128,12 @@ public class StaffListTests : IntegrationTestBase
     [Test]
     public async Task R_USR_13_sorts_by_employee_code_and_joined_date_with_empty_values_last()
     {
-        await InsertStaffAsync(new Staff("Bình", "NV10", new DateOnly(2026, 3, 1)), _cashierRole);
+        await InsertStaffAsync(new Staff("Bình", "ZG210010", new DateOnly(2026, 3, 1)), _cashierRole);
         await InsertStaffAsync(new Staff("Dũng", null, new DateOnly(2025, 6, 1)), _cashierRole);
-        await InsertStaffAsync(new Staff("Đức", "NV02", new DateOnly(2026, 1, 15)), _cashierRole);
+        await InsertStaffAsync(new Staff("Đức", "ZG210002", new DateOnly(2026, 1, 15)), _cashierRole);
 
-        Codes(await ListAsync(AdminUid, "?sort=employeeCode")).ShouldBe(["AD01", "NV02", "NV10", "QL01", null]);
-        Codes(await ListAsync(AdminUid, "?sort=-employeeCode")).ShouldBe(["QL01", "NV10", "NV02", "AD01", null]);
+        Codes(await ListAsync(AdminUid, "?sort=employeeCode")).ShouldBe(["ZG200001", "ZG210002", "ZG210010", "ZG220001", null]);
+        Codes(await ListAsync(AdminUid, "?sort=-employeeCode")).ShouldBe(["ZG220001", "ZG210010", "ZG210002", "ZG200001", null]);
         Dates(await ListAsync(AdminUid, "?sort=joinedDate")).ShouldBe(["2025-06-01", "2026-01-15", "2026-03-01", null, null]);
         Dates(await ListAsync(AdminUid, "?sort=-joinedDate")).ShouldBe(["2026-03-01", "2026-01-15", "2025-06-01", null, null]);
     }
@@ -143,7 +143,7 @@ public class StaffListTests : IntegrationTestBase
     {
         for (var i = 0; i < 5; i++)
         {
-            await InsertStaffAsync(new Staff("Trùng tên", $"NV0{i}"), _cashierRole);
+            await InsertStaffAsync(new Staff("Trùng tên", $"ZG21000{i}"), _cashierRole);
         }
 
         var all = Ids(await ListAsync(AdminUid, "?pageSize=100"));
@@ -162,7 +162,7 @@ public class StaffListTests : IntegrationTestBase
     [Test]
     public async Task R_USR_13_a_name_email_or_phone_in_the_query_string_filters_nothing()
     {
-        await InsertStaffAsync(new Staff("Bình", "NV01"), _cashierRole);
+        await InsertStaffAsync(new Staff("Bình", "ZG210001"), _cashierRole);
 
         // Values that match no row: any search would empty the list. No personal data goes in a URL, even in a test.
         var all = await ListAsync(AdminUid, "");
@@ -219,7 +219,7 @@ public class StaffListTests : IntegrationTestBase
     [Test]
     public async Task R_SEC_03_list_without_staff_read_is_403()
     {
-        await InsertStaffAsync(new Staff("Thu ngân", "TN01", Uid: CashierUid), _cashierRole);
+        await InsertStaffAsync(new Staff("Thu ngân", "ZG230001", Uid: CashierUid), _cashierRole);
 
         var response = await GetAsync(CashierUid, Path);
 
@@ -239,8 +239,8 @@ public class StaffListTests : IntegrationTestBase
             WITH u AS (
               INSERT INTO users (firebase_uid, name, email, status) VALUES (@uid, @name, @email, @status) RETURNING id
             ), s AS (
-              INSERT INTO staff_profiles (user_id, employee_code, joined_date, left_date, work_phone)
-              SELECT id, @code, @joined, @left, '0901234567' FROM u
+              INSERT INTO staff_profiles (user_id, employee_code, username, joined_date, left_date, work_phone)
+              SELECT id, @code, @username, @joined, @left, '0901234567' FROM u
             )
             SELECT id FROM u
             """,
@@ -251,6 +251,7 @@ public class StaffListTests : IntegrationTestBase
         command.Parameters.AddWithValue("email", $"{local.ToLowerInvariant()}@zengear.test");
         command.Parameters.AddWithValue("status", staff.Status);
         command.Parameters.AddWithValue("code", (object?)staff.EmployeeCode ?? DBNull.Value);
+        command.Parameters.AddWithValue("username", "TestA" + (staff.EmployeeCode ?? TestUsers.NextIdentity().EmployeeCode));
         command.Parameters.AddWithValue("joined", (object?)staff.JoinedDate ?? DBNull.Value);
         command.Parameters.AddWithValue("left", (object?)staff.LeftDate ?? DBNull.Value);
         var id = (Guid)(await command.ExecuteScalarAsync())!;

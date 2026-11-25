@@ -48,7 +48,7 @@ test('the Admin sees the staff accounts and sorts them by name', async ({ page }
   const ownerPage = await staffListPage(accounts.admin, 'sort=name')
   if (ownerPage > 1) await page.goto(`/admin/staff?page=${ownerPage}`)
   const owner = table(page).getByRole('row').filter({ hasText: accounts.admin })
-  await expect(owner.getByRole('link', { name: 'Chủ cửa hàng' })).toBeVisible()
+  await expect(owner.getByRole('link', { name: 'Trần Minh Khoa' })).toBeVisible()
   await expect(owner.getByText('Đang hoạt động')).toBeVisible()
   await page.screenshot({ path: test.info().outputPath('staff-list.png'), fullPage: true })
 
@@ -151,7 +151,7 @@ test('the Admin locks and restores an account from its row, and has no command o
 }) => {
   // A long email, so that the nine columns are wider than the card: the table's box scrolls sideways, the page never
   // (the Layout), also when the focus reaches the menu button at the end of the row.
-  const staff = await newSalesConsultant(`E2e-row-${Date.now()}`, `e2e${'x'.repeat(40)}`)
+  const staff = await newSalesConsultant(`E2e-row-${Date.now()}`, `Nguyễn ${'X'.repeat(50)}`)
   const listPage = await staffListPage(staff.email, 'sort=name')
   await signedInAdmin(page)
   if (listPage > 1) await page.goto(`/admin/staff?page=${listPage}`)

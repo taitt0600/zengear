@@ -1,6 +1,9 @@
-# Emulator accounts that tools/dev_reset.ps1 creates before the fixtures run: "<psql variable> <email>".
-# Each fixture reads the uid as :'<psql variable>'. Development only; the Postman collection signs in with an
-# emulator custom token, so no password is needed.
-uid_manager manager.fixture@zengear.test
-uid_customer customer.fixture@zengear.test
-uid_itsupport itsupport.fixture@zengear.test
+# Emulator accounts that tools/dev_reset.ps1 (and the acceptance job of CI) creates before the fixtures run:
+# "<psql variable> <email>". Each fixture reads the uid as :'<psql variable>'. Development only; the Postman collection
+# signs in with an emulator custom token, so no password is needed. The staff emails follow R-USR-24 for the sample cast
+# of DEC-146 (docs/ACCEPTANCE.md, Accounts); the Admin's account is made by the reset itself, before bootstrap-admin.
+uid_manager haltzg260002@zengear.test
+uid_itsupport baopqzg260003@zengear.test
+uid_cashier annvzg260004@zengear.test
+uid_technical minhhdzg260005@zengear.test
+uid_customer dothimai@zengear.test

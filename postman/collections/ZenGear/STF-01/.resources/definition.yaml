@@ -1,10 +1,14 @@
 $kind: collection
 name: STF-01
 description: |-
-  STF-01 — Admin creates a staff account with one or more roles (UC-005; R-USR-01, R-USR-02, R-SEC-01, R-TX-11).
+  STF-01 — Admin creates a staff account with one or more roles (UC-005; R-USR-01, R-SEC-01, R-TX-11, R-USR-24).
+  The API generates the employee code, the username and the company email from the name and the joined date
+  (R-USR-24): the requests send neither, and their tests compare the generated values with the rule.
 
-  Needs tools/dev_reset.ps1 first: the Admin owner@zengear.test (bootstrap-admin, DEC-096) and the dev-only fixture
-  postman/fixtures/STF-01.sql (a Store Manager manager.fixture@zengear.test holding staff.create, no pending
-  password change). Every email and employee code carries the run id `run`, so the folder runs again without a reset.
-  Emulator only: the requests sign in with emulator custom tokens (see the collection description).
+  Needs tools/dev_reset.ps1 first: the Admin Trần Minh Khoa khoatmzg260001@zengear.test (bootstrap-admin, DEC-096,
+  DEC-156) and the dev-only fixture postman/fixtures/STF-01.sql (the Store Manager Lê Thu Hà haltzg260002@zengear.test
+  holding staff.create, no pending password change); the sample cast is in docs/ACCEPTANCE.md (Accounts). Every
+  account gets a new code, so the folder runs again without a reset; request 11 expects the number after request
+  10's, so one person runs it at a time. Emulator only: the requests sign in with emulator custom tokens (see the
+  collection description).
 order: 1000

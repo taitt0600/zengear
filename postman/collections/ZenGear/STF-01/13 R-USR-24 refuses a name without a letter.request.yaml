@@ -1,0 +1,30 @@
+$kind: http-request
+description: |-
+  R-USR-24: the username is built from the letters of the name, so a name without a Latin letter is refused
+  (400, NAME_NO_LETTER on #/name) and no account or number is created.
+method: POST
+url: '{{baseUrl}}/api/v1/admin/staff'
+order: 13000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+  - key: Content-Type
+    value: 'application/json'
+body:
+  type: json
+  content: |-
+    {
+      "name": "12345",
+      "joinedDate": "2026-10-01",
+      "workPhone": "0901234567",
+      "roleIds": ["{{roleCashier}}"]
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 400', () => pm.response.to.have.status(400));
+      const problem = pm.response.json();
+      pm.test('problem type /problems/validation', () => pm.expect(problem.type).to.eql('/problems/validation'));
+      pm.test('error NAME_NO_LETTER on #/name', () =>
+        pm.expect(problem.errors.map((e) => `${e.pointer} ${e.code}`)).to.eql(['#/name NAME_NO_LETTER']));

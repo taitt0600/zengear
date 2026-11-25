@@ -1,0 +1,38 @@
+$kind: http-request
+description: |-
+  R-USR-24: the employee code takes the next number of the joined year from the yearly counter, so the account
+  created right after request 10 gets its code + 1; another name gives another abbreviation (Lê Thu Hà →
+  HaLT). Run on the development environment by one person at a time: an account created meanwhile by someone
+  else takes a number too.
+method: POST
+url: '{{baseUrl}}/api/v1/admin/staff'
+order: 11000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+  - key: Content-Type
+    value: 'application/json'
+body:
+  type: json
+  content: |-
+    {
+      "name": "Lê Thu Hà",
+      "joinedDate": "2026-03-02",
+      "workPhone": "0901234567",
+      "roleIds": ["{{roleCashier}}"]
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 201', () => pm.response.to.have.status(201));
+      const staff = pm.response.json();
+      const lastCode = pm.variables.get('lastCode');
+      pm.test('request 10 left its code in this run', () => pm.expect(lastCode, 'run the folder from request 10').to.be.a('string'));
+      const next = Number(String(lastCode).slice(4)) + 1;
+      pm.test('R-USR-24 the next number of 2026', () =>
+        pm.expect(staff.employeeCode).to.eql(`ZG26${String(next).padStart(4, '0')}`));
+      pm.test('R-USR-24 username and email of Lê Thu Hà', () => {
+        pm.expect(staff.username).to.eql(`HaLT${staff.employeeCode}`);
+        pm.expect(staff.email).to.eql(`${staff.username.toLowerCase()}@zengear.test`);
+      });

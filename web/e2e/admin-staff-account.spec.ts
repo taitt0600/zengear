@@ -1,5 +1,5 @@
 import { expect, test, type Locator, type Page } from '@playwright/test'
-import { accounts, meId, newSalesConsultant, PASSWORD } from './support/backend'
+import { accounts, meId, newSalesConsultant, PASSWORD, STAFF_NAME } from './support/backend'
 import { failOnCspViolations, signIn } from './support/pages'
 
 // SCR-STF-03 Staff account (docs/screens/SCR-STF-03.md, STF-02) against the API, the Firebase Auth Emulator and the
@@ -41,7 +41,7 @@ test('the Admin locks an account with its last working day, then restores it', a
   const status = card(page, 'Trạng thái tài khoản')
   // The value of "Ngày nghỉ việc" (the new account joins today, so its joined date shows today too).
   const leftDate = card(page, 'Thông tin nhân viên').locator('dt:text-is("Ngày nghỉ việc") + dd')
-  await expect(page.getByRole('heading', { level: 1, name: /^E2E / })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: STAFF_NAME })).toBeVisible()
   await expect(leftDate).toHaveText('—')
   await expect(page.getByRole('navigation', { name: 'Vị trí trang' })).toContainText(
     'Tài khoản nhân viên',
@@ -75,9 +75,9 @@ test('the Admin locks an account with its last working day, then restores it', a
 test('on a narrow screen the status comes before the details, and a long email wraps', async ({
   page,
 }) => {
-  // About 60 characters before the `@` (at most 64, RFC 5321) and no hyphen, where a line could break anyway: wider
-  // than a field of the details card, at 390 px and at `lg` alike.
-  const staff = await newSalesConsultant(`E2e-narrow-${Date.now()}`, `e2e${'x'.repeat(40)}`)
+  // A given name of 50 letters gives 59 characters before the `@` (at most 64, RFC 5321, R-USR-24) and no hyphen, where
+  // a line could break anyway: wider than a field of the details card, at 390 px and at `lg` alike.
+  const staff = await newSalesConsultant(`E2e-narrow-${Date.now()}`, `Nguyễn ${'X'.repeat(50)}`)
   await page.setViewportSize({ width: 390, height: 844 })
   await signedInAdmin(page)
   await page.goto(`/admin/staff/${staff.id}`)

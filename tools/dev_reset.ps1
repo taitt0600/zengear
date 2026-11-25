@@ -17,8 +17,12 @@ $Database = 'zengear'
 $ProjectId = 'demo-zengear'                       # appsettings.Development.json, api/docker-compose.yml
 $Ports = @{ Postgres = 5432; Redis = 6379; Emulator = 9099 }   # published by api/docker-compose.yml
 $LocalHosts = 'localhost', '127.0.0.1'
-$AdminEmail = 'owner@zengear.test'
-$AdminName = 'Chủ cửa hàng'
+# The Admin of the sample cast (DEC-146 (2)): bootstrap-admin generates ZG260001, KhoaTMZG260001 and this email from
+# the name and the fixed joined date (R-USR-24, DEC-156 (2)), whatever the year of the reset; the emulator account is
+# made first with this email so that it keeps the test password. Keep in step with .github/workflows/pipeline.yml.
+$AdminEmail = 'khoatmzg260001@zengear.test'
+$AdminName = 'Trần Minh Khoa'
+$AdminJoinedDate = '2026-01-05'
 $TestPassword = 'dev-reset-only'                  # emulator accounts only; the Postman collection signs in without it
 
 function Say([string]$text) { [Console]::Out.WriteLine($text) }
@@ -205,7 +209,7 @@ if ($PSCmdlet.ShouldProcess("Firebase Auth Emulator, project $ProjectId", 'delet
 
 if ($PSCmdlet.ShouldProcess($AdminEmail, 'create the emulator account and run bootstrap-admin (DEC-096)')) {
     New-EmulatorAccount $AdminEmail | Out-Null
-    $output = dotnet run --project $api --launch-profile http -- bootstrap-admin --email $AdminEmail --name $AdminName 2>&1
+    $output = dotnet run --project $api --launch-profile http -- bootstrap-admin --name $AdminName --joined-date $AdminJoinedDate 2>&1
     $code = $LASTEXITCODE
     # The password reset link is a credential: never shown, whatever the outcome.
     $safe = $output | ForEach-Object { "$_" } | Where-Object { $_ -notmatch '://' -and $_ -notmatch 'oobCode' }

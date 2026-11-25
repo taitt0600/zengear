@@ -1,0 +1,32 @@
+$kind: http-request
+description: |-
+  R-USR-24: the code carries the last two digits of the year of the joined date, with that year's own counter:
+  a staff member who joined on 2025-12-31 gets ZG25 and a number of 2025.
+method: POST
+url: '{{baseUrl}}/api/v1/admin/staff'
+order: 12000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+  - key: Content-Type
+    value: 'application/json'
+body:
+  type: json
+  content: |-
+    {
+      "name": "Phạm Quốc Bảo",
+      "joinedDate": "2025-12-31",
+      "workPhone": "0901234567",
+      "roleIds": ["{{roleCashier}}"]
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 201', () => pm.response.to.have.status(201));
+      const staff = pm.response.json();
+      pm.test('R-USR-24 code of 2025', () => pm.expect(staff.employeeCode).to.match(/^ZG25\d{4}$/));
+      pm.test('R-USR-24 username and email of Phạm Quốc Bảo', () => {
+        pm.expect(staff.username).to.eql(`BaoPQ${staff.employeeCode}`);
+        pm.expect(staff.email).to.eql(`${staff.username.toLowerCase()}@zengear.test`);
+      });

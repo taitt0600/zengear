@@ -63,6 +63,9 @@ public class UserModelTests
         fk.GetConstraintName().ShouldBe("fk_staff_profiles_users_user_id");
         fk.DeleteBehavior.ShouldBe(DeleteBehavior.Cascade);
         staff.GetIndexes().Single().GetDatabaseName().ShouldBe("ix_staff_profiles_employee_code");
-        staff.GetCheckConstraints().Single().Name.ShouldBe("ck_staff_profiles_left_date");
+        staff.GetCheckConstraints().Select(c => c.Name).ShouldBe(
+            ["ck_staff_profiles_employee_code", "ck_staff_profiles_left_date"], ignoreOrder: true);
+        staff.FindProperty(nameof(StaffProfile.Username))!.GetMaxLength().ShouldBe(64);
+        staff.FindProperty(nameof(StaffProfile.Username))!.IsNullable.ShouldBeFalse();
     }
 }

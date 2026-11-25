@@ -23,7 +23,7 @@ INSERT INTO wards (id, name, code, type, province_id) VALUES
 ON CONFLICT DO NOTHING;
 
 INSERT INTO business_locations (id, name, phone, email, address_detail, province_id, ward_id, regular_hours)
-SELECT '0199a0f3-0000-7000-8000-000000000001', 'ZenGear (fixture)', '02838123456', 'cskh@zengear.test',
+SELECT '0199a0f3-0000-7000-8000-000000000001', 'ZenGear Quận 10', '02838123456', 'cskh@zengear.test',
   '123 Lê Lợi', 79, 26734,
   '[{"day": 1, "open": "08:30", "close": "21:30"}, {"day": 2, "open": "08:30", "close": "21:30"},
     {"day": 3, "open": "08:30", "close": "21:30"}, {"day": 4, "open": "08:30", "close": "21:30"},

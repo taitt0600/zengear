@@ -56,7 +56,7 @@ public class StaffTests : IntegrationTestBase
     {
         var nightShift = await TestRoles.InsertAsync("Night Shift");
 
-        var response = await PostAsync(ManagerUid, Body("a@zengear.test", "NV0001", _cashierRole, nightShift));
+        var response = await PostAsync(ManagerUid, Body(_cashierRole, nightShift));
 
         await response.ShouldBeProblemAsync(HttpStatusCode.Conflict, "/problems/role-out-of-scope", "R-SEC-12",
             ExpectedError.At("#/roleIds", "ROLE_OUT_OF_SCOPE"));
@@ -66,7 +66,7 @@ public class StaffTests : IntegrationTestBase
     [Test]
     public async Task R_SEC_12_create_staff_accepts_role_in_scope()
     {
-        var response = await PostAsync(ManagerUid, Body("sales@zengear.test", "NV0004", _salesRole, _cashierRole));
+        var response = await PostAsync(ManagerUid, Body(_salesRole, _cashierRole));
 
         response.StatusCode.ShouldBe(HttpStatusCode.Created);
     }
@@ -76,7 +76,7 @@ public class StaffTests : IntegrationTestBase
     {
         var nightShift = await TestRoles.InsertAsync("Night Shift");
 
-        var response = await PostAsync(AdminUid, Body("night@zengear.test", "NV0005", nightShift));
+        var response = await PostAsync(AdminUid, Body(nightShift));
 
         response.StatusCode.ShouldBe(HttpStatusCode.Created);
     }
@@ -93,7 +93,7 @@ public class StaffTests : IntegrationTestBase
         await TestRoles.AssignAsync(recruiter, hiring);
         await TestRoles.AssignAsync(recruiter, hiringSales);
 
-        var response = await PostAsync("uid-recruiter", Body("both@zengear.test", "NV0006", _cashierRole, _salesRole));
+        var response = await PostAsync("uid-recruiter", Body(_cashierRole, _salesRole));
 
         response.StatusCode.ShouldBe(HttpStatusCode.Created);
     }
@@ -129,15 +129,13 @@ public class StaffTests : IntegrationTestBase
     [Test]
     public async Task R_USR_01_admin_creates_a_staff_account_with_profile_and_several_roles()
     {
-        var response = await PostAsync(AdminUid, Body("  An.Nguyen@ZenGear.test ", "NV0012", _cashierRole, _salesRole));
+        var response = await PostAsync(AdminUid, Body(_cashierRole, _salesRole));
 
         response.StatusCode.ShouldBe(HttpStatusCode.Created);
         var body = await JsonAsync(response);
         var id = body.GetProperty("id").GetGuid();
         response.Headers.Location!.ToString().ShouldEndWith($"{Path}/{id}");
-        body.GetProperty("email").GetString().ShouldBe("an.nguyen@zengear.test");
         body.GetProperty("name").GetString().ShouldBe("Nguyễn Văn An");
-        body.GetProperty("employeeCode").GetString().ShouldBe("NV0012");
         body.GetProperty("joinedDate").GetString().ShouldBe("2026-10-01");
         body.GetProperty("workPhone").GetString().ShouldBe("0901234567");
         body.GetProperty("status").GetString().ShouldBe("ACTIVE");
@@ -145,17 +143,173 @@ public class StaffTests : IntegrationTestBase
         body.GetProperty("roles").EnumerateArray().Select(r => r.GetProperty("name").GetString())
             .ShouldBe(["Cashier", "Sales Consultant"]);
 
-        var account = Auth.Find("an.nguyen@zengear.test").ShouldNotBeNull();
+        var account = Auth.Find(FirstEmail).ShouldNotBeNull();
         account.Password.ShouldBe(FakeAuthProvider.DefaultPassword);
         var row = await StaffRowAsync(id);
-        row.ShouldBe(new StaffRow(account.Uid, "ACTIVE", "NV0012", new DateOnly(2026, 10, 1), "0901234567", true, _adminId, 1));
+        row.ShouldBe(new StaffRow(account.Uid, "ACTIVE", "ZG260001", "AnNVZG260001", new DateOnly(2026, 10, 1), "0901234567",
+            true, _adminId, 1));
         (await UserRoleIdsAsync(id)).ShouldBe([_cashierRole, _salesRole], ignoreOrder: true);
+    }
+
+    [Test]
+    public async Task R_USR_24_creates_the_generated_identity()
+    {
+        var body = await JsonAsync(await PostAsync(AdminUid, Body(_cashierRole)));
+
+        body.GetProperty("employeeCode").GetString().ShouldBe("ZG260001");
+        body.GetProperty("username").GetString().ShouldBe("AnNVZG260001");
+        body.GetProperty("email").GetString().ShouldBe(FirstEmail);
+        body.GetProperty("name").GetString().ShouldBe("Nguyễn Văn An");
+        Auth.Find(FirstEmail).ShouldNotBeNull();
+        (await ScalarObjectAsync($"SELECT email FROM users WHERE id = '{body.GetProperty("id").GetGuid()}'")).ShouldBe(FirstEmail);
+    }
+
+    [Test]
+    public async Task R_USR_24_code_takes_the_year_of_the_joined_date_and_numbers_follow_per_year()
+    {
+        var first = await JsonAsync(await PostAsync(AdminUid, Body(_cashierRole)));
+        var second = await JsonAsync(await PostAsync(AdminUid, Body("Lê Thu Hà", "2026-03-02", _cashierRole)));
+        var earlier = await JsonAsync(await PostAsync(AdminUid, Body("Phạm Quốc Bảo", "2025-12-31", _cashierRole)));
+
+        first.GetProperty("employeeCode").GetString().ShouldBe("ZG260001");
+        second.GetProperty("employeeCode").GetString().ShouldBe("ZG260002");
+        second.GetProperty("username").GetString().ShouldBe("HaLTZG260002");
+        earlier.GetProperty("employeeCode").GetString().ShouldBe("ZG250001");
+        earlier.GetProperty("email").GetString().ShouldBe("baopqzg250001@zengear.test");
+        (await ScalarAsync("SELECT last_value FROM employee_code_sequences WHERE year = 2026")).ShouldBe(2);
+        (await ScalarAsync("SELECT last_value FROM employee_code_sequences WHERE year = 2025")).ShouldBe(1);
+    }
+
+    [Test]
+    public async Task R_USR_24_parallel_creations_get_distinct_numbers()
+    {
+        var responses = await Task.WhenAll(Enumerable.Range(0, 5).Select(_ => PostAsync(AdminUid, Body(_cashierRole))));
+
+        responses.ShouldAllBe(r => r.StatusCode == HttpStatusCode.Created);
+        var codes = await Task.WhenAll(responses.Select(async r => (await JsonAsync(r)).GetProperty("employeeCode").GetString()));
+        codes.ShouldBe(["ZG260001", "ZG260002", "ZG260003", "ZG260004", "ZG260005"], ignoreOrder: true);
+        Auth.Accounts.Count.ShouldBe(5);
+    }
+
+    [Test]
+    public async Task R_USR_24_a_refused_request_takes_no_number()
+    {
+        var nightShift = await TestRoles.InsertAsync("Night Shift");
+        (await PostAsync(ManagerUid, Body(_cashierRole, nightShift))).StatusCode.ShouldBe(HttpStatusCode.Conflict);
+
+        var created = await JsonAsync(await PostAsync(ManagerUid, Body(_cashierRole)));
+
+        created.GetProperty("employeeCode").GetString().ShouldBe("ZG260001");
+    }
+
+    [Test]
+    public async Task R_USR_24_a_failed_creation_issues_no_number()
+    {
+        // Firebase fails after it created the account (a timeout after the write): the request fails, its transaction
+        // rolls back and the number is not issued. The account it left is found by its email and deleted, since the
+        // rollback issues the same number, hence the same email, to the next person with the same abbreviation.
+        string? leftUid = null;
+        Auth.AfterCreate = account =>
+        {
+            leftUid = account.Uid;
+            throw new InvalidOperationException("Firebase failed");
+        };
+        (await PostAsync(AdminUid, Body(_cashierRole))).StatusCode.ShouldBe(HttpStatusCode.InternalServerError);
+        Auth.AfterCreate = null;
+
+        Auth.Deleted.ShouldBe([leftUid.ShouldNotBeNull()]);
+        Auth.Find(FirstEmail).ShouldBeNull();
+        var created = await JsonAsync(await PostAsync(AdminUid, Body(_cashierRole)));
+
+        created.GetProperty("employeeCode").GetString().ShouldBe("ZG260001");
+        created.GetProperty("email").GetString().ShouldBe(FirstEmail);
+    }
+
+    [Test]
+    public async Task R_USR_24_the_compensation_never_deletes_the_account_of_a_request_waiting_for_the_number()
+    {
+        // A double submit: request A fails in Firebase before it writes while request B waits on the year's counter
+        // row. A looks up the email of its number while it still holds the lock, so B, which then takes the same
+        // number and email, keeps the Firebase account it creates.
+        Task<HttpResponseMessage>? second = null;
+        Auth.BeforeCreate = async _ =>
+        {
+            Auth.BeforeCreate = null;
+            second = PostAsync(AdminUid, Body(_cashierRole));
+            await WaitUntilAsync(async () => await ScalarAsync(
+                "SELECT count(*) FROM pg_stat_activity WHERE wait_event_type = 'Lock' AND query LIKE '%employee_code_sequences%'") > 0);
+            throw new InvalidOperationException("Firebase failed before writing");
+        };
+
+        (await PostAsync(AdminUid, Body(_cashierRole))).StatusCode.ShouldBe(HttpStatusCode.InternalServerError);
+        var created = await JsonAsync(await second.ShouldNotBeNull());
+
+        created.GetProperty("email").GetString().ShouldBe(FirstEmail);
+        var account = Auth.Find(FirstEmail).ShouldNotBeNull();
+        (await ScalarAsync("SELECT count(*) FROM users WHERE firebase_uid = @uid", account.Uid)).ShouldBe(1);
+        Auth.Deleted.ShouldBeEmpty();
+    }
+
+    private static async Task WaitUntilAsync(Func<Task<bool>> condition)
+    {
+        for (var attempt = 0; attempt < 100; attempt++)
+        {
+            if (await condition())
+            {
+                return;
+            }
+
+            await Task.Delay(50);
+        }
+
+        throw new TimeoutException("The second request never waited on the counter row.");
+    }
+
+    [Test]
+    public async Task R_USR_24_exhausted_year_is_refused()
+    {
+        await ExecuteAsync("INSERT INTO employee_code_sequences (year, last_value) VALUES (2026, 9999)");
+
+        var response = await PostAsync(AdminUid, Body(_cashierRole));
+
+        await response.ShouldBeProblemAsync(HttpStatusCode.Conflict, "/problems/employee-codes-exhausted", "R-USR-24");
+        (await ScalarAsync("SELECT count(*) FROM users")).ShouldBe(2);
+        Auth.Accounts.ShouldBeEmpty();
+        (await ScalarAsync("SELECT last_value FROM employee_code_sequences WHERE year = 2026")).ShouldBe(9999);
+    }
+
+    [Test]
+    public async Task R_USR_24_username_unique_case_insensitive()
+    {
+        await PostAsync(AdminUid, Body(_cashierRole));
+
+        var error = await Should.ThrowAsync<PostgresException>(() => ExecuteAsync(
+            """
+            WITH u AS (INSERT INTO users (firebase_uid, name, email) VALUES ('uid-x', 'X', 'x@zengear.test') RETURNING id)
+            INSERT INTO staff_profiles (user_id, employee_code, username) SELECT id, 'ZG269998', 'annvzg260001' FROM u
+            """));
+
+        error.ConstraintName.ShouldBe("ix_staff_profiles_username");
+    }
+
+    [TestCase("NV0012")]
+    [TestCase("ZG26001")]
+    [TestCase("zg260001")]
+    public async Task R_USR_24_employee_code_form(string code)
+    {
+        var error = await Should.ThrowAsync<PostgresException>(() => ExecuteAsync(
+            $"""
+             WITH u AS (INSERT INTO users (firebase_uid, name, email) VALUES ('uid-x', 'X', 'x@zengear.test') RETURNING id)
+             INSERT INTO staff_profiles (user_id, employee_code, username) SELECT id, '{code}', 'XZG260001' FROM u
+             """));
+
+        error.ConstraintName.ShouldBe("ck_staff_profiles_employee_code");
     }
 
     [Test]
     public async Task R_USR_01_customer_role_cannot_be_given_to_a_staff_account()
     {
-        var response = await PostAsync(AdminUid, Body("a@zengear.test", "NV0001", _cashierRole, _customerRole));
+        var response = await PostAsync(AdminUid, Body(_cashierRole, _customerRole));
 
         await response.ShouldBeProblemAsync(HttpStatusCode.Conflict, "/problems/role-not-for-staff", "R-USR-01",
             ExpectedError.At("#/roleIds", "ROLE_NOT_FOR_STAFF"));
@@ -165,7 +319,7 @@ public class StaffTests : IntegrationTestBase
     [Test]
     public async Task R_SEC_01_creating_a_staff_account_without_a_role_is_409()
     {
-        var response = await PostAsync(AdminUid, Body("a@zengear.test", "NV0001"));
+        var response = await PostAsync(AdminUid, Body());
 
         await response.ShouldBeProblemAsync(HttpStatusCode.Conflict, "/problems/role-required", "R-SEC-01",
             ExpectedError.At("#/roleIds", "ROLE_REQUIRED"));
@@ -177,7 +331,7 @@ public class StaffTests : IntegrationTestBase
     {
         var response = await PostAsync(AdminUid, new
         {
-            email = "a@zengear.test", name = "A", employeeCode = "NV0001", joinedDate = "2026-10-01",
+            name = "Nguyễn Văn An", joinedDate = "2026-10-01",
         });
 
         await response.ShouldBeProblemAsync(HttpStatusCode.BadRequest, ProblemAssertions.ValidationType, null,
@@ -188,7 +342,7 @@ public class StaffTests : IntegrationTestBase
     [Test]
     public async Task R_TX_11_caller_without_the_admin_role_cannot_assign_admin()
     {
-        var response = await PostAsync(ManagerUid, Body("a@zengear.test", "NV0001", _cashierRole, _adminRole));
+        var response = await PostAsync(ManagerUid, Body(_cashierRole, _adminRole));
 
         await response.ShouldBeProblemAsync(HttpStatusCode.Conflict, "/problems/admin-role-not-assignable", "R-TX-11",
             ExpectedError.At("#/roleIds", "ADMIN_ROLE_NOT_ASSIGNABLE"));
@@ -198,7 +352,7 @@ public class StaffTests : IntegrationTestBase
     [Test]
     public async Task R_TX_11_admin_can_assign_the_admin_role()
     {
-        var response = await PostAsync(AdminUid, Body("second.admin@zengear.test", "NV0002", _adminRole));
+        var response = await PostAsync(AdminUid, Body(_adminRole));
 
         response.StatusCode.ShouldBe(HttpStatusCode.Created);
         (await UserRoleIdsAsync((await JsonAsync(response)).GetProperty("id").GetGuid())).ShouldBe([_adminRole]);
@@ -207,7 +361,7 @@ public class StaffTests : IntegrationTestBase
     [Test]
     public async Task R_TX_11_caller_without_the_admin_role_can_assign_other_roles()
     {
-        var response = await PostAsync(ManagerUid, Body("cashier@zengear.test", "NV0003", _cashierRole));
+        var response = await PostAsync(ManagerUid, Body(_cashierRole));
 
         response.StatusCode.ShouldBe(HttpStatusCode.Created);
     }
@@ -218,69 +372,65 @@ public class StaffTests : IntegrationTestBase
         var cashierId = await TestUsers.InsertAsync("uid-cashier");
         await TestRoles.AssignAsync(cashierId, _cashierRole);
 
-        var response = await PostAsync("uid-cashier", Body("a@zengear.test", "NV0001", _cashierRole));
+        var response = await PostAsync("uid-cashier", Body(_cashierRole));
 
         await response.ShouldBeForbiddenProblemAsync("/problems/permission-denied", "R-SEC-03");
         await ShouldHaveCreatedNothingAsync(extraUsers: 1);
     }
 
-    [TestCase("not-an-email", "0901234567", "#/email", "EMAIL_INVALID")]
-    [TestCase("a@localhost", "0901234567", "#/email", "EMAIL_INVALID")]
-    [TestCase("a b@zengear.test", "0901234567", "#/email", "EMAIL_INVALID")]
-    [TestCase("a@zengear.test", "090-123", "#/workPhone", "WORK_PHONE_INVALID")]
-    public async Task Invalid_input_is_400(string email, string workPhone, string pointer, string code)
+    [Test]
+    public async Task Invalid_work_phone_is_400()
     {
-        var response = await PostAsync(AdminUid, Body(email, "NV0001", workPhone, _cashierRole));
+        var response = await PostAsync(AdminUid, Body("Nguyễn Văn An", "2026-10-01", "090-123", _cashierRole));
 
         var problem = await response.ShouldBeProblemAsync(HttpStatusCode.BadRequest, ProblemAssertions.ValidationType, null,
-            ExpectedError.At(pointer, code));
+            ExpectedError.At("#/workPhone", "WORK_PHONE_INVALID"));
         problem.GetProperty("errors").GetArrayLength().ShouldBe(1);
-        problem.GetRawText().ShouldNotContain(workPhone == "090-123" ? workPhone : email);
+        problem.GetRawText().ShouldNotContain("090-123");
+        problem.ErrorDetail(ExpectedError.At("#/workPhone", "WORK_PHONE_INVALID"))
+            .ShouldBe("Số điện thoại công việc gồm 8 đến 15 chữ số, có thể bắt đầu bằng dấu +.");
         await ShouldHaveCreatedNothingAsync();
     }
 
-    [Test]
-    public async Task An_invalid_work_phone_gets_the_digit_counts_in_the_text()
+    /// <summary>
+    /// DEC-156 (4): the code keeps 2 digits of the year, so a year 100 years off would take the codes of the real one and
+    /// block its counter; refused before any number is taken.
+    /// </summary>
+    [TestCase("1926-03-02")]
+    [TestCase("2126-03-02")]
+    public async Task R_USR_24_a_joined_year_outside_2000_to_2099_is_400(string joinedDate)
     {
-        var problem = await (await PostAsync(AdminUid, Body("a@zengear.test", "NV0001", "090-123", _cashierRole)))
-            .ShouldBeProblemAsync(HttpStatusCode.BadRequest, ProblemAssertions.ValidationType, null,
-                ExpectedError.At("#/workPhone", "WORK_PHONE_INVALID"));
+        var response = await PostAsync(AdminUid, Body("Nguyễn Văn An", joinedDate, "0901234567", _cashierRole));
 
-        problem.ErrorDetail(ExpectedError.At("#/workPhone", "WORK_PHONE_INVALID"))
-            .ShouldBe("Số điện thoại công việc gồm 8 đến 15 chữ số, có thể bắt đầu bằng dấu +.");
+        var problem = await response.ShouldBeProblemAsync(HttpStatusCode.BadRequest, ProblemAssertions.ValidationType, null,
+            ExpectedError.At("#/joinedDate", "JOINED_DATE_OUT_OF_RANGE"));
+        problem.ErrorCodes().ShouldBe(["JOINED_DATE_OUT_OF_RANGE"]);
+        problem.ErrorDetail(ExpectedError.At("#/joinedDate", "JOINED_DATE_OUT_OF_RANGE"))
+            .ShouldBe("Năm vào làm phải từ 2000 đến 2099.");
+        await ShouldHaveCreatedNothingAsync();
     }
 
     /// <summary>
     /// A missing or blank value reaches the validator (the request properties are nullable), not model binding, so each
-    /// gets its own code.
+    /// gets its own code; a name without a letter gives no username (R-USR-24).
     /// </summary>
-    [TestCase("name", null, "#/name", "NAME_REQUIRED")]
-    [TestCase("name", "   ", "#/name", "NAME_REQUIRED")]
-    [TestCase("email", null, "#/email", "EMAIL_REQUIRED")]
-    [TestCase("email", " ", "#/email", "EMAIL_REQUIRED")]
-    [TestCase("employeeCode", null, "#/employeeCode", "EMPLOYEE_CODE_REQUIRED")]
-    [TestCase("employeeCode", "", "#/employeeCode", "EMPLOYEE_CODE_REQUIRED")]
-    public async Task A_missing_or_blank_value_is_400_with_its_code(string field, string? value, string pointer, string code)
+    [TestCase(null, "NAME_REQUIRED")]
+    [TestCase("   ", "NAME_REQUIRED")]
+    [TestCase("12345", "NAME_NO_LETTER")]
+    public async Task R_USR_24_a_name_that_gives_no_username_is_400(string? name, string code)
     {
         var body = new Dictionary<string, object?>
         {
-            ["email"] = "a@zengear.test",
-            ["name"] = "Nguyễn Văn An",
-            ["employeeCode"] = "NV0001",
             ["joinedDate"] = "2026-10-01",
             ["roleIds"] = new[] { _cashierRole },
         };
-        if (value is null)
+        if (name is not null)
         {
-            body.Remove(field);
-        }
-        else
-        {
-            body[field] = value;
+            body["name"] = name;
         }
 
         var problem = await (await PostAsync(AdminUid, body)).ShouldBeProblemAsync(HttpStatusCode.BadRequest,
-            ProblemAssertions.ValidationType, null, ExpectedError.At(pointer, code));
+            ProblemAssertions.ValidationType, null, ExpectedError.At("#/name", code));
 
         problem.ErrorCodes().ShouldBe([code]);
         await ShouldHaveCreatedNothingAsync();
@@ -291,7 +441,7 @@ public class StaffTests : IntegrationTestBase
     {
         var response = await PostAsync(AdminUid, new
         {
-            email = "a@zengear.test", name = "A", employeeCode = "NV0001", joinedDate = "not-a-date", roleIds = new[] { _cashierRole },
+            name = "Nguyễn Văn An", joinedDate = "not-a-date", roleIds = new[] { _cashierRole },
         });
 
         var problem = await response.ShouldBeProblemAsync(HttpStatusCode.BadRequest, ProblemAssertions.ValidationType, null,
@@ -304,7 +454,7 @@ public class StaffTests : IntegrationTestBase
     public async Task Unknown_role_is_400()
     {
         var unknown = Guid.NewGuid();
-        var response = await PostAsync(AdminUid, Body("a@zengear.test", "NV0001", unknown));
+        var response = await PostAsync(AdminUid, Body(unknown));
 
         var problem = await response.ShouldBeProblemAsync(HttpStatusCode.BadRequest, ProblemAssertions.ValidationType, null,
             ExpectedError.At("#/roleIds", "ROLE_NOT_FOUND"));
@@ -313,75 +463,42 @@ public class StaffTests : IntegrationTestBase
     }
 
     [Test]
-    public async Task Email_already_registered_is_409_whatever_its_case()
+    public async Task Generated_email_held_by_a_customer_is_409()
     {
-        // TestUsers stores <uid>@zengear.test.
-        var response = await PostAsync(AdminUid, Body("UID-Manager@ZenGear.test", "NV0001", _cashierRole));
+        await ExecuteAsync($"INSERT INTO users (firebase_uid, name, email) VALUES ('uid-mai', 'Mai', '{FirstEmail}')");
 
-        await response.ShouldBeProblemAsync(HttpStatusCode.Conflict, "/problems/email-already-registered", null,
-            ExpectedError.At("#/email", "EMAIL_ALREADY_REGISTERED"));
+        var response = await PostAsync(AdminUid, Body(_cashierRole));
+
+        await response.ShouldBeProblemAsync(HttpStatusCode.Conflict, "/problems/email-already-registered", null);
         Auth.Accounts.ShouldBeEmpty();
+        Auth.Deleted.Count.ShouldBe(1);
     }
 
     [Test]
-    public async Task Employee_code_taken_is_409()
+    public async Task Generated_employee_code_taken_is_409_and_deletes_the_firebase_account()
     {
-        (await PostAsync(AdminUid, Body("first@zengear.test", "NV0001", _cashierRole))).StatusCode.ShouldBe(HttpStatusCode.Created);
+        // A row holding the next code, as a counter set back or a row written by hand would give.
+        await InsertStaffWithEmployeeCodeAsync("ZG260001");
 
-        var response = await PostAsync(AdminUid, Body("second@zengear.test", "NV0001", _cashierRole));
+        var response = await PostAsync(AdminUid, Body(_cashierRole));
 
-        await response.ShouldBeProblemAsync(HttpStatusCode.Conflict, "/problems/employee-code-taken", null,
-            ExpectedError.At("#/employeeCode", "EMPLOYEE_CODE_TAKEN"));
-        Auth.Accounts.Select(a => a.Email).ShouldBe(["first@zengear.test"]);
+        await response.ShouldBeProblemAsync(HttpStatusCode.Conflict, "/problems/employee-code-taken", null);
+        Auth.Accounts.ShouldBeEmpty();
+        Auth.Deleted.Count.ShouldBe(1);
     }
 
     [Test]
-    public async Task An_existing_firebase_account_is_refused_and_left_untouched()
+    public async Task An_existing_firebase_account_of_the_generated_email_is_refused_and_left_untouched()
     {
-        var existing = Auth.Add("taken@zengear.test");
+        var existing = Auth.Add(FirstEmail);
 
-        var response = await PostAsync(AdminUid, Body("taken@zengear.test", "NV0001", _cashierRole));
+        var response = await PostAsync(AdminUid, Body(_cashierRole));
 
-        await response.ShouldBeProblemAsync(HttpStatusCode.Conflict, "/problems/auth-account-exists", null,
-            ExpectedError.At("#/email", "AUTH_ACCOUNT_EXISTS"));
+        await response.ShouldBeProblemAsync(HttpStatusCode.Conflict, "/problems/auth-account-exists", null);
         Auth.Accounts.ShouldBe([existing]);
         Auth.Deleted.ShouldBeEmpty();
         await ShouldHaveCreatedNothingAsync(firebaseAccounts: 1);
-    }
-
-    [Test]
-    public async Task Parallel_requests_for_one_email_create_one_account()
-    {
-        var responses = await Task.WhenAll(
-            PostAsync(AdminUid, Body("same@zengear.test", "NV0001", _cashierRole)),
-            PostAsync(AdminUid, Body("same@zengear.test", "NV0002", _cashierRole)));
-
-        responses.Select(r => r.StatusCode).ShouldBe([HttpStatusCode.Created, HttpStatusCode.Conflict], ignoreOrder: true);
-        await ShouldKeepOneLinkedAccountAsync();
-    }
-
-    [Test]
-    public async Task Parallel_requests_for_one_employee_code_create_one_account()
-    {
-        var responses = await Task.WhenAll(
-            PostAsync(AdminUid, Body("one@zengear.test", "NV0001", _cashierRole)),
-            PostAsync(AdminUid, Body("two@zengear.test", "NV0001", _cashierRole)));
-
-        responses.Select(r => r.StatusCode).ShouldBe([HttpStatusCode.Created, HttpStatusCode.Conflict], ignoreOrder: true);
-        await ShouldKeepOneLinkedAccountAsync();
-    }
-
-    [Test]
-    public async Task A_database_failure_deletes_the_firebase_account_the_request_created()
-    {
-        Auth.AfterCreate = _ => InsertStaffWithEmployeeCode("NV0001");
-
-        var response = await PostAsync(AdminUid, Body("late@zengear.test", "NV0001", _cashierRole));
-
-        await response.ShouldBeProblemAsync(HttpStatusCode.Conflict, "/problems/employee-code-taken", null,
-            ExpectedError.At("#/employeeCode", "EMPLOYEE_CODE_TAKEN"));
-        Auth.Accounts.ShouldBeEmpty();
-        Auth.Deleted.Count.ShouldBe(1);
+        Factory.StaffLogs.Entries.ShouldContain(e => e.Message.Contains(existing.Uid));
     }
 
     [Test]
@@ -391,9 +508,9 @@ public class StaffTests : IntegrationTestBase
         Auth.AfterCreate = _ => cancel.Cancel();
 
         await Should.ThrowAsync<OperationCanceledException>(() =>
-            PostAsync(AdminUid, Body("gone@zengear.test", "NV0001", _cashierRole), cancel.Token));
+            PostAsync(AdminUid, Body(_cashierRole), cancel.Token));
 
-        var account = Auth.Find("gone@zengear.test").ShouldNotBeNull();
+        var account = Auth.Find(FirstEmail).ShouldNotBeNull();
         await Factory.StaffLogs.WhenLoggedAsync(e => e.Message.StartsWith("Staff account", StringComparison.Ordinal));
         (await ScalarAsync("SELECT count(*) FROM users WHERE firebase_uid = @uid", account.Uid)).ShouldBe(1);
         Auth.Deleted.ShouldBeEmpty();
@@ -402,15 +519,12 @@ public class StaffTests : IntegrationTestBase
     [Test]
     public async Task A_cancelled_request_that_fails_in_the_database_still_deletes_its_account()
     {
+        await InsertStaffWithEmployeeCodeAsync("ZG260001");
         using var cancel = new CancellationTokenSource();
-        Auth.AfterCreate = _ =>
-        {
-            InsertStaffWithEmployeeCode("NV0001");
-            cancel.Cancel();
-        };
+        Auth.AfterCreate = _ => cancel.Cancel();
 
         await Should.ThrowAsync<OperationCanceledException>(() =>
-            PostAsync(AdminUid, Body("gone@zengear.test", "NV0001", _cashierRole), cancel.Token));
+            PostAsync(AdminUid, Body(_cashierRole), cancel.Token));
 
         await Auth.WhenDeletedAsync();
         Auth.Deleted.Count.ShouldBe(1);
@@ -420,8 +534,8 @@ public class StaffTests : IntegrationTestBase
     [Test]
     public async Task The_new_staff_member_must_change_the_password_first()
     {
-        await PostAsync(AdminUid, Body("new@zengear.test", "NV0001", _cashierRole));
-        var uid = Auth.Find("new@zengear.test")!.Uid;
+        await PostAsync(AdminUid, Body(_cashierRole));
+        var uid = Auth.Find(FirstEmail)!.Uid;
 
         using var request = TestTokens.Get("/api/v1/admin/me", TestTokens.EmulatorToken(uid));
         var me = await Client.SendAsync(request);
@@ -433,13 +547,14 @@ public class StaffTests : IntegrationTestBase
     [Test]
     public async Task The_log_line_carries_ids_and_no_personal_data()
     {
-        var response = await PostAsync(AdminUid, Body("private@zengear.test", "NV0099", _cashierRole));
+        var response = await PostAsync(AdminUid, Body(_cashierRole));
 
         var id = (await JsonAsync(response)).GetProperty("id").GetGuid();
         var line = Factory.StaffLogs.Entries.ShouldHaveSingleItem();
         line.Properties["UserId"].ShouldBe(id);
         line.Properties["ActorId"].ShouldBe(_adminId);
-        line.Message.ShouldNotContain("private@zengear.test");
+        line.Message.ShouldNotContain(FirstEmail);
+        line.Message.ShouldNotContain("AnNV");
         line.Message.ShouldNotContain("Nguyễn");
         line.Message.ShouldNotContain("0901234567");
     }
@@ -447,7 +562,7 @@ public class StaffTests : IntegrationTestBase
     [Test]
     public async Task Get_returns_the_staff_account()
     {
-        var created = await JsonAsync(await PostAsync(AdminUid, Body("get@zengear.test", "NV0001", _cashierRole)));
+        var created = await JsonAsync(await PostAsync(AdminUid, Body(_cashierRole)));
         var id = created.GetProperty("id").GetGuid();
 
         var response = await GetAsync(ManagerUid, $"{Path}/{id}");
@@ -476,15 +591,18 @@ public class StaffTests : IntegrationTestBase
         await response.ShouldBeForbiddenProblemAsync("/problems/permission-denied", "R-SEC-03");
     }
 
-    private static object Body(string email, string employeeCode, params Guid[] roleIds) =>
-        Body(email, employeeCode, "0901234567", roleIds);
+    /// <summary>The email R-USR-24 gives Nguyễn Văn An as the first account of 2026.</summary>
+    private const string FirstEmail = "annvzg260001@zengear.test";
 
-    private static object Body(string email, string employeeCode, string workPhone, params Guid[] roleIds) => new
+    private static object Body(params Guid[] roleIds) => Body("Nguyễn Văn An", "2026-10-01", roleIds);
+
+    private static object Body(string name, string joinedDate, params Guid[] roleIds) =>
+        Body(name, joinedDate, "0901234567", roleIds);
+
+    private static object Body(string name, string joinedDate, string workPhone, params Guid[] roleIds) => new
     {
-        email,
-        name = "Nguyễn Văn An",
-        employeeCode,
-        joinedDate = "2026-10-01",
+        name,
+        joinedDate,
         workPhone,
         roleIds,
     };
@@ -509,21 +627,20 @@ public class StaffTests : IntegrationTestBase
         JsonDocument.Parse(await response.Content.ReadAsStringAsync()).RootElement;
 
     /// <summary>Inserts, outside the request, another staff member holding <paramref name="employeeCode"/>.</summary>
-    private static void InsertStaffWithEmployeeCode(string employeeCode)
+    private static Task InsertStaffWithEmployeeCodeAsync(string employeeCode) => ExecuteAsync(
+        $"""
+         WITH u AS (INSERT INTO users (firebase_uid, name, email) VALUES ('uid-other', 'B', 'other@zengear.test') RETURNING id)
+         INSERT INTO staff_profiles (user_id, employee_code, username) SELECT id, '{employeeCode}', 'OtherB{employeeCode}' FROM u
+         """);
+
+    private static async Task ExecuteAsync(string sql)
     {
-        using var connection = new NpgsqlConnection(PostgresContainer.ConnectionString);
-        connection.Open();
-        using var command = new NpgsqlCommand(
-            """
-            WITH u AS (INSERT INTO users (firebase_uid, name, email) VALUES ('uid-other', 'B', 'other@zengear.test') RETURNING id)
-            INSERT INTO staff_profiles (user_id, employee_code) SELECT id, @code FROM u
-            """,
-            connection);
-        command.Parameters.AddWithValue("code", employeeCode);
-        command.ExecuteNonQuery();
+        await using var connection = await TestRoles.OpenAsync();
+        await using var command = new NpgsqlCommand(sql, connection);
+        await command.ExecuteNonQueryAsync();
     }
 
-    private sealed record StaffRow(string FirebaseUid, string Status, string? EmployeeCode, DateOnly? JoinedDate,
+    private sealed record StaffRow(string FirebaseUid, string Status, string? EmployeeCode, string Username, DateOnly? JoinedDate,
         string? WorkPhone, bool MustChangePassword, Guid? CreatedBy, int Profiles);
 
     private static async Task<StaffRow> StaffRowAsync(Guid id)
@@ -531,7 +648,8 @@ public class StaffTests : IntegrationTestBase
         await using var connection = await TestRoles.OpenAsync();
         await using var command = new NpgsqlCommand(
             """
-            SELECT u.firebase_uid, u.status, s.employee_code, s.joined_date, s.work_phone, s.must_change_password, u.created_by,
+            SELECT u.firebase_uid, u.status, s.employee_code, s.username, s.joined_date, s.work_phone, s.must_change_password,
+                   u.created_by,
                    (SELECT count(*)::int FROM staff_profiles WHERE user_id = u.id)
             FROM users u JOIN staff_profiles s ON s.user_id = u.id WHERE u.id = @id
             """,
@@ -540,8 +658,9 @@ public class StaffTests : IntegrationTestBase
         await using var reader = await command.ExecuteReaderAsync();
         (await reader.ReadAsync()).ShouldBeTrue();
         return new StaffRow(reader.GetString(0), reader.GetString(1), reader.IsDBNull(2) ? null : reader.GetString(2),
-            reader.IsDBNull(3) ? null : reader.GetFieldValue<DateOnly>(3), reader.IsDBNull(4) ? null : reader.GetString(4),
-            reader.GetBoolean(5), reader.IsDBNull(6) ? null : reader.GetGuid(6), reader.GetInt32(7));
+            reader.GetString(3), reader.IsDBNull(4) ? null : reader.GetFieldValue<DateOnly>(4),
+            reader.IsDBNull(5) ? null : reader.GetString(5), reader.GetBoolean(6), reader.IsDBNull(7) ? null : reader.GetGuid(7),
+            reader.GetInt32(8));
     }
 
     private static async Task<List<Guid>> UserRoleIdsAsync(Guid userId)
@@ -557,6 +676,13 @@ public class StaffTests : IntegrationTestBase
         }
 
         return ids;
+    }
+
+    private static async Task<object?> ScalarObjectAsync(string sql)
+    {
+        await using var connection = await TestRoles.OpenAsync();
+        await using var command = new NpgsqlCommand(sql, connection);
+        return await command.ExecuteScalarAsync();
     }
 
     private static async Task<long> ScalarAsync(string sql, string? uid = null)
@@ -575,15 +701,8 @@ public class StaffTests : IntegrationTestBase
     private async Task ShouldHaveCreatedNothingAsync(int extraUsers = 0, int firebaseAccounts = 0)
     {
         (await ScalarAsync("SELECT count(*) FROM users")).ShouldBe(2 + extraUsers);
+        (await ScalarAsync("SELECT coalesce(sum(last_value), 0) FROM employee_code_sequences")).ShouldBe(0);
         Auth.Accounts.Count.ShouldBe(firebaseAccounts);
         Auth.Deleted.ShouldBeEmpty();
-    }
-
-    /// <summary>One user was created, and the only Firebase account left is the one it holds.</summary>
-    private async Task ShouldKeepOneLinkedAccountAsync()
-    {
-        (await ScalarAsync("SELECT count(*) FROM users WHERE created_by IS NOT NULL")).ShouldBe(1);
-        var account = Auth.Accounts.ShouldHaveSingleItem();
-        (await ScalarAsync("SELECT count(*) FROM users WHERE firebase_uid = @uid", account.Uid)).ShouldBe(1);
     }
 }

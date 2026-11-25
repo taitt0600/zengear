@@ -1,6 +1,6 @@
 import { randomInt } from 'node:crypto'
 import { expect, test, type Page } from '@playwright/test'
-import { changePassword, newSalesConsultant, renameMe } from './support/backend'
+import { changePassword, newSalesConsultant, renameMe, STAFF_NAME } from './support/backend'
 import { failOnCspViolations, signIn } from './support/pages'
 
 // SCR-ACC-01 My account (docs/screens/SCR-ACC-01.md, STF-03) against the API, the Firebase Auth Emulator and the web.
@@ -28,7 +28,7 @@ test('a staff member renames their account and sees the name in the user menu', 
   page,
 }) => {
   const staff = await signedInStaff(page)
-  await expect(nameField(page)).toHaveValue(/^E2E /)
+  await expect(nameField(page)).toHaveValue(STAFF_NAME)
   const email = page.getByLabel('Email', { exact: true })
   await expect(email).toHaveValue(staff.email)
   await expect(email).toHaveAttribute('readonly')
@@ -51,7 +51,7 @@ test('a staff member renames their account and sees the name in the user menu', 
 
 test('a name changed elsewhere since the page loaded is not overwritten', async ({ page }) => {
   const staff = await signedInStaff(page)
-  await expect(nameField(page)).toHaveValue(/^E2E /)
+  await expect(nameField(page)).toHaveValue(STAFF_NAME)
 
   await renameMe(staff.email, staff.password, 'Đổi ở thiết bị khác')
   await nameField(page).fill('Đổi trên màn hình này')

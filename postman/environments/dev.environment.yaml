@@ -13,19 +13,19 @@ values:
     enabled: true
     type: default
   - key: adminEmail
-    value: 'owner@zengear.test'
+    value: 'khoatmzg260001@zengear.test'
     enabled: true
     type: default
   - key: managerEmail
-    value: 'manager.fixture@zengear.test'
+    value: 'haltzg260002@zengear.test'
     enabled: true
     type: default
   - key: customerEmail
-    value: 'customer.fixture@zengear.test'
+    value: 'dothimai@zengear.test'
     enabled: true
     type: default
   - key: itSupportEmail
-    value: 'itsupport.fixture@zengear.test'
+    value: 'baopqzg260003@zengear.test'
     enabled: true
     type: default
   - key: roleAdmin

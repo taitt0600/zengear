@@ -13,28 +13,33 @@ namespace ZenGear.Api.Controllers.Identity;
 [Route("staff")]
 public sealed class StaffController(StaffService staff) : ControllerBase
 {
-    /// <summary>Creates a staff account with the default password and one or more roles (STF-01).</summary>
+    /// <summary>
+    /// Creates a staff account with the default password and one or more roles (STF-01); the employee code, the username
+    /// and the company email are generated from the name and the joined date (R-USR-24).
+    /// </summary>
     /// <response code="400">Invalid input, or a role that does not exist.</response>
     /// <response code="403"><c>/problems/permission-denied</c>: <c>staff.create</c> missing.</response>
     /// <response code="409">
     /// <c>/problems/role-required</c> (R-SEC-01), <c>/problems/role-not-for-staff</c> (R-USR-01),
     /// <c>/problems/admin-role-not-assignable</c> (R-TX-11), <c>/problems/role-out-of-scope</c> (R-SEC-12: a role
-    /// outside the caller's manageable set), <c>/problems/email-already-registered</c>,
-    /// <c>/problems/employee-code-taken</c>, <c>/problems/auth-account-exists</c>.
+    /// outside the caller's manageable set), <c>/problems/employee-codes-exhausted</c> (R-USR-24: the 9,999 numbers of the
+    /// joined year are issued), <c>/problems/email-already-registered</c>, <c>/problems/employee-code-taken</c>,
+    /// <c>/problems/auth-account-exists</c> (the generated email is already held).
     /// </response>
     [HttpPost]
     [RequirePermission(PermissionKeys.StaffCreate)]
     [ProducesResponseType<StaffDto>(StatusCodes.Status201Created, "application/json")]
     [ProducesResponseType<ValidationProblem>(StatusCodes.Status400BadRequest, "application/problem+json")]
-    [ErrorCodes(StatusCodes.Status400BadRequest, "EMAIL_REQUIRED", "EMAIL_TOO_LONG", "EMAIL_INVALID", "NAME_REQUIRED",
-        "NAME_TOO_LONG", "EMPLOYEE_CODE_REQUIRED", "EMPLOYEE_CODE_UNTRIMMED", "EMPLOYEE_CODE_TOO_LONG",
-        "JOINED_DATE_REQUIRED", "WORK_PHONE_INVALID", "ROLE_IDS_REQUIRED", "ROLE_IDS_TOO_MANY", "ROLE_ID_EMPTY",
-        "ROLE_NOT_FOUND")]
+    [ErrorCodes(StatusCodes.Status400BadRequest, "NAME_REQUIRED", "NAME_TOO_LONG", "NAME_NO_LETTER",
+        "NAME_USERNAME_TOO_LONG", "JOINED_DATE_REQUIRED", "JOINED_DATE_OUT_OF_RANGE", "WORK_PHONE_INVALID",
+        "ROLE_IDS_REQUIRED", "ROLE_IDS_TOO_MANY", "ROLE_ID_EMPTY", "ROLE_NOT_FOUND")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized, "application/problem+json")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden, "application/problem+json")]
     [ProducesResponseType<ValidationProblem>(StatusCodes.Status409Conflict, "application/problem+json")]
-    [ErrorCodes(StatusCodes.Status409Conflict, "EMAIL_ALREADY_REGISTERED", "AUTH_ACCOUNT_EXISTS",
-        "EMPLOYEE_CODE_TAKEN", "ROLE_REQUIRED", "ROLE_NOT_FOR_STAFF", "ADMIN_ROLE_NOT_ASSIGNABLE", "ROLE_OUT_OF_SCOPE")]
+    // The conflicts on generated values (email, employee code, exhausted year) name no field of the request, so they come
+    // as their problem type only, without errors[] (R-USR-24).
+    [ErrorCodes(StatusCodes.Status409Conflict, "ROLE_REQUIRED", "ROLE_NOT_FOR_STAFF", "ADMIN_ROLE_NOT_ASSIGNABLE",
+        "ROLE_OUT_OF_SCOPE")]
     public async Task<ActionResult<StaffDto>> Create(StaffCreateRequest request, CancellationToken cancellationToken)
     {
         var created = await staff.CreateAsync(request, User.GetUserId(), cancellationToken);

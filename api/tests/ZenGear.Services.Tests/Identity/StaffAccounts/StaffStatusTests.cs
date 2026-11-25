@@ -150,7 +150,8 @@ public class StaffStatusTests
         var role = (Role)Activator.CreateInstance(typeof(Role), nonPublic: true)!;
         typeof(Role).GetProperty(nameof(Role.Id))!.SetValue(role, Guid.NewGuid());
         return User.CreateStaff(
-            new StaffAccountData("uid-1", "Nguyễn Văn An", "an@zengear.test", "NV0012", JoinedDate, null, MustChangePassword: false),
+            new StaffAccountData("uid-1", "Nguyễn Văn An", "annvzg260012@zengear.test", "ZG260012", "AnNVZG260012", JoinedDate,
+                null, MustChangePassword: false),
             [role], Actor, Now);
     }
 }

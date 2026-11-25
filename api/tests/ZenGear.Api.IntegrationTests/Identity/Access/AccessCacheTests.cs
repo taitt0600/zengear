@@ -117,6 +117,7 @@ public class AccessCacheTests : IntegrationTestBase
             db.StaffProfiles.Add(profile);
             db.Entry(profile).Property(p => p.UserId).CurrentValue = userId;
             db.Entry(profile).Property(p => p.MustChangePassword).CurrentValue = true;
+            db.Entry(profile).Property(p => p.Username).CurrentValue = TestUsers.NextIdentity().Username;
             await db.SaveChangesAsync();
         });
 

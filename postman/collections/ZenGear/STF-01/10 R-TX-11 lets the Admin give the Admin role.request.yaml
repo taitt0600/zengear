@@ -13,9 +13,7 @@ body:
   type: json
   content: |-
     {
-      "email": "stf01-{{run}}-admin@zengear.test",
       "name": "Nhân viên kiểm thử",
-      "employeeCode": "{{run}}-10",
       "joinedDate": "2026-10-01",
       "workPhone": "0901234567",
       "roleIds": ["{{roleAdmin}}"]
@@ -27,3 +25,5 @@ scripts:
       pm.test('status 201', () => pm.response.to.have.status(201));
       pm.test('Admin role', () =>
         pm.expect(pm.response.json().roles.map((r) => r.id)).to.eql([pm.variables.get('roleAdmin')]));
+      // The last code issued so far in this run, for request 11 (R-USR-24: the next account takes the next number).
+      pm.variables.set('lastCode', pm.response.json().employeeCode);

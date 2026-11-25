@@ -16,7 +16,8 @@ public class StaffAccountTests
         var user = User.CreateStaff(Account(), [NewRole(ScopingType.None)], Actor, Now);
 
         var profile = user.StaffProfile.ShouldNotBeNull();
-        profile.EmployeeCode.ShouldBe("NV0012");
+        profile.EmployeeCode.ShouldBe("ZG260012");
+        profile.Username.ShouldBe("AnNVZG260012");
         profile.JoinedDate.ShouldBe(new DateOnly(2026, 10, 1));
         profile.WorkPhone.ShouldBe("0901234567");
         user.Status.ShouldBe(UserStatus.Active);
@@ -118,7 +119,8 @@ public class StaffAccountTests
     }
 
     private static StaffAccountData Account() =>
-        new("uid-1", " Nguyễn Văn An ", "an@zengear.test", "NV0012", new DateOnly(2026, 10, 1), "0901234567", MustChangePassword: true);
+        new("uid-1", " Nguyễn Văn An ", "annvzg260012@zengear.test", "ZG260012", "AnNVZG260012", new DateOnly(2026, 10, 1),
+            "0901234567", MustChangePassword: true);
 
     /// <summary>Roles are created by the seed and AUT-05, not by the code under test.</summary>
     private static Role NewRole(ScopingType scope)

@@ -22,8 +22,8 @@ test('the Admin signs in and sees every menu entry', async ({ page }) => {
   await settings.click()
   await expect(menu(page).getByRole('link', { name: 'Địa điểm kinh doanh' })).toBeVisible()
   // The user menu is named by its name and email, as shown; anchored, since the staff list next to the menu has its
-  // own button "Thao tác cho Chủ cửa hàng" on the Admin's row.
-  await expect(page.getByRole('button', { name: /^Chủ cửa hàng/ })).toBeVisible()
+  // own button "Thao tác cho Trần Minh Khoa" on the Admin's row.
+  await expect(page.getByRole('button', { name: /^Trần Minh Khoa/ })).toBeVisible()
   await page.screenshot({ path: test.info().outputPath('admin-layout.png'), fullPage: true })
 })
 

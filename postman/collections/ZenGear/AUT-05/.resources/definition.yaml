@@ -6,10 +6,10 @@ description: |-
   default roles kept by name, a discount per role, and the manageable set (Phạm vi quản lý) of each role, which bounds
   whose staff accounts its holders create, disable and restore.
 
-  Needs tools/dev_reset.ps1 first: the Admin owner@zengear.test (bootstrap-admin, DEC-096), the default manageable sets
+  Needs tools/dev_reset.ps1 first: the Admin khoatmzg260001@zengear.test (bootstrap-admin, DEC-096), the default manageable sets
   that api/seed/01_roles.sql writes while role_manageable_roles has no row (the permission sync never touches that
   table, DEC-129) and the dev-only fixtures postman/fixtures/STF-01.sql (the Store Manager
-  manager.fixture@zengear.test) and AUT-05.sql (the IT Support itsupport.fixture@zengear.test). 15 gives IT Support
+  haltzg260002@zengear.test) and AUT-05.sql (the IT Support baopqzg260003@zengear.test). 15 gives IT Support
   its staff permissions through the API (the sync cannot: earlier fixtures insert staff.create and staff.disable
   before it runs). Role names, emails and employee codes carry
   the run id `run`, so the folder runs again without a reset; the roles it creates stay.

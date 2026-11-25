@@ -13,6 +13,9 @@ public sealed class FakeAuthProvider : IAuthProvider
     /// <summary>Runs after an account is created, before it is returned (e.g. to cancel the request).</summary>
     public Action<AuthAccount>? AfterCreate { get; set; }
 
+    /// <summary>Runs before an account is created, with its email (e.g. to fail before Firebase writes).</summary>
+    public Func<string, Task>? BeforeCreate { get; set; }
+
     public bool FailPasswordResetLink { get; set; }
 
     public bool FailChangePassword { get; set; }
@@ -133,6 +136,11 @@ public sealed class FakeAuthProvider : IAuthProvider
         cancellationToken.ThrowIfCancellationRequested();
         // Lets parallel requests interleave like real network calls.
         await Task.Yield();
+        if (BeforeCreate is { } before)
+        {
+            await before(email);
+        }
+
         var account = new FakeAuthAccount(NewUid(), email, password);
         if (!_accounts.TryAdd(email, account))
         {

@@ -9,43 +9,19 @@ public class StaffCreateRequestValidatorTests
     private static readonly StaffCreateRequestValidator Validator = new();
 
     private static readonly StaffCreateRequest Valid =
-        new("an@zengear.test", "Nguyễn Văn An", "NV0012", new DateOnly(2026, 10, 1), "0901234567", [Guid.NewGuid()]);
+        new("Nguyễn Văn An", new DateOnly(2026, 10, 1), "0901234567", [Guid.NewGuid()]);
 
     [Test]
     public void A_complete_request_is_valid()
     {
         Validator.Validate(Valid).IsValid.ShouldBeTrue();
-        Validator.Validate(Valid with { WorkPhone = null, Email = " An@ZenGear.test " }).IsValid.ShouldBeTrue();
+        Validator.Validate(Valid with { WorkPhone = null }).IsValid.ShouldBeTrue();
     }
 
     [Test]
     public void An_empty_role_list_is_left_to_R_SEC_01()
     {
         Validator.Validate(Valid with { RoleIds = [] }).IsValid.ShouldBeTrue();
-    }
-
-    [TestCase(null)]
-    [TestCase("")]
-    [TestCase("   ")]
-    public void An_email_is_required(string? email)
-    {
-        ShouldFailOn(Valid with { Email = email }, "Email", StaffCreateRequestValidator.EmailRequired);
-    }
-
-    [TestCase("not-an-email")]
-    [TestCase("a@localhost")]
-    [TestCase("a b@zengear.test")]
-    [TestCase("a@@zengear.test")]
-    public void An_email_firebase_refuses_is_invalid(string email)
-    {
-        ShouldFailOn(Valid with { Email = email }, "Email", StaffCreateRequestValidator.EmailInvalid);
-    }
-
-    [Test]
-    public void An_email_longer_than_the_column_is_invalid()
-    {
-        var failure = ShouldFailOn(Valid with { Email = new string('a', 250) + "@zg.vn" }, "Email", StaffCreateRequestValidator.EmailTooLong);
-        failure.FormattedMessagePlaceholderValues["MaxLength"].ShouldBe(StaffCreateRequestValidator.EmailMaxLength);
     }
 
     [TestCase(null)]
@@ -63,27 +39,49 @@ public class StaffCreateRequestValidatorTests
         failure.FormattedMessagePlaceholderValues["MaxLength"].ShouldBe(StaffCreateRequestValidator.NameMaxLength);
     }
 
-    [TestCase(null, StaffCreateRequestValidator.EmployeeCodeRequired)]
-    [TestCase("", StaffCreateRequestValidator.EmployeeCodeRequired)]
-    [TestCase(" NV0012", StaffCreateRequestValidator.EmployeeCodeUntrimmed)]
-    [TestCase("NV0012 ", StaffCreateRequestValidator.EmployeeCodeUntrimmed)]
-    public void An_employee_code_is_required_without_surrounding_spaces(string? code, string errorCode)
+    [TestCase("12345")]
+    [TestCase("--- ...")]
+    [TestCase("李小龍")]
+    public void R_USR_24_name_without_a_letter_is_refused(string name)
     {
-        ShouldFailOn(Valid with { EmployeeCode = code }, "EmployeeCode", errorCode);
+        ShouldFailOn(Valid with { Name = name }, "Name", StaffCreateRequestValidator.NameNoLetter);
     }
 
     [Test]
-    public void An_employee_code_is_at_most_50_characters()
+    public void R_USR_24_username_over_64_is_refused()
     {
-        var failure = ShouldFailOn(Valid with { EmployeeCode = new string('N', 51) }, "EmployeeCode",
-            StaffCreateRequestValidator.EmployeeCodeTooLong);
-        failure.FormattedMessagePlaceholderValues["MaxLength"].ShouldBe(StaffCreateRequestValidator.EmployeeCodeMaxLength);
+        // Given name of 55 letters + initial N + 8 of the code = 64 is the limit; one letter more is refused.
+        var atLimit = "Nguyễn " + new string('a', 55);
+        Validator.Validate(Valid with { Name = atLimit }).IsValid.ShouldBeTrue();
+
+        var failure = ShouldFailOn(Valid with { Name = atLimit + "a" }, "Name", StaffCreateRequestValidator.NameUsernameTooLong);
+        failure.FormattedMessagePlaceholderValues["MaxLength"].ShouldBe(StaffCreateRequestValidator.UsernameMaxLength);
     }
 
     [Test]
     public void A_joined_date_is_required()
     {
         ShouldFailOn(Valid with { JoinedDate = default }, "JoinedDate", StaffCreateRequestValidator.JoinedDateRequired);
+    }
+
+    [TestCase(2000, 1, 1)]
+    [TestCase(2099, 12, 31)]
+    public void R_USR_24_a_joined_year_within_2000_to_2099_is_valid(int year, int month, int day)
+    {
+        Validator.Validate(Valid with { JoinedDate = new DateOnly(year, month, day) }).IsValid.ShouldBeTrue();
+    }
+
+    [TestCase(1999, 12, 31)]
+    [TestCase(1926, 3, 2)]
+    [TestCase(2100, 1, 1)]
+    [TestCase(2126, 3, 2)]
+    public void R_USR_24_a_joined_year_outside_2000_to_2099_is_refused(int year, int month, int day)
+    {
+        // DEC-156 (4): the code keeps 2 digits of the year, so a year 100 years off would take the codes of the real one.
+        var failure = ShouldFailOn(Valid with { JoinedDate = new DateOnly(year, month, day) }, "JoinedDate",
+            StaffCreateRequestValidator.JoinedDateOutOfRange);
+        failure.FormattedMessagePlaceholderValues["From"].ShouldBe("2000");
+        failure.FormattedMessagePlaceholderValues["To"].ShouldBe("2099");
     }
 
     [TestCase("090-123-4567")]

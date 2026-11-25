@@ -13,9 +13,7 @@ body:
   type: json
   content: |-
     {
-      "email": "aut05-cashier-{{run}}@zengear.test",
       "name": "Thu ngân kiểm thử",
-      "employeeCode": "{{run}}-A2",
       "joinedDate": "2026-10-01",
       "roleIds": ["{{roleCashier}}"]
     }
