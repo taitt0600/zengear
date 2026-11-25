@@ -10,8 +10,7 @@ Staff sign in with their username or company email and their password (UC-001, D
 1. "Đăng nhập" signs in with Firebase by email and password. A value with `@` is the email as typed; a value
    without one is a username, and the web signs in with the email R-USR-24 gives it: the username in lower case, `@`
    and the company domain of the configuration (`Staff:EmailDomain`, the same in the API and the web, DEC-145). No
-   endpoint looks a username up, so the page tells nobody whether an account exists (gap 15 until the pull request
-   of R-USR-24 merges: no account has a username yet).
+   endpoint looks a username up, so the page tells nobody whether an account exists.
 2. Then `GET /api/v1/admin/me`:
    - `mustChangePassword: true` → SCR-AUT-02;
    - otherwise the `?next=` path, or SCR-STF-01 when the user may open it, or SCR-ACC-01.
@@ -58,15 +57,14 @@ hàng."
   (HaLTZG260002), the Validation artboard with `haltzg260002@`. Approved by the merge of the pull request that wrote
   this bullet.
 - **Builds**:
-  - The page `web/` has keeps the field "Email công ty" under the Layout of #158 until gap 15 closes with the pull
-    request of R-USR-24 (issue #246), since a username signs in only once accounts have one; the row of
-    `docs/screens/README.md` holds the screen on gap 15.
-  - The change of #319 is built after that merge by a `feat(web): … (AUT-01)` pull request on `feat/aut-01-web`
+  - The page `web/` has keeps the field "Email công ty" under the Layout of #158 until the change of #319 is built;
+    gap 15 closed with the pull request of R-USR-24 (issue #246), so every account has a username.
+  - The change of #319 is built by a `feat(web): … (AUT-01)` pull request on `feat/aut-01-web`
     (issue #320 `AUT-01 web`, blocked by #246 and #321; DEC-148 (6), DEC-123), with the domain setting `Staff:EmailDomain` of
     the web; the web-only run of `/implement-feature AUT-01` makes it once Task #321 has applied the owner's answer
     of 2026-11-21 to #319 (a web-only run takes a screen `web/` already has when its `<ID> web` issue names it).
-  - The open Task #250 (`refactor(web)`) builds only the required marks of #158 on "Email công ty" and "Mật khẩu";
-    gap 15 does not hold it, and it builds nothing of #319.
+  - The open Task #250 (`refactor(web)`) builds only the required marks of #158 on "Email công ty" and "Mật khẩu",
+    and nothing of #319.
 - **Artboards**: desktop (1440 px), where the show/hide button and "Đăng nhập" (busy) work in Play; narrow (390 px);
   states: field errors (an email without its domain) with the tooltip of the show/hide button, a sign-in error ("Tên
   đăng nhập, email hoặc mật khẩu không đúng."), the notice after a password change, loading. The page has no empty and

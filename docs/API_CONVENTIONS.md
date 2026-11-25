@@ -56,7 +56,7 @@ Every error is Problem Details (RFC 9457) with `application/problem+json`, built
 - `errors` on a 400, and on a 409 about one field of the request: an array whose items name where the error is, a
   `pointer` (JSON Pointer to a field of the body, as a URI fragment: `#/newPassword`, `#/regularHours/1/day`) or a
   `parameter` (a query or route parameter: `roleId`), the `code` of the reason and its `detail`. The item of a 409
-  has the type as its code (`/problems/email-already-registered` → `EMAIL_ALREADY_REGISTERED`).
+  has the type as its code (`/problems/role-out-of-scope` → `ROLE_OUT_OF_SCOPE`).
 
 ```json
 {
