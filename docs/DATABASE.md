@@ -26,7 +26,7 @@ Based on [PostgreSQL Wiki — Don't Do This](https://wiki.postgresql.org/wiki/Do
 | Document numbers (R-TX-08) | The daily sequence number is taken with `INSERT INTO daily_sequences … ON CONFLICT (sequence_key, sequence_date) DO UPDATE SET last_value = last_value + 1 RETURNING last_value` inside the transaction that creates the document: no duplicates, no retries, no gap on rollback; the date is in Asia/Ho_Chi_Minh; the UNIQUE code is the last safety net |
 | Fillfactor | 90 on tables updated in place at every sale (`product_skus`, `stock_balances`) so updates stay on the same page (HOT update); all other tables keep the default 100; checked by `zengear_07_schema_check.sql` |
 | Database roles | The application never connects as the schema owner. `zengear_app` (API): read and write business tables; only `SELECT`, `INSERT` on append-only tables (`audit_logs`, `stock_ledger_entries`, `status_history`, `supplier_payments`); no `DELETE` on `notifications`. `zengear_jobs` (background jobs): as `zengear_app` plus `DELETE` on `notifications`. `zengear_readonly` (reports, reconciliation): `SELECT` only. Personal values in `audit_logs` are erased only through `fn_audit_erase_values`. Grants are in `zengear_08_roles.sql` |
-| Personal data | Columns holding personal data: `users` (`name`, `email`, `phone`), `customer_profiles` (`gender`, `date_of_birth`, `internal_note`), `staff_profiles.work_phone`, `addresses` (`recipient_name`, `phone`, `address_detail`), `orders` (`recipient_name`, `contact_phone`), `order_shipping_details` (address columns), `order_invoice_details` (`company_name`, `tax_code`, `address`, `email` — a household-business buyer is a person, `tax_code` holds the 12-digit personal ID), `cash_vouchers.counterparty_name`, `notifications.payload`, `audit_logs` (`old_values`, `new_values`). Anonymization (R-USR-09) clears users, profiles, addresses, notification payloads and audit values; order, shipping and invoice snapshots are kept as sales documents. A new column with personal data is added to this list in the same change |
+| Personal data | Columns holding personal data: `users` (`name`, `email`, `phone`), `customer_profiles` (`gender`, `date_of_birth`, `internal_note`), `staff_profiles` (`work_phone`, `username`: built from the name), `addresses` (`recipient_name`, `phone`, `address_detail`), `orders` (`recipient_name`, `contact_phone`), `order_shipping_details` (address columns), `order_invoice_details` (`company_name`, `tax_code`, `address`, `email` — a household-business buyer is a person, `tax_code` holds the 12-digit personal ID), `cash_vouchers.counterparty_name`, `notifications.payload`, `audit_logs` (`old_values`, `new_values`). Anonymization (R-USR-09) clears users, profiles, addresses, notification payloads and audit values; order, shipping and invoice snapshots are kept as sales documents. A new column with personal data is added to this list in the same change |
 | Reconciliation (R-REC-01 … R-REC-11) | Denormalized values (`sold_count`, `used_count`, stock quantities, received quantities, ledger running balance, average cost, return and refund totals) and polymorphic ledger sources are checked nightly by `zengear_06_reconciliation.sql`; the job reports differences and never corrects them. The rule of each value is in its column description (Database Definition) and in the header of the file |
 
 ## Entity Relationship Diagram
@@ -82,7 +82,7 @@ Table customer_profiles {
 
 Table staff_profiles {
   user_id uuid [pk]
-  employee_code varchar [null, unique]
+  employee_code varchar(8) [null, unique, note: 'ZG + 2-digit joined year + 4-digit yearly number (R-USR-24), never changes; NULL only after the retention job erased it (DEC-156 (3))']
   joined_date date [null]
   work_phone varchar(20) [null]
   left_date date [null]
@@ -90,9 +90,15 @@ Table staff_profiles {
   created_at timestamptz [not null, default: `now()`]
   updated_by uuid [null]
   updated_at timestamptz [not null, default: `now()`]
+  username varchar(64) [not null, note: 'Name abbreviation + employee code (R-USR-24); unique whatever the case']
+
+  indexes {
+    (`lower(username)`) [unique, name: 'ix_staff_profiles_username']
+  }
 
   checks {
     `left_date is null or joined_date is null or left_date >= joined_date`
+    `employee_code ~ '^ZG[0-9]{6}$'`
   }
 }
 
@@ -162,6 +168,17 @@ Table role_manageable_roles {
   indexes {
     (role_id, managed_role_id) [pk]
     managed_role_id
+  }
+}
+
+Table employee_code_sequences {
+  year smallint [pk, note: 'Year of the joined date']
+  last_value integer [not null, note: 'Last number issued for that year (R-USR-24)']
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+
+  checks {
+    `last_value between 1 and 9999`
   }
 }
 
@@ -2153,11 +2170,12 @@ Staff-only profile data, 1-1 with `users`.
 | Column | Description | Sample Data |
 |---|---|---|
 | user_id | Primary key and FK to `users` | `a1b2c3d4-...` |
-| employee_code | Employee ID | NV0012, NULL |
-| joined_date | Start date | 2025-06-01, NULL |
+| employee_code | Employee code generated when the account is created (R-USR-24, DEC-145): ZG + the last 2 digits of the joined year + a 4-digit number of that year from `employee_code_sequences`, never typed, never changed (`ck_staff_profiles_employee_code`, unique); NULL only once the retention job of R-USR-19 and R-USR-23 erased it (DEC-156 (3)) | ZG260012, NULL |
+| joined_date | Start date; its year is the year of the employee code | 2025-06-01, NULL |
 | work_phone | Internal contact number | 0901234567, NULL |
 | left_date | Last working day; NULL = still employed | 2026-12-31, NULL |
 | must_change_password | Force password change on first login | true, false |
+| username | Sign-in name generated with the code (R-USR-24): name abbreviation + employee code, unique whatever the case (`ix_staff_profiles_username` on `lower(username)`); `users.email` is it in lower case on the company domain; changes only when the Admin regenerates it (R-USR-21) | AnNVZG260012 |
 
 #### roles
 
@@ -2212,6 +2230,20 @@ migration (DEC-129).
 |---|---|---|
 | role_id | FK to `roles`: the managing role | `b2c3d4e5-...` |
 | managed_role_id | FK to `roles`: a role it manages | `d4e5f6a7-...` |
+
+#### employee_code_sequences
+
+Yearly counters of the employee codes (R-USR-24, DEC-145). The number is taken with `INSERT INTO employee_code_sequences …
+ON CONFLICT (year) DO UPDATE SET last_value = last_value + 1 RETURNING last_value` inside the transaction that creates
+the account (STF-01, the bootstrap-admin command of DEC-156): concurrent creations of one year wait for each other, a
+rolled-back creation issues no number, and an issued number is never reused, even when its account is withdrawn,
+rejected or anonymized. Past 9,999 the API refuses with `/problems/employee-codes-exhausted`. Not `daily_sequences`:
+that table belongs to Sales and counts business days.
+
+| Column | Description | Sample Data |
+|---|---|---|
+| year | Primary key: the year of the joined date | 2026 |
+| last_value | Last number issued for that year | 12 |
 
 #### departments
 

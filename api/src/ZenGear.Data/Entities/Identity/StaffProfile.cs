@@ -7,10 +7,11 @@ public class StaffProfile
     {
     }
 
-    internal StaffProfile(string? employeeCode, DateOnly? joinedDate, string? workPhone, bool mustChangePassword,
-        Guid? updatedBy, DateTimeOffset now)
+    internal StaffProfile(string employeeCode, string username, DateOnly? joinedDate, string? workPhone,
+        bool mustChangePassword, Guid? updatedBy, DateTimeOffset now)
     {
         EmployeeCode = employeeCode;
+        Username = username;
         JoinedDate = joinedDate;
         WorkPhone = workPhone;
         MustChangePassword = mustChangePassword;
@@ -21,7 +22,14 @@ public class StaffProfile
 
     public Guid UserId { get; private set; }
 
+    /// <summary>
+    /// ZG + year of the joined date + yearly number (R-USR-24); never changes. Null only once the retention job of R-USR-19
+    /// and R-USR-23 has erased it (DEC-156 (3)).
+    /// </summary>
     public string? EmployeeCode { get; private set; }
+
+    /// <summary>Name abbreviation + employee code (R-USR-24), unique whatever its case; the email is it in lower case.</summary>
+    public string Username { get; private set; } = null!;
 
     public DateOnly? JoinedDate { get; private set; }
 
