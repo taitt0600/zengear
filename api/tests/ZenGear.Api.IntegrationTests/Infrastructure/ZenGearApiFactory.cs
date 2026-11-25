@@ -24,6 +24,9 @@ public class ZenGearApiFactory(string environment = AuthenticationSetup.TestingE
 {
     public const string FirebaseProjectId = "demo-zengear";
 
+    /// <summary>The domain of the generated company emails (R-USR-24) in the tests, as in development.</summary>
+    public const string EmailDomain = "zengear.test";
+
     /// <summary>The origin of the web in development, the only one <c>Cors:AllowedOrigins</c> lists here.</summary>
     public const string WebOrigin = "http://localhost:3000";
 
@@ -48,6 +51,7 @@ public class ZenGearApiFactory(string environment = AuthenticationSetup.TestingE
         builder.UseSetting("ConnectionStrings:Redis", redisConnectionString ?? RedisContainer.ConnectionString);
         builder.UseSetting("Firebase:ProjectId", FirebaseProjectId);
         builder.UseSetting("Firebase:UseEmulator", "true");
+        builder.UseSetting("Staff:EmailDomain", EmailDomain);
         builder.UseSetting("Cors:AllowedOrigins:0", WebOrigin);
 
         builder.ConfigureTestServices(services =>

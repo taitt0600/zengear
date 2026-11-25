@@ -4320,9 +4320,6 @@
       "StaffCreateConflictCode": {
         "enum": [
           "ADMIN_ROLE_NOT_ASSIGNABLE",
-          "AUTH_ACCOUNT_EXISTS",
-          "EMAIL_ALREADY_REGISTERED",
-          "EMPLOYEE_CODE_TAKEN",
           "ROLE_NOT_FOR_STAFF",
           "ROLE_OUT_OF_SCOPE",
           "ROLE_REQUIRED"
@@ -4333,15 +4330,12 @@
         "enum": [
           "BODY_INVALID",
           "BODY_REQUIRED",
-          "EMAIL_INVALID",
-          "EMAIL_REQUIRED",
-          "EMAIL_TOO_LONG",
-          "EMPLOYEE_CODE_REQUIRED",
-          "EMPLOYEE_CODE_TOO_LONG",
-          "EMPLOYEE_CODE_UNTRIMMED",
+          "JOINED_DATE_OUT_OF_RANGE",
           "JOINED_DATE_REQUIRED",
+          "NAME_NO_LETTER",
           "NAME_REQUIRED",
           "NAME_TOO_LONG",
+          "NAME_USERNAME_TOO_LONG",
           "ROLE_IDS_REQUIRED",
           "ROLE_IDS_TOO_MANY",
           "ROLE_ID_EMPTY",
@@ -4354,28 +4348,14 @@
       },
       "StaffCreateRequest": {
         "required": [
-          "email",
           "name",
-          "employeeCode",
           "joinedDate",
           "workPhone",
           "roleIds"
         ],
         "type": "object",
         "properties": {
-          "email": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
           "name": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "employeeCode": {
             "type": [
               "null",
               "string"
@@ -4423,6 +4403,7 @@
           "id",
           "name",
           "email",
+          "username",
           "employeeCode",
           "joinedDate",
           "leftDate",
@@ -4445,6 +4426,9 @@
               "null",
               "string"
             ]
+          },
+          "username": {
+            "type": "string"
           },
           "employeeCode": {
             "type": [

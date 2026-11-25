@@ -72,7 +72,8 @@ export function StaffAccountHeadingSection() {
       </Avatar>
       <div className="flex min-w-0 flex-col gap-1">
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-          <h1 className="text-xl font-semibold">{account.name}</h1>
+          {/* `anywhere`, as the email of the details: a very long given name wraps instead of widening the page. */}
+          <h1 className="min-w-0 text-xl font-semibold wrap-anywhere">{account.name}</h1>
           <StaffStatusBadge status={account.status} texts={statusTexts} />
         </div>
         <p className="text-sm wrap-break-word text-muted-foreground">{headline(account)}</p>

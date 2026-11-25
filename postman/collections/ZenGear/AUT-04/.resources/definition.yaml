@@ -5,8 +5,8 @@ description: |-
   only to hide the menus and buttons the user may not use; the API still checks every permission (R-SEC-03). Gap 1
   of docs/screens/gaps.md.
 
-  Needs tools/dev_reset.ps1 first: the Admin owner@zengear.test (bootstrap-admin, DEC-096), the Store Manager
-  manager.fixture@zengear.test (postman/fixtures/STF-01.sql) and the customer customer.fixture@zengear.test
+  Needs tools/dev_reset.ps1 first: the Admin khoatmzg260001@zengear.test (bootstrap-admin, DEC-096), the Store Manager
+  haltzg260002@zengear.test (postman/fixtures/STF-01.sql) and the customer dothimai@zengear.test
   (postman/fixtures/STF-03.sql). The folder changes nothing, so it runs again without a reset. The permission catalog
   grows with every feature: the checks are "contains" and "does not contain", never an exact list, except the empty
   list of the customer (request 03), whose role gets keys only through code.

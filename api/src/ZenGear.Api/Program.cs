@@ -10,6 +10,7 @@ using ZenGear.Api.Logging;
 using ZenGear.Services;
 using ZenGear.Services.Identity.Access.AccessCache;
 using ZenGear.Services.Identity.Permissions;
+using ZenGear.Services.Identity.StaffAccounts;
 
 // Nothing here connects to PostgreSQL, Redis or Firebase: the build runs this file to write the
 // OpenAPI document (GetDocument.Insider, Production environment, no user-secrets).
@@ -39,6 +40,9 @@ if (!BuildTimeDocumentGeneration.IsActive)
 {
     builder.Services.AddHostedService<PermissionSyncJob>();
     builder.Services.AddHostedService<AccessBumpRetryJob>();
+
+    // Staff:EmailDomain (R-USR-24, DEC-145) stops the host when missing; the build-time OpenAPI generation runs without it.
+    builder.Services.AddOptions<StaffIdentityOptions>().ValidateDataAnnotations().ValidateOnStart();
 }
 builder.Services.AddZenGearLocalization();
 builder.Services.AddZenGearProblemDetails();

@@ -127,13 +127,13 @@
     <value>Email đã có tài khoản đăng nhập</value>
   </data>
   <data name="auth-account-exists.detail" xml:space="preserve">
-    <value>Email này đã có tài khoản đăng nhập. Vui lòng xóa tài khoản đó trong Firebase trước.</value>
+    <value>Email công ty sinh cho tài khoản này đã có tài khoản đăng nhập. Người vận hành cần xóa tài khoản đó trong Firebase trước.</value>
   </data>
   <data name="employee-code-taken.title" xml:space="preserve">
     <value>Mã nhân viên đã được dùng</value>
   </data>
   <data name="employee-code-taken.detail" xml:space="preserve">
-    <value>Mã nhân viên đã được dùng.</value>
+    <value>Mã nhân viên hoặc tên đăng nhập sinh ra đã được dùng: bộ đếm mã của năm vào làm bị lệch. Người vận hành cần kiểm tra bộ đếm trước khi tạo tiếp.</value>
   </data>
   <data name="role-required.title" xml:space="preserve">
     <value>Thiếu vai trò</value>
@@ -321,26 +321,17 @@
   <data name="PASSWORD_CONTAINS_ZENGEAR" xml:space="preserve">
     <value>Mật khẩu không được chứa chữ zengear. Vui lòng chọn mật khẩu khác.</value>
   </data>
-  <data name="EMAIL_REQUIRED" xml:space="preserve">
-    <value>Vui lòng nhập email.</value>
-  </data>
   <data name="EMAIL_TOO_LONG" xml:space="preserve">
     <value>Email tối đa {MaxLength} ký tự.</value>
   </data>
   <data name="EMAIL_INVALID" xml:space="preserve">
     <value>Email không hợp lệ.</value>
   </data>
-  <data name="EMPLOYEE_CODE_REQUIRED" xml:space="preserve">
-    <value>Vui lòng nhập mã nhân viên.</value>
-  </data>
-  <data name="EMPLOYEE_CODE_UNTRIMMED" xml:space="preserve">
-    <value>Mã nhân viên không được bắt đầu hay kết thúc bằng khoảng trắng.</value>
-  </data>
-  <data name="EMPLOYEE_CODE_TOO_LONG" xml:space="preserve">
-    <value>Mã nhân viên tối đa {MaxLength} ký tự.</value>
-  </data>
   <data name="JOINED_DATE_REQUIRED" xml:space="preserve">
     <value>Vui lòng nhập ngày vào làm.</value>
+  </data>
+  <data name="JOINED_DATE_OUT_OF_RANGE" xml:space="preserve">
+    <value>Năm vào làm phải từ {From} đến {To}.</value>
   </data>
   <data name="PERMISSION_KEYS_REQUIRED" xml:space="preserve">
     <value>Vui lòng gửi danh sách quyền (có thể rỗng).</value>
@@ -458,5 +449,17 @@
   </data>
   <data name="VALUE_INVALID" xml:space="preserve">
     <value>Giá trị không hợp lệ.</value>
+  </data>
+  <data name="NAME_NO_LETTER" xml:space="preserve">
+    <value>Họ tên cần có chữ cái để sinh tên đăng nhập.</value>
+  </data>
+  <data name="NAME_USERNAME_TOO_LONG" xml:space="preserve">
+    <value>Tên đăng nhập sinh từ họ tên này sẽ dài quá {MaxLength} ký tự. Hãy rút gọn tên (từ cuối của họ tên).</value>
+  </data>
+  <data name="employee-codes-exhausted.title" xml:space="preserve">
+    <value>Đã hết mã nhân viên của năm</value>
+  </data>
+  <data name="employee-codes-exhausted.detail" xml:space="preserve">
+    <value>Đã cấp hết 9.999 mã nhân viên của năm vào làm này.</value>
   </data>
 </root>

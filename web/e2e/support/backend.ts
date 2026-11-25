@@ -1,5 +1,3 @@
-import { randomInt } from 'node:crypto'
-
 // Set-up of the screen flows through the API and the Firebase Auth Emulator, on the development environment
 // (docs/ACCEPTANCE.md) or the acceptance environment of CI. Test values only: the emulator accepts any API key, and
 // its admin endpoints take the token "owner"; nothing here is a real credential.
@@ -11,9 +9,9 @@ const PROJECT = process.env.E2E_FIREBASE_PROJECT_ID ?? 'demo-zengear'
 export const PASSWORD = process.env.E2E_PASSWORD ?? 'dev-reset-only'
 
 export const accounts = {
-  admin: 'owner@zengear.test',
-  manager: 'manager.fixture@zengear.test',
-  customer: 'customer.fixture@zengear.test',
+  admin: 'khoatmzg260001@zengear.test',
+  manager: 'haltzg260002@zengear.test',
+  customer: 'dothimai@zengear.test',
 }
 
 // The fixed id of the role Sales Consultant (api/seed/01_roles.sql), which holds no permission by default.
@@ -53,31 +51,31 @@ function today(): string {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date())
 }
 
+/** The name newSalesConsultant gives when it is given none. */
+export const STAFF_NAME = 'Nguyễn Văn Kiểm'
+
 /**
  * A new Sales Consultant created by the Admin (STF-01), with a password set through the emulator: the API still holds
- * must_change_password = true, as for any new staff account. Unique per run, so the flows need no reset.
+ * must_change_password = true, as for any new staff account. The API generates the employee code, the username and the
+ * email from the name (R-USR-24), so every run gets a new account without a reset.
  */
 export async function newSalesConsultant(
   password: string,
-  mailbox = 'e2e',
+  name = STAFF_NAME,
 ): Promise<{ id: string; email: string }> {
-  const stamp = `${Date.now()}${randomInt(1000)}`
-  const email = `${mailbox}.${stamp}@zengear.test`
   const admin = await idToken(accounts.admin, PASSWORD)
   const staff = await api(admin, '/api/v1/admin/staff', {
-    email,
-    name: `E2E ${stamp}`,
-    employeeCode: `E2E${stamp}`,
+    name,
     joinedDate: today(),
     workPhone: null,
     roleIds: [SALES_CONSULTANT_ROLE],
   })
-  const lookup = await emulator(`projects/${PROJECT}/accounts:lookup`, { email: [email] })
+  const lookup = await emulator(`projects/${PROJECT}/accounts:lookup`, { email: [staff.email] })
   await emulator(`projects/${PROJECT}/accounts:update`, {
     localId: lookup.users[0].localId,
     password,
   })
-  return { id: staff.id, email }
+  return { id: staff.id, email: staff.email }
 }
 
 /** The required password change of SCR-AUT-02, through the API (DEC-094); it clears must_change_password. */

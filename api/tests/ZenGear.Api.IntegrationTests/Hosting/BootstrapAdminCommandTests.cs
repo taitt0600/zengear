@@ -11,10 +11,13 @@ using ZenGear.Api.IntegrationTests.Infrastructure;
 
 namespace ZenGear.Api.IntegrationTests.Hosting;
 
-/// <summary>The bootstrap-admin command (DEC-096), run against the services of the test host.</summary>
+/// <summary>The bootstrap-admin command (DEC-096, its command line replaced by DEC-156), run against the services of the test host.</summary>
 public class BootstrapAdminCommandTests : IntegrationTestBase
 {
-    private const string Email = "owner@zengear.test";
+    /// <summary>The Admin of the sample cast (DEC-146 (2)): ZG260001 when it is the first account of 2026.</summary>
+    private const string Name = "Trần Minh Khoa";
+
+    private const string Email = "khoatmzg260001@zengear.test";
 
     private FakeAuthProvider Auth => Factory.Auth;
 
@@ -26,21 +29,47 @@ public class BootstrapAdminCommandTests : IntegrationTestBase
     }
 
     [Test]
-    public async Task Creates_the_first_admin_and_prints_the_password_reset_link()
+    public async Task R_USR_24_creates_the_first_admin_with_generated_identifiers_and_prints_the_link()
     {
         var adminRole = await TestRoles.InsertAsync("Admin", isSystemRole: true);
 
-        var (exitCode, output) = await RunAsync("bootstrap-admin", "--email", " Owner@ZenGear.test ", "--name", " Chủ cửa hàng ");
+        var (exitCode, output) = await RunAsync("bootstrap-admin", "--name", " Trần Minh Khoa ", "--joined-date", "2026-01-05");
 
         exitCode.ShouldBe(BootstrapAdminCommand.Succeeded);
         var account = Auth.Find(Email).ShouldNotBeNull();
         account.Password.ShouldBeNull();
         output.ShouldContain($"oobCode=code-{account.Uid}");
+        output.ShouldContain("employee code ZG260001");
+        output.ShouldContain("Sign in with the email khoatmzg260001@zengear.test; the username KhoaTMZG260001");
         var row = await AdminRowAsync();
-        row.ShouldBe(new AdminRow(account.Uid, "Chủ cửa hàng", "ACTIVE", false, adminRole) { UserId = row.UserId });
+        row.ShouldBe(new AdminRow(account.Uid, Name, "ACTIVE", false, adminRole, "ZG260001", "KhoaTMZG260001",
+            new DateOnly(2026, 1, 5)) { UserId = row.UserId });
         output.ShouldContain(row.UserId.ToString());
-        Factory.StaffLogs.Entries.ShouldAllBe(e => !e.Message.Contains("oobCode") && !e.Message.Contains(Email));
+        Factory.StaffLogs.Entries.ShouldAllBe(e =>
+            !e.Message.Contains("oobCode") && !e.Message.Contains(Email) && !e.Message.Contains("KhoaTM"));
         Factory.StaffLogs.Entries.ShouldContain(e => e.Message.Contains(row.UserId.ToString()));
+    }
+
+    [Test]
+    public async Task R_USR_24_the_joined_date_defaults_to_today_in_vietnam()
+    {
+        await TestRoles.InsertAsync("Admin", isSystemRole: true);
+        // 17:30 UTC on 31 December is already 1 January in Asia/Ho_Chi_Minh (UTC+7): a default taken in UTC fails.
+        var before = Factory.Time.GetUtcNow();
+        Factory.Time.AdjustTime(new DateTimeOffset(2026, 12, 31, 17, 30, 0, TimeSpan.Zero));
+        try
+        {
+            var (exitCode, _) = await RunAsync("bootstrap-admin", "--name", Name);
+
+            exitCode.ShouldBe(BootstrapAdminCommand.Succeeded);
+            var row = await AdminRowAsync();
+            row.JoinedDate.ShouldBe(new DateOnly(2027, 1, 1));
+            row.EmployeeCode.ShouldBe("ZG270001");
+        }
+        finally
+        {
+            Factory.Time.AdjustTime(before);
+        }
     }
 
     [Test]
@@ -50,31 +79,35 @@ public class BootstrapAdminCommandTests : IntegrationTestBase
         var existing = await TestUsers.InsertAsync("uid-admin");
         await TestRoles.AssignAsync(existing, adminRole);
 
-        var (exitCode, output) = await RunAsync("bootstrap-admin", "--email", Email, "--name", "Owner");
+        var (exitCode, output) = await RunAsync("bootstrap-admin", "--name", Name, "--joined-date", "2026-01-05");
 
         exitCode.ShouldBe(BootstrapAdminCommand.Refused);
         output.ShouldContain("Đã có quản trị viên; không thay đổi gì. Quản trị viên tạo các tài khoản khác.");
         (await CountAsync("SELECT count(*) FROM users")).ShouldBe(1);
+        (await CountAsync("SELECT count(*) FROM employee_code_sequences")).ShouldBe(0);
         Auth.Accounts.ShouldBeEmpty();
     }
 
     [Test]
-    public async Task Links_an_existing_firebase_account()
+    public async Task Links_an_existing_firebase_account_of_the_generated_email()
     {
         await TestRoles.InsertAsync("Admin", isSystemRole: true);
         var existing = Auth.Add(Email);
 
-        var (exitCode, _) = await RunAsync("bootstrap-admin", "--email", Email, "--name", "Owner");
+        var (exitCode, _) = await RunAsync("bootstrap-admin", "--name", Name, "--joined-date", "2026-01-05");
 
         exitCode.ShouldBe(BootstrapAdminCommand.Succeeded);
         Auth.Accounts.ShouldBe([existing]);
         (await AdminRowAsync()).FirebaseUid.ShouldBe(existing.Uid);
     }
 
-    [TestCase("bootstrap-admin", "--email", Email)]
-    [TestCase("bootstrap-admin", "--name", "Owner")]
-    [TestCase("bootstrap-admin", "--email", "--name", "Owner")]
-    public async Task A_missing_argument_is_a_usage_error(params string[] args)
+    [TestCase("bootstrap-admin")]
+    [TestCase("bootstrap-admin", "--name")]
+    [TestCase("bootstrap-admin", "--joined-date", "2026-01-05")]
+    [TestCase("bootstrap-admin", "--name", Name, "--joined-date")]
+    [TestCase("bootstrap-admin", "--name", Name, "--joined-date", "05/01/2026")]
+    [TestCase("bootstrap-admin", "--name", Name, "--joined-date", "2026-02-30")]
+    public async Task A_missing_or_invalid_argument_is_a_usage_error(params string[] args)
     {
         await TestRoles.InsertAsync("Admin", isSystemRole: true);
 
@@ -85,24 +118,40 @@ public class BootstrapAdminCommandTests : IntegrationTestBase
         Auth.Accounts.ShouldBeEmpty();
     }
 
-    [TestCase("owner@localhost", "Owner", "Email không hợp lệ.")]
-    [TestCase(Email, "   ", "Vui lòng nhập tên.")]
-    public async Task An_invalid_email_or_name_is_a_usage_error_before_any_change(string email, string name, string text)
+    [TestCase("   ", "Vui lòng nhập tên.")]
+    [TestCase("12345", "Họ tên cần có chữ cái để sinh tên đăng nhập.")]
+    public async Task R_USR_24_an_invalid_name_is_a_usage_error_before_any_change(string name, string text)
     {
         await TestRoles.InsertAsync("Admin", isSystemRole: true);
 
-        var (exitCode, output) = await RunAsync("bootstrap-admin", "--email", email, "--name", name);
+        var (exitCode, output) = await RunAsync("bootstrap-admin", "--name", name, "--joined-date", "2026-01-05");
 
         exitCode.ShouldBe(BootstrapAdminCommand.UsageError);
         output.ShouldContain(text);
         Auth.Accounts.ShouldBeEmpty();
         (await CountAsync("SELECT count(*) FROM users")).ShouldBe(0);
+        (await CountAsync("SELECT count(*) FROM employee_code_sequences")).ShouldBe(0);
+    }
+
+    [TestCase("1926-01-05")]
+    [TestCase("2126-01-05")]
+    public async Task R_USR_24_a_joined_year_outside_2000_to_2099_is_a_usage_error_before_any_change(string joinedDate)
+    {
+        await TestRoles.InsertAsync("Admin", isSystemRole: true);
+
+        var (exitCode, output) = await RunAsync("bootstrap-admin", "--name", Name, "--joined-date", joinedDate);
+
+        exitCode.ShouldBe(BootstrapAdminCommand.UsageError);
+        output.ShouldContain("Năm vào làm phải từ 2000 đến 2099.");
+        Auth.Accounts.ShouldBeEmpty();
+        (await CountAsync("SELECT count(*) FROM users")).ShouldBe(0);
+        (await CountAsync("SELECT count(*) FROM employee_code_sequences")).ShouldBe(0);
     }
 
     [Test]
     public async Task Refuses_when_the_admin_role_is_missing()
     {
-        var (exitCode, output) = await RunAsync("bootstrap-admin", "--email", Email, "--name", "Owner");
+        var (exitCode, output) = await RunAsync("bootstrap-admin", "--name", Name, "--joined-date", "2026-01-05");
 
         exitCode.ShouldBe(BootstrapAdminCommand.Refused);
         output.ShouldContain("Chưa có vai trò Admin: hãy chạy api/db/zengear_08_roles.sql và api/seed trước.");
@@ -115,7 +164,7 @@ public class BootstrapAdminCommandTests : IntegrationTestBase
         await TestRoles.InsertAsync("Admin", isSystemRole: true);
         Auth.FailPasswordResetLink = true;
 
-        var (exitCode, output) = await RunAsync("bootstrap-admin", "--email", Email, "--name", "Owner");
+        var (exitCode, output) = await RunAsync("bootstrap-admin", "--name", Name, "--joined-date", "2026-01-05");
 
         exitCode.ShouldBe(BootstrapAdminCommand.Refused);
         output.ShouldContain("Firebase console");
@@ -144,7 +193,7 @@ public class BootstrapAdminCommandTests : IntegrationTestBase
         await using var output = new StringWriter();
 
         var exitCode = await BootstrapAdminCommand.RunAsync(provider,
-            ["bootstrap-admin", "--email", Email, "--name", "Owner"], output, CancellationToken.None);
+            ["bootstrap-admin", "--name", Name, "--joined-date", "2026-01-05"], output, CancellationToken.None);
 
         exitCode.ShouldBe(BootstrapAdminCommand.Refused);
         output.ToString().ShouldContain("UseEmulator");
@@ -157,7 +206,8 @@ public class BootstrapAdminCommandTests : IntegrationTestBase
         return (exitCode, output.ToString());
     }
 
-    private sealed record AdminRow(string FirebaseUid, string Name, string Status, bool MustChangePassword, Guid RoleId)
+    private sealed record AdminRow(string FirebaseUid, string FullName, string Status, bool MustChangePassword, Guid RoleId,
+        string EmployeeCode, string Username, DateOnly JoinedDate)
     {
         public Guid UserId { get; init; }
     }
@@ -167,15 +217,15 @@ public class BootstrapAdminCommandTests : IntegrationTestBase
         await using var connection = await TestRoles.OpenAsync();
         await using var command = new NpgsqlCommand(
             """
-            SELECT u.id, u.firebase_uid, u.name, u.status, s.must_change_password, ur.role_id
+            SELECT u.id, u.firebase_uid, u.name, u.status, s.must_change_password, ur.role_id, s.employee_code, s.username,
+                   s.joined_date
             FROM users u JOIN staff_profiles s ON s.user_id = u.id JOIN user_roles ur ON ur.user_id = u.id
-            WHERE u.email = @email
             """,
             connection);
-        command.Parameters.AddWithValue("email", Email);
         await using var reader = await command.ExecuteReaderAsync();
         (await reader.ReadAsync()).ShouldBeTrue();
-        var row = new AdminRow(reader.GetString(1), reader.GetString(2), reader.GetString(3), reader.GetBoolean(4), reader.GetGuid(5))
+        var row = new AdminRow(reader.GetString(1), reader.GetString(2), reader.GetString(3), reader.GetBoolean(4), reader.GetGuid(5),
+            reader.GetString(6), reader.GetString(7), reader.GetFieldValue<DateOnly>(8))
         {
             UserId = reader.GetGuid(0),
         };

@@ -26,7 +26,7 @@ public partial class ProblemTextsTests : IntegrationTestBase
         "password-change-required", "recent-login-required", "forbidden", "not-found", "method-not-allowed",
         "not-acceptable", "unsupported-media-type", "concurrency-conflict", "precondition-failed", "if-match-required",
         "internal-error", "unexpected-error",
-        "staff-account-required", "email-already-registered", "auth-account-exists", "employee-code-taken", "role-required",
+        "staff-account-required", "email-already-registered", "auth-account-exists", "employee-code-taken", "employee-codes-exhausted", "role-required",
         "role-not-for-staff", "admin-role-not-assignable", "left-date-before-joined-date", "left-date-in-future",
         "own-account-not-lockable", "last-active-admin", "admin-account-not-lockable", "admin-account-not-restorable",
         "account-anonymized", "brand-already-exists", "product-series-already-exists", "brand-retired", "admin-role-missing",

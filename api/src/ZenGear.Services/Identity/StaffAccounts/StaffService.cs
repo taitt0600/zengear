@@ -1,6 +1,7 @@
 using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 using Npgsql;
 using ZenGear.Data;
@@ -20,6 +21,7 @@ namespace ZenGear.Services.Identity.StaffAccounts;
 public sealed class StaffService(
     ZenGearDbContext db,
     IAuthProvider auth,
+    StaffIdentityIssuer identities,
     IValidator<StaffCreateRequest> validator,
     IValidator<StaffListRequest> listValidator,
     IValidator<PageRequest> pageValidator,
@@ -27,75 +29,87 @@ public sealed class StaffService(
     ILogger<StaffService> logger)
 {
     /// <summary>
-    /// Creates a staff account with the default password and its roles (UC-005). Every rule is checked before the
-    /// Firebase account is created, so a refused request creates nothing. Once that account exists the request token is
-    /// no longer used: a client that disconnects cannot leave an account without its user row.
+    /// Creates a staff account with the default password, its generated identifiers (R-USR-24) and its roles (UC-005).
+    /// Every rule is checked before the employee code is taken and before the Firebase account is created, so a refused
+    /// request creates nothing and takes no number. The code is taken in the transaction that stores the account; once
+    /// the Firebase account exists the request token is no longer used, so a client that disconnects cannot leave an
+    /// account without its user row.
     /// </summary>
     /// <param name="actorId">The signed-in staff member creating the account.</param>
     public async Task<StaffDto> CreateAsync(StaffCreateRequest request, Guid actorId, CancellationToken cancellationToken)
     {
         await validator.ValidateAndThrowAsync(request, cancellationToken);
 
-        var roles = await AssignableRolesAsync(request.RoleIds!, actorId, cancellationToken);
+        var roles = await AssignableRolesAsync(request.RoleIds ?? [], actorId, cancellationToken);
 
-        var email = User.NormalizeEmail(request.Email!);
-        if (await db.Users.AnyAsync(u => u.Email == email, cancellationToken))
+        Guid userId;
+        await using (var transaction = await db.Database.BeginTransactionAsync(cancellationToken))
         {
-            throw EmailAlreadyRegistered();
-        }
+            var identity = await identities.IssueAsync(request.Name ?? "", request.JoinedDate, cancellationToken);
 
-        if (await db.StaffProfiles.AnyAsync(s => s.EmployeeCode == request.EmployeeCode!, cancellationToken))
-        {
-            throw EmployeeCodeTaken();
-        }
-
-        // An account that already exists is never linked: whoever registered the email first would keep its password,
-        // other sign-in methods and live ID tokens. The race with a parallel request ends the same way.
-        if (await auth.FindByEmailAsync(email, cancellationToken) is not null)
-        {
-            throw AuthAccountExists();
-        }
-
-        // From here the request token is no longer used: cancelled during the call, Firebase could still create the
-        // account and nothing would delete it.
-        var account = await auth.CreateWithDefaultStaffPasswordAsync(email, CancellationToken.None) ?? throw AuthAccountExists();
-
-        var user = User.CreateStaff(
-            new StaffAccountData(account.Uid, request.Name!, email, request.EmployeeCode, request.JoinedDate,
-                request.WorkPhone, MustChangePassword: true),
-            roles, actorId, clock.UtcNow);
-        db.Users.Add(user);
-        try
-        {
-            await db.SaveChangesAsync(CancellationToken.None);
-        }
-        catch (Exception ex)
-        {
-            db.ChangeTracker.Clear();
-            await DeleteUnlinkedAccountAsync(account.Uid);
-            if (ex is DbUpdateException { InnerException: PostgresException { SqlState: PostgresErrorCodes.UniqueViolation } unique })
+            // An account that already exists is never linked: whoever registered the email first would keep its
+            // password, other sign-in methods and live ID tokens. Its uid is logged so the operator can find it (an
+            // orphan left by a failed compensation); the code is not, since the rollback issues it again.
+            if (await auth.FindByEmailAsync(identity.Email, cancellationToken) is { } existing)
             {
-                throw unique.ConstraintName == "ix_staff_profiles_employee_code" ? EmployeeCodeTaken() : EmailAlreadyRegistered();
+                logger.LogWarning("Staff account not created: Firebase account {FirebaseUid} already holds the generated email",
+                    existing.Uid);
+                throw AuthAccountExists();
             }
 
-            // A role deleted (AUT-05) after the check above.
-            if (ex is DbUpdateException
+            // From here the request token is no longer used: cancelled during the call, Firebase could still create the
+            // account and nothing would delete it.
+            AuthAccount? account;
+            try
+            {
+                account = await auth.CreateWithDefaultStaffPasswordAsync(identity.Email, CancellationToken.None);
+            }
+            catch
+            {
+                // Firebase may have created the account before failing (a timeout after the write). The rollback issues
+                // this number, hence this email, again, so an account left on it would block the next person with the
+                // same abbreviation: it is found by its email and deleted. This runs before the rollback, while this
+                // transaction still locks the number, so no other request can hold this email yet (it was free just
+                // above); no statement failed, so the transaction can still query.
+                await DeleteUnlinkedAccountOfEmailAsync(identity.Email);
+                await RollbackQuietlyAsync(transaction);
+                throw;
+            }
+
+            if (account is null)
+            {
+                throw AuthAccountExists();
+            }
+
+            var user = User.CreateStaff(
+                new StaffAccountData(account.Uid, request.Name ?? "", identity.Email, identity.EmployeeCode, identity.Username,
+                    request.JoinedDate, request.WorkPhone, MustChangePassword: true),
+                roles, actorId, clock.UtcNow);
+            db.Users.Add(user);
+            try
+            {
+                await db.SaveChangesAsync(CancellationToken.None);
+                await transaction.CommitAsync(CancellationToken.None);
+            }
+            catch (Exception ex)
+            {
+                db.ChangeTracker.Clear();
+                await RollbackQuietlyAsync(transaction);
+                await DeleteUnlinkedAccountAsync(account.Uid);
+                if (Translated(ex) is { } refusal)
                 {
-                    InnerException: PostgresException
-                    {
-                        SqlState: PostgresErrorCodes.ForeignKeyViolation, ConstraintName: "fk_user_roles_roles_role_id",
-                    },
-                })
-            {
-                throw UnknownRole();
+                    throw refusal;
+                }
+
+                throw;
             }
 
-            throw;
+            userId = user.Id;
         }
 
-        logger.LogInformation("Staff account {UserId} created by {ActorId} with roles {RoleIds}", user.Id, actorId,
+        logger.LogInformation("Staff account {UserId} created by {ActorId} with roles {RoleIds}", userId, actorId,
             roles.Select(r => r.Id).ToList());
-        return (await GetAsync(user.Id, CancellationToken.None))!;
+        return (await GetAsync(userId, CancellationToken.None))!;
     }
 
     /// <summary>The staff account <paramref name="id"/>; null when there is no user with a staff profile of that id.</summary>
@@ -107,7 +121,8 @@ public sealed class StaffService(
                 u.Id,
                 u.Name,
                 u.Email,
-                u.StaffProfile!.EmployeeCode,
+                u.StaffProfile!.Username,
+                u.StaffProfile.EmployeeCode,
                 u.StaffProfile.JoinedDate,
                 u.StaffProfile.LeftDate,
                 u.StaffProfile.WorkPhone,
@@ -264,6 +279,47 @@ public sealed class StaffService(
     }
 
     /// <summary>
+    /// Rolls back after a failed save so that the compensation can query again (PostgreSQL refuses every statement in
+    /// an aborted transaction). A rollback that fails (a broken connection) is logged and never replaces the original
+    /// error nor skips the compensation; the server ends the transaction with the connection.
+    /// </summary>
+    private async Task RollbackQuietlyAsync(IDbContextTransaction transaction)
+    {
+        try
+        {
+            await transaction.RollbackAsync(CancellationToken.None);
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Rollback of a failed staff creation failed");
+        }
+    }
+
+    /// <summary>
+    /// Compensation after a failed Firebase create: deletes the account Firebase may have created on
+    /// <paramref name="email"/> unless a user row holds it. Best effort, as <see cref="DeleteUnlinkedAccountAsync"/>; a
+    /// failure of the lookup is logged without the email (personal data, R-SEC-11).
+    /// </summary>
+    private async Task DeleteUnlinkedAccountOfEmailAsync(string email)
+    {
+        AuthAccount? left;
+        try
+        {
+            left = await auth.FindByEmailAsync(email, CancellationToken.None);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Firebase account of a failed staff creation could not be looked up: check the Firebase console");
+            return;
+        }
+
+        if (left is not null)
+        {
+            await DeleteUnlinkedAccountAsync(left.Uid);
+        }
+    }
+
+    /// <summary>
     /// Compensation: deletes the Firebase account created by this request unless a user row holds it. Best effort; a
     /// failure is logged with the uid only and the original error is kept.
     /// </summary>
@@ -286,14 +342,28 @@ public sealed class StaffService(
     private static ValidationException UnknownRole() =>
         new([new ValidationFailure(nameof(StaffCreateRequest.RoleIds), RoleNotFound) { ErrorCode = RoleNotFound }]);
 
-    private static BusinessRuleException EmailAlreadyRegistered() =>
-        new(null, "email-already-registered", nameof(StaffCreateRequest.Email));
+    /// <summary>
+    /// The refusal a failed save stands for, or null: a unique email (a customer may hold the generated address), a unique
+    /// employee code or username (a counter set back or a row written by hand; DEC-156 (4) keeps the years apart), or a
+    /// role deleted (AUT-05) after the checks. No pointer: the request has no such field (R-USR-24).
+    /// </summary>
+    private static Exception? Translated(Exception ex) => ex switch
+    {
+        DbUpdateException { InnerException: PostgresException { SqlState: PostgresErrorCodes.UniqueViolation } unique } =>
+            unique.ConstraintName is "ix_staff_profiles_employee_code" or "ix_staff_profiles_username"
+                ? new BusinessRuleException(null, "employee-code-taken")
+                : new BusinessRuleException(null, "email-already-registered"),
+        DbUpdateException
+        {
+            InnerException: PostgresException
+            {
+                SqlState: PostgresErrorCodes.ForeignKeyViolation, ConstraintName: "fk_user_roles_roles_role_id",
+            },
+        } => UnknownRole(),
+        _ => null,
+    };
 
-    private static BusinessRuleException EmployeeCodeTaken() =>
-        new(null, "employee-code-taken", nameof(StaffCreateRequest.EmployeeCode));
-
-    private static BusinessRuleException AuthAccountExists() =>
-        new(null, "auth-account-exists", nameof(StaffCreateRequest.Email));
+    private static BusinessRuleException AuthAccountExists() => new(null, "auth-account-exists");
 
     /// <summary>The code of a role id that names no role (400 on <c>roleIds</c>, DEC-117 (2)); the id is never written back.</summary>
     public const string RoleNotFound = "ROLE_NOT_FOUND";

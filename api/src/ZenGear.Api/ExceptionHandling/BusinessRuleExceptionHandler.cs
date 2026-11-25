@@ -8,7 +8,7 @@ namespace ZenGear.Api.ExceptionHandling;
 /// <summary>
 /// Business rule or state conflict → 409 with <c>ruleId</c> (docs/API_CONVENTIONS.md, Errors). A conflict about one
 /// field of the request also gets <c>errors</c> with that field's pointer and the type as its code
-/// (<c>/problems/email-already-registered</c> → <c>EMAIL_ALREADY_REGISTERED</c>, DEC-117 (1)), so the web shows it under
+/// (<c>/problems/role-out-of-scope</c> → <c>ROLE_OUT_OF_SCOPE</c>, DEC-117 (1)), so the web shows it under
 /// the field. Title and detail come from <c>ProblemDetailsSetup</c>.
 /// </summary>
 public sealed class BusinessRuleExceptionHandler(IProblemDetailsService problemDetails, ProblemTexts texts) : IExceptionHandler
@@ -47,6 +47,6 @@ public sealed class BusinessRuleExceptionHandler(IProblemDetailsService problemD
         });
     }
 
-    /// <summary><c>email-already-registered</c> → <c>EMAIL_ALREADY_REGISTERED</c>.</summary>
+    /// <summary><c>role-out-of-scope</c> → <c>ROLE_OUT_OF_SCOPE</c>.</summary>
     public static string CodeOf(string problemType) => problemType.Replace('-', '_').ToUpperInvariant();
 }

@@ -75,6 +75,7 @@ services:
       # The password of every staff account created through POST /api/v1/admin/staff (STF-01), for this environment
       # only.
       Firebase__DefaultStaffPassword: acceptance
+      Staff__EmailDomain: zengear.test
       # Where the Firebase Admin SDK finds the emulator and the project.
       FIREBASE_AUTH_EMULATOR_HOST: firebase:9099
       GOOGLE_CLOUD_PROJECT: demo-zengear

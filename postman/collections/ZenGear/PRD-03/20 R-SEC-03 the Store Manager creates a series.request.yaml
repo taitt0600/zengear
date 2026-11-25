@@ -1,7 +1,7 @@
 $kind: http-request
 description: |-
   R-SEC-03, the owner's decision for PRD-03: the Store Manager gets product_series.create by default (synced at
-  startup, DEC-095), so manager.fixture@zengear.test of postman/fixtures/STF-01.sql creates a series in brand B.
+  startup, DEC-095), so haltzg260002@zengear.test of postman/fixtures/STF-01.sql creates a series in brand B.
 method: POST
 url: '{{baseUrl}}/api/v1/admin/product-series'
 order: 20000

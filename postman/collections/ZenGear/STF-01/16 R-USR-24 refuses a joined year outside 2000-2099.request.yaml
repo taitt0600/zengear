@@ -1,0 +1,31 @@
+$kind: http-request
+description: |-
+  R-USR-24, DEC-156 (4): the employee code keeps 2 digits of the joined year, so only the years 2000–2099 are
+  accepted; a year 100 years off would take the codes of the real year. 1926 is refused (400,
+  JOINED_DATE_OUT_OF_RANGE on #/joinedDate); that no number is taken is checked by the integration tests (StaffTests).
+method: POST
+url: '{{baseUrl}}/api/v1/admin/staff'
+order: 16000
+headers:
+  - key: X-ZenGear-As
+    value: '{{adminEmail}}'
+  - key: Content-Type
+    value: 'application/json'
+body:
+  type: json
+  content: |-
+    {
+      "name": "Nguyễn Văn An",
+      "joinedDate": "1926-03-02",
+      "workPhone": "0901234567",
+      "roleIds": ["{{roleCashier}}"]
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 400', () => pm.response.to.have.status(400));
+      const problem = pm.response.json();
+      pm.test('problem type /problems/validation', () => pm.expect(problem.type).to.eql('/problems/validation'));
+      pm.test('error JOINED_DATE_OUT_OF_RANGE on #/joinedDate', () =>
+        pm.expect(problem.errors.map((e) => `${e.pointer} ${e.code}`)).to.eql(['#/joinedDate JOINED_DATE_OUT_OF_RANGE']));

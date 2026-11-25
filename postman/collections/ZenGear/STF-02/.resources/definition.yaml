@@ -5,11 +5,11 @@ description: |-
   restores it when they come back (UC-006; R-USR-03, R-USR-07, R-TX-11, R-SEC-04, R-USR-12; DEC-103). Left
   dates are today and tomorrow in Asia/Ho_Chi_Minh, set by 01: a left date after today is refused.
 
-  Needs tools/dev_reset.ps1 first: the Admin owner@zengear.test (bootstrap-admin, DEC-096) and the dev-only fixtures
-  postman/fixtures/STF-01.sql (the Store Manager manager.fixture@zengear.test), STF-02.sql (Store Manager holds
+  Needs tools/dev_reset.ps1 first: the Admin khoatmzg260001@zengear.test (bootstrap-admin, DEC-096) and the dev-only fixtures
+  postman/fixtures/STF-01.sql (the Store Manager haltzg260002@zengear.test), STF-02.sql (Store Manager holds
   staff.disable; the ANONYMIZED staff account anonymizedStaffId) and STF-03.sql (the customer
-  customer.fixture@zengear.test). The folder creates its own staff member through POST /api/v1/admin/staff, with an email
-  and employee code carrying the run id `run`, so it runs again without a reset.
+  dothimai@zengear.test). The folder creates its own staff member through POST /api/v1/admin/staff; the API
+  generates the employee code, username and email (R-USR-24), so every run gets a new account without a reset.
 
   09 asks the Store Manager to disable the Admin and 17 asks the Admin to disable their own account, both expecting
   409: should R-TX-11 or R-USR-12 ever regress, the Admin is disabled and only tools/dev_reset.ps1 brings it back.

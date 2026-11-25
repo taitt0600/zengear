@@ -7,11 +7,7 @@
 
 export interface StaffCreateRequest {
   /** @nullable */
-  email: string | null;
-  /** @nullable */
   name: string | null;
-  /** @nullable */
-  employeeCode: string | null;
   joinedDate: string;
   /** @nullable */
   workPhone: string | null;

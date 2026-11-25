@@ -12,6 +12,7 @@ export interface StaffDto {
   name: string;
   /** @nullable */
   email: string | null;
+  username: string;
   /** @nullable */
   employeeCode: string | null;
   /** @nullable */

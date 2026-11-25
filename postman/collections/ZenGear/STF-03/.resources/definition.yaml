@@ -4,10 +4,11 @@ description: |-
   STF-03 — a staff member manages their own account: the display name and the password (UC-007; R-USR-04,
   R-USR-11; DEC-094, DEC-102).
 
-  Needs tools/dev_reset.ps1 first: the Admin owner@zengear.test (bootstrap-admin, DEC-096) and the dev-only fixture
-  postman/fixtures/STF-03.sql (a customer customer.fixture@zengear.test, for the refusal of the staff password change).
-  The folder creates its own staff member through POST /api/v1/admin/staff, with an email carrying the run id `run`, so it
-  starts with a pending password change and runs again without a reset. The new passwords are made from `run` too;
+  Needs tools/dev_reset.ps1 first: the Admin khoatmzg260001@zengear.test (bootstrap-admin, DEC-096) and the dev-only fixture
+  postman/fixtures/STF-03.sql (a customer dothimai@zengear.test, for the refusal of the staff password change).
+  The folder creates its own staff member through POST /api/v1/admin/staff; the API generates the employee code,
+  username and email (R-USR-24), so it starts with a pending password change and every run gets a new account without
+  a reset. The new passwords are made from `run` too;
   they are test values of this run, not secrets.
 
   Not checked here, covered by the integration tests of api/tests (CurrentUserTests): the refusal of the default staff

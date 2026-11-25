@@ -603,11 +603,14 @@ jobs:
             printf '%s\n' "$err" | sed -n 's/^uid: //p' | head -n 1
           }
 
-          new_account owner@zengear.test >/dev/null
+          # The Admin of the sample cast (DEC-146 (2)): bootstrap-admin generates ZG260001, KhoaTMZG260001 and this
+          # email from the name and the fixed joined date (R-USR-24, DEC-156 (2)), and links the emulator account made
+          # first. Keep in step with tools/dev_reset.ps1.
+          new_account khoatmzg260001@zengear.test >/dev/null
           # The password reset link that bootstrap-admin prints is a credential: it stays in this variable, and only
           # the line "Admin created" is shown (on a failure, the last lines without a link).
           code=0
-          output=$($COMPOSE run --rm --no-deps -T api bootstrap-admin --email owner@zengear.test --name 'Chủ cửa hàng' 2>&1) || code=$?
+          output=$($COMPOSE run --rm --no-deps -T api bootstrap-admin --name 'Trần Minh Khoa' --joined-date 2026-01-05 2>&1) || code=$?
           safe=$(printf '%s\n' "$output" | grep -v -e '://' -e 'oobCode' || true)
           output=""
           if [ "$code" -ne 0 ]; then

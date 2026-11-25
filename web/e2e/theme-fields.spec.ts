@@ -1,6 +1,6 @@
 import { randomInt } from 'node:crypto'
 import { expect, test, type Locator, type Page } from '@playwright/test'
-import { changePassword, newSalesConsultant } from './support/backend'
+import { changePassword, newSalesConsultant, STAFF_NAME } from './support/backend'
 import { failOnCspViolations, signIn } from './support/pages'
 
 // The fields of SCR-AUT-01 and SCR-ACC-01 in the states the theme tokens of :root draw: at rest (--input), focused
@@ -60,7 +60,7 @@ test('the account fields, focused and in error', async ({ page }) => {
   await expect(page).toHaveURL('/admin/account')
 
   const name = page.getByLabel('Tên hiển thị')
-  await expect(name).toHaveValue(/^E2E /)
+  await expect(name).toHaveValue(STAFF_NAME)
   await name.focus()
   await expect(name).toBeFocused()
   await expectBorder(name, 'ring')

@@ -46,10 +46,12 @@ public static class DependencyInjection
         services.AddOptions<AuthProviderOptions>().BindConfiguration(AuthProviderOptions.SectionName);
         services.AddSingleton<IAuthProvider, FirebaseAuthProvider>();
         services.AddValidatorsFromAssemblyContaining<StaffService>();
+        services.AddOptions<StaffIdentityOptions>().BindConfiguration(StaffIdentityOptions.SectionName);
 
         services.AddScoped<UserAccessReader>();
         services.AddScoped<SignInService>();
         services.AddScoped<CurrentUserService>();
+        services.AddScoped<StaffIdentityIssuer>();
         services.AddScoped<StaffService>();
         services.AddScoped<StaffStatusService>();
         services.AddScoped<StaffBootstrapService>();
