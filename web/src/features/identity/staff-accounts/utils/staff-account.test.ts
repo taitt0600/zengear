@@ -27,11 +27,11 @@ describe('calendarDate and calendarDay', () => {
 describe('headline', () => {
   it.each([
     [
-      { email: 'manager.fixture@zengear.test', employeeCode: 'FX0001' },
-      'manager.fixture@zengear.test · FX0001',
+      { email: 'haltzg260002@zengear.test', employeeCode: 'ZG260002' },
+      'haltzg260002@zengear.test · ZG260002',
     ],
-    [{ email: 'owner@zengear.test', employeeCode: null }, 'owner@zengear.test'],
-    [{ email: null, employeeCode: 'NV0012' }, 'NV0012'],
+    [{ email: 'khoatmzg260001@zengear.test', employeeCode: null }, 'khoatmzg260001@zengear.test'],
+    [{ email: null, employeeCode: 'ZG260012' }, 'ZG260012'],
     [{ email: null, employeeCode: null }, ''],
   ])('%o gives %s', (account, text) => {
     expect(headline(account)).toBe(text)

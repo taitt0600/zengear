@@ -13,12 +13,13 @@ import { StaffAccountStatusSection } from './staff-account-status-section'
 // page composes it. Each test file mocks `@/lib/api/api`, `@/lib/auth/session` and `sonner` itself (vi.mock is hoisted
 // per file).
 
-/** The Store Manager of the fixtures, active, whose default password is changed. */
+/** The Store Manager of the sample cast (DEC-146), active, whose default password is changed. */
 export const manager: StaffDto = {
   id: '0199a0f3-0000-7000-8000-000000000002',
-  name: 'Quản lý (fixture)',
-  email: 'manager.fixture@zengear.test',
-  employeeCode: 'FX0001',
+  name: 'Lê Thu Hà',
+  email: 'haltzg260002@zengear.test',
+  username: 'HaLTZG260002',
+  employeeCode: 'ZG260002',
   joinedDate: '2026-10-01',
   leftDate: null,
   workPhone: null,
@@ -31,8 +32,8 @@ export const manager: StaffDto = {
 export const ADMIN_ID = '0199a0f3-0000-7000-8000-000000000001'
 const admin = (permissions: string[]): CurrentUser => ({
   id: ADMIN_ID,
-  name: 'Chủ cửa hàng',
-  email: 'owner@zengear.test',
+  name: 'Trần Minh Khoa',
+  email: 'khoatmzg260001@zengear.test',
   isStaff: true,
   mustChangePassword: false,
   permissions,

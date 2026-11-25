@@ -5,8 +5,8 @@ import { firebaseError, landingPath, meOutcome, sessionOutcome } from './me-outc
 
 const staff: CurrentUser = {
   id: '0199a0f3-0000-7000-8000-000000000001',
-  name: 'Chủ cửa hàng',
-  email: 'owner@zengear.test',
+  name: 'Trần Minh Khoa',
+  email: 'khoatmzg260001@zengear.test',
   isStaff: true,
   mustChangePassword: false,
   permissions: ['business_location.update', 'staff.read'],

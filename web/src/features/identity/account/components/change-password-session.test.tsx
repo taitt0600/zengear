@@ -48,7 +48,7 @@ const consultant: CurrentUser = {
 }
 const manager: CurrentUser = {
   ...consultant,
-  name: 'Quản lý (fixture)',
+  name: 'Lê Thu Hà',
   mustChangePassword: false,
   permissions: ['staff.read'],
 }

@@ -6,8 +6,8 @@ vi.mock('@/lib/api/api', () => mutator)
 
 const me = {
   id: '0199a0f3-0000-7000-8000-000000000001',
-  name: 'Chủ cửa hàng',
-  email: 'owner@zengear.test',
+  name: 'Trần Minh Khoa',
+  email: 'khoatmzg260001@zengear.test',
   isStaff: true,
   mustChangePassword: false,
   permissions: ['staff.read'],

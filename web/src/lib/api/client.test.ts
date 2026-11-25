@@ -5,8 +5,8 @@ import { ApiError } from './problems'
 
 const me = {
   id: '0199a0f3-0000-7000-8000-000000000001',
-  name: 'Chủ cửa hàng',
-  email: 'owner@zengear.test',
+  name: 'Trần Minh Khoa',
+  email: 'khoatmzg260001@zengear.test',
   isStaff: true,
   mustChangePassword: false,
   permissions: ['staff.read'],
@@ -68,13 +68,13 @@ describe('createApiFetch', () => {
     await apiFetch('/api/v1/admin/me', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', 'If-Match': 'W/"42"' },
-      body: JSON.stringify({ name: 'Chủ cửa hàng' }),
+      body: JSON.stringify({ name: 'Trần Minh Khoa' }),
     })
 
     const { init, headers } = sent(fetch)
     expect(headers.get('If-Match')).toBe('W/"42"')
     expect(headers.get('Authorization')).toBe('Bearer id-token')
-    expect(init.body).toBe('{"name":"Chủ cửa hàng"}')
+    expect(init.body).toBe('{"name":"Trần Minh Khoa"}')
   })
 
   it('passes the abort signal of the query to fetch', async () => {
