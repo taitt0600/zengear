@@ -384,6 +384,37 @@ namespace ZenGear.Data.Migrations
                     b.ToTable("wards", (string)null);
                 });
 
+            modelBuilder.Entity("ZenGear.Data.Entities.Identity.EmployeeCodeSequence", b =>
+                {
+                    b.Property<short>("Year")
+                        .HasColumnType("smallint")
+                        .HasColumnName("year");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<int>("LastValue")
+                        .HasColumnType("integer")
+                        .HasColumnName("last_value");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.HasKey("Year")
+                        .HasName("pk_employee_code_sequences");
+
+                    b.ToTable("employee_code_sequences", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_employee_code_sequences_last_value", "last_value between 1 and 9999");
+                        });
+                });
+
             modelBuilder.Entity("ZenGear.Data.Entities.Identity.Permission", b =>
                 {
                     b.Property<Guid>("Id")
@@ -568,7 +599,8 @@ namespace ZenGear.Data.Migrations
                         .HasDefaultValueSql("now()");
 
                     b.Property<string>("EmployeeCode")
-                        .HasColumnType("varchar")
+                        .HasMaxLength(8)
+                        .HasColumnType("character varying(8)")
                         .HasColumnName("employee_code");
 
                     b.Property<DateOnly?>("JoinedDate")
@@ -595,6 +627,12 @@ namespace ZenGear.Data.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("updated_by");
 
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("username");
+
                     b.Property<string>("WorkPhone")
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)")
@@ -609,6 +647,8 @@ namespace ZenGear.Data.Migrations
 
                     b.ToTable("staff_profiles", null, t =>
                         {
+                            t.HasCheckConstraint("ck_staff_profiles_employee_code", "employee_code ~ '^ZG[0-9]{6}$'");
+
                             t.HasCheckConstraint("ck_staff_profiles_left_date", "left_date is null or joined_date is null or left_date >= joined_date");
                         });
                 });

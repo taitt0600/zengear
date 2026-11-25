@@ -10,7 +10,7 @@ BEGIN;
 DROP VIEW IF EXISTS product_with_effective_price;
 DROP TABLE IF EXISTS
   users, customer_profiles, staff_profiles, roles, permissions, user_roles, role_permissions, role_manageable_roles,
-  departments, positions, staff_assignments,
+  employee_code_sequences, departments, positions, staff_assignments,
   countries, provinces, wards, addresses,
   tax_classes, tax_rates,
   categories, brands, product_series, products, product_skus, product_images, product_badges, product_badge_assignments, product_tags, pc_build_components,
@@ -71,7 +71,7 @@ CREATE TABLE customer_profiles (
 
 CREATE TABLE staff_profiles (
   user_id              uuid        NOT NULL,
-  employee_code        varchar,
+  employee_code        varchar(8),
   joined_date          date,
   work_phone           varchar(20),
   left_date            date,
@@ -79,11 +79,14 @@ CREATE TABLE staff_profiles (
   created_at           timestamptz NOT NULL DEFAULT now(),
   updated_by           uuid,
   updated_at           timestamptz NOT NULL DEFAULT now(),
+  username             varchar(64) NOT NULL,
   CONSTRAINT pk_staff_profiles PRIMARY KEY (user_id),
   CONSTRAINT fk_staff_profiles_users_user_id FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
-  CONSTRAINT ck_staff_profiles_left_date CHECK (left_date is null or joined_date is null or left_date >= joined_date)
+  CONSTRAINT ck_staff_profiles_left_date CHECK (left_date is null or joined_date is null or left_date >= joined_date),
+  CONSTRAINT ck_staff_profiles_employee_code CHECK (employee_code ~ '^ZG[0-9]{6}$')
 );
 CREATE UNIQUE INDEX ix_staff_profiles_employee_code ON staff_profiles (employee_code);
+CREATE UNIQUE INDEX ix_staff_profiles_username ON staff_profiles (lower(username));
 
 CREATE TABLE roles (
   id             uuid        NOT NULL DEFAULT uuidv7(),
@@ -171,6 +174,17 @@ CREATE TABLE role_manageable_roles (
   CONSTRAINT fk_role_manageable_roles_roles_managed_role_id FOREIGN KEY (managed_role_id) REFERENCES roles (id) ON DELETE CASCADE
 );
 CREATE INDEX ix_role_manageable_roles_managed_role_id ON role_manageable_roles (managed_role_id);
+
+-- Yearly counter of employee codes (R-USR-24): the last number issued for a joined year, taken with
+-- INSERT ... ON CONFLICT (year) DO UPDATE ... RETURNING inside the transaction that creates the account.
+CREATE TABLE employee_code_sequences (
+  year       smallint    NOT NULL,
+  last_value integer     NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT pk_employee_code_sequences PRIMARY KEY (year),
+  CONSTRAINT ck_employee_code_sequences_last_value CHECK (last_value between 1 and 9999)
+);
 
 CREATE TABLE departments (
   id         uuid        NOT NULL DEFAULT uuidv7(),

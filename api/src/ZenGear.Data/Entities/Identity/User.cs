@@ -84,7 +84,7 @@ public class User : IAggregateRoot
             UpdatedBy = createdBy,
             UpdatedAt = now,
         };
-        user.StaffProfile = new StaffProfile(account.EmployeeCode, account.JoinedDate, account.WorkPhone,
+        user.StaffProfile = new StaffProfile(account.EmployeeCode, account.Username, account.JoinedDate, account.WorkPhone,
             account.MustChangePassword, createdBy, now);
         foreach (var role in roles.DistinctBy(r => r.Id))
         {
