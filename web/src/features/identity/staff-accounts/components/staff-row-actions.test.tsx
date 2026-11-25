@@ -27,7 +27,7 @@ const seller: StaffListItemDto = {
   id: '0199a0f3-0000-7000-8000-000000000003',
   name: 'Bán hàng',
   email: 'seller@zengear.test',
-  employeeCode: 'NV0003',
+  employeeCode: 'ZG260003',
   joinedDate: '2026-10-15',
   leftDate: null,
   status: 'ACTIVE',
@@ -80,7 +80,7 @@ describe('the menu of a row', () => {
   it('offers no command on the user own account (R-USR-12)', async () => {
     render(ALL, owner.id)
 
-    expect(await openMenu('Chủ cửa hàng')).toEqual(['Xem chi tiết'])
+    expect(await openMenu('Trần Minh Khoa')).toEqual(['Xem chi tiết'])
   })
 
   it('offers to lock an active account and to restore or lock again a disabled one', async () => {
@@ -88,11 +88,7 @@ describe('the menu of a row', () => {
 
     expect(await openMenu('Bán hàng')).toEqual(['Xem chi tiết', 'Khóa tài khoản'])
     await userEvent.keyboard('{Escape}')
-    expect(await openMenu('Quản lý (fixture)')).toEqual([
-      'Xem chi tiết',
-      'Khôi phục tài khoản',
-      'Khóa lại',
-    ])
+    expect(await openMenu('Lê Thu Hà')).toEqual(['Xem chi tiết', 'Khôi phục tài khoản', 'Khóa lại'])
   })
 })
 
@@ -116,7 +112,7 @@ describe('the commands of a row', () => {
 
   it('opens "Khóa lại" ticked with the left date of the row', async () => {
     render()
-    await openMenu('Quản lý (fixture)')
+    await openMenu('Lê Thu Hà')
     await userEvent.click(screen.getByRole('menuitem', { name: 'Khóa lại' }))
 
     const dialog = screen.getByRole('dialog', { name: 'Khóa tài khoản' })
@@ -128,7 +124,7 @@ describe('the commands of a row', () => {
 
   it('restores the account after its confirmation, then loads the list again', async () => {
     render()
-    await openMenu('Quản lý (fixture)')
+    await openMenu('Lê Thu Hà')
     await userEvent.click(screen.getByRole('menuitem', { name: 'Khôi phục tài khoản' }))
     answer([owner, seller, { ...manager, status: 'ACTIVE' }], { ...manager, status: 'ACTIVE' })
 
@@ -148,7 +144,7 @@ describe('the commands of a row', () => {
   it('shows a 404 in a toast, closes and loads the list again', async () => {
     const detail = 'Không tìm thấy tài khoản nhân viên.'
     render()
-    await openMenu('Quản lý (fixture)')
+    await openMenu('Lê Thu Hà')
     await userEvent.click(screen.getByRole('menuitem', { name: 'Khôi phục tài khoản' }))
     answer([owner, seller], refused(404, { type: '/problems/not-found', detail }))
 
@@ -163,7 +159,7 @@ describe('the commands of a row', () => {
   it('shows a refusal in a toast and closes, without loading the list again (R-USR-12)', async () => {
     const detail = 'Chỉ người giữ vai trò Admin mới khôi phục được tài khoản Admin.'
     render()
-    await openMenu('Quản lý (fixture)')
+    await openMenu('Lê Thu Hà')
     await userEvent.click(screen.getByRole('menuitem', { name: 'Khôi phục tài khoản' }))
     answer(
       [owner, seller, manager],

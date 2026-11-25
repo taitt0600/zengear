@@ -75,10 +75,18 @@ describe('the sort of SCR-STF-01', () => {
 })
 
 describe('the search over the loaded rows', () => {
-  const row = { name: 'Nguyễn Văn An', employeeCode: 'NV0012', email: 'an@zengear.test' }
+  const row = {
+    name: 'Nguyễn Văn An',
+    employeeCode: 'ZG260012',
+    email: 'annvzg260012@zengear.test',
+  }
 
-  it.each(['nguyễn', 'VĂN AN', '  an  ', 'nv00', 'ZENGEAR.TEST'])('finds %j', (text) => {
+  it.each(['nguyễn', 'VĂN AN', '  an  ', 'zg26', 'ZENGEAR.TEST'])('finds %j', (text) => {
     expect(matchesSearch(row, text)).toBe(true)
+  })
+
+  it('finds the employee code alone, without the email that holds it (R-USR-24)', () => {
+    expect(matchesSearch({ ...row, email: null }, 'zg26')).toBe(true)
   })
 
   it('finds a name typed in decomposed Unicode', () => {
@@ -91,7 +99,7 @@ describe('the search over the loaded rows', () => {
 
   it('skips a row that matches nothing, and an empty code or email', () => {
     expect(matchesSearch(row, 'bình')).toBe(false)
-    expect(matchesSearch({ name: 'Chủ cửa hàng', employeeCode: null, email: null }, 'nv')).toBe(
+    expect(matchesSearch({ name: 'Trần Minh Khoa', employeeCode: null, email: null }, 'nv')).toBe(
       false,
     )
   })

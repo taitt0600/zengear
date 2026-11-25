@@ -34,7 +34,7 @@ const renderScreen = (permissions = ['staff.read', 'staff.create']) =>
 const table = () => screen.findByRole('region', { name: 'Bảng nhân viên' })
 // The list once loaded: the region also holds the skeleton rows while it loads.
 const loaded = async () => {
-  await screen.findByRole('link', { name: 'Chủ cửa hàng' })
+  await screen.findByRole('link', { name: 'Trần Minh Khoa' })
   return table()
 }
 const searchBox = () => screen.getByLabelText('Lọc theo tên, mã hoặc email')
@@ -53,7 +53,7 @@ describe('the staff list', () => {
     const rows = within(await loaded()).getAllByRole('row')
     expect(rows).toHaveLength(3)
     const [, ownerCells, managerCells] = rows.map((row) => within(row).queryAllByRole('cell'))
-    expect(within(rows[1]).getByRole('link', { name: 'Chủ cửa hàng' })).toHaveAttribute(
+    expect(within(rows[1]).getByRole('link', { name: 'Trần Minh Khoa' })).toHaveAttribute(
       'href',
       `/admin/staff/${owner.id}`,
     )
@@ -62,7 +62,7 @@ describe('the staff list', () => {
     expect(ownerCells[0]).toHaveTextContent(/^1$/)
     expect(managerCells[0]).toHaveTextContent(/^2$/)
     expect(ownerCells[2]).toHaveTextContent('—')
-    expect(ownerCells[3]).toHaveTextContent('owner@zengear.test')
+    expect(ownerCells[3]).toHaveTextContent('khoatmzg260001@zengear.test')
     expect(ownerCells[5]).toHaveTextContent('Đang hoạt động')
     expect(ownerCells[6]).toHaveTextContent('—')
     expect(ownerCells[7]).toHaveTextContent(/^$/)
@@ -72,7 +72,7 @@ describe('the staff list', () => {
     expect(managerCells[6]).toHaveTextContent('01/10/2026')
     expect(managerCells[7]).toHaveTextContent('01/11/2026')
     expect(
-      within(ownerCells[8]).getByRole('button', { name: 'Thao tác cho Chủ cửa hàng' }),
+      within(ownerCells[8]).getByRole('button', { name: 'Thao tác cho Trần Minh Khoa' }),
     ).toBeVisible()
     // The nine headers in order, by their names: "STT" shows, "Số thứ tự" is what a screen reader reads.
     const headers = [
@@ -114,7 +114,7 @@ describe('the staff list', () => {
     // The failure reaches the screen through the query cache's notifications, a task later.
     await act(() => new Promise((resolve) => setTimeout(resolve, 0)))
     expect(client.getQueryCache().getAll()[0].state.status).toBe('error')
-    expect(screen.getByRole('link', { name: 'Chủ cửa hàng' })).toBeVisible()
+    expect(screen.getByRole('link', { name: 'Trần Minh Khoa' })).toBeVisible()
     expect(screen.queryByRole('alert')).toBeNull()
   })
 
@@ -208,9 +208,9 @@ describe('the staff list', () => {
     renderScreen()
 
     await loaded()
-    await typing.type(searchBox(), 'fx00')
-    expect(screen.queryByRole('link', { name: 'Chủ cửa hàng' })).toBeNull()
-    expect(screen.getByRole('link', { name: 'Quản lý (fixture)' })).toBeVisible()
+    await typing.type(searchBox(), 'zg260002')
+    expect(screen.queryByRole('link', { name: 'Trần Minh Khoa' })).toBeNull()
+    expect(screen.getByRole('link', { name: 'Lê Thu Hà' })).toBeVisible()
     expect(api.fetch).toHaveBeenCalledTimes(1)
     expect(searchBox()).toHaveAttribute('placeholder', 'an@example.com')
     expect(searchBox()).toHaveAttribute('name', 'search')
@@ -230,10 +230,10 @@ describe('the staff list', () => {
       return within(row!).getAllByRole('cell')[0]
     }
     await loaded()
-    expect(number('Chủ cửa hàng')).toHaveTextContent(/^21$/)
-    expect(number('Quản lý (fixture)')).toHaveTextContent(/^22$/)
-    await typing.type(searchBox(), 'fx00')
-    expect(number('Quản lý (fixture)')).toHaveTextContent(/^22$/)
+    expect(number('Trần Minh Khoa')).toHaveTextContent(/^21$/)
+    expect(number('Lê Thu Hà')).toHaveTextContent(/^22$/)
+    await typing.type(searchBox(), 'zg260002')
+    expect(number('Lê Thu Hà')).toHaveTextContent(/^22$/)
   })
 
   it('keeps the hint of the search while the next page loads', async () => {
@@ -296,7 +296,7 @@ describe('the staff list', () => {
     await typing.click(screen.getByRole('button', { name: 'Xóa bộ lọc' }))
     expect(searchBox()).toHaveValue('')
     expect(navigation.router.push).not.toHaveBeenCalled()
-    expect(await screen.findByRole('link', { name: 'Chủ cửa hàng' })).toBeVisible()
+    expect(await screen.findByRole('link', { name: 'Trần Minh Khoa' })).toBeVisible()
   })
 
   it('says when no account has the status, and clears the filter', async () => {
@@ -387,7 +387,7 @@ describe('the staff list', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent(text)
     expect(searchBox()).toBeVisible()
     await clicks.click(screen.getByRole('button', { name: 'Thử lại' }))
-    expect(await screen.findByRole('link', { name: 'Chủ cửa hàng' })).toBeVisible()
+    expect(await screen.findByRole('link', { name: 'Trần Minh Khoa' })).toBeVisible()
     expect(api.fetch).toHaveBeenCalledTimes(2)
   })
 
@@ -397,7 +397,7 @@ describe('the staff list', () => {
 
     expect(await table()).toHaveAttribute('aria-busy', 'true')
     expect(screen.getByRole('columnheader', { name: 'Họ tên' })).toBeVisible()
-    expect(screen.queryByRole('link', { name: 'Chủ cửa hàng' })).toBeNull()
+    expect(screen.queryByRole('link', { name: 'Trần Minh Khoa' })).toBeNull()
     // One bar a column, the nine of the table.
     for (const row of within(await table())
       .getAllByRole('row')

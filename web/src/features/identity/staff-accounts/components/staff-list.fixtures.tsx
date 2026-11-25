@@ -14,8 +14,8 @@ import { StaffListTableSection } from './staff-list-table-section'
 /** The Admin of the seed, active. */
 export const owner: StaffListItemDto = {
   id: '0199a0f3-0000-7000-8000-000000000001',
-  name: 'Chủ cửa hàng',
-  email: 'owner@zengear.test',
+  name: 'Trần Minh Khoa',
+  email: 'khoatmzg260001@zengear.test',
   employeeCode: null,
   joinedDate: null,
   leftDate: null,
@@ -26,9 +26,9 @@ export const owner: StaffListItemDto = {
 /** The Store Manager of the fixtures, disabled with a last working day. */
 export const manager: StaffListItemDto = {
   id: '0199a0f3-0000-7000-8000-000000000002',
-  name: 'Quản lý (fixture)',
-  email: 'manager.fixture@zengear.test',
-  employeeCode: 'FX0001',
+  name: 'Lê Thu Hà',
+  email: 'haltzg260002@zengear.test',
+  employeeCode: 'ZG260002',
   joinedDate: '2026-10-01',
   leftDate: '2026-11-01',
   status: 'DISABLED',

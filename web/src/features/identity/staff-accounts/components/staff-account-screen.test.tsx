@@ -26,14 +26,12 @@ describe('the staff account page', () => {
   it('shows the person, their status and the details of the account', async () => {
     renderAccount()
 
-    expect(
-      await screen.findByRole('heading', { level: 1, name: 'Quản lý (fixture)' }),
-    ).toBeVisible()
-    expect(screen.getByText('manager.fixture@zengear.test · FX0001')).toBeVisible()
-    expect(screen.getByText('QF')).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { level: 1, name: 'Lê Thu Hà' })).toBeVisible()
+    expect(screen.getByText('haltzg260002@zengear.test · ZG260002')).toBeVisible()
+    expect(screen.getByText('LH')).toBeInTheDocument()
     const fields = within(details())
-    expect(fields.getByText('Email').nextSibling).toHaveTextContent('manager.fixture@zengear.test')
-    expect(fields.getByText('Mã nhân viên').nextSibling).toHaveTextContent('FX0001')
+    expect(fields.getByText('Email').nextSibling).toHaveTextContent('haltzg260002@zengear.test')
+    expect(fields.getByText('Mã nhân viên').nextSibling).toHaveTextContent('ZG260002')
     expect(fields.getByText('SĐT công việc').nextSibling).toHaveTextContent('—')
     expect(fields.getByText('Vai trò').nextSibling).toHaveTextContent('Store Manager')
     expect(fields.getByText('Ngày vào làm').nextSibling).toHaveTextContent('01/10/2026')
@@ -86,15 +84,13 @@ describe('the staff account page', () => {
       'Đã có lỗi xảy ra. Vui lòng thử lại.',
     )
     await userEvent.click(screen.getByRole('button', { name: 'Thử lại' }))
-    expect(
-      await screen.findByRole('heading', { level: 1, name: 'Quản lý (fixture)' }),
-    ).toBeVisible()
+    expect(await screen.findByRole('heading', { level: 1, name: 'Lê Thu Hà' })).toBeVisible()
   })
 
   it('offers no action without staff.disable', async () => {
     renderAccount(manager.id, ['staff.read'])
 
-    await screen.findByRole('heading', { level: 1, name: 'Quản lý (fixture)' })
+    await screen.findByRole('heading', { level: 1, name: 'Lê Thu Hà' })
     expect(within(status()).queryByRole('button')).not.toBeInTheDocument()
   })
 

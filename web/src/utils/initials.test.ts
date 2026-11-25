@@ -3,10 +3,10 @@ import { initials } from './initials'
 
 describe('initials', () => {
   it.each([
-    ['Chủ cửa hàng', 'CH'],
+    ['Trần Minh Khoa', 'TK'],
     ['Nguyễn Văn Đức', 'NĐ'],
     ['  lan  ', 'L'],
-    ['Quản lý (fixture)', 'QF'],
+    ['Lê Thu Hà', 'LH'],
     ['', ''],
   ])('%s gives %s', (name, letters) => {
     expect(initials(name)).toBe(letters)

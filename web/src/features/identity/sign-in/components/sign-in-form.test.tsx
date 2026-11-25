@@ -29,8 +29,8 @@ vi.mock('@/features/identity/access/api/me', () => ({
 
 const staff: CurrentUser = {
   id: '0199a0f3-0000-7000-8000-000000000001',
-  name: 'Quản lý (fixture)',
-  email: 'manager.fixture@zengear.test',
+  name: 'Lê Thu Hà',
+  email: 'haltzg260002@zengear.test',
   isStaff: true,
   mustChangePassword: false,
   permissions: ['staff.read'],

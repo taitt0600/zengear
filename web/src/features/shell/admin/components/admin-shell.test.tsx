@@ -36,13 +36,13 @@ vi.mock('@/features/identity/access/api/me', () => ({
 
 const admin: CurrentUser = {
   id: '0199a0f3-0000-7000-8000-000000000001',
-  name: 'Chủ cửa hàng',
-  email: 'owner@zengear.test',
+  name: 'Trần Minh Khoa',
+  email: 'khoatmzg260001@zengear.test',
   isStaff: true,
   mustChangePassword: false,
   permissions: ['business_location.update', 'staff.read'],
 }
-const manager: CurrentUser = { ...admin, name: 'Quản lý (fixture)', permissions: ['staff.read'] }
+const manager: CurrentUser = { ...admin, name: 'Lê Thu Hà', permissions: ['staff.read'] }
 const consultant: CurrentUser = { ...admin, name: 'Tư vấn bán hàng', permissions: [] }
 
 const problem = (status: number, name: string, detail?: string) =>
@@ -209,7 +209,7 @@ describe('the layout', () => {
     renderShell()
 
     expect(await screen.findByText('Nội dung trang')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /^Chủ cửa hàng/ })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^Trần Minh Khoa/ })).toBeInTheDocument()
     const menu = screen.getByRole('navigation', { name: 'Menu' })
     expect(within(menu).getByRole('link', { name: 'Nhân viên' })).toHaveAttribute(
       'aria-current',
@@ -242,7 +242,7 @@ describe('the layout', () => {
     renderShell()
     const user = userEvent.setup()
 
-    await user.click(await screen.findByRole('button', { name: /^Chủ cửa hàng/ }))
+    await user.click(await screen.findByRole('button', { name: /^Trần Minh Khoa/ }))
     await user.click(await screen.findByRole('menuitem', { name: 'Đăng xuất' }))
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Đã có lỗi xảy ra.')
@@ -253,7 +253,7 @@ describe('the layout', () => {
     renderShell()
     const user = userEvent.setup()
 
-    await user.click(await screen.findByRole('button', { name: /^Chủ cửa hàng/ }))
+    await user.click(await screen.findByRole('button', { name: /^Trần Minh Khoa/ }))
     expect(await screen.findByRole('menuitem', { name: 'Tài khoản của tôi' })).toHaveAttribute(
       'href',
       '/admin/account',
