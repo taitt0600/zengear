@@ -78,14 +78,11 @@ gap is built once the gap is closed. A closed gap keeps its number, since other 
     notice, the creator in the confirmations, and the buttons only where the caller may approve. Settled by DEC-138
     (the account of `GET /api/v1/admin/staff/{id}` carries the same three fields by the rule of DEC-137 (1), as a
     criterion of STF-09); closes when STF-09 merges.
-15. **Generated staff identifiers.** `POST /api/v1/admin/staff` still takes `employeeCode` and `email` typed by the
-    creator, no account has a username, and sign-in takes an email only, while DEC-145 has the system generate the
-    employee code, the username and the company email (R-USR-24) and lets staff sign in with either (AUT-01). The
-    Layouts follow DEC-145 since #318 (SCR-STF-02: no field for the code or the email, the generated identity in
-    the toasts) and #319 (SCR-AUT-01: the field "Tên đăng nhập hoặc email" and the error "Tên đăng nhập, email hoặc
-    mật khẩu không đúng."), so both screens wait for this gap: the page `web/` has for SCR-AUT-01 keeps the old
-    field until then. Settled by DEC-145; closes when the pull request that builds R-USR-24 in STF-01 (#246) merges;
-    the new Layouts are built after it, SCR-AUT-01 by a `feat(web): … (AUT-01)` pull request (issue #320).
+15. **Generated staff identifiers** — closed. `POST /api/v1/admin/staff` takes no `employeeCode` or `email`: the API
+    generates the employee code, the username and the company email from the name and the joined date (R-USR-24,
+    DEC-145) and answers them with `username` in the account (STF-01, issue #246); the bootstrap Admin gets them too
+    (DEC-156). The Layouts of #318 (SCR-STF-02) and #319 (SCR-AUT-01) follow it and are built by their web runs:
+    SCR-STF-02 by the web-only run of STF-01, SCR-AUT-01 by a `feat(web): … (AUT-01)` pull request (issue #320).
 16. **Withdrawing several PENDING accounts at once.** STF-09 withdraws one account per request
     (`POST /api/v1/admin/staff/{id}/withdraw`, DEC-140 (1)); no endpoint takes several, while a creator who entered
     several accounts wrong withdraws them one by one. The Layout of SCR-STF-01 draws the checkbox on the creator's

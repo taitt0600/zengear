@@ -10,8 +10,8 @@ A holder of `staff.create` (the Admin, and by default the Store Manager and the 
 | Vai trò | `roleIds` | at least one, at most 20; multi-select of the roles of `GET /api/v1/admin/staff/assignable-roles` (gap 2), the caller's manageable set (R-SEC-12): the web never checks a role name (R-SEC-03), and the API refuses a role outside that set (R-TX-11, R-SEC-12, row below) |
 
 No field takes the employee code, the username or the company email: the API generates them from Họ tên and Ngày
-vào làm when it creates the account (R-USR-24, DEC-145 (1)), and the web never computes them (gap 15 until the
-pull request of R-USR-24 merges: the API still takes `employeeCode` and `email`).
+vào làm when it creates the account (R-USR-24, DEC-145 (1)) and answers them, `username` included, and the web
+never computes them.
 
 1. "Tạo tài khoản" sends `POST /api/v1/admin/staff`.
 2. 201 opens SCR-STF-03 of the new account with "Đã tạo tài khoản {name}." and "Tên đăng nhập {username}, mã
@@ -72,9 +72,9 @@ form takes only the staff profile and the sign-in account, collecting no persona
   - STF-09 (its web part, with its parts of SCR-STF-01 and SCR-STF-03): the notice and the toast of a PENDING account;
     `staff.approve` and the status `PENDING` are not in the API yet (`UserStatus` has `ACTIVE`, `DISABLED`,
     `ANONYMIZED`). Whichever of the two runs comes second adds its part to the page as it is then.
-  - The change of #318 needs the API of R-USR-24 (issue #246: no `employeeCode` or `email` in the request,
-    `username` in the answer), so the screen is blocked by gap 15 (`docs/screens/README.md`) until that pull request
-    merges; the web-only run of STF-01 builds the page after it, never with the two fields of the old Layout.
+  - The change of #318 needed the API of R-USR-24 (issue #246: no `employeeCode` or `email` in the request,
+    `username` in the answer), which gap 15 held until that pull request merged; the web-only run of STF-01 builds
+    the page on it, never with the two fields of the old Layout.
 - **Artboards**, desktop 1440 px unless named: the form signed in as the fixture admin (every assignable role, today in
   Ngày vào làm); the form signed in as the fixture IT Support, filled with Võ Thị Lan of the cast of DEC-146
   (0900000006, Cashier ticked), with the notice and the date picker open, its month and year dropdowns and the
