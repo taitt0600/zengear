@@ -52,7 +52,7 @@ export const refused = (status: number, problem?: Partial<Problem>) =>
   new ApiError(status, problem ? { status, ...problem } : undefined)
 
 /** The query of the count of accounts waiting (STF-09), which the status links and the menu send on their own. */
-export const PENDING_COUNT = '/api/v1/admin/staff?status=PENDING&pageSize=1'
+const PENDING_COUNT = '/api/v1/admin/staff?status=PENDING&pageSize=1'
 
 /** The calls of the screen under test, the count's left out (its own tests count it). */
 const screenCalls = (fetch: ReturnType<typeof vi.fn>) =>
