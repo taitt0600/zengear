@@ -1,7 +1,6 @@
 using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 using Npgsql;
 using ZenGear.Data;
@@ -15,13 +14,15 @@ using ZenGear.Services.Identity.Permissions;
 namespace ZenGear.Services.Identity.StaffAccounts;
 
 /// <summary>
-/// Staff accounts, for the staff screens (STF-01, STF-05); the one projection of <see cref="StaffDto"/> and of
-/// <see cref="StaffListItemDto"/>.
+/// Staff accounts, for the staff screens (STF-01, STF-05, STF-09); <see cref="StaffDto"/> and
+/// <see cref="StaffListItemDto"/> come from the one projection of <see cref="StaffViewQuery"/>.
 /// </summary>
 public sealed class StaffService(
     ZenGearDbContext db,
     IAuthProvider auth,
     StaffIdentityIssuer identities,
+    StaffAuthCompensation compensation,
+    StaffViewQuery view,
     IValidator<StaffCreateRequest> validator,
     IValidator<StaffListRequest> listValidator,
     IValidator<PageRequest> pageValidator,
@@ -29,18 +30,26 @@ public sealed class StaffService(
     ILogger<StaffService> logger)
 {
     /// <summary>
-    /// Creates a staff account with the default password, its generated identifiers (R-USR-24) and its roles (UC-005).
-    /// Every rule is checked before the employee code is taken and before the Firebase account is created, so a refused
-    /// request creates nothing and takes no number. The code is taken in the transaction that stores the account; once
-    /// the Firebase account exists the request token is no longer used, so a client that disconnects cannot leave an
-    /// account without its user row.
+    /// Creates a staff account with its generated identifiers (R-USR-24) and its roles (UC-005). A creator holding
+    /// <c>staff.approve</c> gets an ACTIVE account with the default password; anyone else a PENDING account with no
+    /// Firebase account, which another person approves (R-USR-17, DEC-128 (3)). Every rule is checked before the
+    /// employee code is taken and before the Firebase account is created, so a refused request creates nothing and
+    /// takes no number. The code is taken in the transaction that stores the account; once the Firebase account exists
+    /// the request token is no longer used, so a client that disconnects cannot leave an account without its user row.
     /// </summary>
     /// <param name="actorId">The signed-in staff member creating the account.</param>
-    public async Task<StaffDto> CreateAsync(StaffCreateRequest request, Guid actorId, CancellationToken cancellationToken)
+    /// <param name="permissionKeys">The keys the actor's roles grant, as authorization read them for this request.</param>
+    public async Task<StaffDto> CreateAsync(StaffCreateRequest request, Guid actorId, IEnumerable<string> permissionKeys,
+        CancellationToken cancellationToken)
     {
         await validator.ValidateAndThrowAsync(request, cancellationToken);
 
+        var viewer = StaffViewer.Of(actorId, permissionKeys);
         var roles = await AssignableRolesAsync(request.RoleIds ?? [], actorId, cancellationToken);
+        if (!viewer.MayApprove)
+        {
+            return await CreatePendingAsync(request, roles, viewer, cancellationToken);
+        }
 
         Guid userId;
         await using (var transaction = await db.Database.BeginTransactionAsync(cancellationToken))
@@ -71,8 +80,8 @@ public sealed class StaffService(
                 // same abbreviation: it is found by its email and deleted. This runs before the rollback, while this
                 // transaction still locks the number, so no other request can hold this email yet (it was free just
                 // above); no statement failed, so the transaction can still query.
-                await DeleteUnlinkedAccountOfEmailAsync(identity.Email);
-                await RollbackQuietlyAsync(transaction);
+                await compensation.DeleteUnlinkedAccountOfEmailAsync(identity.Email);
+                await compensation.RollbackQuietlyAsync(transaction);
                 throw;
             }
 
@@ -94,8 +103,8 @@ public sealed class StaffService(
             catch (Exception ex)
             {
                 db.ChangeTracker.Clear();
-                await RollbackQuietlyAsync(transaction);
-                await DeleteUnlinkedAccountAsync(account.Uid);
+                await compensation.RollbackQuietlyAsync(transaction);
+                await compensation.DeleteUnlinkedAccountAsync(account.Uid);
                 if (Translated(ex) is { } refusal)
                 {
                     throw refusal;
@@ -109,36 +118,36 @@ public sealed class StaffService(
 
         logger.LogInformation("Staff account {UserId} created by {ActorId} with roles {RoleIds}", userId, actorId,
             roles.Select(r => r.Id).ToList());
-        return (await GetAsync(userId, CancellationToken.None))!;
+        return (await GetAsync(userId, viewer, CancellationToken.None))!;
     }
 
-    /// <summary>The staff account <paramref name="id"/>; null when there is no user with a staff profile of that id.</summary>
-    public Task<StaffDto?> GetAsync(Guid id, CancellationToken cancellationToken) =>
-        db.Users
-            .AsNoTracking()
-            .Where(u => u.Id == id && u.StaffProfile != null)
-            .Select(u => new StaffDto(
-                u.Id,
-                u.Name,
-                u.Email,
-                u.StaffProfile!.Username,
-                u.StaffProfile.EmployeeCode,
-                u.StaffProfile.JoinedDate,
-                u.StaffProfile.LeftDate,
-                u.StaffProfile.WorkPhone,
-                u.Status,
-                u.StaffProfile.MustChangePassword,
-                db.Roles
-                    .Where(r => u.UserRoles.Any(ur => ur.RoleId == r.Id))
-                    .OrderBy(r => r.Name)
-                    .Select(r => new StaffRoleDto(r.Id, r.Name))
-                    .ToList()))
-            .SingleOrDefaultAsync(cancellationToken);
+    /// <summary>
+    /// The staff account <paramref name="id"/> as <paramref name="actorId"/> sees it (its PENDING flags, DEC-138); null
+    /// when there is no user with a staff profile of that id.
+    /// </summary>
+    /// <param name="permissionKeys">The keys the actor's roles grant, as authorization read them for this request.</param>
+    public Task<StaffDto?> GetAsync(Guid id, Guid actorId, IEnumerable<string> permissionKeys,
+        CancellationToken cancellationToken) =>
+        GetAsync(id, StaffViewer.Of(actorId, permissionKeys), cancellationToken);
 
-    /// <summary>One page of the staff accounts (R-USR-13).</summary>
-    public async Task<PagedDto<StaffListItemDto>> ListAsync(StaffListRequest request, CancellationToken cancellationToken)
+    /// <summary>As the public overload, for the services of this module that already hold the viewer.</summary>
+    internal async Task<StaffDto?> GetAsync(Guid id, StaffViewer viewer, CancellationToken cancellationToken)
+    {
+        var staff = db.Users.AsNoTracking().Where(u => u.Id == id && u.StaffProfile != null);
+        return await view.Project(staff, viewer, await ManageableOfViewerAsync(viewer, cancellationToken))
+            .Select(r => new StaffDto(r.Id, r.Name, r.Email, r.Username, r.EmployeeCode, r.JoinedDate, r.LeftDate,
+                r.WorkPhone, r.Status, r.MustChangePassword, r.Roles, r.CanApprove, r.CanWithdraw, r.CreatedBy,
+                r.CreatedAt, r.Version))
+            .SingleOrDefaultAsync(cancellationToken);
+    }
+
+    /// <summary>One page of the staff accounts (R-USR-13), with the PENDING flags for <paramref name="actorId"/> (DEC-137 (1)).</summary>
+    /// <param name="permissionKeys">The keys the actor's roles grant, as authorization read them for this request.</param>
+    public async Task<PagedDto<StaffListItemDto>> ListAsync(StaffListRequest request, Guid actorId,
+        IEnumerable<string> permissionKeys, CancellationToken cancellationToken)
     {
         await listValidator.ValidateAndThrowAsync(request, cancellationToken);
+        var viewer = StaffViewer.Of(actorId, permissionKeys);
 
         var staff = db.Users.AsNoTracking().Where(u => u.StaffProfile != null && u.Status != UserStatus.Anonymized);
         if (request.Status is { } status)
@@ -152,23 +161,50 @@ public sealed class StaffService(
             staff = staff.Where(u => u.UserRoles.Any(ur => ur.RoleId == roleId));
         }
 
-        var rows = Sorted(staff, request.Sort)
-            .Select(u => new StaffListItemDto(
-                u.Id,
-                u.Name,
-                u.Email,
-                u.StaffProfile!.EmployeeCode,
-                u.StaffProfile.JoinedDate,
-                u.StaffProfile.LeftDate,
-                u.Status,
-                db.Roles
-                    .Where(r => u.UserRoles.Any(ur => ur.RoleId == r.Id))
-                    .OrderBy(r => r.Name)
-                    .Select(r => new StaffRoleDto(r.Id, r.Name))
-                    .ToList()));
+        var rows = view.Project(Sorted(staff, request.Sort), viewer, await ManageableOfViewerAsync(viewer, cancellationToken))
+            .Select(r => new StaffListItemDto(r.Id, r.Name, r.Email, r.EmployeeCode, r.JoinedDate, r.LeftDate, r.Status,
+                r.Roles, r.CanApprove, r.CanWithdraw, r.CreatedBy, r.CreatedAt, r.Version));
 
         return await PagedQuery.ToPagedDtoAsync(rows, new PageRequest(request.Page, request.PageSize), cancellationToken);
     }
+
+    /// <summary>
+    /// A PENDING account (R-USR-17): its identifiers are issued and stored in one transaction, and no Firebase account is
+    /// created until it is approved (DEC-128 (3)), so a failure here leaves nothing outside the database. The unique
+    /// email keeps the address reserved meanwhile.
+    /// </summary>
+    private async Task<StaffDto> CreatePendingAsync(StaffCreateRequest request, List<Role> roles, StaffViewer viewer,
+        CancellationToken cancellationToken)
+    {
+        User user;
+        await using (var transaction = await db.Database.BeginTransactionAsync(cancellationToken))
+        {
+            var identity = await identities.IssueAsync(request.Name ?? "", request.JoinedDate, cancellationToken);
+            user = User.CreatePendingStaff(
+                new StaffAccountData(null, request.Name ?? "", identity.Email, identity.EmployeeCode, identity.Username,
+                    request.JoinedDate, request.WorkPhone, MustChangePassword: true),
+                roles, viewer.Id, clock.UtcNow);
+            db.Users.Add(user);
+            try
+            {
+                await db.SaveChangesAsync(cancellationToken);
+                await transaction.CommitAsync(cancellationToken);
+            }
+            catch (Exception ex) when (Translated(ex) is not null)
+            {
+                db.ChangeTracker.Clear();
+                throw Translated(ex)!;
+            }
+        }
+
+        logger.LogInformation("Staff account {UserId} created PENDING by {ActorId} with roles {RoleIds}", user.Id, viewer.Id,
+            roles.Select(r => r.Id).ToList());
+        return (await GetAsync(user.Id, viewer, CancellationToken.None))!;
+    }
+
+    /// <summary>The viewer's manageable set when it may approve at all; otherwise no row can be approved (R-USR-17).</summary>
+    private async Task<ManageableRoleSet?> ManageableOfViewerAsync(StaffViewer viewer, CancellationToken cancellationToken) =>
+        viewer.MayApprove ? await ManageableRolesOfAsync(viewer.Id, cancellationToken) : null;
 
     /// <summary>
     /// The roles whose staff accounts <paramref name="actorId"/> may create, disable and restore (R-SEC-12): every role
@@ -276,66 +312,6 @@ public sealed class StaffService(
         }
 
         return roles;
-    }
-
-    /// <summary>
-    /// Rolls back after a failed save so that the compensation can query again (PostgreSQL refuses every statement in
-    /// an aborted transaction). A rollback that fails (a broken connection) is logged and never replaces the original
-    /// error nor skips the compensation; the server ends the transaction with the connection.
-    /// </summary>
-    private async Task RollbackQuietlyAsync(IDbContextTransaction transaction)
-    {
-        try
-        {
-            await transaction.RollbackAsync(CancellationToken.None);
-        }
-        catch (Exception ex)
-        {
-            logger.LogWarning(ex, "Rollback of a failed staff creation failed");
-        }
-    }
-
-    /// <summary>
-    /// Compensation after a failed Firebase create: deletes the account Firebase may have created on
-    /// <paramref name="email"/> unless a user row holds it. Best effort, as <see cref="DeleteUnlinkedAccountAsync"/>; a
-    /// failure of the lookup is logged without the email (personal data, R-SEC-11).
-    /// </summary>
-    private async Task DeleteUnlinkedAccountOfEmailAsync(string email)
-    {
-        AuthAccount? left;
-        try
-        {
-            left = await auth.FindByEmailAsync(email, CancellationToken.None);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Firebase account of a failed staff creation could not be looked up: check the Firebase console");
-            return;
-        }
-
-        if (left is not null)
-        {
-            await DeleteUnlinkedAccountAsync(left.Uid);
-        }
-    }
-
-    /// <summary>
-    /// Compensation: deletes the Firebase account created by this request unless a user row holds it. Best effort; a
-    /// failure is logged with the uid only and the original error is kept.
-    /// </summary>
-    private async Task DeleteUnlinkedAccountAsync(string uid)
-    {
-        try
-        {
-            if (!await db.Users.AnyAsync(u => u.FirebaseUid == uid, CancellationToken.None))
-            {
-                await auth.DeleteAsync(uid, CancellationToken.None);
-            }
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Firebase account {FirebaseUid} left without a user row: delete it in the Firebase console", uid);
-        }
     }
 
     /// <summary>A role id that names no role (400); the id is never written back.</summary>

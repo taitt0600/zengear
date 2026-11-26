@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using ZenGear.Api.Attributes;
 using ZenGear.Api.Constants;
 using ZenGear.Api.ExceptionHandling;
+using ZenGear.Api.Extensions;
 using ZenGear.Services.Identity.Permissions;
 using ZenGear.Services.Identity.StaffAccounts;
 
@@ -26,7 +27,7 @@ public sealed class StaffStatusController(StaffStatusService staffStatus) : Cont
     /// <c>/problems/admin-account-not-lockable</c> (R-TX-11), <c>/problems/account-out-of-scope</c> (R-SEC-12: a role
     /// of the account outside the caller's manageable set), <c>/problems/last-active-admin</c> (R-USR-12),
     /// <c>/problems/left-date-before-joined-date</c> (R-USR-07), <c>/problems/left-date-in-future</c> (R-USR-07),
-    /// <c>/problems/concurrency-conflict</c>.
+    /// <c>/problems/concurrency-conflict</c>, <c>/problems/account-pending</c> (R-USR-17: approve or reject it instead).
     /// </response>
     /// <response code="500">The account is disabled but its sessions were not revoked: repeat the request.</response>
     [HttpPost("{id:guid}/disable")]
@@ -42,15 +43,16 @@ public sealed class StaffStatusController(StaffStatusService staffStatus) : Cont
     public async Task<ActionResult<StaffDto>> Disable(Guid id,
         [FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Allow)] StaffDisableRequest? request,
         CancellationToken cancellationToken) =>
-        await staffStatus.DisableAsync(id, request ?? new StaffDisableRequest(null), User.GetUserId(), cancellationToken)
-            is { } disabled ? disabled : NotFound();
+        WithETag(await staffStatus.DisableAsync(id, request ?? new StaffDisableRequest(null), User.GetUserId(),
+            cancellationToken));
 
     /// <summary>Restores a DISABLED staff account to ACTIVE and clears its left date (R-USR-03).</summary>
     /// <response code="403"><c>/problems/permission-denied</c>: <c>staff.disable</c> missing.</response>
     /// <response code="404">No staff account with this id.</response>
     /// <response code="409">
     /// <c>/problems/account-anonymized</c> (R-USR-03), <c>/problems/admin-account-not-restorable</c> (R-USR-12),
-    /// <c>/problems/account-out-of-scope</c> (R-SEC-12), <c>/problems/concurrency-conflict</c>.
+    /// <c>/problems/account-out-of-scope</c> (R-SEC-12), <c>/problems/concurrency-conflict</c>,
+    /// <c>/problems/account-pending</c> (R-USR-17).
     /// </response>
     [HttpPost("{id:guid}/restore")]
     [RequirePermission(PermissionKeys.StaffDisable)]
@@ -60,5 +62,17 @@ public sealed class StaffStatusController(StaffStatusService staffStatus) : Cont
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound, "application/problem+json")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict, "application/problem+json")]
     public async Task<ActionResult<StaffDto>> Restore(Guid id, CancellationToken cancellationToken) =>
-        await staffStatus.RestoreAsync(id, User.GetUserId(), cancellationToken) is { } restored ? restored : NotFound();
+        WithETag(await staffStatus.RestoreAsync(id, User.GetUserId(), cancellationToken));
+
+    /// <summary>The account with its <c>ETag</c> (its version, DEC-140 (2)); 404 when there is none.</summary>
+    private ActionResult<StaffDto> WithETag(StaffDto? account)
+    {
+        if (account is null)
+        {
+            return NotFound();
+        }
+
+        Response.SetETag(account.Version);
+        return account;
+    }
 }

@@ -8,7 +8,7 @@ import type { GetApiV1AdminStaffSort } from './getApiV1AdminStaffSort';
 import type { GetApiV1AdminStaffStatus } from './getApiV1AdminStaffStatus';
 
 export type GetApiV1AdminStaffParams = {
-  /** ACTIVE or DISABLED; both when left out. */
+  /** ACTIVE, DISABLED or PENDING; all three when left out. */
   status?: GetApiV1AdminStaffStatus;
   /** Only staff holding this role; a role that does not exist gives an empty page. */
   roleId?: string;

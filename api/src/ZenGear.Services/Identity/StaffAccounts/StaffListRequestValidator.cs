@@ -19,11 +19,15 @@ public sealed class StaffListRequestValidator : AbstractValidator<StaffListReque
 
     public const string SortInvalid = "SORT_INVALID";
 
-    /// <summary>The stored values a list may filter on, and their status; ANONYMIZED accounts are never listed.</summary>
+    /// <summary>
+    /// The stored values a list may filter on, and their status; ANONYMIZED accounts are never listed. PENDING accounts
+    /// are listed and filtered too (R-USR-13, R-USR-17, DEC-128 (3)).
+    /// </summary>
     public static readonly FrozenDictionary<string, UserStatus> Statuses = new Dictionary<string, UserStatus>
     {
         ["ACTIVE"] = UserStatus.Active,
         ["DISABLED"] = UserStatus.Disabled,
+        ["PENDING"] = UserStatus.Pending,
     }.ToFrozenDictionary(StringComparer.Ordinal);
 
     public static readonly FrozenSet<string> Sorts = new[]

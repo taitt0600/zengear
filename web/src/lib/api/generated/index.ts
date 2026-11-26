@@ -6,4 +6,5 @@ export * from './permission/permission';
 export * from './product-series/product-series';
 export * from './role/role';
 export * from './staff/staff';
+export * from './staff-approval/staff-approval';
 export * from './staff-status/staff-status';

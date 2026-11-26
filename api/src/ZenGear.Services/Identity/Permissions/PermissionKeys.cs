@@ -15,6 +15,12 @@ public static class PermissionKeys
     /// <summary>Disable and restore a staff account (STF-02).</summary>
     public const string StaffDisable = "staff.disable";
 
+    /// <summary>
+    /// Approve or reject a staff account created by someone else (STF-09, R-USR-17, DEC-128 (1)); a holder creates
+    /// accounts ACTIVE at once.
+    /// </summary>
+    public const string StaffApprove = "staff.approve";
+
     /// <summary>Read the edit form of the business location and change it (LOC-01).</summary>
     public const string BusinessLocationUpdate = "business_location.update";
 

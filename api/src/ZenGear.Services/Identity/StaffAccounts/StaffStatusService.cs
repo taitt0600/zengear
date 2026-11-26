@@ -36,6 +36,7 @@ public sealed class StaffStatusService(
         }
 
         ThrowIfAnonymized(user);
+        ThrowIfPending(user);
 
         if (id == actorId)
         {
@@ -107,7 +108,7 @@ public sealed class StaffStatusService(
         }
 
         logger.LogInformation("Staff account {UserId} disabled by {ActorId}", id, actorId);
-        return await staff.GetAsync(id, CancellationToken.None);
+        return await staff.GetAsync(id, AfterStatusChange(actorId), CancellationToken.None);
     }
 
     /// <summary>
@@ -126,6 +127,7 @@ public sealed class StaffStatusService(
         }
 
         ThrowIfAnonymized(user);
+        ThrowIfPending(user);
 
         if (await staff.HoldsAdminRoleAsync(id, cancellationToken) && !await staff.HoldsAdminRoleAsync(actorId, cancellationToken))
         {
@@ -138,7 +140,22 @@ public sealed class StaffStatusService(
         await db.SaveChangesAsync(cancellationToken);
 
         logger.LogInformation("Staff account {UserId} restored by {ActorId}", id, actorId);
-        return await staff.GetAsync(id, CancellationToken.None);
+        return await staff.GetAsync(id, AfterStatusChange(actorId), CancellationToken.None);
+    }
+
+    /// <summary>
+    /// The viewer of the account returned after a disable or restore: never PENDING (R-USR-17 refuses both), so its
+    /// approval flags are null whatever the viewer's permissions.
+    /// </summary>
+    private static StaffViewer AfterStatusChange(Guid actorId) => new(actorId, MayApprove: false, MayCreate: false);
+
+    /// <summary>A PENDING account is approved, rejected or withdrawn, never disabled or restored (R-USR-17, DEC-128 (3)).</summary>
+    private static void ThrowIfPending(User user)
+    {
+        if (user.Status == UserStatus.Pending)
+        {
+            throw new BusinessRuleException("R-USR-17", "account-pending");
+        }
     }
 
     /// <summary>Every role of the account <paramref name="id"/> is in the actor's manageable set (R-SEC-12); 409 otherwise.</summary>

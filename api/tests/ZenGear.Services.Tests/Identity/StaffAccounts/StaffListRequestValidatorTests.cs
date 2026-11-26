@@ -21,7 +21,8 @@ public class StaffListRequestValidatorTests
 
     [TestCase("ACTIVE")]
     [TestCase("DISABLED")]
-    public void R_USR_13_accepts_ACTIVE_and_DISABLED(string status) =>
+    [TestCase("PENDING")]
+    public void R_USR_13_accepts_ACTIVE_DISABLED_and_PENDING(string status) =>
         _validator.TestValidate(Request(status: status)).ShouldNotHaveAnyValidationErrors();
 
     [TestCase("name")]
@@ -41,9 +42,9 @@ public class StaffListRequestValidatorTests
 
     [TestCase("ANONYMIZED")]
     [TestCase("active")]
-    [TestCase("PENDING")]
+    [TestCase("pending")]
     [TestCase("1")]
-    public void R_USR_13_refuses_a_status_other_than_ACTIVE_or_DISABLED(string status) =>
+    public void R_USR_13_refuses_a_status_other_than_ACTIVE_DISABLED_or_PENDING(string status) =>
         _validator.TestValidate(Request(status: status)).ShouldHaveValidationErrorFor(r => r.Status)
             .WithErrorCode(StaffListRequestValidator.StatusInvalid).WithCustomState(StaffListRequestValidator.RuleId);
 

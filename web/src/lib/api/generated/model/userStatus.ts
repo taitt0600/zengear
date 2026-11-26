@@ -12,4 +12,5 @@ export const UserStatus = {
   ACTIVE: 'ACTIVE',
   DISABLED: 'DISABLED',
   ANONYMIZED: 'ANONYMIZED',
+  PENDING: 'PENDING',
 } as const;

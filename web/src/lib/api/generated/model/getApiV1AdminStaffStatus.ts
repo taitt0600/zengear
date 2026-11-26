@@ -11,4 +11,5 @@ export type GetApiV1AdminStaffStatus = typeof GetApiV1AdminStaffStatus[keyof typ
 export const GetApiV1AdminStaffStatus = {
   ACTIVE: 'ACTIVE',
   DISABLED: 'DISABLED',
+  PENDING: 'PENDING',
 } as const;

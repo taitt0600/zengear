@@ -4,6 +4,7 @@
  * ZenGear API
  * OpenAPI spec version: v1
  */
+import type { StaffCreatorDto } from './staffCreatorDto';
 import type { StaffRoleDto } from './staffRoleDto';
 import type { UserStatus } from './userStatus';
 
@@ -24,4 +25,11 @@ export interface StaffDto {
   status: UserStatus;
   mustChangePassword: boolean;
   roles: StaffRoleDto[];
+  /** @nullable */
+  canApprove: boolean | null;
+  /** @nullable */
+  canWithdraw: boolean | null;
+  createdBy: null | StaffCreatorDto;
+  /** @nullable */
+  createdAt: string | null;
 }
