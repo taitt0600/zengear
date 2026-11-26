@@ -77,13 +77,14 @@ not the local one of `api/docker-compose.yml` (it never touches another database
   | ZG260003 | Phạm Quốc Bảo | IT Support | BaoPQZG260003 | `baopqzg260003@zengear.test` | `postman/fixtures/AUT-05.sql` |
   | ZG260004 | Nguyễn Văn An | Cashier | AnNVZG260004 | `annvzg260004@zengear.test` | `postman/fixtures/STF-01-cast.sql` |
   | ZG260005 | Hoàng Đức Minh | Technical Support, DISABLED | MinhHDZG260005 | `minhhdzg260005@zengear.test` | `postman/fixtures/STF-01-cast.sql` |
-  | ZG260006 | Võ Thị Lan | Cashier, waiting for approval | LanVTZG260006 | `lanvtzg260006@zengear.test` | reserved: STF-09 adds it |
-  | ZG260007 | Bùi Văn Tùng | Warehouse Keeper, waiting for approval | TungBVZG260007 | `tungbvzg260007@zengear.test` | reserved: STF-09 adds it |
+  | ZG260006 | Võ Thị Lan | Cashier, waiting for approval | LanVTZG260006 | `lanvtzg260006@zengear.test` | `postman/fixtures/STF-09.sql` |
+  | ZG260007 | Bùi Văn Tùng | Warehouse Keeper, waiting for approval | TungBVZG260007 | `tungbvzg260007@zengear.test` | `postman/fixtures/STF-09.sql` |
   | ZG260008 | (anonymized) | Sales Consultant, ANONYMIZED | placeholder | placeholder | `postman/fixtures/STF-02.sql` |
+  | ZG260009 | Ngô Thanh Tâm | Trưởng ca (approves the Cashier's accounts, STF-09) | TamNTZG260009 | `tamntzg260009@zengear.test` | `postman/fixtures/STF-09.sql` |
   | — | Đỗ Thị Mai | customer | — | `dothimai@zengear.test` | `postman/fixtures/STF-03.sql` |
 
   The store of the fixtures is ZenGear Quận 10 (`postman/fixtures/LOC-01.sql`); sample phones are `09000000xx`. The
-  fixtures raise the counter of 2026 to 8, so an account created through the API takes ZG260009 or later. The Admin
+  fixtures raise the counter of 2026 to 9, so an account created through the API takes ZG260010 or later. The Admin
   is created by `tools/dev_reset.ps1` in the emulator, then linked by `bootstrap-admin`; the command's password reset
   link is not printed, and every account is for this environment only.
 - **The development database across branches**: a branch that changes the schema migrates the shared database
@@ -104,7 +105,12 @@ not the local one of `api/docker-compose.yml` (it never touches another database
   `staff.disable` (the same refusal when disabling the Admin; `staff.read` comes from the permission sync at the API
   start after the reset), and an ANONYMIZED staff account with the fixed id
   `anonymizedStaffId` of the environments and no Firebase account, for the refusal of R-USR-03. STF-03:
-  Đỗ Thị Mai, a customer with the Customer role, for the refusal of the staff password change.
+  Đỗ Thị Mai, a customer with the Customer role, for the refusal of the staff password change. STF-09: IT Support also
+  holds `staff.create`; Võ Thị Lan and Bùi Văn Tùng wait for approval (PENDING, created by Phạm Quốc Bảo, no Firebase
+  account); the role Trưởng ca (fixed id `roleShiftLead` of the environments) holds `staff.approve` and manages the
+  Cashier, and Ngô Thanh Tâm holds it, for the refusals of R-SEC-12 on an approval. Trưởng ca gets `staff.read` only
+  from the first requests of the STF-09 folder (inserting it in the fixture would stop the permission sync from
+  granting it to the default roles), so after a reset run that folder before signing in as Ngô Thanh Tâm.
 - **Role ids** are fixed in `api/seed/01_roles.sql` and named in the environments.
 - **By hand**: `python tools/emulator_token.py <email> <password> [--create]` signs up or signs in an emulator account
   and prints its ID token, for Scalar (Bearer) or `curl`. A Firebase account is not yet a ZenGear account: until a

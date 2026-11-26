@@ -62,7 +62,9 @@ gap is built once the gap is closed. A closed gap keeps its number, since other 
     accounts, each account approved or rejected on its own under the checks of R-USR-17 and R-SEC-12, and a result per
     account (done, or the problem's `detail`). Settled by DEC-137 (2) (`bulk-approve` and `bulk-reject` in STF-07);
     closes when STF-07 merges.
-13. **Who may approve a PENDING account, and who created it, in the list.** The list item of STF-05 has no field that
+13. **Who may approve a PENDING account, and who created it, in the list** — closed. The list item of a PENDING
+    account carries `canApprove`, `canWithdraw`, `createdBy`, `createdAt` and `version` (STF-09, DEC-137 (1),
+    DEC-140). Before: the list item of STF-05 had no field that
     says whether the caller may approve a PENDING account or who created it and when; DEC-128 (3) adds only
     `staff_profiles.created_by`, and the web cannot work out the approval itself (the caller's manageable set,
     R-SEC-12, and the creator, R-USR-17). The Layout of SCR-STF-01 draws the columns Người tạo and Ngày tạo, the
@@ -70,14 +72,16 @@ gap is built once the gap is closed. A closed gap keeps its number, since other 
     item of a PENDING account carries `canApprove` (the caller holds `staff.approve`, did not create the account and
     manages all its roles), `createdBy` (`id`, `name`) and `createdAt`, null on the other statuses, on `GET /staff` and
     `POST /staff/search`. Until then the buttons show for a holder of `staff.approve` and the API's 409 says why one
-    cannot be approved. Settled by DEC-137 (1) (a criterion of STF-09); closes when STF-09 merges.
-14. **Who may approve a PENDING account, and who created it, on its page.** The account of
+    cannot be approved. Settled by DEC-137 (1) (a criterion of STF-09); closed by STF-09.
+14. **Who may approve a PENDING account, and who created it, on its page** — closed. The account of
+    `GET /api/v1/admin/staff/{id}` carries the same fields and its `ETag` (STF-09, DEC-138, DEC-140). Before: the
+    account of
     `GET /api/v1/admin/staff/{id}` has no `canApprove`, `createdBy` or `createdAt`: DEC-137 (1) adds them to the list
     item of `GET /staff` and `POST /staff/search` only, while SCR-STF-03 loads one account by its id, also from a link
     or after a reload, without the list. The Layout of SCR-STF-03 draws the creator and the creation time in its
     notice, the creator in the confirmations, and the buttons only where the caller may approve. Settled by DEC-138
     (the account of `GET /api/v1/admin/staff/{id}` carries the same three fields by the rule of DEC-137 (1), as a
-    criterion of STF-09); closes when STF-09 merges.
+    criterion of STF-09); closed by STF-09.
 15. **Generated staff identifiers** — closed. `POST /api/v1/admin/staff` takes no `employeeCode` or `email`: the API
     generates the employee code, the username and the company email from the name and the joined date (R-USR-24,
     DEC-145) and answers them with `username` in the account (STF-01, issue #246); the bootstrap Admin gets them too
