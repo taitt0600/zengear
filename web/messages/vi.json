@@ -38,7 +38,11 @@
       "expand": "Mở rộng menu",
       "staff": "Nhân viên",
       "settings": "Cài đặt",
-      "businessLocation": "Địa điểm kinh doanh"
+      "businessLocation": "Địa điểm kinh doanh",
+      "staffList": "Danh sách nhân viên",
+      "staffNew": "Thêm nhân viên",
+      "staffPending": "Chờ duyệt",
+      "pendingCount": ", {count} tài khoản"
     },
     "user": {
       "account": "Tài khoản của tôi",
@@ -95,7 +99,7 @@
   },
   "staff": {
     "list": {
-      "description": "Tài khoản nhân viên của cửa hàng, cùng vai trò và trạng thái. Xem, khóa hoặc khôi phục một tài khoản từ cột Thao tác.",
+      "description": "Tài khoản nhân viên của cửa hàng, cùng vai trò và trạng thái. Xem, khóa hoặc khôi phục một tài khoản, và duyệt tài khoản mới ở tab Chờ duyệt.",
       "add": "Thêm nhân viên",
       "columns": {
         "number": "STT",
@@ -107,16 +111,28 @@
         "status": "Trạng thái",
         "joinedDate": "Ngày vào làm",
         "leftDate": "Ngày nghỉ việc",
-        "actions": "Thao tác"
+        "actions": "Thao tác",
+        "createdBy": "Người tạo",
+        "createdAt": "Ngày tạo"
       },
       "actions": {
         "label": "Thao tác cho {name}",
-        "view": "Xem chi tiết"
+        "view": "Xem chi tiết",
+        "viewLabel": "Xem chi tiết {name}",
+        "approve": "Duyệt tài khoản",
+        "reject": "Từ chối",
+        "withdraw": "Thu hồi",
+        "approveLabel": "Duyệt {name}",
+        "rejectLabel": "Từ chối {name}",
+        "withdrawLabel": "Thu hồi {name}"
       },
       "status": {
         "all": "Tất cả",
         "active": "Đang hoạt động",
-        "disabled": "Đã khóa"
+        "disabled": "Đã khóa",
+        "pending": "Chờ duyệt",
+        "label": "Trạng thái",
+        "pendingCount": ", {count} tài khoản"
       },
       "search": "Lọc theo tên, mã hoặc email",
       "searchPlaceholder": "an@example.com",
@@ -133,7 +149,16 @@
       "total": "{count} nhân viên",
       "page": "Trang {page} / {pages}",
       "tableLabel": "Bảng nhân viên",
-      "noValue": "—"
+      "noValue": "—",
+      "pending": {
+        "description": "Nhân viên chưa đăng nhập được cho tới khi tài khoản được duyệt. Kiểm tra vai trò và người tạo trước khi duyệt.",
+        "createdBy": "Tạo bởi {name} · {time}"
+      },
+      "pendingEmpty": {
+        "title": "Không còn tài khoản chờ duyệt.",
+        "description": "Tài khoản mới do người không có quyền duyệt tạo sẽ hiện ở đây.",
+        "showAll": "Xem tất cả nhân viên"
+      }
     },
     "account": {
       "title": "Tài khoản nhân viên",
@@ -145,7 +170,8 @@
       "status": {
         "title": "Trạng thái tài khoản",
         "description": "Tài khoản bị khóa không đăng nhập được; khôi phục để nhân viên dùng lại.",
-        "anonymized": "Đã ẩn danh"
+        "anonymized": "Đã ẩn danh",
+        "pendingDescription": "Nhân viên chưa đăng nhập được cho tới khi tài khoản được duyệt."
       },
       "password": "Mật khẩu",
       "mustChangePassword": "Chưa đổi mật khẩu mặc định",
@@ -174,7 +200,44 @@
       "cancel": "Hủy",
       "disabled": "Đã khóa tài khoản.",
       "restored": "Đã khôi phục tài khoản.",
-      "backToList": "Về danh sách nhân viên"
+      "backToList": "Về danh sách nhân viên",
+      "approve": "Duyệt",
+      "reject": "Từ chối",
+      "withdraw": "Thu hồi",
+      "approveDialog": {
+        "title": "Duyệt tài khoản này?",
+        "description": "Tài khoản được kích hoạt với mật khẩu mặc định. Nhân viên phải đổi mật khẩu ở lần đăng nhập đầu tiên.",
+        "submit": "Duyệt"
+      },
+      "rejectDialog": {
+        "title": "Từ chối tài khoản này?",
+        "description": "Tài khoản chờ duyệt bị xóa cùng hồ sơ và vai trò, không hoàn tác được. Muốn dùng lại email này, hãy tạo tài khoản mới.",
+        "submit": "Từ chối tài khoản"
+      },
+      "withdrawDialog": {
+        "title": "Thu hồi tài khoản này?",
+        "description": "Tài khoản chờ duyệt bị xóa cùng hồ sơ và vai trò, không hoàn tác được. Email và mã nhân viên được giải phóng để bạn tạo lại tài khoản đúng thông tin.",
+        "submit": "Thu hồi tài khoản"
+      },
+      "summary": {
+        "name": "Họ tên",
+        "email": "Email",
+        "roles": "Vai trò",
+        "createdBy": "Người tạo",
+        "createdByValue": "{name} · {time}"
+      },
+      "approved": "Đã duyệt tài khoản {name}.",
+      "approvedHint": "Nhân viên đăng nhập được bằng mật khẩu mặc định.",
+      "rejected": "Đã từ chối tài khoản {name}.",
+      "withdrawn": "Đã thu hồi tài khoản {name}.",
+      "withdrawnCreate": "Tạo tài khoản mới",
+      "pendingNotice": {
+        "title": "Tài khoản đang chờ duyệt",
+        "createdBy": "{name} tạo lúc {time}.",
+        "review": "Kiểm tra hồ sơ và vai trò bên dưới trước khi duyệt.",
+        "other": "Tài khoản này chờ một người khác duyệt: người duyệt không phải là người tạo và phải quản lý được mọi vai trò của tài khoản.",
+        "own": "Bạn đã tạo tài khoản này nên một người khác sẽ duyệt. Nếu đã nhập sai, hãy thu hồi rồi tạo lại."
+      }
     }
   },
   "problems": {

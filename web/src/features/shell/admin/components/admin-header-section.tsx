@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useSearchParams } from 'next/navigation'
 import { Fragment } from 'react'
 import {
   Breadcrumb,
@@ -15,6 +15,7 @@ import {
 import { Separator } from '@/components/ui/separator'
 import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { useCurrentUser } from '@/features/identity/access'
 import { breadcrumbOf } from '../utils/admin-menu'
 import { ThemeSwitch } from './theme-switch'
 
@@ -32,7 +33,9 @@ export function AdminHeaderSection() {
     : state === 'expanded'
       ? t('admin.menu.collapse')
       : t('admin.menu.expand')
-  const crumbs = breadcrumbOf(pathname)
+  const status = useSearchParams().get('status')
+  const { permissions } = useCurrentUser()
+  const crumbs = breadcrumbOf(pathname, status, permissions)
 
   return (
     <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear motion-reduce:transition-none group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">

@@ -17,12 +17,12 @@ import {
   type SortField,
 } from '../utils/staff-list'
 
-/** The status filter of the Select: every account, or one status. */
-export type StatusFilter = 'all' | 'ACTIVE' | 'DISABLED'
+/** The status links of SCR-STF-01: every account, or one status; PENDING is the tab Chờ duyệt (STF-09). */
+export type StatusFilter = 'all' | 'ACTIVE' | 'DISABLED' | 'PENDING'
 
 /**
- * The state of SCR-STF-01 (STF-05): GET /api/v1/admin/staff with the status, sort and page of the URL, 20 rows a page,
- * the search over the rows of that page, and the URL changes of the filters, the sort and the pages. The search text
+ * The state of SCR-STF-01 (STF-05, STF-09): GET /api/v1/admin/staff with the status, sort and page of the URL, 20 rows
+ * a page, the search over the rows of that page, and the URL changes of the status links, the sort and the pages. The search text
  * stays in the page, never in the URL (DEC-105).
  */
 export function useStaffList() {
@@ -84,14 +84,18 @@ export function useStaffList() {
     sort: sort ?? DEFAULT_SORT,
     search,
     setSearch,
-    setStatus: (value: StatusFilter) =>
-      go({ status: value === 'all' ? undefined : value, page: undefined }),
+    pending: status === 'PENDING',
+    // A status link drops the page and the sort, as the Layout of SCR-STF-01 draws it: the tab Chờ duyệt has no column
+    // that sorts (STF-09).
+    statusHref: (value: StatusFilter) =>
+      href({ status: value === 'all' ? undefined : value, page: undefined, sort: undefined }),
     toggleSort: (field: SortField) =>
       go({ sort: nextSort(sort ?? DEFAULT_SORT, field), page: undefined }),
-    // "Xóa bộ lọc" clears the search and the status; only a change of status leaves the page (back to 1).
+    // "Xóa bộ lọc" clears the search and the status; only a change of status leaves the page (back to 1). On the tab
+    // Chờ duyệt it clears the search only: the tab is where the approver works, not a filter (STF-09).
     clearFilters: () => {
       setSearch('')
-      if (status !== undefined) go({ status: undefined, page: undefined })
+      if (status !== undefined && status !== 'PENDING') go({ status: undefined, page: undefined })
     },
     pageHref: (target: number) => href({ page: target > 1 ? String(target) : undefined }),
   }

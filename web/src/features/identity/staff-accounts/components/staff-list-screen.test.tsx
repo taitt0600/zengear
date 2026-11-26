@@ -15,16 +15,20 @@ const navigation = vi.hoisted(() => ({
   router: { push: vi.fn(), replace: vi.fn() },
   search: '',
 }))
+// The count of accounts waiting has its own tests (use-pending-staff-count.test.tsx).
+vi.mock('@/hooks/use-pending-staff-count', () => ({ usePendingStaffCount: () => undefined }))
 vi.mock('next/navigation', () => ({
   useRouter: () => navigation.router,
   usePathname: () => '/admin/staff',
   useSearchParams: () => new URLSearchParams(navigation.search),
 }))
 
-// jsdom has neither, and the Select of Radix uses both when it opens.
+// jsdom has neither, and the Select of Radix uses both when it opens. scrollIntoView answers a Promise, as Chromium's
+// does, so that an effect returning it (React takes it for the clean-up and the page fails) fails here too.
 beforeAll(() => {
   window.HTMLElement.prototype.hasPointerCapture ??= () => false
-  window.HTMLElement.prototype.scrollIntoView ??= () => {}
+  window.HTMLElement.prototype.scrollIntoView ??= (() =>
+    Promise.resolve()) as unknown as HTMLElement['scrollIntoView']
 })
 
 // The screen as its page composes it.
@@ -57,29 +61,28 @@ describe('the staff list', () => {
       'href',
       `/admin/staff/${owner.id}`,
     )
-    // STT first, then the seven columns of the API, then the row's actions.
-    expect(ownerCells).toHaveLength(9)
+    // STT first, then the name with the email under it (STF-09), the other columns of the API, then the row's actions.
+    expect(ownerCells).toHaveLength(8)
     expect(ownerCells[0]).toHaveTextContent(/^1$/)
     expect(managerCells[0]).toHaveTextContent(/^2$/)
+    expect(ownerCells[1]).toHaveTextContent('khoatmzg260001@zengear.test')
     expect(ownerCells[2]).toHaveTextContent('—')
-    expect(ownerCells[3]).toHaveTextContent('khoatmzg260001@zengear.test')
-    expect(ownerCells[5]).toHaveTextContent('Đang hoạt động')
-    expect(ownerCells[6]).toHaveTextContent('—')
-    expect(ownerCells[7]).toHaveTextContent(/^$/)
-    expect(within(managerCells[4]).getByText('Store Manager')).toBeVisible()
-    expect(within(managerCells[4]).getByText('Cashier')).toBeVisible()
-    expect(managerCells[5]).toHaveTextContent('Đã khóa')
-    expect(managerCells[6]).toHaveTextContent('01/10/2026')
-    expect(managerCells[7]).toHaveTextContent('01/11/2026')
+    expect(ownerCells[4]).toHaveTextContent('Đang hoạt động')
+    expect(ownerCells[5]).toHaveTextContent('—')
+    expect(ownerCells[6]).toHaveTextContent(/^$/)
+    expect(within(managerCells[3]).getByText('Store Manager')).toBeVisible()
+    expect(within(managerCells[3]).getByText('Cashier')).toBeVisible()
+    expect(managerCells[4]).toHaveTextContent('Đã khóa')
+    expect(managerCells[5]).toHaveTextContent('01/10/2026')
+    expect(managerCells[6]).toHaveTextContent('01/11/2026')
     expect(
-      within(ownerCells[8]).getByRole('button', { name: 'Thao tác cho Trần Minh Khoa' }),
+      within(ownerCells[7]).getByRole('button', { name: 'Thao tác cho Trần Minh Khoa' }),
     ).toBeVisible()
     // The nine headers in order, by their names: "STT" shows, "Số thứ tự" is what a screen reader reads.
     const headers = [
       'Số thứ tự',
       'Họ tên',
       'Mã nhân viên',
-      'Email',
       'Vai trò',
       'Trạng thái',
       'Ngày vào làm',
@@ -175,7 +178,7 @@ describe('the staff list', () => {
 
     expect(await screen.findByText('Chưa có tài khoản nhân viên.')).toBeVisible()
     expect(api.fetch).toHaveBeenCalledWith('/api/v1/admin/staff?pageSize=20', expect.anything())
-    expect(screen.getByRole('combobox', { name: 'Trạng thái' })).toHaveTextContent('Tất cả')
+    expect(screen.getByRole('link', { name: 'Tất cả' })).toHaveAttribute('aria-current', 'page')
   })
 
   it('shows the default sort when the URL leaves it empty', async () => {
@@ -188,19 +191,19 @@ describe('the staff list', () => {
     )
   })
 
-  it('filters by status, back on page 1', async () => {
-    const clicks = userEvent.setup()
+  it('links each status, dropping the page and the sort (STF-09)', async () => {
     navigation.search = 'page=3&sort=-name'
     renderScreen()
 
-    await clicks.click(await screen.findByRole('combobox', { name: 'Trạng thái' }))
-    await clicks.click(await screen.findByRole('option', { name: 'Đã khóa' }))
-    expect(navigation.router.push).toHaveBeenLastCalledWith(
-      '/admin/staff?sort=-name&status=DISABLED',
-      {
-        scroll: false,
-      },
-    )
+    const nav = await screen.findByRole('navigation', { name: 'Trạng thái' })
+    const links = within(nav).getAllByRole('link')
+    expect(links.map((link) => [link.textContent, link.getAttribute('href')])).toEqual([
+      ['Tất cả', '/admin/staff'],
+      ['Đang hoạt động', '/admin/staff?status=ACTIVE'],
+      ['Đã khóa', '/admin/staff?status=DISABLED'],
+      ['Chờ duyệt', '/admin/staff?status=PENDING'],
+    ])
+    expect(links[0]).toHaveAttribute('aria-current', 'page')
   })
 
   it('filters the loaded rows by name, code or email without asking the API', async () => {
@@ -398,10 +401,10 @@ describe('the staff list', () => {
     expect(await table()).toHaveAttribute('aria-busy', 'true')
     expect(screen.getByRole('columnheader', { name: 'Họ tên' })).toBeVisible()
     expect(screen.queryByRole('link', { name: 'Trần Minh Khoa' })).toBeNull()
-    // One bar a column, the nine of the table.
+    // One bar a column, the eight of the table.
     for (const row of within(await table())
       .getAllByRole('row')
       .slice(1))
-      expect(within(row).getAllByRole('cell')).toHaveLength(9)
+      expect(within(row).getAllByRole('cell')).toHaveLength(8)
   })
 })

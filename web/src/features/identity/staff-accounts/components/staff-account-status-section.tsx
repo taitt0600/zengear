@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Skeleton } from '@/components/ui/skeleton'
 import type { StaffDto } from '@/lib/api/generated/model'
 import { useStaffAccountState } from '../hooks/staff-account-context'
+import { useFocusAfterApproval } from '../hooks/use-focus-after-approval'
 import { useStaffStatusTexts } from '../hooks/use-staff-texts'
 import { StaffDisableDialog } from './staff-disable-dialog'
 import { StaffRestoreDialog } from './staff-restore-dialog'
@@ -17,13 +18,15 @@ import { StaffStatusBadge } from './staff-status-badge'
 /**
  * The card "Trạng thái tài khoản" of SCR-STF-03 (STF-02): the status, the unchanged default password, and, for a user
  * who holds `staff.disable`, the way to lock or restore the account, never on their own (R-USR-12) nor on an
- * anonymized one (R-USR-03). Hiding only: the API decides. Nothing when the account cannot show.
+ * anonymized one (R-USR-03); a PENDING account has no action here, only why it cannot sign in (STF-09, R-USR-17).
+ * Hiding only: the API decides. Nothing when the account cannot show.
  */
 export function StaffAccountStatusSection() {
   const t = useTranslations()
   const statusTexts = useStaffStatusTexts()
   const { account, error, canDisable, isOwn } = useStaffAccountState()
   const heading = useRef<HTMLHeadingElement>(null)
+  useFocusAfterApproval(account?.status, heading)
   if (error) return null
 
   return (
@@ -60,7 +63,14 @@ export function StaffAccountStatusSection() {
                 <Badge variant="outline">{t('staff.account.mustChangePassword')}</Badge>
               </div>
             )}
-            {canDisable && <StatusActions account={account} isOwn={isOwn} heading={heading} />}
+            {account.status === 'PENDING' ? (
+              // Approved, rejected or withdrawn from the notice, never disabled or restored (R-USR-17).
+              <p className="text-sm text-muted-foreground">
+                {t('staff.account.status.pendingDescription')}
+              </p>
+            ) : (
+              canDisable && <StatusActions account={account} isOwn={isOwn} heading={heading} />
+            )}
           </>
         ) : (
           <Skeleton className="h-9 w-full rounded-md" />

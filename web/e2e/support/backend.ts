@@ -12,10 +12,12 @@ export const accounts = {
   admin: 'khoatmzg260001@zengear.test',
   manager: 'haltzg260002@zengear.test',
   customer: 'dothimai@zengear.test',
+  itSupport: 'baopqzg260003@zengear.test',
 }
 
-// The fixed id of the role Sales Consultant (api/seed/01_roles.sql), which holds no permission by default.
+// The fixed ids of the roles Sales Consultant and Cashier (api/seed/01_roles.sql), which hold no permission by default.
 const SALES_CONSULTANT_ROLE = '0199a000-0000-7000-8000-000000000003'
+const CASHIER_ROLE = '0199a000-0000-7000-8000-000000000005'
 
 async function post(url: string, body: unknown, headers: Record<string, string> = {}) {
   const response = await fetch(url, {
@@ -49,6 +51,23 @@ const api = async (token: string, path: string, body: unknown) =>
 /** Today in Vietnam time, as the API's dates (yyyy-MM-dd). */
 function today(): string {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date())
+}
+
+/**
+ * A new Cashier created by the IT Support of the fixtures, who holds no staff.approve: the API creates it PENDING, with no
+ * Firebase account, until another person approves it (STF-09, R-USR-17). Each flow makes its own, so a rerun needs no
+ * reset.
+ */
+export async function newPendingAccount(name: string): Promise<{ id: string; email: string }> {
+  const itSupport = await idToken(accounts.itSupport, PASSWORD)
+  const staff = await api(itSupport, '/api/v1/admin/staff', {
+    name,
+    joinedDate: today(),
+    workPhone: null,
+    roleIds: [CASHIER_ROLE],
+  })
+  if (staff.status !== 'PENDING') throw new Error(`The new account is ${staff.status}, not PENDING`)
+  return { id: staff.id, email: staff.email }
 }
 
 /** The name newSalesConsultant gives when it is given none. */

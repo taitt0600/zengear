@@ -14,9 +14,12 @@ import { AdminSidebarSection } from './admin-sidebar-section'
 import { RequirePermission } from './no-permission'
 
 const navigation = vi.hoisted(() => ({ replace: vi.fn(), pathname: '/admin/staff' }))
+// The count of accounts waiting has its own tests (use-pending-staff-count.test.tsx).
+vi.mock('@/hooks/use-pending-staff-count', () => ({ usePendingStaffCount: () => undefined }))
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ replace: navigation.replace }),
   usePathname: () => navigation.pathname,
+  useSearchParams: () => new URLSearchParams(),
 }))
 
 // Typed by the argument, so that the tests can set any state.
@@ -211,7 +214,7 @@ describe('the layout', () => {
     expect(await screen.findByText('Nội dung trang')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /^Trần Minh Khoa/ })).toBeInTheDocument()
     const menu = screen.getByRole('navigation', { name: 'Menu' })
-    expect(within(menu).getByRole('link', { name: 'Nhân viên' })).toHaveAttribute(
+    expect(within(menu).getByRole('link', { name: 'Danh sách nhân viên' })).toHaveAttribute(
       'aria-current',
       'page',
     )
@@ -230,7 +233,7 @@ describe('the layout', () => {
     renderShell()
 
     const menu = await screen.findByRole('navigation', { name: 'Menu' })
-    expect(within(menu).getByRole('link', { name: 'Nhân viên' })).toBeInTheDocument()
+    expect(within(menu).getByRole('link', { name: 'Danh sách nhân viên' })).toBeInTheDocument()
     expect(within(menu).queryByText('Cài đặt')).not.toBeInTheDocument()
     expect(
       within(menu).queryByRole('link', { name: 'Địa điểm kinh doanh' }),

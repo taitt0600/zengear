@@ -21,6 +21,10 @@ export const owner: StaffListItemDto = {
   leftDate: null,
   status: 'ACTIVE',
   roles: [{ id: '0199a000-0000-7000-8000-000000000001', name: 'Admin' }],
+  canApprove: null,
+  canWithdraw: null,
+  createdBy: null,
+  createdAt: null,
 }
 
 /** The Store Manager of the fixtures, disabled with a last working day. */
@@ -36,6 +40,10 @@ export const manager: StaffListItemDto = {
     { id: '0199a000-0000-7000-8000-000000000002', name: 'Store Manager' },
     { id: '0199a000-0000-7000-8000-000000000004', name: 'Cashier' },
   ],
+  canApprove: null,
+  canWithdraw: null,
+  createdBy: null,
+  createdAt: null,
 }
 
 /** A page of the list, as the mutator resolves it. */

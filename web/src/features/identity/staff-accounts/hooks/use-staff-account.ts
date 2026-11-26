@@ -1,12 +1,14 @@
 'use client'
 
 import { useCurrentUser } from '@/features/identity/access'
+import { etagOf } from '@/lib/api/concurrency'
 import { useGetApiV1AdminStaffId } from '@/lib/api/generated/staff/staff'
 import { ApiError } from '@/lib/api/problems'
 import { useCanDisableStaff } from './use-can-disable-staff'
 
 /**
- * The state of SCR-STF-03 (STF-01, STF-02): GET /api/v1/admin/staff/{id}, and whether the user may lock or restore it.
+ * The state of SCR-STF-03 (STF-01, STF-02, STF-09): GET /api/v1/admin/staff/{id} with its ETag, the version approve,
+ * reject and withdraw send back (DEC-140 (2)), and whether the user may lock or restore it.
  * Hiding only: the API checks the permission and refuses the user's own account (R-SEC-03, R-USR-12).
  */
 export function useStaffAccount(id: string) {
@@ -20,6 +22,7 @@ export function useStaffAccount(id: string) {
   return {
     id,
     account: notFound ? undefined : account,
+    etag: query.data ? etagOf(query.data.headers) : undefined,
     notFound,
     // A failed refresh of an account already shown keeps it: the problem shows only when there is nothing to show,
     // or when it is a 404.

@@ -16,6 +16,8 @@ const toast = vi.hoisted(() => ({ error: vi.fn(), success: vi.fn() }))
 vi.mock('sonner', () => ({ toast }))
 // The URL of the page: its search params are what navigation.search holds.
 const navigation = vi.hoisted(() => ({ search: '' }))
+// The count of accounts waiting has its own tests (use-pending-staff-count.test.tsx).
+vi.mock('@/hooks/use-pending-staff-count', () => ({ usePendingStaffCount: () => undefined }))
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
   usePathname: () => '/admin/staff',
@@ -32,6 +34,10 @@ const seller: StaffListItemDto = {
   leftDate: null,
   status: 'ACTIVE',
   roles: [{ id: '0199a000-0000-7000-8000-000000000003', name: 'Sales Consultant' }],
+  canApprove: null,
+  canWithdraw: null,
+  createdBy: null,
+  createdAt: null,
 }
 
 const LIST = 'GET /api/v1/admin/staff?pageSize=20'
@@ -107,7 +113,8 @@ describe('the commands of a row', () => {
     expect(toast.success).toHaveBeenCalledWith('Đã khóa tài khoản.')
     expect(calls(api.fetch)).toEqual([LIST, `POST /api/v1/admin/staff/${seller.id}/disable`, LIST])
     expect(body(api.fetch, 1)).toEqual({ leftDate: null })
-    await waitFor(() => expect(screen.getAllByText('Đã khóa')).toHaveLength(2))
+    const rows = await screen.findByRole('region', { name: 'Bảng nhân viên' })
+    await waitFor(() => expect(within(rows).getAllByText('Đã khóa')).toHaveLength(2))
   })
 
   it('opens "Khóa lại" ticked with the left date of the row', async () => {
@@ -138,7 +145,8 @@ describe('the commands of a row', () => {
     await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument())
     expect(toast.success).toHaveBeenCalledWith('Đã khôi phục tài khoản.')
     expect(calls(api.fetch)).toEqual([LIST, `POST /api/v1/admin/staff/${manager.id}/restore`, LIST])
-    await waitFor(() => expect(screen.queryByText('Đã khóa')).toBeNull())
+    const rows = await screen.findByRole('region', { name: 'Bảng nhân viên' })
+    await waitFor(() => expect(within(rows).queryByText('Đã khóa')).toBeNull())
   })
 
   it('shows a 404 in a toast, closes and loads the list again', async () => {

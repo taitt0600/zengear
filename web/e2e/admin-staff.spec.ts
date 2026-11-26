@@ -3,6 +3,7 @@ import {
   accounts,
   disableStaff,
   meId,
+  newPendingAccount,
   newSalesConsultant,
   PASSWORD,
   staffListPage,
@@ -22,7 +23,8 @@ async function signedInAdmin(page: Page) {
 
 const table = (page: Page) => page.getByRole('region', { name: 'Bảng nhân viên' })
 const searchBox = (page: Page) => page.getByLabel('Lọc theo tên, mã hoặc email')
-const statusFilter = (page: Page) => page.getByRole('combobox', { name: 'Trạng thái' })
+const statusLink = (page: Page, name: string) =>
+  page.getByRole('navigation', { name: 'Trạng thái' }).getByRole('link', { name })
 
 /** Whether the page fits the window's width, with nothing to scroll sideways and nothing scrolled. */
 const noSidewaysScroll = (page: Page) =>
@@ -80,7 +82,7 @@ for (const [totalCount, hint] of [
   [45, true],
   [5, false],
 ] as const) {
-  test(`the two filters keep their labels and boxes on one line, with ${totalCount} accounts`, async ({
+  test(`the status links sit above the search, whose hint shows with ${totalCount} accounts`, async ({
     page,
   }) => {
     // Whatever the database holds, the answer of the list says `totalCount` accounts: more than a page of 20 shows the
@@ -101,20 +103,13 @@ for (const [totalCount, hint] of [
       // The list has answered (its rows show), so the hint is there or not because of `totalCount`.
       await expect(table(page).getByRole('row').nth(1)).toBeVisible()
       await expect(page.getByText('Chỉ lọc trong trang đang xem.')).toBeVisible({ visible: hint })
-      const label = (text: string) =>
-        page.locator('label').filter({
-          hasText: new RegExp(`^${text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`),
-        })
-      const [searchLabel, statusLabel, search, status] = await Promise.all(
-        [
-          label('Lọc theo tên, mã hoặc email'),
-          label('Trạng thái'),
-          searchBox(page),
-          statusFilter(page),
-        ].map((element) => element.boundingBox()),
+      // STF-09: the status links on their own row, the search under them (Layout of SCR-STF-01).
+      const [links, search] = await Promise.all(
+        [page.getByRole('navigation', { name: 'Trạng thái' }), searchBox(page)].map((element) =>
+          element.boundingBox(),
+        ),
       )
-      expect(Math.abs(searchLabel!.y - statusLabel!.y)).toBeLessThan(2)
-      expect(Math.abs(search!.y - status!.y)).toBeLessThan(2)
+      expect(links!.y + links!.height).toBeLessThanOrEqual(search!.y)
       if (hint) await page.screenshot({ path: test.info().outputPath('staff-list-filters.png') })
     } finally {
       // A reload of the list still in flight when the flow ends must not fail the next one.
@@ -131,7 +126,7 @@ test('a disabled account shows with its status, and the filters clear', async ({
   await signedInAdmin(page)
   await page.goto(`/admin/staff?${query}${listPage > 1 ? `&page=${listPage}` : ''}`)
 
-  await expect(statusFilter(page)).toHaveText('Đã khóa')
+  await expect(statusLink(page, 'Đã khóa')).toHaveAttribute('aria-current', 'page')
   await searchBox(page).fill(staff.email)
   const rows = table(page).getByRole('row')
   await expect(rows).toHaveCount(2)
@@ -143,7 +138,7 @@ test('a disabled account shows with its status, and the filters clear', async ({
   await page.getByRole('button', { name: 'Xóa bộ lọc' }).click()
   await expect(page).not.toHaveURL(/status=/)
   await expect(searchBox(page)).toHaveValue('')
-  await expect(statusFilter(page)).toHaveText('Tất cả')
+  await expect(statusLink(page, 'Tất cả')).toHaveAttribute('aria-current', 'page')
 })
 
 test('the Admin locks and restores an account from its row, and has no command on their own', async ({
@@ -199,4 +194,50 @@ test('the Admin locks and restores an account from its row, and has no command o
   await expect(menu.getByRole('menuitem')).toHaveText(['Xem chi tiết'])
   await menu.getByRole('menuitem', { name: 'Xem chi tiết' }).click()
   await expect(page).toHaveURL(new RegExp(`/admin/staff/${await meId(accounts.admin, PASSWORD)}$`))
+})
+
+test('the Admin approves an account the IT Support created, from the tab Chờ duyệt (STF-09)', async ({
+  page,
+}) => {
+  const staff = await newPendingAccount('Võ Thị Duyệt')
+  await signedInAdmin(page)
+
+  await page
+    .getByRole('navigation', { name: 'Menu' })
+    .getByRole('link', { name: /Chờ duyệt/ })
+    .click()
+  await expect(page).toHaveURL('/admin/staff?status=PENDING')
+  await expect(statusLink(page, 'Chờ duyệt')).toHaveAttribute('aria-current', 'page')
+  await searchBox(page).fill(staff.email)
+  const row = table(page).getByRole('row').filter({ hasText: staff.email })
+  await expect(row).toContainText('Phạm Quốc Bảo')
+
+  await row.getByRole('button', { name: 'Duyệt Võ Thị Duyệt' }).click()
+  const dialog = page.getByRole('alertdialog', { name: 'Duyệt tài khoản này?' })
+  await expect(dialog).toContainText(staff.email)
+  await dialog.getByRole('button', { name: 'Duyệt' }).click()
+
+  await expect(page.getByText('Đã duyệt tài khoản Võ Thị Duyệt.')).toBeVisible()
+  await expect(row).toHaveCount(0)
+})
+
+test('the IT Support withdraws its own PENDING account and cannot approve it (STF-09)', async ({
+  page,
+}) => {
+  const staff = await newPendingAccount('Trịnh Văn Rút')
+  await page.goto('/admin/sign-in')
+  await signIn(page, accounts.itSupport, PASSWORD)
+  await page.goto(`/admin/staff/${staff.id}`)
+
+  const notice = page.getByRole('status').filter({ hasText: 'Tài khoản đang chờ duyệt' })
+  await expect(notice).toContainText('Bạn đã tạo tài khoản này nên một người khác sẽ duyệt.')
+  await expect(notice.getByRole('button', { name: 'Duyệt' })).toHaveCount(0)
+  await notice.getByRole('button', { name: 'Thu hồi' }).click()
+  await page
+    .getByRole('alertdialog', { name: 'Thu hồi tài khoản này?' })
+    .getByRole('button', { name: 'Thu hồi tài khoản' })
+    .click()
+
+  await expect(page).toHaveURL('/admin/staff?status=PENDING')
+  await expect(page.getByText('Đã thu hồi tài khoản Trịnh Văn Rút.')).toBeVisible()
 })

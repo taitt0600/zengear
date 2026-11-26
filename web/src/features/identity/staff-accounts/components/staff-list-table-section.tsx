@@ -13,6 +13,7 @@ import { useDay, useStaffStatusTexts } from '../hooks/use-staff-texts'
 import { StaffAddButton } from './staff-add-button'
 import { StaffListEmpty } from './staff-list-empty'
 import { StaffListPagination } from './staff-list-pagination'
+import { StaffPendingTable } from './staff-pending-table'
 import { STAFF_SKELETON_ROWS, StaffListRow } from './staff-list-row'
 import { StaffTable } from './staff-list-table'
 
@@ -31,7 +32,7 @@ export function StaffListTableSection() {
   const canDisable = useCanDisableStaff()
   const me = useCurrentUser()
   // Where the focus goes when a row leaves the list with its dialog open (StaffRowActions): the table's box (with its
-  // rows or its skeleton rows), or "Xóa bộ lọc" when nothing matches the filters any more.
+  // rows or its skeleton rows; on the tab Chờ duyệt, the tab itself), or "Xóa bộ lọc" when nothing matches any more.
   const region = useRef<HTMLDivElement>(null)
   const clear = useRef<HTMLButtonElement>(null)
   const focusList = () => (region.current ?? clear.current)?.focus()
@@ -43,7 +44,7 @@ export function StaffListTableSection() {
         icon={<TriangleAlertIcon aria-hidden />}
         title={problemText(list.error)}
         action={
-          <Button onClick={list.retry} disabled={list.isFetching}>
+          <Button variant="outline" onClick={list.retry} disabled={list.isFetching}>
             {t('admin.retry')}
           </Button>
         }
@@ -57,16 +58,6 @@ export function StaffListTableSection() {
       </StaffTable>
     )
   }
-  if (list.totalCount === 0 && !list.filtered) {
-    return (
-      <StaffListEmpty
-        icon={<UsersIcon aria-hidden />}
-        title={t('staff.list.empty.title')}
-        description={t('staff.list.empty.description')}
-        action={canCreate ? <StaffAddButton label={t('staff.list.add')} /> : undefined}
-      />
-    )
-  }
   const footer = (
     <StaffListPagination
       total={t('staff.list.total', { count: list.totalCount })}
@@ -75,6 +66,33 @@ export function StaffListTableSection() {
       next={list.page < list.pages ? list.pageHref(list.page + 1) : undefined}
     />
   )
+  // The tab Chờ duyệt (STF-09): its own table, and its own Empty when no account waits; when the search hides every
+  // row of the page, the Empty of the search below says so instead.
+  if (list.pending && (list.rows.length > 0 || list.totalCount === 0)) {
+    return (
+      <>
+        <StaffPendingTable
+          ref={region}
+          rows={list.rows}
+          allHref={list.statusHref('all')}
+          onGone={focusList}
+        />
+        {list.pages > 1 && footer}
+      </>
+    )
+  }
+  if (list.totalCount === 0 && !list.filtered) {
+    return (
+      <StaffListEmpty
+        icon={<UsersIcon aria-hidden />}
+        title={t('staff.list.empty.title')}
+        description={t('staff.list.empty.description')}
+        action={
+          canCreate ? <StaffAddButton variant="outline" label={t('staff.list.add')} /> : undefined
+        }
+      />
+    )
+  }
   if (list.rows.length === 0) {
     // In place of the rows only: when the search hid them, the pages stay, to look on another one.
     return (
