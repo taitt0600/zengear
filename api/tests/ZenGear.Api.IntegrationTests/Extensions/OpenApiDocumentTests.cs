@@ -70,6 +70,12 @@ public class OpenApiDocumentTests : IntegrationTestBase
             "POST /api/v1/admin/roles 201",
             "GET /api/v1/admin/roles/{id} 200",
             "PUT /api/v1/admin/roles/{id} 200",
+            // The staff account is versioned since DEC-140 (2): its version is the If-Match of approve, reject and withdraw.
+            "POST /api/v1/admin/staff 201",
+            "GET /api/v1/admin/staff/{id} 200",
+            "POST /api/v1/admin/staff/{id}/approve 200",
+            "POST /api/v1/admin/staff/{id}/disable 200",
+            "POST /api/v1/admin/staff/{id}/restore 200",
             "POST /api/v1/admin/brands 201",
             "GET /api/v1/admin/brands/{id} 200",
             "PUT /api/v1/admin/brands/{id} 200",

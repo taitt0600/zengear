@@ -67,6 +67,8 @@ public class ZenGearApiFactory(string environment = AuthenticationSetup.TestingE
             services.AddSingleton<ILogger<StaffBootstrapService>>(new Logger<StaffBootstrapService>(staffLogs));
             services.AddSingleton<ILogger<CurrentUserService>>(new Logger<CurrentUserService>(staffLogs));
             services.AddSingleton<ILogger<StaffStatusService>>(new Logger<StaffStatusService>(staffLogs));
+            services.AddSingleton<ILogger<StaffApprovalService>>(new Logger<StaffApprovalService>(staffLogs));
+            services.AddSingleton<ILogger<StaffAuthCompensation>>(new Logger<StaffAuthCompensation>(staffLogs));
             services.AddSingleton<ILogger<RedisConnection>>(
                 new Logger<RedisConnection>(LoggerFactory.Create(logging => logging.AddProvider(RedisLogs))));
             services.AddControllers().AddApplicationPart(typeof(ZenGearApiFactory).Assembly);

@@ -42,6 +42,10 @@ public class StaffTests : IntegrationTestBase
             await TestRoles.GrantAsync(role, PermissionKeys.StaffRead);
         }
 
+        // The Admin holds the whole catalog, staff.approve included, so it creates ACTIVE accounts; the Store Manager does
+        // not, so its accounts wait for approval (R-USR-17, STF-09).
+        await TestRoles.GrantAsync(_adminRole, PermissionKeys.StaffApprove);
+
         // The Store Manager's default set covers the default roles (R-SEC-12, DEC-128); the tests insert it, no sync runs.
         await TestRoles.ManageAsync(_managerRole, _managerRole, _cashierRole, _salesRole);
 

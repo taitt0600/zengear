@@ -32,6 +32,8 @@ public sealed class PermissionCatalog : IPermissionCatalog
         new(PermissionKeys.StaffCreate, "Create staff accounts and give them roles"),
         new(PermissionKeys.StaffRead, "View staff accounts"),
         new(PermissionKeys.StaffDisable, "Disable and restore staff accounts"),
+        // DEC-128 (1): only the Admin by default (system roles hold the whole catalog); the Admin may grant it to a role.
+        new(PermissionKeys.StaffApprove, "Approve or reject staff accounts created by someone else"),
         new(PermissionKeys.BusinessLocationUpdate, "Edit the business location: address, hotline, opening hours"),
         new(PermissionKeys.BrandRead, "View brands"),
         new(PermissionKeys.BrandCreate, "Create brands"),

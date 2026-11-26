@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using ZenGear.Api.Attributes;
 using ZenGear.Api.Constants;
 using ZenGear.Api.ExceptionHandling;
+using ZenGear.Api.Extensions;
 using ZenGear.Services.Common.Models;
 using ZenGear.Services.Identity.Permissions;
 using ZenGear.Services.Identity.StaffAccounts;
@@ -13,9 +14,13 @@ namespace ZenGear.Api.Controllers.Identity;
 [Route("staff")]
 public sealed class StaffController(StaffService staff) : ControllerBase
 {
+    private IEnumerable<string> CallerPermissionKeys => HttpContext.GetUserAccess()!.Permissions.Keys;
+
     /// <summary>
-    /// Creates a staff account with the default password and one or more roles (STF-01); the employee code, the username
-    /// and the company email are generated from the name and the joined date (R-USR-24).
+    /// Creates a staff account with one or more roles (STF-01); the employee code, the username and the company email
+    /// are generated from the name and the joined date (R-USR-24). A caller holding <c>staff.approve</c> creates it
+    /// ACTIVE with the default password; anyone else creates it PENDING, with no sign-in account until another person
+    /// approves it (R-USR-17).
     /// </summary>
     /// <response code="400">Invalid input, or a role that does not exist.</response>
     /// <response code="403"><c>/problems/permission-denied</c>: <c>staff.create</c> missing.</response>
@@ -42,13 +47,16 @@ public sealed class StaffController(StaffService staff) : ControllerBase
         "ROLE_OUT_OF_SCOPE")]
     public async Task<ActionResult<StaffDto>> Create(StaffCreateRequest request, CancellationToken cancellationToken)
     {
-        var created = await staff.CreateAsync(request, User.GetUserId(), cancellationToken);
+        var created = await staff.CreateAsync(request, User.GetUserId(), CallerPermissionKeys, cancellationToken);
+        Response.SetETag(created.Version);
         return CreatedAtAction(nameof(Get), new { id = created.Id }, created);
     }
 
     /// <summary>
     /// The staff accounts with their roles (R-USR-13). No parameter searches by name, email or phone: personal data
-    /// stays out of the query string; a client filters the rows it loaded.
+    /// stays out of the query string; a client filters the rows it loaded. A PENDING row carries whether the caller may
+    /// approve or withdraw it, who created it and when, and its <c>version</c> for <c>If-Match</c> (DEC-137 (1),
+    /// DEC-140); the API checks again when the action is sent.
     /// </summary>
     /// <response code="400">An invalid <c>status</c>, <c>roleId</c>, <c>sort</c>, <c>page</c> or <c>pageSize</c> (R-USR-13).</response>
     /// <response code="403"><c>/problems/permission-denied</c>: <c>staff.read</c> missing.</response>
@@ -62,7 +70,7 @@ public sealed class StaffController(StaffService staff) : ControllerBase
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized, "application/problem+json")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden, "application/problem+json")]
     public Task<PagedDto<StaffListItemDto>> List(
-        [FromQuery, Description("ACTIVE or DISABLED; both when left out.")] string? status,
+        [FromQuery, Description("ACTIVE, DISABLED or PENDING; all three when left out.")] string? status,
         [FromQuery, Description("Only staff holding this role; a role that does not exist gives an empty page.")]
         Guid? roleId,
         [FromQuery, Description("name (default, Vietnamese order), -name, employeeCode, -employeeCode, joinedDate or "
@@ -71,7 +79,8 @@ public sealed class StaffController(StaffService staff) : ControllerBase
         CancellationToken cancellationToken,
         [FromQuery, Description("From 1.")] int page = 1,
         [FromQuery, Description("1 to 100.")] int pageSize = PageRequest.DefaultPageSize) =>
-        staff.ListAsync(new StaffListRequest(status, roleId, sort, page, pageSize), cancellationToken);
+        staff.ListAsync(new StaffListRequest(status, roleId, sort, page, pageSize), User.GetUserId(), CallerPermissionKeys,
+            cancellationToken);
 
     /// <summary>
     /// The staff roles the caller may give a new account: its manageable set (Phạm vi quản lý, R-SEC-12), every staff role
@@ -91,7 +100,11 @@ public sealed class StaffController(StaffService staff) : ControllerBase
         [FromQuery, Description("1 to 100.")] int pageSize = PageRequest.DefaultPageSize) =>
         staff.ListAssignableRolesAsync(User.GetUserId(), new PageRequest(page, pageSize), cancellationToken);
 
-    /// <summary>A staff account and its roles.</summary>
+    /// <summary>
+    /// A staff account and its roles, with its <c>ETag</c>, the version approve, reject and withdraw send back as
+    /// <c>If-Match</c> (DEC-140 (2)). A PENDING account carries whether the caller may approve or withdraw it, who
+    /// created it and when (DEC-138, DEC-140 (1)).
+    /// </summary>
     /// <response code="403"><c>/problems/permission-denied</c>: <c>staff.read</c> missing.</response>
     /// <response code="404">No staff account with this id.</response>
     [HttpGet("{id:guid}")]
@@ -100,6 +113,14 @@ public sealed class StaffController(StaffService staff) : ControllerBase
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized, "application/problem+json")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden, "application/problem+json")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound, "application/problem+json")]
-    public async Task<ActionResult<StaffDto>> Get(Guid id, CancellationToken cancellationToken) =>
-        await staff.GetAsync(id, cancellationToken) is { } found ? found : NotFound();
+    public async Task<ActionResult<StaffDto>> Get(Guid id, CancellationToken cancellationToken)
+    {
+        if (await staff.GetAsync(id, User.GetUserId(), CallerPermissionKeys, cancellationToken) is not { } found)
+        {
+            return NotFound();
+        }
+
+        Response.SetETag(found.Version);
+        return found;
+    }
 }

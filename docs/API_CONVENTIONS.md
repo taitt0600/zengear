@@ -94,6 +94,7 @@ a 400 or of a 409 about a field, its place in the `[ErrorCodes]` of the actions 
 - Resources that can be edited return an `ETag` built from `xmin`; updates send `If-Match` and get 412 `/problems/precondition-failed` when the row changed (optimistic concurrency).
 - `PUT` / `PATCH` on a resource that has an `ETag` without `If-Match` gets 428 `/problems/if-match-required`.
 - A concurrent change detected on save (`xmin`) for a request without `If-Match` (a command such as `POST /api/v1/admin/orders/{id}/confirm`) gets 409 with `type` `/problems/concurrency-conflict` and no `ruleId`; the caller reloads and retries.
+- **Exception (DEC-140 (2))**: `POST /api/v1/admin/staff/{id}/approve`, `/reject` and `/withdraw` are commands that require `If-Match`, the `ETag` of `GET /api/v1/admin/staff/{id}` or the `version` of the list item, so that an approver acts only on the account they saw: missing gets 428 `/problems/if-match-required`, another version 412 `/problems/precondition-failed`. Unlike the `PUT` / `PATCH` updates, they refuse `If-Match: *` with 412, since it names no version.
 - `POST` requests that must not run twice (checkout, payments) send an `Idempotency-Key` header; a repeated key returns the first result (R-ORD-12). Payment callbacks are idempotent by the gateway transaction id (R-TX-07).
 
 ## Authentication

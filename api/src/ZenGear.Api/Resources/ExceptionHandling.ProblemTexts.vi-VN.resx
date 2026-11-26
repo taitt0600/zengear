@@ -195,6 +195,30 @@
   <data name="account-anonymized.detail" xml:space="preserve">
     <value>Tài khoản đã được ẩn danh, không thể khóa hay khôi phục.</value>
   </data>
+  <data name="account-pending.title" xml:space="preserve">
+    <value>Tài khoản đang chờ duyệt</value>
+  </data>
+  <data name="account-pending.detail" xml:space="preserve">
+    <value>Tài khoản đang chờ duyệt, không thể khóa hay khôi phục. Hãy duyệt hoặc từ chối tài khoản này.</value>
+  </data>
+  <data name="account-not-pending.title" xml:space="preserve">
+    <value>Tài khoản không còn chờ duyệt</value>
+  </data>
+  <data name="account-not-pending.detail" xml:space="preserve">
+    <value>Tài khoản này không còn chờ duyệt: có thể đã được người khác duyệt. Hãy tải lại để xem trạng thái hiện tại.</value>
+  </data>
+  <data name="own-account-request-not-approvable.title" xml:space="preserve">
+    <value>Không thể tự duyệt</value>
+  </data>
+  <data name="own-account-request-not-approvable.detail" xml:space="preserve">
+    <value>Bạn đã tạo tài khoản này nên không thể duyệt hay từ chối nó. Một người có quyền duyệt khác cần làm việc này.</value>
+  </data>
+  <data name="not-account-creator.title" xml:space="preserve">
+    <value>Không phải người tạo</value>
+  </data>
+  <data name="not-account-creator.detail" xml:space="preserve">
+    <value>Chỉ người tạo tài khoản mới thu hồi được tài khoản đang chờ duyệt.</value>
+  </data>
   <data name="brand-already-exists.title" xml:space="preserve">
     <value>Thương hiệu đã tồn tại</value>
   </data>
