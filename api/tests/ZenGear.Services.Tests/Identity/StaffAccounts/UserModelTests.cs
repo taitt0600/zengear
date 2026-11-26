@@ -59,10 +59,22 @@ public class UserModelTests
 
         staff.GetTableName().ShouldBe("staff_profiles");
         staff.FindPrimaryKey()!.GetName().ShouldBe("pk_staff_profiles");
-        var fk = staff.GetForeignKeys().Single();
+        var fk = staff.GetForeignKeys().Single(f => f.Properties.Single().Name == nameof(StaffProfile.UserId));
         fk.GetConstraintName().ShouldBe("fk_staff_profiles_users_user_id");
         fk.DeleteBehavior.ShouldBe(DeleteBehavior.Cascade);
-        staff.GetIndexes().Single().GetDatabaseName().ShouldBe("ix_staff_profiles_employee_code");
+        staff.GetIndexes().Select(i => i.GetDatabaseName()).ShouldBe(
+            ["ix_staff_profiles_employee_code", "ix_staff_profiles_created_by"], ignoreOrder: true);
+    }
+
+    [Test]
+    public void R_USR_17_staff_profiles_references_its_creator_without_cascade()
+    {
+        var staff = Model().FindEntityType(typeof(StaffProfile))!;
+
+        var fk = staff.GetForeignKeys().Single(f => f.Properties.Single().Name == nameof(StaffProfile.CreatedBy));
+        fk.GetConstraintName().ShouldBe("fk_staff_profiles_users_created_by");
+        fk.DeleteBehavior.ShouldBe(DeleteBehavior.Restrict);
+        fk.PrincipalEntityType.ClrType.ShouldBe(typeof(User));
         staff.GetCheckConstraints().Select(c => c.Name).ShouldBe(
             ["ck_staff_profiles_employee_code", "ck_staff_profiles_left_date"], ignoreOrder: true);
         staff.FindProperty(nameof(StaffProfile.Username))!.GetMaxLength().ShouldBe(64);

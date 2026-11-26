@@ -44,7 +44,7 @@ Table users {
   email varchar(255) [null, unique]
   phone varchar(20) [null, unique, note: 'E.164, e.g. +84901234567']
   phone_verified_at timestamptz [null]
-  status varchar(20) [not null, default: 'ACTIVE', note: 'ACTIVE | DISABLED | ANONYMIZED']
+  status varchar(20) [not null, default: 'ACTIVE', note: 'ACTIVE | DISABLED | ANONYMIZED | PENDING']
   last_login_at timestamptz [null]
   created_by uuid [null]
   created_at timestamptz [not null, default: `now()`]
@@ -91,9 +91,11 @@ Table staff_profiles {
   updated_by uuid [null]
   updated_at timestamptz [not null, default: `now()`]
   username varchar(64) [not null, note: 'Name abbreviation + employee code (R-USR-24); unique whatever the case']
+  created_by uuid [null, note: 'The creator of the account (R-USR-17, DEC-128 (3)); NULL for the bootstrap and seed accounts']
 
   indexes {
     (`lower(username)`) [unique, name: 'ix_staff_profiles_username']
+    created_by
   }
 
   checks {
@@ -104,6 +106,7 @@ Table staff_profiles {
 
 Ref: users.id -? customer_profiles.user_id [delete: cascade]
 Ref: users.id -? staff_profiles.user_id [delete: cascade]
+Ref: staff_profiles.created_by >? users.id [delete: restrict]
 
 Table roles {
   id uuid [pk, default: `uuidv7()`]
@@ -2144,7 +2147,7 @@ Login account shared by staff and customers; a customer is identified by email o
 | email | Login / contact email, lowercase; NULL for a customer identified by phone only | a@gmail.com, NULL |
 | phone | Customer phone in E.164 — second identifier (counter lookup, phone sign-in) | +84901234567, NULL |
 | phone_verified_at | When the customer proved ownership of the phone by OTP; required before merging by phone | 2026-02-01 10:00:00, NULL |
-| status | Account status; ANONYMIZED = personal data erased on request, row kept for order history | ACTIVE, DISABLED, ANONYMIZED |
+| status | Account status; ANONYMIZED = personal data erased on request, row kept for order history; PENDING = a staff account created by someone without `staff.approve`, waiting for another person's approval, with no Firebase account yet (R-USR-17, DEC-128 (3)); never a customer | ACTIVE, DISABLED, ANONYMIZED, PENDING |
 | last_login_at | Last successful sign-in, updated once per session | 2026-09-20 08:15:00, NULL |
 
 #### customer_profiles
@@ -2176,6 +2179,7 @@ Staff-only profile data, 1-1 with `users`.
 | left_date | Last working day; NULL = still employed | 2026-12-31, NULL |
 | must_change_password | Force password change on first login | true, false |
 | username | Sign-in name generated with the code (R-USR-24): name abbreviation + employee code, unique whatever the case (`ix_staff_profiles_username` on `lower(username)`); `users.email` is it in lower case on the company domain; changes only when the Admin regenerates it (R-USR-21) | AnNVZG260012 |
+| created_by | FK to `users`: who created the account through the API, the person an approval must not come from (R-USR-17, DEC-128 (3)); NULL for the bootstrap and seed accounts | `a1b2c3d4-...`, NULL |
 
 #### roles
 

@@ -8,15 +8,16 @@ public class StaffProfile
     }
 
     internal StaffProfile(string employeeCode, string username, DateOnly? joinedDate, string? workPhone,
-        bool mustChangePassword, Guid? updatedBy, DateTimeOffset now)
+        bool mustChangePassword, Guid? createdBy, DateTimeOffset now)
     {
         EmployeeCode = employeeCode;
         Username = username;
         JoinedDate = joinedDate;
         WorkPhone = workPhone;
         MustChangePassword = mustChangePassword;
+        CreatedBy = createdBy;
         CreatedAt = now;
-        UpdatedBy = updatedBy;
+        UpdatedBy = createdBy;
         UpdatedAt = now;
     }
 
@@ -42,6 +43,13 @@ public class StaffProfile
     public bool MustChangePassword { get; private set; }
 
     public DateTimeOffset CreatedAt { get; private set; }
+
+    /// <summary>
+    /// Who created the account through the API: the person who may not approve or reject it, and the only one who may
+    /// withdraw it while it is PENDING (R-USR-17, DEC-128 (3), DEC-140 (1)). Null for the bootstrap and seed accounts.
+    /// It is the same actor as <see cref="User.CreatedBy"/>, kept here because the rule reads the profile (DEC-128).
+    /// </summary>
+    public Guid? CreatedBy { get; private set; }
 
     public Guid? UpdatedBy { get; private set; }
 

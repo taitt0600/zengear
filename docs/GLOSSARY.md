@@ -94,7 +94,7 @@ Stored as the English values below; the Vietnamese label is what the UI shows, t
 
 | Thuật ngữ | Column | Values |
 |---|---|---|
-| Trạng thái tài khoản | `users.status` | ACTIVE (đang hoạt động), DISABLED (đã khóa), ANONYMIZED (đã ẩn danh) |
+| Trạng thái tài khoản | `users.status` | ACTIVE (đang hoạt động), DISABLED (đã khóa), ANONYMIZED (đã ẩn danh), PENDING (chờ duyệt, chỉ tài khoản nhân viên, R-USR-17) |
 | Loại đơn | `orders.type` | SELF_SERVICE (khách tự đặt online), ASSISTED (nhân viên tạo hộ / bán tại quầy) |
 | Cách nhận hàng | `orders.fulfillment_method` | PICKUP (nhận tại cửa hàng), SHIP (giao hàng) |
 | Trạng thái đơn | `orders.status` | Pending (chờ xác nhận), Confirmed (đã xác nhận, đã trừ kho), Processing (đang xử lý), Shipped (đã giao cho hãng vận chuyển), Ready_for_pickup (chờ khách đến lấy), Completed (hoàn tất), Cancelled (đã hủy), Returned_to_sender (giao thất bại, hoàn về) |
