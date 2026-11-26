@@ -45,21 +45,56 @@ public class User : IAggregateRoot
 
     public ICollection<UserRole> UserRoles { get; private set; } = [];
 
+    /// <summary>
+    /// <c>xmin</c>, the concurrency token and ETag. For a staff account it is also the version of DEC-140 (2) that
+    /// approve, reject and withdraw compare with <c>If-Match</c>: any change of the name, employee code, work phone,
+    /// joined date, email or role set must write this row too (a change of the profile or of the roles alone sets
+    /// <see cref="UpdatedAt"/>), so that an approver never approves data other than what they saw.
+    /// </summary>
     public uint Version { get; private set; }
 
     /// <summary>Email as stored and compared: trimmed and lowercase (R-USR-02, <c>ck_users_email</c>).</summary>
     public static string NormalizeEmail(string email) => email.Trim().ToLowerInvariant();
 
     /// <summary>
-    /// A new ACTIVE staff account with its one staff profile and its roles: the only way to create a staff user
-    /// (R-USR-01). The services check the rules first for a clear error; these checks are the backstop.
+    /// A new ACTIVE staff account with its Firebase account, its one staff profile and its roles (R-USR-01), created by
+    /// a holder of <c>staff.approve</c> or by the bootstrap. The services check the rules first for a clear error; these
+    /// checks are the backstop.
     /// </summary>
     /// <param name="roles">At least one (R-SEC-01: the database trigger only guards removals); a role given twice
     /// counts once.</param>
-    /// <exception cref="ArgumentException">No role, or a role that is not for staff.</exception>
+    /// <exception cref="ArgumentException">No Firebase account, no role, or a role that is not for staff.</exception>
     public static User CreateStaff(StaffAccountData account, IReadOnlyCollection<Role> roles, Guid? createdBy, DateTimeOffset now)
     {
         ArgumentNullException.ThrowIfNull(account);
+        if (account.FirebaseUid is null)
+        {
+            throw new ArgumentException("An ACTIVE staff account signs in with a Firebase account.", nameof(account));
+        }
+
+        return NewStaff(account, roles, UserStatus.Active, createdBy, now);
+    }
+
+    /// <summary>
+    /// A new PENDING staff account, created by someone without <c>staff.approve</c>: no Firebase account until another
+    /// person approves it (R-USR-17, DEC-128 (3)); otherwise as <see cref="CreateStaff"/>.
+    /// </summary>
+    /// <exception cref="ArgumentException">A Firebase account, no role, or a role that is not for staff.</exception>
+    public static User CreatePendingStaff(StaffAccountData account, IReadOnlyCollection<Role> roles, Guid createdBy,
+        DateTimeOffset now)
+    {
+        ArgumentNullException.ThrowIfNull(account);
+        if (account.FirebaseUid is not null)
+        {
+            throw new ArgumentException("R-USR-17: a PENDING account has no Firebase account.", nameof(account));
+        }
+
+        return NewStaff(account, roles, UserStatus.Pending, createdBy, now);
+    }
+
+    private static User NewStaff(StaffAccountData account, IReadOnlyCollection<Role> roles, UserStatus status,
+        Guid? createdBy, DateTimeOffset now)
+    {
         ArgumentNullException.ThrowIfNull(roles);
         if (roles.Count == 0)
         {
@@ -78,7 +113,7 @@ public class User : IAggregateRoot
             FirebaseUid = account.FirebaseUid,
             Name = account.Name.Trim(),
             Email = NormalizeEmail(account.Email),
-            Status = UserStatus.Active,
+            Status = status,
             CreatedBy = createdBy,
             CreatedAt = now,
             UpdatedBy = createdBy,
@@ -92,6 +127,26 @@ public class User : IAggregateRoot
         }
 
         return user;
+    }
+
+    /// <summary>
+    /// Approves the PENDING staff account: ACTIVE, signing in with the Firebase account the approval created
+    /// (R-USR-17, R-USR-03); <c>must_change_password</c> stays as created. The service checks the rules first for a
+    /// clear error; this check is the backstop.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">The account is not PENDING.</exception>
+    public void Approve(string firebaseUid, Guid approvedBy, DateTimeOffset now)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(firebaseUid);
+        if (Status != UserStatus.Pending)
+        {
+            throw new InvalidOperationException("R-USR-17: only a PENDING account is approved.");
+        }
+
+        FirebaseUid = firebaseUid;
+        Status = UserStatus.Active;
+        UpdatedBy = approvedBy;
+        UpdatedAt = now;
     }
 
     /// <summary>
@@ -147,6 +202,11 @@ public class User : IAggregateRoot
         if (Status == UserStatus.Anonymized)
         {
             throw new InvalidOperationException("R-USR-03: an anonymized account cannot change status.");
+        }
+
+        if (Status == UserStatus.Pending)
+        {
+            throw new InvalidOperationException("R-USR-17: a PENDING account is approved, rejected or withdrawn, not disabled or restored.");
         }
 
         return StaffProfile ?? throw new InvalidOperationException("Only a staff account is disabled or restored here.");

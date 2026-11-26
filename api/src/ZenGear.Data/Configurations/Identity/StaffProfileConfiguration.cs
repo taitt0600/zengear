@@ -28,6 +28,12 @@ internal sealed class StaffProfileConfiguration : IEntityTypeConfiguration<Staff
 
         builder.HasIndex(s => s.EmployeeCode).IsUnique().HasDatabaseName("ix_staff_profiles_employee_code");
 
+        // The creator of the account (R-USR-17, DEC-128 (3)): a business reference, so a foreign key unlike the audit
+        // columns. Only a PENDING account is ever deleted, and it never created one (it cannot sign in).
+        builder.HasOne<User>().WithMany().HasForeignKey(s => s.CreatedBy)
+            .HasConstraintName("fk_staff_profiles_users_created_by").OnDelete(DeleteBehavior.Restrict);
+        builder.HasIndex(s => s.CreatedBy).HasDatabaseName("ix_staff_profiles_created_by");
+
         // ix_staff_profiles_username is unique on lower(username) (R-USR-24): EF Core 10 maps no index on an expression,
         // so the migration Phase1_Store_Identity_EmployeeCodeSequences creates it with SQL and the model leaves it out.
     }

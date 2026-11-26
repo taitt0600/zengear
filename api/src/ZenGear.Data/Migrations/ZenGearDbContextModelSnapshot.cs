@@ -668,6 +668,10 @@ namespace ZenGear.Data.Migrations
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("now()");
 
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
                     b.Property<string>("EmployeeCode")
                         .HasMaxLength(8)
                         .HasColumnType("character varying(8)")
@@ -710,6 +714,9 @@ namespace ZenGear.Data.Migrations
 
                     b.HasKey("UserId")
                         .HasName("pk_staff_profiles");
+
+                    b.HasIndex("CreatedBy")
+                        .HasDatabaseName("ix_staff_profiles_created_by");
 
                     b.HasIndex("EmployeeCode")
                         .IsUnique()
@@ -1006,6 +1013,12 @@ namespace ZenGear.Data.Migrations
 
             modelBuilder.Entity("ZenGear.Data.Entities.Identity.StaffProfile", b =>
                 {
+                    b.HasOne("ZenGear.Data.Entities.Identity.User", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_staff_profiles_users_created_by");
+
                     b.HasOne("ZenGear.Data.Entities.Identity.User", null)
                         .WithOne("StaffProfile")
                         .HasForeignKey("ZenGear.Data.Entities.Identity.StaffProfile", "UserId")

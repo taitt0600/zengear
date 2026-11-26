@@ -77,13 +77,16 @@ CREATE TABLE staff_profiles (
   updated_by           uuid,
   updated_at           timestamptz NOT NULL DEFAULT now(),
   username             varchar(64) NOT NULL,
+  created_by           uuid,
   CONSTRAINT pk_staff_profiles PRIMARY KEY (user_id),
   CONSTRAINT fk_staff_profiles_users_user_id FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+  CONSTRAINT fk_staff_profiles_users_created_by FOREIGN KEY (created_by) REFERENCES users (id) ON DELETE RESTRICT,
   CONSTRAINT ck_staff_profiles_left_date CHECK (left_date is null or joined_date is null or left_date >= joined_date),
   CONSTRAINT ck_staff_profiles_employee_code CHECK (employee_code ~ '^ZG[0-9]{6}$')
 );
 CREATE UNIQUE INDEX ix_staff_profiles_employee_code ON staff_profiles (employee_code);
 CREATE UNIQUE INDEX ix_staff_profiles_username ON staff_profiles (lower(username));
+CREATE INDEX ix_staff_profiles_created_by ON staff_profiles (created_by);
 
 CREATE TABLE roles (
   id             uuid        NOT NULL DEFAULT uuidv7(),
