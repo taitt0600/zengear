@@ -8,7 +8,7 @@ import { sortDirection, type SortField } from '../utils/staff-list'
 import { StaffSortHeader } from './staff-sort-header'
 
 /**
- * The table of SCR-STF-01 with its nine column headers, "STT" first (`aria-hidden`, read as "Số thứ tự") and "Thao tác"
+ * The table of SCR-STF-01 (tabs Tất cả, Đang hoạt động, Đã khóa) with its eight column headers, "STT" first (`aria-hidden`, read as "Số thứ tự") and "Thao tác"
  * last; the sorting headers change the URL's sort. Its box scrolls sideways itself (not shadcn's container inside it),
  * so that the keyboard can scroll it once it has the focus; on a narrow screen it has a border.
  */
@@ -51,7 +51,6 @@ export function StaffTable({
             </TableHead>
             {sorting('name')}
             {sorting('employeeCode')}
-            <TableHead>{t('columns.email')}</TableHead>
             <TableHead>{t('columns.roles')}</TableHead>
             <TableHead>{t('columns.status')}</TableHead>
             {sorting('joinedDate')}

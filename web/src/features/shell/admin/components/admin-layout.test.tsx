@@ -17,9 +17,12 @@ import { ThemeProvider } from '@/features/shell/theme'
 // admin-shell.test.tsx.
 
 const navigation = vi.hoisted(() => ({ replace: vi.fn(), pathname: '/admin/staff' }))
+// The count of accounts waiting has its own tests (use-pending-staff-count.test.tsx).
+vi.mock('@/hooks/use-pending-staff-count', () => ({ usePendingStaffCount: () => undefined }))
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ replace: navigation.replace }),
   usePathname: () => navigation.pathname,
+  useSearchParams: () => new URLSearchParams(),
 }))
 
 vi.mock('@/lib/auth/session', () => ({
@@ -169,7 +172,7 @@ describe('on a narrow screen', () => {
     await user.click(screen.getByRole('button', { name: 'Mở menu' }))
     await user.click(
       within(await screen.findByRole('dialog', { name: 'Menu' })).getByRole('link', {
-        name: 'Nhân viên',
+        name: 'Danh sách nhân viên',
       }),
     )
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())

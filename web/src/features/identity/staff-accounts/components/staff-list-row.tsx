@@ -11,7 +11,8 @@ import { StaffStatusBadge, type StaffStatusTexts } from './staff-status-badge'
 export type StaffRowTexts = { noValue: string; status: StaffStatusTexts }
 
 /**
- * Presentational: one account of SCR-STF-01, its "STT" first, its name a link to SCR-STF-03, its menu "Thao tác" last;
+ * Presentational: one account of SCR-STF-01, its "STT" first, its name a link to SCR-STF-03 with the email under it
+ * (STF-09), its menu "Thao tác" last;
  * an empty code or joined date shows `noValue`, the left date stays empty while the person is employed. `day` shows a
  * date of the API. The menu offers the commands when the user holds `staff.disable` (`canDisable`) and the row is not
  * their own account (`meId`, R-USR-12); `onGone` takes the focus when the row leaves the list with a dialog open.
@@ -38,9 +39,9 @@ export function StaffListRow({
         <Link href={staffPath(row.id)} className="font-medium underline underline-offset-4">
           {row.name}
         </Link>
+        <div className="text-muted-foreground text-sm">{row.email}</div>
       </TableCell>
       <TableCell>{row.employeeCode ?? texts.noValue}</TableCell>
-      <TableCell>{row.email}</TableCell>
       <TableCell>
         <StaffRolesCell roles={row.roles} />
       </TableCell>
@@ -58,7 +59,7 @@ export function StaffListRow({
   )
 }
 
-const SKELETON_WIDTHS = ['w-6', 'w-36', 'w-16', 'w-48', 'w-24', 'w-28', 'w-20', 'w-20', 'w-8']
+const SKELETON_WIDTHS = ['w-6', 'w-48', 'w-16', 'w-24', 'w-28', 'w-20', 'w-20', 'w-8']
 
 /** Presentational: the three rows of Skeleton, one bar a column, that stand for the rows while the list loads. */
 export const STAFF_SKELETON_ROWS = [0, 1, 2].map((row) => (

@@ -14,11 +14,13 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import type { StaffListItemDto } from '@/lib/api/generated/model'
+import type { ApprovalAction } from '../hooks/use-staff-approval'
 import { staffPath } from '../utils/paths'
 import { StaffDisableDialog } from './staff-disable-dialog'
+import { StaffPendingActions, StaffPendingDialog } from './staff-pending-actions'
 import { StaffRestoreDialog } from './staff-restore-dialog'
 
-type Command = 'disable' | 'restore'
+type Command = 'disable' | 'restore' | ApprovalAction
 
 /**
  * The menu "Thao tác" of a row of SCR-STF-01 (STF-05, STF-02): "Xem chi tiết", and, when `canAct` (the user holds
@@ -26,7 +28,8 @@ type Command = 'disable' | 'restore'
  * active account, restore or lock again a disabled one (R-USR-03). They open the dialogs of SCR-STF-03, whose requests
  * load the list again (hooks/use-staff-status.ts). Hiding only: the API decides. A dialog that closes puts the focus
  * back on the menu button; when the row leaves the list with its dialog open (a 200 under a status filter), `onGone`
- * takes the focus instead.
+ * takes the focus instead. A PENDING row (STF-09) offers the items of `StaffPendingActions` by its API flags, whose
+ * confirmations send the item's `version` as `If-Match` (`StaffPendingDialog`, mounted once one is chosen).
  */
 export function StaffRowActions({
   row,
@@ -49,6 +52,10 @@ export function StaffRowActions({
     chosen.current = command
   }
   const toggle = (command: Command) => (next: boolean) => setOpen(next ? command : null)
+  // The last approval command stays while its dialog closes, so that Radix can still put the focus back.
+  const [approvalAction, setApprovalAction] = useState<ApprovalAction | null>(null)
+  if (open && open !== 'disable' && open !== 'restore' && open !== approvalAction)
+    setApprovalAction(open)
 
   return (
     <>
@@ -81,6 +88,7 @@ export function StaffRowActions({
               {t('list.actions.view')}
             </Link>
           </DropdownMenuItem>
+          {row.status === 'PENDING' && <StaffPendingActions row={row} onChoose={choose} />}
           {canAct && row.status === 'ACTIVE' && (
             <>
               <DropdownMenuSeparator />
@@ -105,6 +113,15 @@ export function StaffRowActions({
           )}
         </DropdownMenuContent>
       </DropdownMenu>
+      {approvalAction && (
+        <StaffPendingDialog
+          action={approvalAction}
+          row={row}
+          open={open === approvalAction}
+          onOpenChange={toggle(approvalAction)}
+          onClosed={focusBack}
+        />
+      )}
       {canAct && (
         <>
           <StaffDisableDialog

@@ -1,5 +1,12 @@
 import { expect, test, type Locator, type Page } from '@playwright/test'
-import { accounts, meId, newSalesConsultant, PASSWORD, STAFF_NAME } from './support/backend'
+import {
+  accounts,
+  meId,
+  newPendingAccount,
+  newSalesConsultant,
+  PASSWORD,
+  STAFF_NAME,
+} from './support/backend'
 import { failOnCspViolations, signIn } from './support/pages'
 
 // SCR-STF-03 Staff account (docs/screens/SCR-STF-03.md, STF-02) against the API, the Firebase Auth Emulator and the
@@ -116,4 +123,24 @@ test('an unknown account leads back to the list, and the Admin cannot lock their
   await page.goto(`/admin/staff/${await meId(accounts.admin, PASSWORD)}`)
   await expect(page.getByText('Bạn không thể khóa tài khoản của chính mình.')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Khóa tài khoản' })).toHaveCount(0)
+})
+
+test('the Admin rejects a PENDING account from its notice, then lands on the tab Chờ duyệt (STF-09)', async ({
+  page,
+}) => {
+  const staff = await newPendingAccount('Đặng Thị Từ')
+  await signedInAdmin(page)
+  await page.goto(`/admin/staff/${staff.id}`)
+
+  const notice = page.getByRole('status').filter({ hasText: 'Tài khoản đang chờ duyệt' })
+  await expect(notice).toContainText('Phạm Quốc Bảo tạo lúc')
+  await expect(page.getByRole('button', { name: 'Khóa tài khoản' })).toHaveCount(0)
+  await notice.getByRole('button', { name: 'Từ chối' }).click()
+  await page
+    .getByRole('alertdialog', { name: 'Từ chối tài khoản này?' })
+    .getByRole('button', { name: 'Từ chối tài khoản' })
+    .click()
+
+  await expect(page).toHaveURL('/admin/staff?status=PENDING')
+  await expect(page.getByText('Đã từ chối tài khoản Đặng Thị Từ.')).toBeVisible()
 })

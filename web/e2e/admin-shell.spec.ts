@@ -15,7 +15,13 @@ test('the Admin signs in and sees every menu entry', async ({ page }) => {
   await signIn(page, accounts.admin, PASSWORD)
 
   await expect(page).toHaveURL('/admin/staff')
-  await expect(menu(page).getByRole('link', { name: 'Nhân viên' })).toBeVisible()
+  // "Nhân viên" is a group, open since one of its entries is the current page (the Layout of SCR-ADM-01, STF-09).
+  await expect(menu(page).getByRole('link', { name: 'Danh sách nhân viên' })).toHaveAttribute(
+    'aria-current',
+    'page',
+  )
+  await expect(menu(page).getByRole('link', { name: 'Thêm nhân viên' })).toBeVisible()
+  await expect(menu(page).getByRole('link', { name: /^Chờ duyệt/ })).toBeVisible()
   // The group is closed while none of its entries is the current page (the Layout of SCR-ADM-01).
   const settings = menu(page).getByRole('button', { name: 'Cài đặt' })
   await expect(settings).toHaveAttribute('aria-expanded', 'false')
@@ -32,7 +38,7 @@ test('the Store Manager does not see the settings', async ({ page }) => {
   await signIn(page, accounts.manager, PASSWORD)
 
   await expect(page).toHaveURL('/admin/staff')
-  await expect(menu(page).getByRole('link', { name: 'Nhân viên' })).toBeVisible()
+  await expect(menu(page).getByRole('link', { name: 'Danh sách nhân viên' })).toBeVisible()
   await expect(menu(page).getByText('Cài đặt')).toHaveCount(0)
   await expect(menu(page).getByRole('link', { name: 'Địa điểm kinh doanh' })).toHaveCount(0)
 })
@@ -137,7 +143,11 @@ test('an unknown admin page shows the 404 inside the layout', async ({ page }) =
   await page.goto('/admin/khong-ton-tai')
   await expect(page.getByRole('heading', { name: 'Không tìm thấy trang này.' })).toBeVisible()
   await expect(page).toHaveTitle(/^Không tìm thấy trang này\./)
-  await expect(menu(page).getByRole('link', { name: 'Nhân viên' })).toBeVisible()
+  // No entry of the group "Nhân viên" is the current page here, so it is closed.
+  await expect(menu(page).getByRole('button', { name: 'Nhân viên', exact: true })).toHaveAttribute(
+    'aria-expanded',
+    'false',
+  )
   await page.getByRole('link', { name: 'Về trang chính' }).click()
   await expect(page).toHaveURL('/admin/staff')
 })

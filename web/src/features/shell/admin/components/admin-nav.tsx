@@ -3,8 +3,9 @@
 import { ChevronRightIcon, Settings2Icon, UsersIcon, type LucideIcon } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useSearchParams } from 'next/navigation'
 import { useState, type MouseEvent } from 'react'
+import { Badge } from '@/components/ui/badge'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import {
   SidebarGroup,
@@ -17,27 +18,28 @@ import {
   SidebarMenuSubItem,
   useSidebar,
 } from '@/components/ui/sidebar'
-import { visibleMenu, type MenuEntry, type MenuGroup } from '../utils/admin-menu'
+import { usePendingStaffCount } from '@/hooks/use-pending-staff-count'
+import { currentEntry, visibleMenu, type MenuEntry, type MenuGroup } from '../utils/admin-menu'
 
-const ICONS: Record<MenuEntry['key'] | MenuGroup['key'], LucideIcon | undefined> = {
-  staff: UsersIcon,
-  settings: Settings2Icon,
-  businessLocation: undefined,
-}
-
-const isCurrent = (pathname: string, href: string) =>
-  pathname === href || pathname.startsWith(`${href}/`)
+const ICONS: Record<MenuGroup['key'], LucideIcon> = { staff: UsersIcon, settings: Settings2Icon }
 
 /**
  * The menu of SCR-ADM-01, limited to the entries the user's permissions allow; without any, nothing (no group "Menu").
- * Collapsed, each entry names itself in a tooltip; on a narrow screen a link closes the sheet.
+ * Each area is a group with a submenu, open while one of its entries is the current page; "Chờ duyệt" (STF-09) shows
+ * the number of accounts waiting, hidden at 0, while it loads and when it fails. Collapsed, each group names itself in
+ * a tooltip; on a narrow screen a link closes the sheet.
  */
 export function AdminNav({ permissions }: { permissions: readonly string[] }) {
   const t = useTranslations('admin.menu')
   const pathname = usePathname()
+  const status = useSearchParams().get('status')
   const { isMobile, setOpenMobile } = useSidebar()
-  const items = visibleMenu(permissions)
-  if (items.length === 0) return null
+  const groups = visibleMenu(permissions)
+  const current = currentEntry(pathname, status, permissions)
+  const pending = usePendingStaffCount(
+    groups.some((group) => group.entries.some((entry) => entry.key === 'staffPending')),
+  )
+  if (groups.length === 0) return null
   const onNavigate = () => {
     if (isMobile) setOpenMobile(false)
   }
@@ -47,48 +49,39 @@ export function AdminNav({ permissions }: { permissions: readonly string[] }) {
       <SidebarGroup>
         <SidebarGroupLabel>{t('title')}</SidebarGroupLabel>
         <SidebarMenu>
-          {items.map((item) => {
-            const Icon = ICONS[item.key]
-            if ('entries' in item) {
-              return (
-                <NavGroup key={item.key} group={item} pathname={pathname} onNavigate={onNavigate} />
-              )
-            }
-            const current = isCurrent(pathname, item.href)
-            return (
-              <SidebarMenuItem key={item.key}>
-                <SidebarMenuButton asChild isActive={current} tooltip={t(item.key)}>
-                  <Link
-                    href={item.href}
-                    aria-current={current ? 'page' : undefined}
-                    onClick={onNavigate}
-                  >
-                    {Icon && <Icon aria-hidden />}
-                    <span>{t(item.key)}</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            )
-          })}
+          {groups.map((group) => (
+            <NavGroup
+              key={group.key}
+              group={group}
+              current={current}
+              pathname={pathname}
+              pending={pending}
+              onNavigate={onNavigate}
+            />
+          ))}
         </SidebarMenu>
       </SidebarGroup>
     </nav>
   )
 }
 
-/** A group of the menu ("Cài đặt"): open while one of its entries is the current page; collapsed, a click opens both. */
+/** A group of the menu: open while one of its entries is the current page; collapsed, a click opens both. */
 function NavGroup({
   group,
+  current,
   pathname,
+  pending,
   onNavigate,
 }: {
   group: MenuGroup
+  current: MenuEntry | undefined
   pathname: string
+  pending: number | undefined
   onNavigate: () => void
 }) {
   const t = useTranslations('admin.menu')
   const { state, setOpen: setSidebarOpen } = useSidebar()
-  const holdsCurrent = group.entries.some((entry) => isCurrent(pathname, entry.href))
+  const holdsCurrent = !!current && group.entries.includes(current)
   const [open, setOpen] = useState(holdsCurrent)
   // A new path that one of its entries opens opens the group (the layout stays mounted across pages).
   const [shownPath, setShownPath] = useState(pathname)
@@ -111,7 +104,7 @@ function NavGroup({
       <SidebarMenuItem>
         <CollapsibleTrigger asChild>
           <SidebarMenuButton tooltip={t(group.key)} onClick={expandMenu}>
-            {Icon && <Icon aria-hidden />}
+            <Icon aria-hidden />
             <span>{t(group.key)}</span>
             <ChevronRightIcon
               aria-hidden
@@ -122,16 +115,23 @@ function NavGroup({
         <CollapsibleContent>
           <SidebarMenuSub>
             {group.entries.map((entry) => {
-              const current = isCurrent(pathname, entry.href)
+              const isCurrent = entry === current
+              const count = entry.key === 'staffPending' && pending ? pending : undefined
               return (
                 <SidebarMenuSubItem key={entry.key}>
-                  <SidebarMenuSubButton asChild isActive={current}>
+                  <SidebarMenuSubButton asChild isActive={isCurrent}>
                     <Link
                       href={entry.href}
-                      aria-current={current ? 'page' : undefined}
+                      aria-current={isCurrent ? 'page' : undefined}
                       onClick={onNavigate}
                     >
                       <span>{t(entry.key)}</span>
+                      {count !== undefined && (
+                        <Badge className="ml-auto">
+                          <span aria-hidden>{count}</span>
+                          <span className="sr-only">{t('pendingCount', { count })}</span>
+                        </Badge>
+                      )}
                     </Link>
                   </SidebarMenuSubButton>
                 </SidebarMenuSubItem>
