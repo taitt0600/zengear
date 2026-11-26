@@ -57,7 +57,10 @@ Every admin screen except the sign-in page sits in this layout.
   pull request that closes #293: the user menu is named by the text it shows, `name` and `email` (`user-menu.tsx` in
   the component tree below), since axe (DEC-152 (3)) found that its name `name` alone broke WCAG 2.5.3 Label in
   Name; the canvas is not edited (an accessible name is not drawn), so its version stays `1794685376-aa45`, the one
-  approved above; built by #292.
+  approved above; built by #292. Changed 2026-11-26 in the component tree only, by the Layout pull request #334 (issue
+  #332, the change of the same date of SCR-STF-01): the count of "Chờ duyệt" comes from
+  `src/hooks/use-pending-staff-count.ts`, shared with the tab Chờ duyệt of SCR-STF-01 (web/AGENTS.md, DEC-121); the
+  canvas is not edited, so its version stays `1794685376-aa45`.
 - **Artboards**: desktop (1440 px) with the menu expanded, which collapses to icons when the canvas plays it;
   desktop with the menu collapsed and the user menu open; narrow (390 px) with the menu closed and open; states:
   loading, error of `GET /me`, no permission, not found; for the theme: the desktop's "Giao diện" menu works in Play
@@ -136,7 +139,8 @@ Every admin screen except the sign-in page sits in this layout.
   │   │                              "Chờ duyệt" with its count in a Badge `default` at the end of the
   │   │                              SidebarMenuSubButton, its number `aria-hidden` and
   │   │                              `admin.menu.pendingCount` sr-only inside the link (the pattern of the
-  │   │                              count of the tab Chờ duyệt of SCR-STF-01);
+  │   │                              count of the tab Chờ duyệt of SCR-STF-01), the number from
+  │   │                              `@/hooks/use-pending-staff-count.ts`, shared with that tab;
   │   │                              "Cài đặt" (Settings2Icon) as a Collapsible with SidebarMenuSub "Địa điểm kinh
   │   │                              doanh"; a group is open when one of its entries is the current page (the
   │   │                              query string counts for "Chờ duyệt"); collapsed, an entry shows its label

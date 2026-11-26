@@ -181,9 +181,10 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
     staff-account-notice-section.tsx    (STF-09) when `canWithdraw` is true: `pendingNotice.own` and, at the end of
     │                                   the alert, Button destructive-soft `withdraw` (Undo2Icon), from md beside the
     │                                   text, below md under it at full width; never with "Từ chối" and "Duyệt"
-    ├── staff-withdraw-dialog.tsx       (STF-09) AlertDialog `withdrawDialog.*` with the `dl` `summary.*` (name,
-    │                                   email, roles, creator), "Hủy" and the submit destructive-soft, disabled with
-    │                                   LoaderCircleIcon while the request runs; shared with SCR-STF-01 — alert-dialog
+    ├── staff-approval-dialog.tsx       (STF-09, of SCR-STF-01) with the action `withdraw`: `withdrawDialog.*` with
+    │                                   the `dl` `summary.*` (name, email, roles, creator), "Hủy" and the submit
+    │                                   destructive-soft, disabled with LoaderCircleIcon while the request runs
+    │                                   — alert-dialog
     ├── ../hooks/use-staff-approval.ts  (STF-09) also `withdraw`; every request of approve, reject and withdraw sends
     │                                   `If-Match` (the account's `ETag` here, the item's `version` on SCR-STF-01); on
     │                                   204 of withdraw: invalidates the list and the count and goes to
@@ -235,6 +236,12 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   - **Component tree**: unchanged but for the marks above, which `staff-disable-dialog.tsx` and the sheet of gap 7
     take as SCR-STF-02 does: the ` *` span of **Required fields** in their FieldLabel and `admin.requiredNote` under
     their description.
+- **Change of 2026-11-26, #334** (issue #332, the change of the same date of SCR-STF-01; DEC-141 (3)): the component
+  tree only; no artboard changes and the canvas stays at version `1795083548-983c`; nothing a user sees changes. The
+  confirmations "Duyệt", "Từ chối" and "Thu hồi" of this page are the one `staff-approval-dialog.tsx` of SCR-STF-01,
+  by its action, in place of `staff-approve-dialog.tsx`, `staff-reject-dialog.tsx` and `staff-withdraw-dialog.tsx`;
+  these names replace the old ones in the bullets above and below. Approved by the merge of the pull request that
+  wrote this bullet.
 - **Builds**, each part by its feature, on the page as it is then:
   - from the change of #158: issue #244 (STF-02 web) builds the frame as SCR-ADM-01 has it then and the mark and note
     of "Khóa tài khoản" in `staff-disable-dialog.tsx`; STF-11 the marks, note and hints of the sheet (gap 7).
@@ -524,10 +531,9 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   │                                      two dialogs below; after a 200 of "Duyệt" the account is ACTIVE and the notice
   │                                      is gone; renders nothing while loading, on a 404 or on a failed load — alert,
   │                                      button
-  │   ├── staff-approve-dialog.tsx       (SCR-STF-01, not a second version) opened with the account of this page:
-  │   │                                  AlertDialog `approveDialog.*` with the `dl` `summary.*` (the creator row
-  │   │                                  with gap 14) — alert-dialog
-  │   ├── staff-reject-dialog.tsx        (SCR-STF-01) the same with `rejectDialog.*` — alert-dialog
+  │   ├── staff-approval-dialog.tsx      (SCR-STF-01, not a second version) opened with the account of this page
+  │   │                                  and the action `approve` (`approveDialog.*`) or `reject` (`rejectDialog.*`),
+  │   │                                  with the `dl` `summary.*` (the creator row with gap 14) — alert-dialog
   │   └── ../hooks/use-staff-approval.ts (SCR-STF-01) the two requests, their toasts and the invalidation of the
   │                                      list and of the count; for this page it also invalidates the account's
   │                                      query after an approval and on a 404, a 409, a 500 or no answer, and takes
