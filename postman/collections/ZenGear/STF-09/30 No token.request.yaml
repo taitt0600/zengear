@@ -1,0 +1,14 @@
+$kind: http-request
+description: |-
+  Approve without a token is 401.
+method: POST
+url: "{{baseUrl}}/api/v1/admin/staff/{{pendingA}}/approve"
+order: 30000
+headers:
+  - key: If-Match
+    value: "{{etagApproved}}"
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 401', () => pm.response.to.have.status(401));

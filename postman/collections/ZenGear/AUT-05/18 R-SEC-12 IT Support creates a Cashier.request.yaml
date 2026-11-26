@@ -23,3 +23,5 @@ scripts:
     code: |-
       pm.test('status 201', () => pm.response.to.have.status(201));
       pm.test('Cashier', () => pm.expect(pm.response.json().roles.map(r => r.name)).to.eql(['Cashier']));
+      pm.test('R-USR-17: PENDING, IT Support holds no staff.approve', () =>
+        pm.expect(pm.response.json().status).to.eql('PENDING'));

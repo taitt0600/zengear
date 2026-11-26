@@ -28,6 +28,10 @@ values:
     value: 'baopqzg260003@zengear.test'
     enabled: true
     type: default
+  - key: shiftLeadEmail
+    value: 'tamntzg260009@zengear.test'
+    enabled: true
+    type: default
   - key: roleAdmin
     value: '0199a000-0000-7000-8000-000000000001'
     enabled: true
@@ -44,12 +48,20 @@ values:
     value: '0199a000-0000-7000-8000-000000000005'
     enabled: true
     type: default
+  - key: roleWarehouseKeeper
+    value: '0199a000-0000-7000-8000-000000000006'
+    enabled: true
+    type: default
   - key: roleCustomer
     value: '0199a000-0000-7000-8000-000000000009'
     enabled: true
     type: default
   - key: roleItSupport
     value: '0199a000-0000-7000-8000-00000000000a'
+    enabled: true
+    type: default
+  - key: roleShiftLead
+    value: '0199a000-0000-7000-8000-0000000000f1'
     enabled: true
     type: default
   - key: anonymizedStaffId

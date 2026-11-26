@@ -1,0 +1,16 @@
+$kind: http-request
+description: |-
+  Acceptance criterion 6 (DEC-138, R-SEC-12): canApprove true for an approver who manages every role of the account.
+method: GET
+url: "{{baseUrl}}/api/v1/admin/staff/{{pendingD}}"
+order: 28000
+headers:
+  - key: X-ZenGear-As
+    value: "{{shiftLeadEmail}}"
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 200', () => pm.response.to.have.status(200));
+      pm.test('canApprove true', () => pm.expect(pm.response.json().canApprove).to.eql(true));
+      pm.variables.set('etagD', pm.response.headers.get('ETag'));

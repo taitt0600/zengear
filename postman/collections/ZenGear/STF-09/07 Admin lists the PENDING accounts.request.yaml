@@ -1,0 +1,33 @@
+$kind: http-request
+description: |-
+  Acceptance criteria 4 and 5 (R-USR-17, R-USR-03, DEC-137 (1)): ?status=PENDING lists the accounts waiting,
+  the cast's Lan and Tùng among them; a PENDING item carries canApprove, canWithdraw, createdBy (id, name), createdAt
+  and version (DEC-140 (2)).
+method: GET
+url: "{{baseUrl}}/api/v1/admin/staff?status=PENDING&pageSize=100"
+order: 7000
+headers:
+  - key: X-ZenGear-As
+    value: "{{adminEmail}}"
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 200', () => pm.response.to.have.status(200));
+      const items = pm.response.json().items;
+      pm.test('PENDING only', () => items.forEach(i => pm.expect(i.status).to.eql('PENDING')));
+      pm.test('the cast waits for approval (#326)', () => {
+        const codes = items.map(i => i.employeeCode);
+        pm.expect(codes).to.include('ZG260006');
+        pm.expect(codes).to.include('ZG260007');
+      });
+      const a = items.find(i => i.id === pm.variables.get('pendingA'));
+      pm.test('the account of 04 with its flags', () => {
+        pm.expect(a).to.be.an('object');
+        pm.expect(a.canApprove).to.eql(true);
+        pm.expect(a.canWithdraw).to.eql(false);
+        pm.expect(a.createdBy.name).to.eql('Phạm Quốc Bảo');
+        pm.expect(a.createdAt).to.be.a('string');
+        pm.expect(a.version).to.match(/^"[0-9]+"$/);
+      });
+      pm.variables.set('listVersionA', a && a.version);

@@ -1,0 +1,15 @@
+$kind: http-request
+description: |-
+  Acceptance criterion 6 (DEC-138, R-SEC-12): canApprove false for an approver whose set lacks a role of the account.
+method: GET
+url: "{{baseUrl}}/api/v1/admin/staff/{{pendingA}}"
+order: 10000
+headers:
+  - key: X-ZenGear-As
+    value: "{{shiftLeadEmail}}"
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 200', () => pm.response.to.have.status(200));
+      pm.test('canApprove false', () => pm.expect(pm.response.json().canApprove).to.eql(false));

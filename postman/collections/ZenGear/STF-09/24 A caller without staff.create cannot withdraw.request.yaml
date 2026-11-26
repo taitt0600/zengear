@@ -1,0 +1,18 @@
+$kind: http-request
+description: |-
+  Acceptance criterion 8, R-SEC-03: withdraw needs staff.create, which the shift lead lacks.
+method: POST
+url: "{{baseUrl}}/api/v1/admin/staff/{{pendingC}}/withdraw"
+order: 24000
+headers:
+  - key: X-ZenGear-As
+    value: "{{shiftLeadEmail}}"
+  - key: If-Match
+    value: "{{etagC}}"
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 403', () => pm.response.to.have.status(403));
+      pm.test('problem type /problems/permission-denied', () => pm.expect(pm.response.json().type).to.eql('/problems/permission-denied'));
+      pm.test('ruleId R-SEC-03', () => pm.expect(pm.response.json().ruleId).to.eql('R-SEC-03'));

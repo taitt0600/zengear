@@ -1,0 +1,16 @@
+$kind: http-request
+description: |-
+  Acceptance criterion 8, R-USR-17 (DEC-140 (1)): the creator withdraws their PENDING account; 204, then it no longer exists.
+method: POST
+url: "{{baseUrl}}/api/v1/admin/staff/{{pendingC}}/withdraw"
+order: 26000
+headers:
+  - key: X-ZenGear-As
+    value: "{{itSupportEmail}}"
+  - key: If-Match
+    value: "{{etagC}}"
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 204', () => pm.response.to.have.status(204));

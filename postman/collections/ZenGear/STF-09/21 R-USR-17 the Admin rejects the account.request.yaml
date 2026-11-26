@@ -1,0 +1,16 @@
+$kind: http-request
+description: |-
+  Acceptance criterion 3, R-USR-17: reject deletes the PENDING account with its profile and roles; 204.
+method: POST
+url: "{{baseUrl}}/api/v1/admin/staff/{{pendingB}}/reject"
+order: 21000
+headers:
+  - key: X-ZenGear-As
+    value: "{{adminEmail}}"
+  - key: If-Match
+    value: "{{etagB}}"
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 204', () => pm.response.to.have.status(204));

@@ -1,0 +1,14 @@
+$kind: http-request
+description: |-
+  Acceptance criterion 3: after the rejection GET /staff/{id} is 404.
+method: GET
+url: "{{baseUrl}}/api/v1/admin/staff/{{pendingB}}"
+order: 22000
+headers:
+  - key: X-ZenGear-As
+    value: "{{adminEmail}}"
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 404', () => pm.response.to.have.status(404));

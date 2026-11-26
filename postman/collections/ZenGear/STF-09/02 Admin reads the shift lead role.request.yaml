@@ -1,0 +1,16 @@
+$kind: http-request
+description: |-
+  Set-up: the ETag of the role Trưởng ca of STF-09.sql, for 03.
+method: GET
+url: "{{baseUrl}}/api/v1/admin/roles/{{roleShiftLead}}"
+order: 2000
+headers:
+  - key: X-ZenGear-As
+    value: "{{adminEmail}}"
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 200', () => pm.response.to.have.status(200));
+      pm.test('Trưởng ca', () => pm.expect(pm.response.json().name).to.eql('Trưởng ca'));
+      pm.variables.set('shiftTag', pm.response.headers.get('ETag'));

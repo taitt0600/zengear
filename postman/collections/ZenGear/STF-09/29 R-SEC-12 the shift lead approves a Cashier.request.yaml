@@ -1,0 +1,17 @@
+$kind: http-request
+description: |-
+  Acceptance criterion 2, R-SEC-12: an approver approves an account whose roles it manages.
+method: POST
+url: "{{baseUrl}}/api/v1/admin/staff/{{pendingD}}/approve"
+order: 29000
+headers:
+  - key: X-ZenGear-As
+    value: "{{shiftLeadEmail}}"
+  - key: If-Match
+    value: "{{etagD}}"
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 200', () => pm.response.to.have.status(200));
+      pm.test('ACTIVE', () => pm.expect(pm.response.json().status).to.eql('ACTIVE'));

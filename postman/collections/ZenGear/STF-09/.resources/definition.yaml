@@ -1,0 +1,22 @@
+$kind: collection
+name: STF-09
+description: |-
+  STF-09 — a staff account created by someone without staff.approve waits for another person's approval (UC-140;
+  R-USR-17, R-USR-03, R-SEC-12; DEC-128 (3), DEC-137 (1), DEC-138, DEC-140). The IT Support Phạm Quốc Bảo creates
+  PENDING accounts; the Admin approves, rejects or reads them; the shift lead Ngô Thanh Tâm approves Cashiers only;
+  the creator withdraws their own. Approve, reject and withdraw send the If-Match of the account (DEC-140 (2)).
+
+  Needs tools/dev_reset.ps1 first: the Admin khoatmzg260001@zengear.test, the fixtures postman/fixtures/STF-01.sql
+  (the Store Manager haltzg260002@zengear.test, holding staff.create), AUT-05.sql (the IT Support
+  baopqzg260003@zengear.test) and STF-09.sql (IT Support holds staff.create; the PENDING Võ Thị Lan ZG260006 and Bùi
+  Văn Tùng ZG260007 of the cast, which the folder only reads; the role Trưởng ca roleShiftLead with staff.approve,
+  managing the Cashier, and its holder tamntzg260009@zengear.test). 02 and 03 give Trưởng ca staff.read through the
+  API, which the fixture must not insert (see STF-09.sql). The folder creates its own PENDING accounts through POST
+  /api/v1/admin/staff, whose identifiers the API generates (R-USR-24), so it passes twice in a row without a reset.
+
+  Not checked here, covered by the integration tests of api/tests (StaffApprovalTests): the 409 own-request (it
+  arises only when the creator gains staff.approve after creating, a change of role the two runs would share), the 409
+  auth-account-exists (the collection cannot hold an emulator account on a PENDING email), the deletion of the Firebase
+  account after a failure, the row lock of two actions at once, and If-Match: *.
+  Emulator only: the requests sign in with emulator custom tokens (see the collection description).
+order: 10000

@@ -1,0 +1,18 @@
+$kind: http-request
+description: |-
+  Acceptance criterion 8, R-USR-17 (DEC-140 (1)): the Store Manager holds staff.create but did not create the account; 409.
+method: POST
+url: "{{baseUrl}}/api/v1/admin/staff/{{pendingC}}/withdraw"
+order: 25000
+headers:
+  - key: X-ZenGear-As
+    value: "{{managerEmail}}"
+  - key: If-Match
+    value: "{{etagC}}"
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 409', () => pm.response.to.have.status(409));
+      pm.test('problem type /problems/not-account-creator', () => pm.expect(pm.response.json().type).to.eql('/problems/not-account-creator'));
+      pm.test('ruleId R-USR-17', () => pm.expect(pm.response.json().ruleId).to.eql('R-USR-17'));
