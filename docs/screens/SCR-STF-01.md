@@ -201,6 +201,15 @@ A 400 on a value of the URL means the URL was edited by hand: the list falls bac
     both kinds do; `staff-bulk-dialog.tsx` and
     `staff-job-dialog.tsx` take the action `withdraw` (its title, description, list, submit, progress and result
     texts above); `../hooks/use-staff-job.ts` sends `items` of the selected withdrawable rows' `{id, version}`.
+- **Change of 2026-11-26, #334** (issue #332; web/AGENTS.md, DEC-121): the component tree only; no artboard changes
+  and the canvas stays at version `1795614963-abdd`; nothing a user sees changes (texts, buttons, variants, states).
+  The three confirmations "Duyệt", "Từ chối" and "Thu hồi" are one component, `staff-approval-dialog.tsx`, which
+  differs by its action only in its texts (`approveDialog.*`, `rejectDialog.*`, `withdrawDialog.*`) and the submit's
+  variant (default, `destructive-soft`, `destructive-soft`), in place of `staff-approve-dialog.tsx`,
+  `staff-reject-dialog.tsx` and the `staff-withdraw-dialog.tsx` of SCR-STF-03; the count of PENDING accounts comes
+  from `src/hooks/use-pending-staff-count.ts`, shared with the menu of SCR-ADM-01, in place of
+  `features/identity/staff-accounts/hooks/use-pending-count.ts`. These names replace the old ones in the bullets
+  above. Approved by the merge of the pull request that wrote this bullet.
 - **Builds**: the screen exists in `web/`, so each feature's run builds its part of this Layout in its `feat` pull
   request, in the order of the plan (`AGENTS.md`, *Work state*): STF-09 the status links, the tab Chờ duyệt, the column Email moved under
   the name, the badge Chờ duyệt and the PENDING items of the row menu; STF-06 the search over the API, the filters, the
@@ -340,10 +349,12 @@ A 400 on a value of the URL means the URL was edited by hand: the list falls bac
   │   ├── staff-status-nav.tsx       (STF-09) a `nav` labelled by the visible `status.label` (aria-labelledby): four
   │   │                              Links in a `bg-muted` track, the current one `aria-current="page"`; the count a
   │   │                              Badge `default` with its number `aria-hidden` and `status.pendingCount` sr-only,
-  │   │                              hidden at 0, from `hooks/use-pending-count.ts`; scrolls sideways on a narrow
-  │   │                              screen, the current link scrolled into view; a link drops `page` and `sort`
-  │   ├── ../hooks/use-pending-count.ts (STF-09) the list query with `status=PENDING&pageSize=1` and its
-  │   │                              `totalCount`, invalidated with the list after an approval, a rejection or a job
+  │   │                              hidden at 0, from `@/hooks/use-pending-staff-count.ts`; scrolls sideways on a
+  │   │                              narrow screen, the current link scrolled into view; a link drops `page` and `sort`
+  │   ├── src/hooks/use-pending-staff-count.ts (STF-09; shared with the menu of SCR-ADM-01, so outside the
+  │   │                              feature, web/AGENTS.md, DEC-121) the list query with `status=PENDING&pageSize=1`
+  │   │                              and its `totalCount`, invalidated with the list after an approval, a rejection, a
+  │   │                              withdrawal or a job
   │   ├── staff-search-field.tsx     the Field `search` (InputGroup with SearchIcon, placeholder `searchPlaceholder`,
   │   │                              FieldDescription `searchHint`); STF-06: debounced 300 ms, sent from 2 characters,
   │   │                              kept in the page only — field, input-group
@@ -416,14 +427,14 @@ A 400 on a value of the URL means the URL was edited by hand: the list falls bac
       │                              screen (name and email, the role Badges and `pending.createdBy`, the two buttons
       │                              side by side full width); by the rule of the tab (gap 13), Button
       │                              `destructive-soft` sm "Từ chối" and Button outline sm "Duyệt" (CheckIcon), each
-      │                              with its `aria-label`, opening the two dialogs below; otherwise the link "Xem chi
+      │                              with its `aria-label`, opening the dialog below; otherwise the link "Xem chi
       │                              tiết" (outline sm) — button
-      ├── staff-approve-dialog.tsx   (STF-09) AlertDialog `approveDialog.*` with a `dl` of the account (`summary.*`:
-      │                              name, email, role Badges, and `createdByValue` once gap 13 closes), "Hủy" and the
-      │                              submit (default), disabled with LoaderCircleIcon while the request of
-      │                              `hooks/use-staff-approval.ts` runs; reusable by SCR-STF-03 once its Layout draws
-      │                              the approval — alert-dialog
-      ├── staff-reject-dialog.tsx    (STF-09) the same with `rejectDialog.*` and the submit `destructive-soft`
+      ├── staff-approval-dialog.tsx  (STF-09) one AlertDialog for the three commands, by its action: `approveDialog.*`
+      │                              with the submit default, `rejectDialog.*` and `withdrawDialog.*` with the submit
+      │                              `destructive-soft`; a `dl` of the account (`summary.*`: name, email, role Badges,
+      │                              and `createdByValue` once gap 13 closes), "Hủy" and the submit, disabled with
+      │                              LoaderCircleIcon while the
+      │                              request of `hooks/use-staff-approval.ts` runs; shared with SCR-STF-03
       │                              — alert-dialog
       ├── ../hooks/use-staff-approval.ts (STF-09) the two requests; on 200 or 204: closes the dialog, a toast
       │                              (`approved` with `approvedHint`, or `rejected`) and invalidates the list and the
@@ -454,5 +465,5 @@ A 400 on a value of the URL means the URL was edited by hand: the list falls bac
           └── staff-pending-actions.tsx (STF-09) the menu items of a PENDING row, split for size: when the rule of
                                      the tab Chờ duyệt allows it (gap 13), a separator, `actions.approve`
                                      (CheckIcon) and `actions.reject` (variant destructive, XIcon), opening
-                                     `staff-approve-dialog.tsx` and `staff-reject-dialog.tsx` — dropdown-menu
+                                     `staff-approval-dialog.tsx` with that action — dropdown-menu
   ```
