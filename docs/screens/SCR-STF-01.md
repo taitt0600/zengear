@@ -201,13 +201,16 @@ A 400 on a value of the URL means the URL was edited by hand: the list falls bac
     both kinds do; `staff-bulk-dialog.tsx` and
     `staff-job-dialog.tsx` take the action `withdraw` (its title, description, list, submit, progress and result
     texts above); `../hooks/use-staff-job.ts` sends `items` of the selected withdrawable rows' `{id, version}`.
-- **Change of 2026-11-26, #334** (issue #332; web/AGENTS.md, DEC-121): the component tree only; no artboard changes
-  and the canvas stays at version `1795614963-abdd`; nothing a user sees changes (texts, buttons, variants, states).
+- **Change of 2026-11-26, #334** (issue #332; web/AGENTS.md, DEC-121): the component tree only; no artboard is drawn
+  or renamed, so the approved design stays canvas version `1794731134-d09f` of the change of #158 (the canvas now
+  reads `1795614963-abdd`, a later id that no Layout pull request approved; an opening also moves a canvas to a new
+  release of its type; its artboards keep the names `[Đổi 14/11/2026 · #158]` and the note `change-158`, and this merge approves nothing drawn after
+  `1794731134-d09f`); nothing a user sees changes (texts, buttons, variants, states).
   The three confirmations "Duyệt", "Từ chối" and "Thu hồi" are one component, `staff-approval-dialog.tsx`, which
   differs by its action only in its texts (`approveDialog.*`, `rejectDialog.*`, `withdrawDialog.*`) and the submit's
   variant (default, `destructive-soft`, `destructive-soft`), in place of `staff-approve-dialog.tsx`,
   `staff-reject-dialog.tsx` and the `staff-withdraw-dialog.tsx` of SCR-STF-03; the count of PENDING accounts comes
-  from `src/hooks/use-pending-staff-count.ts`, shared with the menu of SCR-ADM-01, in place of
+  from `@/hooks/use-pending-staff-count.ts`, shared with the menu of SCR-ADM-01, in place of
   `features/identity/staff-accounts/hooks/use-pending-count.ts`. These names replace the old ones in the bullets
   above. Approved by the merge of the pull request that wrote this bullet.
 - **Builds**: the screen exists in `web/`, so each feature's run builds its part of this Layout in its `feat` pull
@@ -351,7 +354,7 @@ A 400 on a value of the URL means the URL was edited by hand: the list falls bac
   │   │                              Badge `default` with its number `aria-hidden` and `status.pendingCount` sr-only,
   │   │                              hidden at 0, from `@/hooks/use-pending-staff-count.ts`; scrolls sideways on a
   │   │                              narrow screen, the current link scrolled into view; a link drops `page` and `sort`
-  │   ├── src/hooks/use-pending-staff-count.ts (STF-09; shared with the menu of SCR-ADM-01, so outside the
+  │   ├── @/hooks/use-pending-staff-count.ts (STF-09; shared with the menu of SCR-ADM-01, so outside the
   │   │                              feature, web/AGENTS.md, DEC-121) the list query with `status=PENDING&pageSize=1`
   │   │                              and its `totalCount`, invalidated with the list after an approval, a rejection, a
   │   │                              withdrawal or a job
@@ -433,13 +436,14 @@ A 400 on a value of the URL means the URL was edited by hand: the list falls bac
       │                              with the submit default, `rejectDialog.*` and `withdrawDialog.*` with the submit
       │                              `destructive-soft`; a `dl` of the account (`summary.*`: name, email, role Badges,
       │                              and `createdByValue` once gap 13 closes), "Hủy" and the submit, disabled with
-      │                              LoaderCircleIcon while the
-      │                              request of `hooks/use-staff-approval.ts` runs; shared with SCR-STF-03
-      │                              — alert-dialog
-      ├── ../hooks/use-staff-approval.ts (STF-09) the two requests; on 200 or 204: closes the dialog, a toast
-      │                              (`approved` with `approvedHint`, or `rejected`) and invalidates the list and the
-      │                              count; on 404 or 409 the problem's `detail` in a toast, on 500 or no answer the
-      │                              texts of *Conventions*, each closing the dialog and invalidating both
+      │                              LoaderCircleIcon while the request of `hooks/use-staff-approval.ts` runs;
+      │                              shared with SCR-STF-03 — alert-dialog
+      ├── ../hooks/use-staff-approval.ts (STF-09) the three requests (approve, reject, withdraw); on 200 or 204:
+      │                              closes the dialog, a toast (`approved` with `approvedHint`, `rejected`, or
+      │                              `withdrawn`) and invalidates the list and the count; an optional `onGone` runs
+      │                              after a 204 of reject or withdraw; on 404 or 409 the problem's `detail` in a
+      │                              toast, on 500 or no answer the texts of *Conventions*, each closing the dialog
+      │                              and invalidating both
       ├── staff-list-pagination.tsx  footer: `range` (STF-06; `total` until then), the Field `pageSize` (Select 20, 50,
       │                              100; STF-06) and the Pagination with numbered pages (STF-06); on a narrow screen
       │                              the two chevrons in their Tooltips and `page`, as built — pagination, select

@@ -59,7 +59,7 @@ Every admin screen except the sign-in page sits in this layout.
   Name; the canvas is not edited (an accessible name is not drawn), so its version stays `1794685376-aa45`, the one
   approved above; built by #292. Changed 2026-11-26 in the component tree only, by the Layout pull request #334 (issue
   #332, the change of the same date of SCR-STF-01): the count of "Chờ duyệt" comes from
-  `src/hooks/use-pending-staff-count.ts`, shared with the tab Chờ duyệt of SCR-STF-01 (web/AGENTS.md, DEC-121); the
+  `@/hooks/use-pending-staff-count.ts`, shared with the tab Chờ duyệt of SCR-STF-01 (web/AGENTS.md, DEC-121); the
   canvas is not edited, so its version stays `1794685376-aa45`.
 - **Artboards**: desktop (1440 px) with the menu expanded, which collapses to icons when the canvas plays it;
   desktop with the menu collapsed and the user menu open; narrow (390 px) with the menu closed and open; states:
