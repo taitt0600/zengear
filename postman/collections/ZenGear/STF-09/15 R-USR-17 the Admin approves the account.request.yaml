@@ -1,0 +1,31 @@
+$kind: http-request
+description: |-
+  Acceptance criterion 2, R-USR-17, R-USR-03: PENDING to ACTIVE with a Firebase account on the default password;
+  must_change_password stays true; an ACTIVE account has no approval fields; a new ETag.
+method: POST
+url: "{{baseUrl}}/api/v1/admin/staff/{{pendingA}}/approve"
+order: 15000
+headers:
+  - key: X-ZenGear-As
+    value: "{{adminEmail}}"
+  - key: If-Match
+    value: "{{etagA}}"
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 200', () => pm.response.to.have.status(200));
+      const staff = pm.response.json();
+      pm.test('ACTIVE, the default password still to change', () => {
+        pm.expect(staff.status).to.eql('ACTIVE');
+        pm.expect(staff.mustChangePassword).to.eql(true);
+      });
+      pm.test('no approval fields once ACTIVE', () => {
+        pm.expect(staff.canApprove).to.eql(null);
+        pm.expect(staff.canWithdraw).to.eql(null);
+        pm.expect(staff.createdBy).to.eql(null);
+        pm.expect(staff.createdAt).to.eql(null);
+      });
+      const etag = pm.response.headers.get('ETag');
+      pm.test('a new ETag', () => pm.expect(etag).to.not.eql(pm.variables.get('etagA')));
+      pm.variables.set('etagApproved', etag);

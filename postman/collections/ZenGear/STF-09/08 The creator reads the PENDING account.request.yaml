@@ -1,0 +1,27 @@
+$kind: http-request
+description: |-
+  Acceptance criteria 6 and 9 (DEC-138, DEC-140): GET /staff/{id} sends the ETag, equal to the list item's version;
+  the creator may withdraw, not approve.
+method: GET
+url: "{{baseUrl}}/api/v1/admin/staff/{{pendingA}}"
+order: 8000
+headers:
+  - key: X-ZenGear-As
+    value: "{{itSupportEmail}}"
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 200', () => pm.response.to.have.status(200));
+      const staff = pm.response.json();
+      pm.test('ETag equals the version of the list item', () =>
+        pm.expect(pm.response.headers.get('ETag')).to.eql(pm.variables.get('listVersionA')));
+      pm.test('canApprove false, canWithdraw true', () => {
+        pm.expect(staff.canApprove).to.eql(false);
+        pm.expect(staff.canWithdraw).to.eql(true);
+      });
+      pm.test('createdBy and createdAt', () => {
+        pm.expect(staff.createdBy.name).to.eql('Phạm Quốc Bảo');
+        pm.expect(staff.createdAt).to.be.a('string');
+      });
+      pm.variables.set('etagA', pm.response.headers.get('ETag'));

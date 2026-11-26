@@ -1,0 +1,22 @@
+$kind: http-request
+description: |-
+  Acceptance criterion 4, R-USR-17: disabling a PENDING account is 409.
+method: POST
+url: "{{baseUrl}}/api/v1/admin/staff/{{pendingB}}/disable"
+order: 17000
+headers:
+  - key: X-ZenGear-As
+    value: "{{adminEmail}}"
+  - key: Content-Type
+    value: "application/json"
+body:
+  type: json
+  content: |-
+    {}
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 409', () => pm.response.to.have.status(409));
+      pm.test('problem type /problems/account-pending', () => pm.expect(pm.response.json().type).to.eql('/problems/account-pending'));
+      pm.test('ruleId R-USR-17', () => pm.expect(pm.response.json().ruleId).to.eql('R-USR-17'));

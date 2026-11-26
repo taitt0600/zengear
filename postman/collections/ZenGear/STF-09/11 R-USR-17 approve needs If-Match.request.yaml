@@ -1,0 +1,15 @@
+$kind: http-request
+description: |-
+  Acceptance criterion 9 (DEC-140 (2)): approve without If-Match is 428 and changes nothing.
+method: POST
+url: "{{baseUrl}}/api/v1/admin/staff/{{pendingA}}/approve"
+order: 11000
+headers:
+  - key: X-ZenGear-As
+    value: "{{adminEmail}}"
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 428', () => pm.response.to.have.status(428));
+      pm.test('problem type /problems/if-match-required', () => pm.expect(pm.response.json().type).to.eql('/problems/if-match-required'));

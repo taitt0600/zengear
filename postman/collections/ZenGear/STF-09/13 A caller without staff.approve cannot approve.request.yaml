@@ -1,0 +1,18 @@
+$kind: http-request
+description: |-
+  Acceptance criterion 2, R-SEC-03: approve needs staff.approve, which the IT Support lacks.
+method: POST
+url: "{{baseUrl}}/api/v1/admin/staff/{{pendingA}}/approve"
+order: 13000
+headers:
+  - key: X-ZenGear-As
+    value: "{{itSupportEmail}}"
+  - key: If-Match
+    value: "{{etagA}}"
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 403', () => pm.response.to.have.status(403));
+      pm.test('problem type /problems/permission-denied', () => pm.expect(pm.response.json().type).to.eql('/problems/permission-denied'));
+      pm.test('ruleId R-SEC-03', () => pm.expect(pm.response.json().ruleId).to.eql('R-SEC-03'));

@@ -1,0 +1,37 @@
+$kind: http-request
+description: |-
+  Acceptance criterion 1, R-USR-17: an account created by someone without staff.approve is PENDING, with no
+  Firebase account (none to sign in with); the account carries canWithdraw for its creator (DEC-140 (1)).
+method: POST
+url: "{{baseUrl}}/api/v1/admin/staff"
+order: 4000
+headers:
+  - key: X-ZenGear-As
+    value: "{{itSupportEmail}}"
+  - key: Content-Type
+    value: "application/json"
+body:
+  type: json
+  content: |-
+    {
+      "name": "Phan Văn Kho",
+      "joinedDate": "2026-11-16",
+      "roleIds": ["{{roleWarehouseKeeper}}"]
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 201', () => pm.response.to.have.status(201));
+      const staff = pm.response.json();
+      pm.test('R-USR-17: PENDING, the default password still to change', () => {
+        pm.expect(staff.status).to.eql('PENDING');
+        pm.expect(staff.mustChangePassword).to.eql(true);
+      });
+      pm.test('the creator may withdraw it, not approve it', () => {
+        pm.expect(staff.canWithdraw).to.eql(true);
+        pm.expect(staff.canApprove).to.eql(false);
+        pm.expect(staff.createdBy.name).to.eql('Phạm Quốc Bảo');
+      });
+      pm.test('an ETag', () => pm.expect(pm.response.headers.get('ETag')).to.match(/^"[0-9]+"$/));
+      pm.variables.set('pendingA', staff.id);

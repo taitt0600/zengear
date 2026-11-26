@@ -1,0 +1,30 @@
+$kind: http-request
+description: |-
+  Set-up (AUT-05): Trưởng ca reads staff accounts and approves those of the Cashier only (R-SEC-12).
+  The fixture cannot insert staff.read (see STF-09.sql).
+method: PUT
+url: "{{baseUrl}}/api/v1/admin/roles/{{roleShiftLead}}"
+order: 3000
+headers:
+  - key: X-ZenGear-As
+    value: "{{adminEmail}}"
+  - key: Content-Type
+    value: "application/json"
+  - key: If-Match
+    value: "{{shiftTag}}"
+body:
+  type: json
+  content: |-
+    {
+      "name": "Trưởng ca",
+      "permissionKeys": ["staff.read", "staff.approve"],
+      "maxDiscountPercent": null,
+      "managedRoleIds": ["{{roleCashier}}"]
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 200', () => pm.response.to.have.status(200));
+      pm.test('staff.read and staff.approve', () =>
+        pm.expect(pm.response.json().permissionKeys).to.eql(['staff.approve', 'staff.read']));

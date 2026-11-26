@@ -1,0 +1,18 @@
+$kind: http-request
+description: |-
+  Acceptance criterion 7, R-USR-17: approving an ACTIVE account is 409, even with its current version.
+method: POST
+url: "{{baseUrl}}/api/v1/admin/staff/{{pendingA}}/approve"
+order: 16000
+headers:
+  - key: X-ZenGear-As
+    value: "{{adminEmail}}"
+  - key: If-Match
+    value: "{{etagApproved}}"
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 409', () => pm.response.to.have.status(409));
+      pm.test('problem type /problems/account-not-pending', () => pm.expect(pm.response.json().type).to.eql('/problems/account-not-pending'));
+      pm.test('ruleId R-USR-17', () => pm.expect(pm.response.json().ruleId).to.eql('R-USR-17'));

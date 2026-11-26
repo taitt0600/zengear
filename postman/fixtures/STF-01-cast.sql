@@ -5,8 +5,8 @@
 --   ZG260004 Nguyễn Văn An, Cashier, ACTIVE (the toast sample of SCR-STF-02).
 --   ZG260005 Hoàng Đức Minh, Technical Support, DISABLED since 2026-10-31 (the locked-account sample). His emulator
 --   account stays enabled: the API refuses him by status (R-SEC-04), whereas STF-02 also disables the Firebase account.
---   ZG260006 Võ Thị Lan (Cashier) and ZG260007 Bùi Văn Tùng (Warehouse Keeper) wait for approval in the cast, a status
---   STF-09 adds: their numbers are only reserved here, and STF-09's fixtures add them with these codes.
+--   ZG260006 Võ Thị Lan (Cashier) and ZG260007 Bùi Văn Tùng (Warehouse Keeper) wait for approval in the cast (PENDING,
+--   STF-09): their numbers are reserved here, and STF-09.sql adds them with these codes.
 -- No password change is pending, so the owner signs in with the test password of the reset.
 
 WITH an AS (

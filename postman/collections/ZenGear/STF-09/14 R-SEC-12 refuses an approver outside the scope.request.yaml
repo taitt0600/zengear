@@ -1,0 +1,18 @@
+$kind: http-request
+description: |-
+  Acceptance criterion 2, R-SEC-12: the shift lead does not manage the Warehouse Keeper; the account stays PENDING.
+method: POST
+url: "{{baseUrl}}/api/v1/admin/staff/{{pendingA}}/approve"
+order: 14000
+headers:
+  - key: X-ZenGear-As
+    value: "{{shiftLeadEmail}}"
+  - key: If-Match
+    value: "{{etagA}}"
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 409', () => pm.response.to.have.status(409));
+      pm.test('problem type /problems/account-out-of-scope', () => pm.expect(pm.response.json().type).to.eql('/problems/account-out-of-scope'));
+      pm.test('ruleId R-SEC-12', () => pm.expect(pm.response.json().ruleId).to.eql('R-SEC-12'));

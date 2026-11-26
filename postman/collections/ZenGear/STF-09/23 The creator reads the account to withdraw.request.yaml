@@ -1,0 +1,16 @@
+$kind: http-request
+description: |-
+  Set-up: the ETag of the account of 06; canWithdraw true for its creator.
+method: GET
+url: "{{baseUrl}}/api/v1/admin/staff/{{pendingC}}"
+order: 23000
+headers:
+  - key: X-ZenGear-As
+    value: "{{itSupportEmail}}"
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 200', () => pm.response.to.have.status(200));
+      pm.test('canWithdraw true', () => pm.expect(pm.response.json().canWithdraw).to.eql(true));
+      pm.variables.set('etagC', pm.response.headers.get('ETag'));

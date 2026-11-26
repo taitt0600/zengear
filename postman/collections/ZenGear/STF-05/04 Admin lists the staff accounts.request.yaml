@@ -1,6 +1,7 @@
 $kind: http-request
 description: |-
-  Acceptance criterion 1, R-USR-13: staff accounts only, ACTIVE and DISABLED, never ANONYMIZED nor a customer;
+  Acceptance criterion 1, R-USR-13: staff accounts only, ACTIVE, DISABLED or PENDING (DEC-128), never ANONYMIZED nor a
+  customer;
   each row has the name, email, employee code, status, roles and left date, and no work phone.
 method: GET
 url: '{{baseUrl}}/api/v1/admin/staff?pageSize=100'
@@ -48,8 +49,8 @@ scripts:
           pm.expect(first.pageSize).to.eql(100);
           pm.expect(rows.length).to.eql(first.totalCount);
         });
-        pm.test('ACTIVE and DISABLED only', () =>
-          rows.forEach(r => pm.expect(['ACTIVE', 'DISABLED']).to.include(r.status)));
+        pm.test('ACTIVE, DISABLED or PENDING only', () =>
+          rows.forEach(r => pm.expect(['ACTIVE', 'DISABLED', 'PENDING']).to.include(r.status)));
         pm.test('both statuses listed when no filter is given', () => {
           pm.expect(rows.some(r => r.status === 'ACTIVE')).to.eql(true);
           pm.expect(rows.some(r => r.status === 'DISABLED')).to.eql(true);

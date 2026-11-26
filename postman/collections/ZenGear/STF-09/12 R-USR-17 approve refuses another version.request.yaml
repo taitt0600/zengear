@@ -1,0 +1,17 @@
+$kind: http-request
+description: |-
+  Acceptance criterion 9 (DEC-140 (2)): a version the account no longer has is 412 and changes nothing.
+method: POST
+url: "{{baseUrl}}/api/v1/admin/staff/{{pendingA}}/approve"
+order: 12000
+headers:
+  - key: X-ZenGear-As
+    value: "{{adminEmail}}"
+  - key: If-Match
+    value: '"1"'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('status 412', () => pm.response.to.have.status(412));
+      pm.test('problem type /problems/precondition-failed', () => pm.expect(pm.response.json().type).to.eql('/problems/precondition-failed'));
