@@ -237,8 +237,10 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
     take as SCR-STF-02 does: the ` *` span of **Required fields** in their FieldLabel and `admin.requiredNote` under
     their description.
 - **Change of 2026-11-26, #334** (issue #332, the change of the same date of SCR-STF-01; DEC-141 (3)): the component
-  tree only; no artboard changes and the canvas stays at version `1795083548-983c`; nothing a user sees changes. The
-  confirmations "Duyệt", "Từ chối" and "Thu hồi" of this page are the one `staff-approval-dialog.tsx` of SCR-STF-01,
+  tree only; no artboard is drawn or renamed, so the approved design stays canvas version `1794731137-483d` of the
+  change of #158 (the canvas now reads `1795083548-983c`, a later id that no Layout pull request approved; an opening
+  also moves a canvas to a new release of its type; its artboards keep the names `[Đổi 14/11/2026 · #158]`, and
+  this merge approves nothing drawn after `1794731137-483d`); nothing a user sees changes. The confirmations "Duyệt", "Từ chối" and "Thu hồi" of this page are the one `staff-approval-dialog.tsx` of SCR-STF-01,
   by its action, in place of `staff-approve-dialog.tsx`, `staff-reject-dialog.tsx` and `staff-withdraw-dialog.tsx`;
   these names replace the old ones in the bullets above and below. Approved by the merge of the pull request that
   wrote this bullet.
@@ -527,17 +529,19 @@ with the warning "Nhân viên sẽ bị đăng xuất khỏi mọi thiết bị 
   │                                      when the user may approve (the provider) or `pendingNotice.other`; when the
   │                                      user may approve, at the end of the alert "Từ chối" (`reject`,
   │                                      destructive-soft) then "Duyệt" (`approve`, default, CheckIcon): from md beside
-  │                                      the text, below md under it, side by side at half the width each; they open the
-  │                                      two dialogs below; after a 200 of "Duyệt" the account is ACTIVE and the notice
+  │                                      the text, below md under it, side by side at half the width each; they open
+  │                                      `staff-approval-dialog.tsx` below with the action `reject` or `approve`; after
+  │                                      a 200 of "Duyệt" the account is ACTIVE and the notice
   │                                      is gone; renders nothing while loading, on a 404 or on a failed load — alert,
   │                                      button
   │   ├── staff-approval-dialog.tsx      (SCR-STF-01, not a second version) opened with the account of this page
   │   │                                  and the action `approve` (`approveDialog.*`) or `reject` (`rejectDialog.*`),
   │   │                                  with the `dl` `summary.*` (the creator row with gap 14) — alert-dialog
-  │   └── ../hooks/use-staff-approval.ts (SCR-STF-01) the two requests, their toasts and the invalidation of the
+  │   └── ../hooks/use-staff-approval.ts (SCR-STF-01) the three requests, their toasts and the invalidation of the
   │                                      list and of the count; for this page it also invalidates the account's
   │                                      query after an approval and on a 404, a 409, a 500 or no answer, and takes
-  │                                      an optional `onRejected`: this section passes one that removes the
+  │                                      an optional `onGone`, run after a 204 of reject or withdraw: this section
+  │                                      passes one that removes the
   │                                      account's query (no refetch, which would show the 404) and replaces the
   │                                      route with `/admin/staff?status=PENDING`, where the toast `rejected` shows
   ├── staff-account-details-section.tsx  the card "Hồ sơ nhân viên": Card as a `section` id info, aria-labelledby
