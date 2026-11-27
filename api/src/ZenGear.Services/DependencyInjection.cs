@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using ZenGear.Data;
 using ZenGear.Data.Externals.Auth;
 using ZenGear.Data.Externals.Redis;
+using ZenGear.Services.Audit.AuditLogs;
 using ZenGear.Services.Catalog.Brands;
 using ZenGear.Services.Catalog.Series;
 using ZenGear.Services.Common;
@@ -42,6 +43,8 @@ public static class DependencyInjection
         services.AddSingleton<RedisAccessCache>();
         services.AddSingleton<IAccessCache>(sp => sp.GetRequiredService<RedisAccessCache>());
         services.AddScoped<IInterceptor, AccessCacheInvalidationInterceptor>();
+        services.AddScoped<AuditActor>();
+        services.AddScoped<IInterceptor, AuditLogInterceptor>();
 
         services.AddOptions<AuthProviderOptions>().BindConfiguration(AuthProviderOptions.SectionName);
         services.AddSingleton<IAuthProvider, FirebaseAuthProvider>();
