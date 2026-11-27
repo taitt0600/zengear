@@ -148,7 +148,7 @@ public sealed class StaffApprovalService(
     {
         await db.Database.SqlQuery<Guid>($"""SELECT id AS "Value" FROM users WHERE id = {id} FOR UPDATE""")
             .ToListAsync(cancellationToken);
-        var user = await db.Users.Include(u => u.StaffProfile)
+        var user = await db.Users.Include(u => u.StaffProfile).Include(u => u.UserRoles)
             .SingleOrDefaultAsync(u => u.Id == id && u.StaffProfile != null, cancellationToken);
         if (user is null)
         {
@@ -180,7 +180,7 @@ public sealed class StaffApprovalService(
             throw new BusinessRuleException("R-USR-17", "own-account-request-not-approvable");
         }
 
-        var roleIds = await db.UserRoles.Where(ur => ur.UserId == user.Id).Select(ur => ur.RoleId).ToListAsync(cancellationToken);
+        var roleIds = user.UserRoles.Select(ur => ur.RoleId).ToList();
         if (!(await staff.ManageableRolesOfAsync(actorId, cancellationToken)).Covers(roleIds))
         {
             throw new BusinessRuleException("R-SEC-12", "account-out-of-scope");
@@ -188,8 +188,10 @@ public sealed class StaffApprovalService(
     }
 
     /// <summary>
-    /// Deletes the account; <c>staff_profiles</c> and <c>user_roles</c> go with it (ON DELETE CASCADE), and the R-SEC-01
-    /// trigger lets the roles go with their user. The version is the delete's concurrency token.
+    /// Deletes the account with its <c>staff_profiles</c> and <c>user_roles</c> rows, loaded by
+    /// <see cref="LockPendingAsync"/> so EF Core deletes them itself and the interceptor of R-AUD-01 writes their rows (a
+    /// cascade of the database would not reach it); the R-SEC-01 trigger lets the roles go with their user. The version
+    /// is the delete's concurrency token.
     /// </summary>
     private async Task DeleteAsync(User user, IDbContextTransaction transaction)
     {

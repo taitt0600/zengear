@@ -30,6 +30,7 @@ public class StaffApprovalTests : IntegrationTestBase
     private Guid _cashierRole;
     private Guid _warehouseRole;
     private Guid _itSupportId;
+    private Guid _adminId;
 
     private FakeAuthProvider Auth => Factory.Auth;
 
@@ -65,7 +66,8 @@ public class StaffApprovalTests : IntegrationTestBase
         await TestRoles.ManageAsync(shiftLeadRole, _cashierRole);
         await TestRoles.GrantAsync(readerRole, PermissionKeys.StaffRead);
 
-        await TestRoles.AssignAsync(await TestUsers.InsertAsync(AdminUid), adminRole);
+        _adminId = await TestUsers.InsertAsync(AdminUid);
+        await TestRoles.AssignAsync(_adminId, adminRole);
         _itSupportId = await TestUsers.InsertAsync(ItSupportUid);
         await TestRoles.AssignAsync(_itSupportId, _itSupportRole);
         await TestRoles.AssignAsync(await TestUsers.InsertAsync(OtherCreatorUid), _itSupportRole);
@@ -297,6 +299,24 @@ public class StaffApprovalTests : IntegrationTestBase
         (await CountRowsAsync(id)).ShouldBe(0);
     }
 
+    [TestCase(AdminUid, "reject")]
+    [TestCase(ItSupportUid, "withdraw")]
+    public async Task R_USR_17_reject_and_withdraw_leave_the_audit_rows_of_the_deleted_account(string uid, string action)
+    {
+        var id = await CreatePendingAsync(_cashierRole);
+        var (etag, _) = await GetWithETagAsync(uid, id);
+        var actorId = uid == AdminUid ? _adminId : _itSupportId;
+
+        (await ActAsync(uid, id, action, etag)).StatusCode.ShouldBe(HttpStatusCode.NoContent);
+
+        // R-AUD-01: one DELETE row per row of the account, written by the actor in the transaction of the delete.
+        var rows = await DeleteAuditRowsAsync(id);
+        rows.Select(r => r.TableName).Order().ShouldBe(["staff_profiles", "user_roles", "users"]);
+        rows.ShouldAllBe(r => r.ChangedBy == actorId && r.OldValues != null);
+        rows.Select(r => r.TransactionId).Distinct().ShouldHaveSingleItem();
+        rows.Single(r => r.TableName == "user_roles").OldValues.ShouldNotBeNull().ShouldContain(_cashierRole.ToString());
+    }
+
     [Test]
     public async Task R_USR_17_another_holder_of_staff_create_cannot_withdraw_the_account()
     {
@@ -516,6 +536,31 @@ public class StaffApprovalTests : IntegrationTestBase
     /// <summary>The rows of the account in <c>users</c>, <c>staff_profiles</c> and <c>user_roles</c> together.</summary>
     private static async Task<long> CountRowsAsync(Guid id) =>
         await ScalarAsync("SELECT (SELECT count(*) FROM users WHERE id = @id) + (SELECT count(*) FROM staff_profiles WHERE user_id = @id) + (SELECT count(*) FROM user_roles WHERE user_id = @id)", id);
+
+    private sealed record DeleteAuditRow(string TableName, string? OldValues, long TransactionId, Guid? ChangedBy);
+
+    /// <summary>The DELETE rows of <c>audit_logs</c> whose key names the account (<c>id</c> or <c>user_id</c>).</summary>
+    private static async Task<List<DeleteAuditRow>> DeleteAuditRowsAsync(Guid id)
+    {
+        await using var connection = await TestRoles.OpenAsync();
+        await using var command = new NpgsqlCommand(
+            """
+            SELECT table_name, old_values::text, transaction_id, changed_by FROM audit_logs
+            WHERE action = 'DELETE' AND (record_key ->> 'id' = @id::text OR record_key ->> 'user_id' = @id::text)
+            ORDER BY id
+            """,
+            connection);
+        command.Parameters.AddWithValue("id", id);
+        await using var reader = await command.ExecuteReaderAsync();
+        var rows = new List<DeleteAuditRow>();
+        while (await reader.ReadAsync())
+        {
+            rows.Add(new DeleteAuditRow(reader.GetString(0), reader.IsDBNull(1) ? null : reader.GetString(1),
+                reader.GetInt64(2), reader.IsDBNull(3) ? null : reader.GetGuid(3)));
+        }
+
+        return rows;
+    }
 
     private static async Task<long> ScalarAsync(string sql, Guid id)
     {
