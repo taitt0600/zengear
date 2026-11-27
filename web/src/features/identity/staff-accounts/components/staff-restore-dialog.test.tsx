@@ -44,7 +44,7 @@ describe('the confirmation "Khôi phục tài khoản?"', () => {
     expect(await screen.findByRole('button', { name: 'Khóa tài khoản' })).toBeVisible()
   })
 
-  it('gives the focus to the status card once a restore has replaced its button', async () => {
+  it('gives the focus to the card "Tài khoản" once a restore has replaced its button', async () => {
     renderAccount()
     await open()
     api.fetch.mockResolvedValue(ok(manager))
@@ -53,7 +53,7 @@ describe('the confirmation "Khôi phục tài khoản?"', () => {
 
     await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument())
     await waitFor(() =>
-      expect(screen.getByRole('heading', { level: 2, name: 'Trạng thái tài khoản' })).toHaveFocus(),
+      expect(screen.getByRole('heading', { level: 2, name: 'Tài khoản' })).toHaveFocus(),
     )
   })
 
@@ -98,7 +98,7 @@ describe('the confirmation "Khôi phục tài khoản?"', () => {
     await waitFor(() => expect(calls(api.fetch)).toEqual([GET, RESTORE, GET]))
   })
 
-  it('gives the focus to the status card when a reload after a refusal replaces its button', async () => {
+  it('gives the focus to the card "Tài khoản" when a reload after a refusal replaces its button', async () => {
     renderAccount()
     await open()
     // Someone else restored the account first: the reload, which the confirmation does not wait for and which is held
@@ -119,7 +119,7 @@ describe('the confirmation "Khôi phục tài khoản?"', () => {
     )
     answer(ok(manager))
     await waitFor(() =>
-      expect(screen.getByRole('heading', { level: 2, name: 'Trạng thái tài khoản' })).toHaveFocus(),
+      expect(screen.getByRole('heading', { level: 2, name: 'Tài khoản' })).toHaveFocus(),
     )
   })
 

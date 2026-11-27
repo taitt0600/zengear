@@ -30,6 +30,12 @@
   "admin": {
     "skipToContent": "Bỏ qua đến nội dung chính",
     "retry": "Thử lại",
+    "requiredNote": "Trường có dấu <mark>*</mark> là bắt buộc.",
+    "requiredMark": "sao",
+    "requiredStar": "*",
+    "sectionNav": {
+      "label": "Trên trang này"
+    },
     "menu": {
       "title": "Menu",
       "open": "Mở menu",
@@ -163,18 +169,25 @@
     "account": {
       "title": "Tài khoản nhân viên",
       "info": {
-        "title": "Thông tin nhân viên",
-        "description": "Thông tin ghi khi tạo tài khoản, dùng để liên hệ và phân quyền."
+        "title": "Hồ sơ nhân viên",
+        "description": "Thông tin của nhân viên tại cửa hàng, dùng để liên hệ trong công việc."
       },
       "workPhone": "SĐT công việc",
+      "accountCard": {
+        "title": "Tài khoản",
+        "description": "Email đăng nhập, vai trò, trạng thái và mật khẩu của tài khoản.",
+        "email": "Email đăng nhập"
+      },
       "status": {
-        "title": "Trạng thái tài khoản",
         "description": "Tài khoản bị khóa không đăng nhập được; khôi phục để nhân viên dùng lại.",
         "anonymized": "Đã ẩn danh",
         "pendingDescription": "Nhân viên chưa đăng nhập được cho tới khi tài khoản được duyệt."
       },
-      "password": "Mật khẩu",
-      "mustChangePassword": "Chưa đổi mật khẩu mặc định",
+      "passwordCard": {
+        "default": "Mật khẩu mặc định",
+        "unchanged": "Chưa đổi",
+        "changed": "Đã đổi"
+      },
       "disable": "Khóa tài khoản",
       "disableAgain": "Khóa lại",
       "disableAgainHint": "Gửi lại lệnh khóa để đăng xuất nhân viên khỏi mọi thiết bị, khi lần khóa trước báo lỗi.",

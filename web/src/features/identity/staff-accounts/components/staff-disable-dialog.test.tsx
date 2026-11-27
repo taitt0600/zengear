@@ -23,7 +23,7 @@ const dialog = () => screen.getByRole('dialog', { name: 'Khóa tài khoản' })
 const leaving = () => within(dialog()).getByRole('checkbox', { name: 'Nhân viên nghỉ việc' })
 const lock = () => within(dialog()).getByRole('button', { name: 'Khóa' })
 
-/** Opens the dialog from the status card, by the button `name`. */
+/** Opens the dialog from the status row of the card "Tài khoản", by the button `name`. */
 async function open(name = 'Khóa tài khoản') {
   await userEvent.click(await screen.findByRole('button', { name }))
   return dialog()
@@ -53,7 +53,7 @@ describe('the dialog "Khóa tài khoản"', () => {
     expect(await screen.findByRole('button', { name: 'Khôi phục tài khoản' })).toBeVisible()
   })
 
-  it('gives the focus to the status card once a lock has replaced its button', async () => {
+  it('gives the focus to the card "Tài khoản" once a lock has replaced its button', async () => {
     renderAccount()
     await open()
     api.fetch.mockResolvedValue(ok({ ...manager, status: 'DISABLED' }))
@@ -62,8 +62,34 @@ describe('the dialog "Khóa tài khoản"', () => {
 
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
     await waitFor(() =>
-      expect(screen.getByRole('heading', { level: 2, name: 'Trạng thái tài khoản' })).toHaveFocus(),
+      expect(screen.getByRole('heading', { level: 2, name: 'Tài khoản' })).toHaveFocus(),
     )
+  })
+
+  it('marks the left date required, with the note under the description, once ticked', async () => {
+    renderAccount()
+    await open()
+    expect(within(dialog()).queryByText(/Trường có dấu/)).not.toBeInTheDocument()
+
+    await userEvent.click(leaving())
+
+    const note = within(dialog()).getByText(/Trường có dấu/)
+    expect(note).toHaveTextContent('Trường có dấu *sao là bắt buộc.')
+    expect(within(note).getByText('*')).toHaveAttribute('aria-hidden', 'true')
+    expect(within(note).getByText('sao')).toHaveClass('sr-only')
+    const description = within(dialog()).getByText(
+      'Tài khoản bị khóa không đăng nhập được cho đến khi được khôi phục.',
+    )
+    expect(
+      description.compareDocumentPosition(note) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy()
+    const label = within(dialog()).getByText('Ngày nghỉ việc', { selector: 'label' })
+    expect(label).toHaveTextContent('Ngày nghỉ việc*')
+    expect(within(label).getByText('*')).toHaveAttribute('aria-hidden', 'true')
+    // The hidden `*` stays out of the picker's name, which its label gives.
+    expect(
+      within(dialog()).getByRole('button', { name: /Ngày nghỉ việc/ }),
+    ).not.toHaveAccessibleName(/\*/)
   })
 
   it('gives the focus back to the button that opened it when nothing changed', async () => {

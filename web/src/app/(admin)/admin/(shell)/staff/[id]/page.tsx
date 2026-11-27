@@ -4,9 +4,10 @@ import {
   StaffAccountDetailsSection,
   StaffAccountHeadingSection,
   StaffAccountLayout,
+  StaffAccountLoginSection,
+  StaffAccountNavSection,
   StaffAccountNoticeSection,
   StaffAccountProvider,
-  StaffAccountStatusSection,
 } from '@/features/identity/staff-accounts'
 import { RequirePermission } from '@/features/shell/admin'
 
@@ -16,9 +17,9 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 /**
- * SCR-STF-03 Staff account (STF-01, STF-02, STF-09): one account, with the way to lock or restore it, or to approve,
- * reject or withdraw it while it waits for approval, for a user who holds
- * staff.read. The id comes from the URL, not from the API, so it is encoded before it goes into the API's path
+ * SCR-STF-03 Staff account (STF-01, STF-02, STF-09): one account, its staff profile and its sign-in account in two
+ * cards with a section navigation, the way to lock or restore it, or to approve, reject or withdraw it while it waits
+ * for approval, for a user who holds staff.read. The id comes from the URL, not from the API, so it is encoded before it goes into the API's path
  * (docs/FRONTEND.md, Data from the API); the API answers 404 for an id it does not know.
  */
 export default async function StaffAccountPage({ params }: { params: Promise<{ id: string }> }) {
@@ -29,8 +30,9 @@ export default async function StaffAccountPage({ params }: { params: Promise<{ i
         <StaffAccountLayout
           heading={<StaffAccountHeadingSection />}
           notice={<StaffAccountNoticeSection />}
+          nav={<StaffAccountNavSection />}
           details={<StaffAccountDetailsSection />}
-          status={<StaffAccountStatusSection />}
+          account={<StaffAccountLoginSection />}
         />
       </StaffAccountProvider>
     </RequirePermission>

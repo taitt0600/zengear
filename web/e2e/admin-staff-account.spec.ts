@@ -38,29 +38,37 @@ const noSidewaysScroll = (page: Page) =>
 const textFits = (element: Locator) => element.evaluate((el) => el.scrollWidth <= el.clientWidth)
 
 const card = (page: Page, title: string) =>
-  page.locator('[data-slot=card]').filter({ has: page.getByRole('heading', { name: title }) })
+  page
+    .locator('[data-slot=card]')
+    .filter({ has: page.getByRole('heading', { name: title, exact: true }) })
 
 test('the Admin locks an account with its last working day, then restores it', async ({ page }) => {
   const staff = await newSalesConsultant(`E2e-account-${Date.now()}`)
   await signedInAdmin(page)
   await page.goto(`/admin/staff/${staff.id}`)
 
-  const status = card(page, 'Trạng thái tài khoản')
+  const status = card(page, 'Tài khoản')
   // The value of "Ngày nghỉ việc" (the new account joins today, so its joined date shows today too).
-  const leftDate = card(page, 'Thông tin nhân viên').locator('dt:text-is("Ngày nghỉ việc") + dd')
+  const leftDate = card(page, 'Hồ sơ nhân viên').locator('dt:text-is("Ngày nghỉ việc") + dd')
   await expect(page.getByRole('heading', { level: 1, name: STAFF_NAME })).toBeVisible()
   await expect(leftDate).toHaveText('—')
-  await expect(page.getByRole('navigation', { name: 'Vị trí trang' })).toContainText(
-    'Tài khoản nhân viên',
+  // The frame of SCR-ADM-01: "Nhân viên › Danh sách nhân viên › Tài khoản nhân viên", the entry a link.
+  const breadcrumb = page.getByRole('navigation', { name: 'Vị trí trang' })
+  await expect(breadcrumb.getByRole('link', { name: 'Danh sách nhân viên' })).toHaveAttribute(
+    'href',
+    '/admin/staff',
   )
+  await expect(breadcrumb).toContainText('Tài khoản nhân viên')
   await expect(status.getByText('Đang hoạt động')).toBeVisible()
-  await expect(status.getByText('Chưa đổi mật khẩu mặc định')).toBeVisible()
+  await expect(status.locator('dt:text-is("Mật khẩu mặc định") + dd')).toHaveText('Chưa đổi')
   await page.screenshot({ path: test.info().outputPath('staff-account.png'), fullPage: true })
 
   await status.getByRole('button', { name: 'Khóa tài khoản' }).click()
   const dialog = page.getByRole('dialog', { name: 'Khóa tài khoản' })
+  await expect(dialog.getByText(/Trường có dấu/)).toHaveCount(0)
   await dialog.getByRole('checkbox', { name: 'Nhân viên nghỉ việc' }).click()
   await expect(dialog.getByRole('button', { name: /Ngày nghỉ việc/ })).toHaveText(today())
+  await expect(dialog.getByText(/Trường có dấu/)).toBeVisible()
   await page.screenshot({ path: test.info().outputPath('staff-account-disable.png') })
   await dialog.getByRole('button', { name: 'Khóa', exact: true }).click()
 
@@ -79,24 +87,25 @@ test('the Admin locks an account with its last working day, then restores it', a
   await expect(leftDate).toHaveText('—')
 })
 
-test('on a narrow screen the status comes before the details, and a long email wraps', async ({
+test('on a narrow screen the cards keep their order without the navigation, and a long email wraps', async ({
   page,
 }) => {
   // A given name of 50 letters gives 59 characters before the `@` (at most 64, RFC 5321, R-USR-24) and no hyphen, where
-  // a line could break anyway: wider than a field of the details card, at 390 px and at `lg` alike.
+  // a line could break anyway: wider than the value of a row of the card "Tài khoản", at 390 px and at `xl` alike.
   const staff = await newSalesConsultant(`E2e-narrow-${Date.now()}`, `Nguyễn ${'X'.repeat(50)}`)
   await page.setViewportSize({ width: 390, height: 844 })
   await signedInAdmin(page)
   await page.goto(`/admin/staff/${staff.id}`)
 
-  const email = page.getByText(staff.email, { exact: true })
+  const email = card(page, 'Tài khoản').getByText(staff.email, { exact: true })
   await expect(email).toBeVisible()
-  const status = await card(page, 'Trạng thái tài khoản').boundingBox()
-  const details = await card(page, 'Thông tin nhân viên').boundingBox()
-  expect(status!.y).toBeLessThan(details!.y)
-  expect(Math.abs(status!.width - details!.width)).toBeLessThan(2)
+  await expect(page.getByRole('navigation', { name: 'Trên trang này' })).toBeHidden()
+  const details = await card(page, 'Hồ sơ nhân viên').boundingBox()
+  const account = await card(page, 'Tài khoản').boundingBox()
+  expect(details!.y).toBeLessThan(account!.y)
+  expect(Math.abs(account!.width - details!.width)).toBeLessThan(2)
   // The Layout: a long email wraps, never widens the card past the screen.
-  expect(details!.x + details!.width).toBeLessThanOrEqual(390)
+  expect(account!.x + account!.width).toBeLessThanOrEqual(390)
   expect(await noSidewaysScroll(page)).toBe(true)
   expect(await textFits(email)).toBe(true)
   await page.screenshot({
@@ -104,11 +113,55 @@ test('on a narrow screen the status comes before the details, and a long email w
     fullPage: true,
   })
 
-  // From `lg` the details take two thirds and each field half of them: the text of the email, not only its box,
-  // still fits its field.
+  // At `xl` with the menu expanded the cards are at their narrowest beside the navigation: the text of the email, not
+  // only its box, still fits its row.
   await page.setViewportSize({ width: 1280, height: 900 })
+  await expect(page.getByRole('navigation', { name: 'Trên trang này' })).toBeVisible()
   expect(await textFits(email)).toBe(true)
   expect(await noSidewaysScroll(page)).toBe(true)
+})
+
+test('the section navigation leads to a card, and the page keeps a column of 1024 px', async ({
+  page,
+}) => {
+  const staff = await newSalesConsultant(`E2e-sections-${Date.now()}`)
+  // A window low enough for the page to scroll.
+  await page.setViewportSize({ width: 1440, height: 600 })
+  await signedInAdmin(page)
+  await page.goto(`/admin/staff/${staff.id}`)
+
+  const nav = page.getByRole('navigation', { name: 'Trên trang này' })
+  const profileLink = nav.getByRole('link', { name: 'Hồ sơ nhân viên' })
+  const accountLink = nav.getByRole('link', { name: 'Tài khoản' })
+  await expect(profileLink).toHaveAttribute('aria-current', 'location')
+  await accountLink.click()
+  await expect(page.getByRole('heading', { level: 2, name: 'Tài khoản' })).toBeFocused()
+  await expect(page).toHaveURL(new RegExp(`/admin/staff/${staff.id}#account$`))
+  // The end of the page comes into view, so the last card is current.
+  await expect(accountLink).toHaveAttribute('aria-current', 'location')
+  await expect(profileLink).not.toHaveAttribute('aria-current')
+  await page.screenshot({ path: test.info().outputPath('staff-account-sections.png') })
+
+  // A window where the page does not scroll: the first card stays current, also after a click (the clicked card stays
+  // current only from the build of SCR-ACC-01).
+  await page.setViewportSize({ width: 1440, height: 2000 })
+  await page.goto(`/admin/staff/${staff.id}`)
+  await expect(page.getByRole('heading', { level: 1, name: STAFF_NAME })).toBeVisible()
+  await accountLink.click()
+  await expect(page.getByRole('heading', { level: 2, name: 'Tài khoản' })).toBeFocused()
+  await expect(profileLink).toHaveAttribute('aria-current', 'location')
+
+  // Width: one column of at most 1024 px, centred in the page area, also on a 2560 px screen.
+  await page.setViewportSize({ width: 2560, height: 1400 })
+  const column = page
+    .locator('main > div')
+    .filter({ has: page.getByRole('heading', { level: 1, name: STAFF_NAME }) })
+  const box = await column.boundingBox()
+  const main = await page.locator('main').boundingBox()
+  expect(box!.width).toBeLessThanOrEqual(1024)
+  expect(Math.abs(box!.x - main!.x - (main!.x + main!.width - box!.x - box!.width))).toBeLessThan(2)
+  expect(await noSidewaysScroll(page)).toBe(true)
+  await page.screenshot({ path: test.info().outputPath('staff-account-wide.png'), fullPage: true })
 })
 
 test('an unknown account leads back to the list, and the Admin cannot lock their own', async ({

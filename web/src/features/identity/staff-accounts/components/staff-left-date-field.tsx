@@ -9,12 +9,14 @@ import { Field, FieldDescription, FieldError, FieldLabel } from '@/components/ui
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { useDay } from '../hooks/use-staff-texts'
 import { calendarDate, calendarDay } from '../utils/staff-account'
+import { RequiredMark } from './required-note'
 
 /**
  * The field "Ngày nghỉ việc" of the dialog "Khóa tài khoản" (SCR-STF-03), split from it for its size: a date picker of
  * one month, Monday first, today in Vietnam marked, whose days after it and before the joined date are disabled (R-USR-07, the
- * API still checks); `required`, so that a second click never empties it. `error` is the API's text of a 400 or 409
- * on `#/leftDate`.
+ * API still checks); `required`, so that a second click never empties it. Its label ends with the ` *` of a required
+ * field; the picker is a button, so no `aria-required`, and it is never empty. `error` is the API's text of a 400 or
+ * 409 on `#/leftDate`.
  */
 export function StaffLeftDateField({
   value,
@@ -47,6 +49,7 @@ export function StaffLeftDateField({
     <Field data-invalid={error ? true : undefined}>
       <FieldLabel id={`${id}-label`} htmlFor={id}>
         {t('staff.list.columns.leftDate')}
+        <RequiredMark />
       </FieldLabel>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>

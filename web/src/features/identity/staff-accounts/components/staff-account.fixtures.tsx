@@ -7,8 +7,9 @@ import { StaffAccountProvider } from '../hooks/staff-account-context'
 import { StaffAccountDetailsSection } from './staff-account-details-section'
 import { StaffAccountHeadingSection } from './staff-account-heading-section'
 import { StaffAccountLayout } from './staff-account-layout'
+import { StaffAccountLoginSection } from './staff-account-login-section'
+import { StaffAccountNavSection } from './staff-account-nav-section'
 import { StaffAccountNoticeSection } from './staff-account-notice-section'
-import { StaffAccountStatusSection } from './staff-account-status-section'
 
 // What the tests of SCR-STF-03 share: the sample accounts, the answers of the mocked mutator and the screen as its
 // page composes it. Each test file mocks `@/lib/api/api`, `@/lib/auth/session` and `sonner` itself (vi.mock is hoisted
@@ -83,8 +84,9 @@ export function renderAccount(id = manager.id, permissions = ['staff.read', 'sta
         <StaffAccountLayout
           heading={<StaffAccountHeadingSection />}
           notice={<StaffAccountNoticeSection />}
+          nav={<StaffAccountNavSection />}
           details={<StaffAccountDetailsSection />}
-          status={<StaffAccountStatusSection />}
+          account={<StaffAccountLoginSection />}
         />
       </StaffAccountProvider>
     </CurrentUserProvider>,

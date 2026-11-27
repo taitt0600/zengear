@@ -224,7 +224,7 @@ describe('the notice of a PENDING account', () => {
     expect(screen.queryByRole('button', { name: 'Khóa tài khoản' })).toBeNull()
   })
 
-  it('approves with the ETag, then the status card takes the focus of the notice that went', async () => {
+  it('approves with the ETag, then the card "Tài khoản" takes the focus of the notice that went', async () => {
     answerAccount({ canApprove: true })
     renderAccount(account.id, ['staff.read', 'staff.approve'])
     await userEvent.click(
@@ -238,9 +238,7 @@ describe('the notice of a PENDING account', () => {
 
     await waitFor(() => expect(screen.queryByRole('status')).toBeNull())
     expect(ifMatch(1)).toBe('"7"')
-    await waitFor(() =>
-      expect(screen.getByRole('heading', { name: 'Trạng thái tài khoản' })).toHaveFocus(),
-    )
+    await waitFor(() => expect(screen.getByRole('heading', { name: 'Tài khoản' })).toHaveFocus())
   })
 
   it('rejects with the ETag, then goes to the tab Chờ duyệt', async () => {
