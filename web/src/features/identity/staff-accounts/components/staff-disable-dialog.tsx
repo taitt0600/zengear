@@ -25,13 +25,15 @@ import {
 } from '@/components/ui/field'
 import { useDisableForm, type DisableAccount } from '../hooks/use-disable-form'
 import { closedFocus } from '../utils/closed-focus'
+import { RequiredNote } from './required-note'
 import { StaffLeftDateField } from './staff-left-date-field'
 
 /**
  * The dialog "Khóa tài khoản" of SCR-STF-03 (STF-02; R-USR-07, R-USR-12, R-SEC-04), which a row of SCR-STF-01 opens
  * too: the warning that the person is signed out everywhere, whether they left with their last working day, and
- * "Khóa". Its content mounts at each opening, so it starts from the account's values every time. Opened without a
- * DialogTrigger, it focuses nothing when it closes: `onClosed` puts the focus back.
+ * "Khóa"; while the box is ticked, the note of the required fields and the mark of the date. Its content mounts at
+ * each opening, so it starts from the account's values every time. Opened without a DialogTrigger, it focuses nothing
+ * when it closes: `onClosed` puts the focus back.
  */
 export function StaffDisableDialog({
   account,
@@ -68,6 +70,8 @@ function DisableForm({ account, onDone }: { account: DisableAccount; onDone: () 
       <DialogHeader>
         <DialogTitle>{t('disableDialog.title')}</DialogTitle>
         <DialogDescription>{t('disableDialog.description')}</DialogDescription>
+        {/* Required fields: only the left date is required, and only once the box is ticked. */}
+        {leaving && <RequiredNote />}
       </DialogHeader>
       <Alert variant="destructive">
         <CircleAlertIcon aria-hidden />

@@ -3,7 +3,7 @@ import type { UserStatus } from '@/lib/api/generated/model'
 
 /**
  * An approval from the notice of SCR-STF-03 (STF-09) removes the notice, with the button that had the focus, once the
- * account reloads ACTIVE: `target` (the heading of the status card) then takes the focus instead of the page's body.
+ * account reloads ACTIVE: `target` (the h2 of the card "Tài khoản") then takes the focus instead of the page's body.
  */
 export function useFocusAfterApproval(
   status: UserStatus | undefined,
