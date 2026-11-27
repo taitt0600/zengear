@@ -6,6 +6,7 @@ using ZenGear.Api.Constants;
 using ZenGear.Api.ExceptionHandling;
 using ZenGear.Api.Extensions;
 using ZenGear.Api.Logging;
+using ZenGear.Services.Audit.AuditLogs;
 using ZenGear.Services.Identity.Access;
 
 namespace ZenGear.Api.Middlewares;
@@ -13,14 +14,15 @@ namespace ZenGear.Api.Middlewares;
 /// <summary>
 /// Runs after authentication, for requests with a valid Firebase ID token: refuses a user that is not ACTIVE
 /// (R-SEC-04), gives an ACTIVE user the <see cref="ZenGearClaims"/> and its <c>UserAccess</c> (read by
-/// <see cref="PermissionAuthorizationHandler"/>), records a new sign-in (R-SEC-11) and refuses staff who must change
-/// their password (R-USR-03). An unregistered Firebase uid gets no claim and goes on: the policies refuse it,
-/// anonymous endpoints (and the AUT-02 registration endpoint) accept it.
+/// <see cref="PermissionAuthorizationHandler"/>) and makes it the <c>changed_by</c> of <c>audit_logs</c> (R-AUD-01),
+/// records a new sign-in (R-SEC-11) and refuses staff who must change their password (R-USR-03). An unregistered
+/// Firebase uid gets no claim and goes on: the policies refuse it, anonymous endpoints (and the AUT-02 registration
+/// endpoint) accept it.
 /// </summary>
 public sealed class ActiveUserMiddleware(RequestDelegate next)
 {
     public async Task InvokeAsync(HttpContext context, UserAccessReader users, SignInService signIn,
-        SecurityLog securityLog, IProblemDetailsService problemDetails)
+        SecurityLog securityLog, IProblemDetailsService problemDetails, AuditActor auditActor)
     {
         var principal = context.User;
         var firebaseUid = principal.FindFirstValue("sub");
@@ -48,6 +50,7 @@ public sealed class ActiveUserMiddleware(RequestDelegate next)
         }
 
         context.SetUserAccess(access);
+        auditActor.Set(access.Id);
         identity.AddClaim(new Claim(ZenGearClaims.UserId, access.Id.ToString()));
         identity.AddClaim(new Claim(ZenGearClaims.MustChangePassword, access.MustChangePassword ? "true" : "false"));
 

@@ -22,6 +22,76 @@ namespace ZenGear.Data.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("ZenGear.Data.Entities.Audit.AuditLog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("uuidv7()");
+
+                    b.Property<DateTimeOffset>("ChangedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("changed_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("action");
+
+                    b.Property<Guid?>("ChangedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("changed_by");
+
+                    b.Property<Guid?>("CorrelationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("correlation_id");
+
+                    b.Property<string>("NewValues")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("new_values");
+
+                    b.Property<string>("OldValues")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("old_values");
+
+                    b.Property<string>("RecordKey")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("record_key");
+
+                    b.Property<string>("TableName")
+                        .IsRequired()
+                        .HasColumnType("varchar")
+                        .HasColumnName("table_name");
+
+                    b.Property<long>("TransactionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("transaction_id")
+                        .HasDefaultValueSql("pg_current_xact_id()::text::bigint");
+
+                    b.HasKey("Id", "ChangedAt")
+                        .HasName("pk_audit_logs");
+
+                    b.HasIndex("ChangedBy")
+                        .HasDatabaseName("ix_audit_logs_changed_by");
+
+                    b.HasIndex("TransactionId")
+                        .HasDatabaseName("ix_audit_logs_transaction_id");
+
+                    b.HasIndex("TableName", "ChangedAt")
+                        .HasDatabaseName("ix_audit_logs_table_name_changed_at");
+
+                    b.HasIndex("TableName", "RecordKey")
+                        .HasDatabaseName("ix_audit_logs_table_name_record_key");
+
+                    b.ToTable("audit_logs", (string)null);
+                });
+
             modelBuilder.Entity("ZenGear.Data.Entities.Catalog.Brand", b =>
                 {
                     b.Property<Guid>("Id")

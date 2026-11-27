@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ZenGear.Data.Common;
+using ZenGear.Data.Entities.Audit;
 using ZenGear.Data.Entities.Catalog;
 using ZenGear.Data.Entities.Geography;
 using ZenGear.Data.Entities.Identity;
@@ -44,6 +45,8 @@ public class ZenGearDbContext : DbContext
     public DbSet<Brand> Brands => Set<Brand>();
 
     public DbSet<ProductSeries> ProductSeries => Set<ProductSeries>();
+
+    public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
