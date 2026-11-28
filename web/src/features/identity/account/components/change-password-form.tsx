@@ -2,7 +2,6 @@ import { useTranslations } from 'next-intl'
 import { useId } from 'react'
 import { Controller } from 'react-hook-form'
 import { FormProblems } from '@/components/app/form-problems'
-import { Button } from '@/components/ui/button'
 import { FieldGroup } from '@/components/ui/field'
 import { useChangePassword } from '../hooks/use-change-password'
 import { AccountName } from './account-name'
@@ -11,19 +10,16 @@ import { ReauthDialog } from './reauth-dialog'
 import { SubmitButton } from './submit-button'
 
 /**
- * The form of SCR-AUT-02 (docs/screens/), also opened in a dialog by SCR-ACC-01 with the same answers: the new
- * password typed twice, sent to POST /me/change-password (DEC-094). After a 204 every session is revoked, so
- * `onChanged` signs the user out; `onCancel`, given only in a dialog, closes it. `email` names the account to password
- * managers in a field the user does not see.
+ * The form of SCR-AUT-02 (docs/screens/): the new password typed twice, sent to POST /me/change-password (DEC-094),
+ * with the sign-in again of 403 recent-login-required in a dialog. After a 204 every session is revoked, so
+ * `onChanged` signs the user out. `email` names the account to password managers in a field the user does not see.
  */
 export function ChangePasswordForm({
   email,
   onChanged,
-  onCancel,
 }: {
   email: string | null | undefined
   onChanged: () => Promise<void>
-  onCancel?: () => void
 }) {
   const t = useTranslations('changePassword')
   const id = useId()
@@ -63,11 +59,6 @@ export function ChangePasswordForm({
             )}
           />
           <div className="flex justify-end gap-2">
-            {onCancel && (
-              <Button type="button" variant="outline" onClick={onCancel} disabled={sending}>
-                {t('cancel')}
-              </Button>
-            )}
             <SubmitButton sending={sending}>{t('submit')}</SubmitButton>
           </div>
         </FieldGroup>

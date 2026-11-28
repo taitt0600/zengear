@@ -1,31 +1,34 @@
 import { z } from 'zod'
+import { hasPasswordLength } from './utils/password-rules'
 
 // The input shapes of SCR-AUT-02 and SCR-ACC-01 (docs/screens/). The web checks only what these rules list; the API
 // decides (R-USR-11 also refuses the default password, the blocklist and "zengear"; R-USR-04 the display name).
 
-/** R-USR-11: in Unicode code points, as the API counts them. */
-const PASSWORD_MIN_LENGTH = 12
-const PASSWORD_MAX_LENGTH = 128
 /** The display name after trimming, in UTF-16 units, as the API counts it (`Trim().Length`). */
 const NAME_MAX_LENGTH = 100
 
-const codePoints = (value: string) => [...value].length
-
-/** The new password, typed twice. Never trimmed: Firebase compares exactly what is typed at sign-in (DEC-102). */
+/**
+ * The new password, typed twice, and on SCR-ACC-01 the current password, which Firebase checks before the change
+ * (`currentRequired`, its message, asks for it; SCR-AUT-02 leaves it empty and never shows it). Never trimmed: Firebase
+ * compares exactly what is typed at sign-in (DEC-102).
+ */
 export function passwordChangeSchema(messages: {
   required: string
   length: string
   mismatch: string
+  currentRequired?: string
 }) {
+  const current = z.string()
   return z
     .object({
+      currentPassword: (messages.currentRequired
+        ? current.min(1, { error: messages.currentRequired })
+        : current
+      ).default(''),
       newPassword: z.string().superRefine((value, context) => {
         if (value.length === 0) {
           context.addIssue({ code: 'custom', message: messages.required })
-        } else if (
-          codePoints(value) < PASSWORD_MIN_LENGTH ||
-          codePoints(value) > PASSWORD_MAX_LENGTH
-        ) {
+        } else if (!hasPasswordLength(value)) {
           context.addIssue({ code: 'custom', message: messages.length })
         }
       }),

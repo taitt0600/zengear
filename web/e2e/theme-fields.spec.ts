@@ -64,7 +64,8 @@ test('the account fields, focused and in error', async ({ page }) => {
   await name.focus()
   await expect(name).toBeFocused()
   await expectBorder(name, 'ring')
-  await expectBorder(page.getByLabel('Email', { exact: true }), 'input')
+  // At rest: a field of the card "Mật khẩu" (the Email is a row now, no field).
+  await expectBorder(page.getByLabel(/^Mật khẩu hiện tại/), 'input')
   await shot(page, 'account-field-focus')
 
   await name.fill('   ')

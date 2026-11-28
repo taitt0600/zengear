@@ -91,13 +91,32 @@
     }
   },
   "account": {
+    "profile": {
+      "title": "Thông tin tài khoản",
+      "description": "Thông tin tài khoản của bạn. Bạn tự sửa được tên hiển thị."
+    },
     "name": "Tên hiển thị",
+    "nameHint": "Tối đa 100 ký tự.",
     "email": "Email",
-    "emailNote": "Email là tên đăng nhập. Liên hệ quản trị viên khi cần đổi.",
+    "details": {
+      "noValue": "—"
+    },
     "save": "Lưu",
     "saved": "Đã lưu.",
     "changePassword": "Đổi mật khẩu",
     "changePasswordNote": "Sau khi đổi, bạn và mọi thiết bị đã đăng nhập phải đăng nhập lại bằng mật khẩu mới.",
+    "passwordCard": {
+      "title": "Mật khẩu"
+    },
+    "passwordRules": {
+      "label": "Yêu cầu của mật khẩu mới",
+      "length": "Từ 12 đến 128 ký tự",
+      "noZengear": "Không chứa chữ zengear",
+      "serverChecked": "Không phải mật khẩu mặc định hay mật khẩu phổ biến (kiểm khi đổi)",
+      "match": "Giống mật khẩu mới",
+      "met": "(đạt)",
+      "unmet": "(chưa đạt)"
+    },
     "validation": {
       "nameRequired": "Vui lòng nhập tên hiển thị.",
       "nameTooLong": "Tên hiển thị tối đa 100 ký tự."

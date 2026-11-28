@@ -1,12 +1,11 @@
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { CurrentUserProvider, type LoadedCurrentUser } from '@/features/identity/access'
 import { ApiError } from '@/lib/api/problems'
-import { renderWithProviders } from '@/test/render'
-import { AccountLayout } from './account-layout'
-import { AccountPasswordSection } from './account-password-section'
-import { AccountProfileSection } from './account-profile-section'
+import { consultant, renderAccountScreen, validation } from './account.fixtures'
+
+// SCR-ACC-01 My account (docs/screens/SCR-ACC-01.md, its Layout): the heading, the section navigation and the card
+// "Thông tin tài khoản" with "Lưu". The card "Mật khẩu" is tested in account-password.test.tsx.
 
 const api = vi.hoisted(() => ({ me: vi.fn(), updateMe: vi.fn(), changeMyPassword: vi.fn() }))
 // The files the sections import: GET /me of the session, and the calls of this module.
@@ -25,44 +24,14 @@ vi.mock('@/lib/auth/session', () => session)
 const toast = vi.hoisted(() => ({ error: vi.fn(), success: vi.fn() }))
 vi.mock('sonner', () => ({ toast }))
 
-const consultant: LoadedCurrentUser = {
-  id: '0199a0f3-0000-7000-8000-000000000009',
-  name: 'Tư vấn bán hàng',
-  email: 'tuvan@zengear.test',
-  isStaff: true,
-  mustChangePassword: false,
-  permissions: [],
-  etag: '"v1"',
-}
 const signOut = vi.fn()
+const renderScreen = () => renderAccountScreen(signOut)
 
-const validation = (...errors: { pointer?: string; code: string; detail: string }[]) =>
-  new ApiError(400, {
-    type: '/problems/validation',
-    status: 400,
-    detail: 'Vui lòng kiểm tra lại các thông tin đã nhập.',
-    errors,
-  })
-
-// The screen as its page composes it.
-const renderScreen = () =>
-  renderWithProviders(
-    <CurrentUserProvider
-      value={{ me: consultant, signOut, forbidden: false, clearForbidden: () => {} }}
-    >
-      <AccountLayout
-        title="Tài khoản của tôi"
-        profile={<AccountProfileSection />}
-        password={<AccountPasswordSection />}
-      />
-    </CurrentUserProvider>,
-  )
-
-const nameField = () => screen.getByLabelText('Tên hiển thị')
+const nameField = () => screen.getByLabelText(/^Tên hiển thị/)
 
 async function rename(name: string) {
   const user = userEvent.setup()
-  const field = await screen.findByLabelText('Tên hiển thị')
+  const field = await screen.findByLabelText(/^Tên hiển thị/)
   await user.clear(field)
   if (name) await user.type(field, name)
   return user
@@ -75,17 +44,84 @@ beforeEach(() => {
   signOut.mockResolvedValue(undefined)
 })
 
-describe('the account', () => {
-  it('shows the display name, and the email read-only with its note', async () => {
+describe('the page', () => {
+  it('is headed "Tài khoản của tôi", with the name and email of the account', async () => {
     renderScreen()
 
-    expect(await screen.findByLabelText('Tên hiển thị')).toHaveValue('Tư vấn bán hàng')
-    const email = screen.getByLabelText('Email')
-    expect(email).toHaveValue('tuvan@zengear.test')
-    expect(email).toHaveAttribute('readonly')
-    expect(email).toHaveAccessibleDescription(
-      'Email là tên đăng nhập. Liên hệ quản trị viên khi cần đổi.',
+    expect(screen.getByRole('heading', { level: 1, name: 'Tài khoản của tôi' })).toBeInTheDocument()
+    expect(await screen.findByText('Tư vấn bán hàng · tuvan@zengear.test')).toBeInTheDocument()
+  })
+
+  it('shows the name alone when the account has no email', async () => {
+    api.me.mockResolvedValue({ ...consultant, email: null })
+    renderScreen()
+
+    expect(await screen.findByText('Tư vấn bán hàng')).toBeInTheDocument()
+    // The Email row says it is empty, as the rows of gap 11 will.
+    const email = screen.getByText('Email', { selector: 'dt' })
+    expect(email.nextElementSibling).toHaveTextContent('—')
+  })
+
+  it('lists its two cards in the section navigation, the first one current', () => {
+    renderScreen()
+
+    const nav = screen.getByRole('navigation', { name: 'Trên trang này' })
+    const links = within(nav).getAllByRole('link')
+    expect(links.map((link) => [link.textContent, link.getAttribute('href')])).toEqual([
+      ['Thông tin tài khoản', '#profile'],
+      ['Mật khẩu', '#password'],
+    ])
+    expect(links[0]).toHaveAttribute('aria-current', 'location')
+  })
+
+  it('shows both cards with their titles and required notes while GET /me loads', () => {
+    api.me.mockReturnValue(new Promise(() => {}))
+    renderScreen()
+
+    for (const name of ['Thông tin tài khoản', 'Mật khẩu']) {
+      const card = screen.getByRole('region', { name })
+      expect(within(card).getByRole('heading', { level: 2, name })).toHaveAttribute(
+        'tabindex',
+        '-1',
+      )
+      expect(within(card).getByText(/là bắt buộc\./)).toBeInTheDocument()
+    }
+    expect(screen.queryByLabelText(/^Tên hiển thị/)).not.toBeInTheDocument()
+  })
+})
+
+describe('the card "Thông tin tài khoản"', () => {
+  it('is a region reached by #profile, with its description and the required note', async () => {
+    renderScreen()
+
+    const card = screen.getByRole('region', { name: 'Thông tin tài khoản' })
+    expect(card).toHaveAttribute('id', 'profile')
+    expect(
+      within(card).getByText('Thông tin tài khoản của bạn. Bạn tự sửa được tên hiển thị.'),
+    ).toBeInTheDocument()
+    expect(within(card).getByText(/^Trường có dấu/)).toHaveTextContent(
+      'Trường có dấu *sao là bắt buộc.',
     )
+    expect(await within(card).findByLabelText(/^Tên hiển thị/)).toBeInTheDocument()
+  })
+
+  it('shows the display name, required, with its hint', async () => {
+    renderScreen()
+
+    const field = await screen.findByLabelText(/^Tên hiển thị/)
+    expect(field).toHaveValue('Tư vấn bán hàng')
+    expect(field).toBeRequired()
+    expect(field).toHaveAccessibleDescription('Tối đa 100 ký tự.')
+  })
+
+  it('shows the email as a read-only row, without a note', async () => {
+    renderScreen()
+
+    expect(await screen.findByRole('definition', { name: 'Email' })).toHaveTextContent(
+      'tuvan@zengear.test',
+    )
+    expect(screen.queryByRole('textbox', { name: 'Email' })).not.toBeInTheDocument()
+    expect(screen.queryByText(/Email là tên đăng nhập/)).not.toBeInTheDocument()
   })
 
   it('requires the display name before sending', async () => {
@@ -168,7 +204,7 @@ describe('"Lưu" (PATCH /me with If-Match)', () => {
     expect(screen.getAllByRole('alert').find((alert) => alert.contains(text))).toBeDefined()
     expect(screen.getByText('Vui lòng nhập tên.')).toBeInTheDocument()
     // The field in error takes the focus, not the alert.
-    await waitFor(() => expect(screen.getByLabelText('Tên hiển thị')).toHaveFocus())
+    await waitFor(() => expect(screen.getByLabelText(/^Tên hiển thị/)).toHaveFocus())
     expect(toast.error).not.toHaveBeenCalled()
   })
 
@@ -225,86 +261,5 @@ describe('"Lưu" (PATCH /me with If-Match)', () => {
     renderScreen()
 
     expect(await screen.findByRole('button', { name: 'Lưu' })).toBeDisabled()
-  })
-})
-
-describe('"Đổi mật khẩu"', () => {
-  it('opens the form of SCR-AUT-02 in a dialog, and signs out after the change', async () => {
-    api.changeMyPassword.mockResolvedValue(undefined)
-    renderScreen()
-    const user = userEvent.setup()
-    await user.click(await screen.findByRole('button', { name: 'Đổi mật khẩu' }))
-
-    const dialog = await screen.findByRole('dialog', { name: 'Đổi mật khẩu' })
-    await user.type(within(dialog).getByLabelText('Mật khẩu mới'), 'mot mat khau moi dai')
-    await user.type(within(dialog).getByLabelText('Nhập lại mật khẩu mới'), 'mot mat khau moi dai')
-    await user.click(within(dialog).getByRole('button', { name: 'Đổi mật khẩu' }))
-
-    await waitFor(() => expect(signOut).toHaveBeenCalledExactlyOnceWith('password-changed'))
-  })
-
-  it('closes with "Hủy"', async () => {
-    renderScreen()
-    const user = userEvent.setup()
-    await user.click(await screen.findByRole('button', { name: 'Đổi mật khẩu' }))
-    const dialog = await screen.findByRole('dialog', { name: 'Đổi mật khẩu' })
-    await user.click(within(dialog).getByRole('button', { name: 'Hủy' }))
-
-    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
-    expect(api.changeMyPassword).not.toHaveBeenCalled()
-  })
-
-  it('stays open while the change is sent, so its answer is shown', async () => {
-    api.changeMyPassword.mockReturnValue(new Promise(() => {}))
-    renderScreen()
-    const user = userEvent.setup()
-    await user.click(await screen.findByRole('button', { name: 'Đổi mật khẩu' }))
-    const dialog = await screen.findByRole('dialog', { name: 'Đổi mật khẩu' })
-    await user.type(within(dialog).getByLabelText('Mật khẩu mới'), 'mot mat khau moi dai')
-    await user.type(within(dialog).getByLabelText('Nhập lại mật khẩu mới'), 'mot mat khau moi dai')
-    await user.click(within(dialog).getByRole('button', { name: 'Đổi mật khẩu' }))
-    await waitFor(() => expect(api.changeMyPassword).toHaveBeenCalledOnce())
-
-    await user.keyboard('{Escape}')
-    expect(screen.getByRole('dialog', { name: 'Đổi mật khẩu' })).toBeInTheDocument()
-    expect(within(dialog).getByRole('button', { name: 'Hủy' })).toBeDisabled()
-  })
-
-  it('names the account for password managers', async () => {
-    renderScreen()
-    const user = userEvent.setup()
-    await user.click(await screen.findByRole('button', { name: 'Đổi mật khẩu' }))
-    const dialog = await screen.findByRole('dialog', { name: 'Đổi mật khẩu' })
-
-    expect(within(dialog).getByDisplayValue('tuvan@zengear.test')).toHaveAttribute(
-      'autocomplete',
-      'username',
-    )
-  })
-
-  it('returns to the password form when the nested sign-in dialog closes', async () => {
-    api.changeMyPassword.mockRejectedValue(
-      new ApiError(403, { type: '/problems/recent-login-required', status: 403 }),
-    )
-    renderScreen()
-    const user = userEvent.setup()
-    await user.click(await screen.findByRole('button', { name: 'Đổi mật khẩu' }))
-    const dialog = await screen.findByRole('dialog', { name: 'Đổi mật khẩu' })
-    await user.type(within(dialog).getByLabelText('Mật khẩu mới'), 'mot mat khau moi dai')
-    await user.type(within(dialog).getByLabelText('Nhập lại mật khẩu mới'), 'mot mat khau moi dai')
-    await user.click(within(dialog).getByRole('button', { name: 'Đổi mật khẩu' }))
-
-    const reauth = await screen.findByRole('dialog', {
-      name: 'Vui lòng nhập lại mật khẩu hiện tại để tiếp tục',
-    })
-    await user.click(within(reauth).getByRole('button', { name: 'Hủy' }))
-
-    await waitFor(() =>
-      expect(
-        screen.queryByRole('dialog', { name: 'Vui lòng nhập lại mật khẩu hiện tại để tiếp tục' }),
-      ).not.toBeInTheDocument(),
-    )
-    const form = screen.getByRole('dialog', { name: 'Đổi mật khẩu' })
-    await waitFor(() => expect(form).toContainElement(document.activeElement as HTMLElement))
   })
 })
