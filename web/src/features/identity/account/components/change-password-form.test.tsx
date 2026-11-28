@@ -41,10 +41,8 @@ const NEW_PASSWORD = 'mot mat khau moi dai'
 const EMAIL = 'tuvan@zengear.test'
 const onChanged = vi.fn()
 
-const renderForm = (onCancel?: () => void) =>
-  renderWithProviders(
-    <ChangePasswordForm email={EMAIL} onChanged={onChanged} onCancel={onCancel} />,
-  )
+const renderForm = () =>
+  renderWithProviders(<ChangePasswordForm email={EMAIL} onChanged={onChanged} />)
 
 // The account for password managers: a hidden field, which has no role or label.
 const usernameIn = (element: HTMLElement) => within(element).getByDisplayValue(EMAIL)
@@ -322,15 +320,8 @@ describe('403 recent-login-required (DEC-094)', () => {
   })
 })
 
-describe('in a dialog', () => {
-  it('offers "Hủy" when the caller can close it', async () => {
-    const onCancel = vi.fn()
-    renderForm(onCancel)
-    await userEvent.setup().click(screen.getByRole('button', { name: 'Hủy' }))
-    expect(onCancel).toHaveBeenCalledOnce()
-  })
-
-  it('has no "Hủy" on its own page', () => {
+describe('its page', () => {
+  it('has no "Hủy": signing out is the other way out', () => {
     renderForm()
     expect(screen.queryByRole('button', { name: 'Hủy' })).not.toBeInTheDocument()
   })

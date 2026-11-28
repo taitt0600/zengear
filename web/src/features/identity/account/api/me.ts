@@ -15,7 +15,7 @@ export async function updateMe(name: string, etag: string): Promise<LoadedCurren
   return { ...data, etag: etagOf(headers) }
 }
 
-/** The key of the password change while it is sent, which keeps the dialog of SCR-ACC-01 open. */
+/** The key of the password change while it is sent (`useChangePassword`). */
 export const changePasswordKey = getPostApiV1AdminMeChangePasswordMutationKey()
 
 /**

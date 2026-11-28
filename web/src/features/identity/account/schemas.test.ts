@@ -57,6 +57,38 @@ describe('the new password (SCR-AUT-02, the limits of R-USR-11 the web checks)',
   })
 })
 
+describe('the current password (SCR-ACC-01, signed in again before the change)', () => {
+  const withCurrent = (
+    currentPassword: string,
+    newPassword = 'mot mat khau moi',
+    confirmation = newPassword,
+  ) =>
+    passwordChangeSchema({ ...passwordMessages, currentRequired: 'currentRequired' }).safeParse({
+      currentPassword,
+      newPassword,
+      confirmation,
+    })
+
+  it('is required when the form asks for it', () => {
+    expect(errorsOf(withCurrent(''))).toEqual({ currentPassword: 'currentRequired' })
+  })
+
+  it('is kept as typed, never trimmed', () => {
+    expect(withCurrent(' mat khau cu ').data?.currentPassword).toBe(' mat khau cu ')
+  })
+
+  it('does not hide the other errors while it is empty', () => {
+    expect(errorsOf(withCurrent('', 'mot mat khau moi', 'khac'))).toEqual({
+      currentPassword: 'currentRequired',
+      confirmation: 'mismatch',
+    })
+  })
+
+  it('is not asked for on SCR-AUT-02', () => {
+    expect(change('mot mat khau moi').success).toBe(true)
+  })
+})
+
 const rename = (name: string) => accountSchema(nameMessages).safeParse({ name })
 
 describe('the display name (SCR-ACC-01)', () => {

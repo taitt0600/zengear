@@ -7,18 +7,25 @@ import { useMemo, useRef, useState, type BaseSyntheticEvent } from 'react'
 import { useForm } from 'react-hook-form'
 import type { z } from 'zod'
 import { NO_FORM_PROBLEMS } from '@/components/app/form-problems'
-import { sessionOutcome } from '@/features/identity/access'
+import { firebaseError, sessionOutcome } from '@/features/identity/access'
 import { useProblemToast } from '@/hooks/use-problem-toast'
 import { ApiError, fieldErrors, hasProblemType } from '@/lib/api/problems'
+import { reauthenticate } from '@/lib/auth/session'
 import { changeMyPassword, changePasswordKey } from '../api/me'
 import { passwordChangeSchema } from '../schemas'
 
 /**
- * The password change of SCR-AUT-02 (docs/screens/SCR-AUT-02.md): the new password typed twice, sent to POST
- * /me/change-password (DEC-094), and the sign-in again of 403 recent-login-required. After a 204 every session is
- * revoked, so `onChanged` signs the user out.
+ * The password change of SCR-AUT-02 and SCR-ACC-01 (docs/screens/): the new password typed twice, sent to POST
+ * /me/change-password (DEC-094). After a 204 every session is revoked, so `onChanged` signs the user out.
+ *
+ * SCR-AUT-02 signs in again in a dialog when the API answers 403 recent-login-required. SCR-ACC-01
+ * (`currentPassword`) asks for the current password in the form and signs in again with it before the send, so that
+ * the 5-minute check always passes; a 403 that still follows is shown, never retried (its Layout, Password card).
  */
-export function useChangePassword(onChanged: () => Promise<void>) {
+export function useChangePassword(
+  onChanged: () => Promise<void>,
+  { currentPassword = false }: { currentPassword?: boolean } = {},
+) {
   const t = useTranslations()
   const showProblem = useProblemToast()
   const [reauthOpen, setReauthOpen] = useState(false)
@@ -40,12 +47,13 @@ export function useChangePassword(onChanged: () => Promise<void>) {
         required: t('changePassword.validation.required'),
         length: t('changePassword.validation.length'),
         mismatch: t('changePassword.validation.mismatch'),
+        currentRequired: currentPassword ? t('changePassword.reauth.required') : undefined,
       }),
-    [t],
+    [t, currentPassword],
   )
   const form = useForm<z.input<typeof schema>, unknown, z.output<typeof schema>>({
     resolver: zodResolver(schema),
-    defaultValues: { newPassword: '', confirmation: '' },
+    defaultValues: { currentPassword: '', newPassword: '', confirmation: '' },
   })
   // The password is read from the form, not passed as the variables of the mutation, which the mutation cache would
   // keep after the request (SCR-AUT-02: the password is never kept).
@@ -54,9 +62,10 @@ export function useChangePassword(onChanged: () => Promise<void>) {
     mutationFn: () => changeMyPassword(form.getValues('newPassword')),
   })
 
-  // `retry`: the send that follows the sign-in again of 403 recent-login-required, which happens once.
+  // `retry`: the send that follows a sign-in again, which happens once, so that a 403 then shows its text.
   async function send(retry: boolean) {
     setProblems(NO_FORM_PROBLEMS)
+    if (currentPassword && !(await signInAgain())) return
     try {
       await change.mutateAsync()
     } catch (error) {
@@ -95,6 +104,24 @@ export function useChangePassword(onChanged: () => Promise<void>) {
     showProblem(error)
   }
 
+  // SCR-ACC-01: Firebase checks the current password, read from the form, never kept. A wrong one shows under its
+  // field, the other answers at the top of the form, and nothing is sent.
+  async function signInAgain(): Promise<boolean> {
+    try {
+      await reauthenticate(form.getValues('currentPassword') ?? '')
+      return true
+    } catch (failure) {
+      const error = firebaseError(failure)
+      if (error === 'signIn.errors.wrongCredentials') {
+        const message = t('changePassword.reauth.wrongPassword')
+        form.setError('currentPassword', { message }, { shouldFocus: true })
+      } else {
+        setProblems({ texts: [t(error)], focus: true })
+      }
+      return false
+    }
+  }
+
   function onConfirmed() {
     if (!reauthShown.current) return
     showReauth(false)
@@ -105,7 +132,8 @@ export function useChangePassword(onChanged: () => Promise<void>) {
     control: form.control,
     problems,
     sending: form.formState.isSubmitting || change.isPending || leaving,
-    onSubmit: (event: BaseSyntheticEvent) => void form.handleSubmit(() => send(false))(event),
+    onSubmit: (event: BaseSyntheticEvent) =>
+      void form.handleSubmit(() => send(currentPassword))(event),
     reauth: {
       open: reauthOpen,
       onOpenChange: showReauth,
