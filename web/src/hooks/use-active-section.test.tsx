@@ -74,7 +74,10 @@ function documentScrolls(scrolls: boolean) {
     configurable: true,
     value: scrolls ? 2400 : 600,
   })
-  Object.defineProperty(window, 'innerHeight', { configurable: true, value: 900 })
+  Object.defineProperty(document.documentElement, 'clientHeight', {
+    configurable: true,
+    value: 900,
+  })
 }
 
 beforeEach(() => {
@@ -209,5 +212,129 @@ describe('a click on a link', () => {
     const { scroll } = select(true)
 
     expect(scroll).toHaveBeenCalledWith({ behavior: 'auto', block: 'start' })
+  })
+})
+
+// The Layouts of SCR-ACC-01 (Width and section navigation) and SCR-STF-03 (Section navigation): a clicked card stays
+// current until the next scroll moves the line, also on a page too short to scroll, where nothing reports.
+describe('the clicked card', () => {
+  /** The window's scroll position, and the top of the card `account` in the window. */
+  function place(scrollY: number, accountTop = 0) {
+    Object.defineProperty(window, 'scrollY', { configurable: true, value: scrollY })
+    vi.spyOn(document.getElementById('account')!, 'getBoundingClientRect').mockReturnValue({
+      top: accountTop,
+    } as DOMRect)
+  }
+
+  function clickAccount({ reducedMotion = false, scrollend = true, landsAt = 0 } = {}) {
+    if (scrollend) window.onscrollend = null
+    else Reflect.deleteProperty(window, 'onscrollend')
+    vi.spyOn(window, 'matchMedia').mockReturnValue({ matches: reducedMotion } as MediaQueryList)
+    // An instant scroll has moved the page when scrollIntoView returns.
+    Element.prototype.scrollIntoView = vi.fn(() => {
+      if (reducedMotion) place(landsAt)
+    })
+    const hook = renderHook(() => useActiveSection(IDS, END, true))
+    act(() => hook.result.current.select('account'))
+    return hook
+  }
+
+  beforeEach(() => {
+    mountSections()
+    place(0, 800)
+  })
+
+  afterEach(() => {
+    Reflect.deleteProperty(window, 'onscrollend')
+    Reflect.deleteProperty(window, 'scrollY')
+  })
+
+  it('is current at once', () => {
+    const { result } = clickAccount()
+
+    expect(result.current.currentId).toBe('account')
+  })
+
+  it('stays current on a page that does not scroll, whatever is reported', () => {
+    documentScrolls(false)
+    const { result } = clickAccount()
+
+    observer().report({ info: true, account: true, [END]: true })
+
+    expect(result.current.currentId).toBe('account')
+  })
+
+  it('stays current through its own smooth scroll, and after it until the page moves', () => {
+    const { result } = clickAccount()
+
+    place(400, 400)
+    observer().report({ info: false, account: true, [END]: false })
+    place(800, 0)
+    act(() => {
+      window.dispatchEvent(new Event('scrollend'))
+    })
+    // A report that comes after the scroll ended, the page where the scroll left it.
+    observer().report({ info: true, account: false })
+    expect(result.current.currentId).toBe('account')
+
+    place(700, 100)
+    observer().report({ info: true })
+    expect(result.current.currentId).toBe('info')
+  })
+
+  it('gives way when the user scrolled during its smooth scroll, so that it ended elsewhere', () => {
+    const { result } = clickAccount()
+
+    // The user's wheel during the click's scroll: its report is dropped while the scroll runs.
+    place(400, 400)
+    observer().report({ info: true, account: false, [END]: false })
+    expect(result.current.currentId).toBe('account')
+
+    place(300, 500)
+    act(() => {
+      window.dispatchEvent(new Event('scrollend'))
+    })
+    expect(result.current.currentId).toBe('info')
+  })
+
+  it('stays current where an instant scroll left the page (reduced motion)', () => {
+    const { result } = clickAccount({ reducedMotion: true, landsAt: 800 })
+
+    observer().report({ info: true, account: false, [END]: false })
+    expect(result.current.currentId).toBe('account')
+
+    place(600, 200)
+    observer().report({ info: true })
+    expect(result.current.currentId).toBe('info')
+  })
+
+  it('stays current when it needs no scroll, until the page moves', () => {
+    place(0, 0)
+    const { result } = clickAccount()
+
+    observer().report({ info: true, account: true, [END]: false })
+    expect(result.current.currentId).toBe('account')
+
+    place(50, -50)
+    observer().report({ info: true })
+    expect(result.current.currentId).toBe('info')
+  })
+
+  it('gives way to the next report during a smooth scroll in a browser without scrollend', () => {
+    const { result } = clickAccount({ scrollend: false })
+
+    place(400, 400)
+    observer().report({ info: true, account: false, [END]: false })
+
+    expect(result.current.currentId).toBe('info')
+  })
+
+  it('stops waiting for the end of its scroll when the page goes', () => {
+    const remove = vi.spyOn(window, 'removeEventListener')
+    const { unmount } = clickAccount()
+
+    unmount()
+
+    expect(remove).toHaveBeenCalledWith('scrollend', expect.any(Function))
   })
 })

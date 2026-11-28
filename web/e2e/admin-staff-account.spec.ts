@@ -7,7 +7,7 @@ import {
   PASSWORD,
   STAFF_NAME,
 } from './support/backend'
-import { failOnCspViolations, signIn } from './support/pages'
+import { failOnCspViolations, pageScrolls, signIn } from './support/pages'
 
 // SCR-STF-03 Staff account (docs/screens/SCR-STF-03.md, STF-02) against the API, the Firebase Auth Emulator and the
 // web: the Admin locks a new account with a last working day and restores it. Each flow makes its own account, so no
@@ -142,14 +142,17 @@ test('the section navigation leads to a card, and the page keeps a column of 102
   await expect(profileLink).not.toHaveAttribute('aria-current')
   await page.screenshot({ path: test.info().outputPath('staff-account-sections.png') })
 
-  // A window where the page does not scroll: the first card stays current, also after a click (the clicked card stays
-  // current only from the build of SCR-ACC-01).
+  // A window where the page does not scroll: the first card is current until a click, then the clicked card stays
+  // current, since no scroll moves the line.
   await page.setViewportSize({ width: 1440, height: 2000 })
   await page.goto(`/admin/staff/${staff.id}`)
   await expect(page.getByRole('heading', { level: 1, name: STAFF_NAME })).toBeVisible()
+  expect(await pageScrolls(page)).toBe(false)
+  await expect(profileLink).toHaveAttribute('aria-current', 'location')
   await accountLink.click()
   await expect(page.getByRole('heading', { level: 2, name: 'Tài khoản' })).toBeFocused()
-  await expect(profileLink).toHaveAttribute('aria-current', 'location')
+  await expect(accountLink).toHaveAttribute('aria-current', 'location')
+  await expect(profileLink).not.toHaveAttribute('aria-current')
 
   // Width: one column of at most 1024 px, centred in the page area, also on a 2560 px screen.
   await page.setViewportSize({ width: 2560, height: 1400 })
