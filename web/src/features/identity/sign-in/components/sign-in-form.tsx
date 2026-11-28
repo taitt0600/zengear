@@ -10,6 +10,7 @@ import {
 import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 import { Controller } from 'react-hook-form'
+import { RequiredMark, RequiredNote } from '@/components/app/required-note'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -24,9 +25,12 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { useSignIn } from '../hooks/use-sign-in'
 
-const EMAIL_HINT = 'sign-in-email-hint'
+const IDENTIFIER_HINT = 'sign-in-identifier-hint'
 
-/** SCR-AUT-01: staff sign in with their company email and password (UC-001, AUT-01); the card of the page. */
+/**
+ * SCR-AUT-01: staff sign in with their username or company email and their password (UC-001, AUT-01, DEC-145 (4));
+ * the card of the page.
+ */
 export function SignInForm() {
   const t = useTranslations('signIn')
   const { form, onSubmit, error, passwordChanged, sending } = useSignIn()
@@ -39,6 +43,7 @@ export function SignInForm() {
           <h1 className="text-xl">{t('title')}</h1>
         </CardTitle>
         <CardDescription>{t('description')}</CardDescription>
+        <RequiredNote />
       </CardHeader>
       <CardContent>
         <form noValidate onSubmit={onSubmit}>
@@ -56,22 +61,27 @@ export function SignInForm() {
               </Alert>
             )}
             <Controller
-              name="email"
+              name="identifier"
               control={form.control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="sign-in-email">{t('email')}</FieldLabel>
+                  <FieldLabel htmlFor="sign-in-identifier">
+                    {t('identifier')}
+                    <RequiredMark />
+                  </FieldLabel>
                   <Input
                     {...field}
-                    id="sign-in-email"
-                    type="email"
+                    id="sign-in-identifier"
+                    type="text"
                     autoComplete="username"
+                    autoCapitalize="none"
                     spellCheck={false}
-                    placeholder={t('emailPlaceholder')}
-                    aria-describedby={EMAIL_HINT}
+                    required
+                    placeholder={t('identifierPlaceholder')}
+                    aria-describedby={IDENTIFIER_HINT}
                     aria-invalid={fieldState.invalid}
                   />
-                  <FieldDescription id={EMAIL_HINT}>{t('emailHint')}</FieldDescription>
+                  <FieldDescription id={IDENTIFIER_HINT}>{t('identifierHint')}</FieldDescription>
                   {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                 </Field>
               )}
@@ -81,13 +91,17 @@ export function SignInForm() {
               control={form.control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="sign-in-password">{t('password')}</FieldLabel>
+                  <FieldLabel htmlFor="sign-in-password">
+                    {t('password')}
+                    <RequiredMark />
+                  </FieldLabel>
                   <InputGroup>
                     <InputGroupInput
                       {...field}
                       id="sign-in-password"
                       type={showPassword ? 'text' : 'password'}
                       autoComplete="current-password"
+                      required
                       aria-invalid={fieldState.invalid}
                     />
                     <InputGroupAddon align="inline-end">

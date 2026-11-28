@@ -4,6 +4,10 @@ import { z } from 'zod'
 // side effect, so that next.config.ts can import it (src/env.ts holds the checked values). Only public values: never
 // a secret.
 const HOST_AND_PORT = /^[A-Za-z0-9.-]+:[0-9]{2,5}$/
+// The rule of StaffIdentityOptions.EmailDomain of the API (api/src/ZenGear.Services/Identity/StaffAccounts/): a host name
+// of labels of letters, digits and hyphens with at least one dot, at most 190 characters. A copy, since C# and
+// TypeScript share no code: the two change together.
+const EMAIL_DOMAIN = /^(?=.{1,190}$)([A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z]{2,63}$/
 
 const envSchema = z.object({
   NEXT_PUBLIC_API_BASE_URL: z
@@ -15,6 +19,9 @@ const envSchema = z.object({
   NEXT_PUBLIC_FIREBASE_APP_ID: z.string().min(1).optional(),
   // Development and CI only: the Firebase Auth Emulator, as host:port.
   NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST: z.string().regex(HOST_AND_PORT).optional(),
+  // The domain of the company emails (R-USR-24), on which the sign-in of SCR-AUT-01 turns a username into its email:
+  // the value of Staff:EmailDomain of the API in the same environment (DEC-145).
+  NEXT_PUBLIC_STAFF_EMAIL_DOMAIN: z.string().regex(EMAIL_DOMAIN),
 })
 
 export type Env = z.infer<typeof envSchema>
@@ -28,6 +35,8 @@ export const DEVELOPMENT_DEFAULTS: Env = {
   NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: 'demo-zengear.firebaseapp.com',
   NEXT_PUBLIC_FIREBASE_PROJECT_ID: 'demo-zengear',
   NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST: '127.0.0.1:9099',
+  // Staff:EmailDomain of api/src/ZenGear.Api/appsettings.Development.json.
+  NEXT_PUBLIC_STAFF_EMAIL_DOMAIN: 'zengear.test',
 }
 
 export function parseEnv(
@@ -52,5 +61,6 @@ export function publicEnvValues(): Record<string, string | undefined> {
     NEXT_PUBLIC_FIREBASE_PROJECT_ID: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
     NEXT_PUBLIC_FIREBASE_APP_ID: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
     NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST: process.env.NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST,
+    NEXT_PUBLIC_STAFF_EMAIL_DOMAIN: process.env.NEXT_PUBLIC_STAFF_EMAIL_DOMAIN,
   }
 }

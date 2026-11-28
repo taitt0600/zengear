@@ -42,18 +42,23 @@ const problem = (status: number, name: string, detail?: string) =>
 const DISABLED = 'Tài khoản đã bị khóa. Vui lòng liên hệ quản lý cửa hàng.'
 const NETWORK = 'Không kết nối được máy chủ. Vui lòng kiểm tra mạng và thử lại.'
 const GENERIC = 'Không đăng nhập được. Vui lòng thử lại.'
+const WRONG = 'Tên đăng nhập, email hoặc mật khẩu không đúng.'
+const IDENTIFIER = 'Tên đăng nhập hoặc email'
+// The labels end with the ` *` of a required field (aria-hidden), which getByLabelText reads.
+const identifierField = () => screen.getByLabelText(/^Tên đăng nhập hoặc email/)
+const passwordField = () => screen.getByLabelText(/^Mật khẩu/)
 
 function renderForm(search = '') {
   navigation.search = new URLSearchParams(search)
   return renderWithProviders(<SignInForm />)
 }
 
-async function signIn(email = 'nhanvien@zengear.test', password = 'mat-khau-cua-toi') {
+async function signIn(identifier = 'nhanvien@zengear.test', password = 'mat-khau-cua-toi') {
   const user = userEvent.setup()
   const button = screen.getByRole('button', { name: 'Đăng nhập' })
   await waitFor(() => expect(button).toBeEnabled())
-  if (email) await user.type(screen.getByLabelText('Email công ty'), email)
-  if (password) await user.type(screen.getByLabelText('Mật khẩu'), password)
+  if (identifier) await user.type(identifierField(), identifier)
+  if (password) await user.type(passwordField(), password)
   await user.click(button)
   return user
 }
@@ -68,19 +73,32 @@ beforeEach(() => {
 })
 
 describe('fields', () => {
-  it('requires the email and the password', async () => {
+  it('requires the username or email and the password', async () => {
     renderForm()
     await signIn('', '')
 
-    expect(await screen.findByText('Vui lòng nhập email công ty.')).toBeInTheDocument()
+    expect(await screen.findByText('Vui lòng nhập tên đăng nhập hoặc email.')).toBeInTheDocument()
     expect(screen.getByText('Vui lòng nhập mật khẩu.')).toBeInTheDocument()
-    expect(screen.getByLabelText('Email công ty')).toHaveAttribute('aria-invalid', 'true')
+    expect(identifierField()).toHaveAttribute('aria-invalid', 'true')
     expect(session.signInWithPassword).not.toHaveBeenCalled()
   })
 
-  it('refuses an email that is not one', async () => {
+  it('marks both fields as required and says once what the mark means', () => {
     renderForm()
-    await signIn('nhanvien')
+
+    // The ` *` is aria-hidden: the names stay the labels; `required` says it to a screen reader.
+    expect(identifierField()).toBeRequired()
+    expect(identifierField()).toHaveAccessibleName(IDENTIFIER)
+    expect(passwordField()).toBeRequired()
+    expect(passwordField()).toHaveAccessibleName('Mật khẩu')
+    expect(screen.getByText(IDENTIFIER)).toHaveTextContent(`${IDENTIFIER}*`)
+    expect(screen.getByText('Mật khẩu')).toHaveTextContent('Mật khẩu*')
+    expect(screen.getByText(/Trường có dấu/)).toHaveTextContent('Trường có dấu *sao là bắt buộc.')
+  })
+
+  it('refuses a value with @ that is not an email', async () => {
+    renderForm()
+    await signIn('haltzg260002@')
 
     expect(await screen.findByText('Email không hợp lệ.')).toBeInTheDocument()
     expect(session.signInWithPassword).not.toHaveBeenCalled()
@@ -89,7 +107,7 @@ describe('fields', () => {
   it('shows and hides the password with one toggle button', async () => {
     renderForm()
     const user = userEvent.setup()
-    const password = screen.getByLabelText('Mật khẩu')
+    const password = passwordField()
     const toggle = screen.getByRole('button', { name: 'Hiện mật khẩu' })
     expect(password).toHaveAttribute('type', 'password')
     expect(toggle).toHaveAttribute('aria-pressed', 'false')
@@ -101,16 +119,23 @@ describe('fields', () => {
     expect(toggle).toHaveAttribute('aria-pressed', 'true')
   })
 
-  it('says what the page is for and helps with the email and a lost password', () => {
+  it('says what the page is for and helps with the username or email and a lost password', () => {
     renderForm()
 
     expect(screen.getByRole('heading', { name: 'Đăng nhập nhân viên' })).toBeInTheDocument()
     expect(screen.getByText('Đăng nhập để vào khu quản trị của cửa hàng.')).toBeInTheDocument()
-    const email = screen.getByLabelText('Email công ty')
-    expect(email).toHaveAccessibleDescription('Email công ty mà cửa hàng đã cấp cho bạn.')
-    expect(email).toHaveAttribute('placeholder', 'ten@example.com')
+    const identifier = identifierField()
+    expect(identifier).toHaveAccessibleDescription(
+      'Tên đăng nhập hoặc email công ty mà cửa hàng đã cấp cho bạn.',
+    )
+    expect(identifier).toHaveAttribute('placeholder', 'AnNVZG260004')
+    // A username is typed as it was given: a password manager keeps it, a phone neither capitalises nor corrects it.
+    expect(identifier).toHaveAttribute('type', 'text')
+    expect(identifier).toHaveAttribute('autocomplete', 'username')
+    expect(identifier).toHaveAttribute('autocapitalize', 'none')
+    expect(identifier).toHaveAttribute('spellcheck', 'false')
     // The password is only required: neither a hint nor a placeholder (Help on screen).
-    expect(screen.getByLabelText('Mật khẩu')).not.toHaveAttribute('placeholder')
+    expect(passwordField()).not.toHaveAttribute('placeholder')
     expect(screen.getByText('Quên mật khẩu? Liên hệ quản trị viên.')).toBeInTheDocument()
   })
 
@@ -135,13 +160,25 @@ describe('fields', () => {
       ),
     )
   })
+
+  it('signs in with a username as its company email, in lower case (R-USR-24)', async () => {
+    renderForm()
+    await signIn(' HaLTZG260002 ')
+
+    await waitFor(() =>
+      expect(session.signInWithPassword).toHaveBeenCalledWith(
+        'haltzg260002@zengear.test',
+        'mat-khau-cua-toi',
+      ),
+    )
+  })
 })
 
 describe('answers of Firebase', () => {
   it.each([
-    ['auth/invalid-credential', 'Email hoặc mật khẩu không đúng.'],
-    ['auth/wrong-password', 'Email hoặc mật khẩu không đúng.'],
-    ['auth/user-not-found', 'Email hoặc mật khẩu không đúng.'],
+    ['auth/invalid-credential', WRONG],
+    ['auth/wrong-password', WRONG],
+    ['auth/user-not-found', WRONG],
     ['auth/too-many-requests', 'Bạn đã thử quá nhiều lần. Vui lòng thử lại sau.'],
     ['auth/user-disabled', DISABLED],
     ['auth/network-request-failed', NETWORK],
@@ -154,6 +191,15 @@ describe('answers of Firebase', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent(text)
     expect(api.me).not.toHaveBeenCalled()
     expect(navigation.replace).not.toHaveBeenCalled()
+  })
+
+  it('a username that makes no valid address gets the same message, never which one was wrong', async () => {
+    session.signInWithPassword.mockRejectedValue(firebaseError('auth/invalid-email'))
+    renderForm()
+    await signIn('Ha L')
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(WRONG)
+    expect(session.signInWithPassword).toHaveBeenCalledWith('ha l@zengear.test', 'mat-khau-cua-toi')
   })
 })
 

@@ -6,6 +6,7 @@ const production = {
   NEXT_PUBLIC_FIREBASE_API_KEY: 'public-web-key',
   NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: 'zengear.firebaseapp.com',
   NEXT_PUBLIC_FIREBASE_PROJECT_ID: 'zengear',
+  NEXT_PUBLIC_STAFF_EMAIL_DOMAIN: 'zengear.vn',
 }
 
 const NONCE = 'MDAwMDAwMDAtMDAwMC00MDAwLTgwMDAtMDAwMDAwMDAwMDAw'

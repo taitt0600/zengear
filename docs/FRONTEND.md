@@ -107,6 +107,7 @@ Firebase Authentication in the browser (Phase 1): staff sign in to admin and POS
 | `NEXT_PUBLIC_API_BASE_URL` | Base URL of `ZenGear.Api`, without a path: the paths of the contract start with `/api/v1/admin` for the admin and POS parts and `/api/v1/shop` for the storefront (DEC-106) |
 | `NEXT_PUBLIC_FIREBASE_*` | Firebase web app config (public by design) |
 | `NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST` | Development and CI only: the Auth Emulator (`127.0.0.1:9099`) |
+| `NEXT_PUBLIC_STAFF_EMAIL_DOMAIN` | The domain of the company emails of R-USR-24, on which SCR-AUT-01 turns a username into its email: the same value as `Staff:EmailDomain` of the API in each environment (DEC-145), `zengear.test` in development and CI |
 
 A Zod schema (`src/env-schema.ts`) checks these variables; the root layout imports the checked values (`src/env.ts`), so a missing or malformed one fails `next build` when it prerenders the pages (`next typegen` needs none). Outside a production build, the values of the development environment (`docs/ACCEPTANCE.md`: the API on the launch profile `http`, the emulator, project `demo-zengear`) are the defaults, so `npm run dev` needs no env file; a value set in the environment wins. Values per environment are set in Vercel and, for CI, in `.github/workflows/pipeline.yml`; no env file is committed.
 

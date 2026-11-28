@@ -4,7 +4,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 
 /**
  * The loading state of the sign-in card while its search parameters are read: as high as the form, each bar the
- * height of the line it stands for (the labels and the texts of Help on screen are 20 px lines).
+ * height of the line it stands for (the labels, the required note and the texts of Help on screen are 20 px lines).
  */
 export function SignInSkeleton() {
   return (
@@ -12,6 +12,7 @@ export function SignInSkeleton() {
       <CardHeader>
         <Skeleton className="mx-auto h-7 w-48" />
         <Skeleton className="mx-auto h-5 w-64 max-w-full" />
+        <Skeleton className="mx-auto h-5 w-50 max-w-full" />
       </CardHeader>
       <CardContent>
         <FieldGroup>

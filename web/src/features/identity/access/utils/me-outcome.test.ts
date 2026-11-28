@@ -84,6 +84,8 @@ describe('firebaseError', () => {
 
   it('gives the message key of each answer of a sign-in with a password', () => {
     expect(firebaseError(failure('auth/invalid-credential'))).toBe('signIn.errors.wrongCredentials')
+    // A username that makes no valid address (SCR-AUT-01): the same answer, never which one was wrong.
+    expect(firebaseError(failure('auth/invalid-email'))).toBe('signIn.errors.wrongCredentials')
     expect(firebaseError(failure('auth/too-many-requests'))).toBe('signIn.errors.tooManyAttempts')
     expect(firebaseError(failure('auth/user-disabled'))).toBe('signIn.errors.accountDisabled')
     expect(firebaseError(failure('auth/network-request-failed'))).toBe('problems.network')

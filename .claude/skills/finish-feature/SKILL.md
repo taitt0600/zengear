@@ -95,7 +95,7 @@ step 11 when the pull request is open.
    this session started and ask the owner to stop theirs, as skill `api-run` does for the API), `npm run gen:api`
    (its `src/lib/api/generated/` belongs to the commit that changes the API), `npm run lint`, `npm run format`,
    `npm run typecheck`, `npm run test` and `npm run build`, the last
-   with the five `NEXT_PUBLIC_*` values of `DEVELOPMENT_DEFAULTS` in `web/src/env-schema.ts` set for that command
+   with the six `NEXT_PUBLIC_*` values of `DEVELOPMENT_DEFAULTS` in `web/src/env-schema.ts` set for that command
    only (`web/AGENTS.md`, *Commands*), each under **Output** (`out/logs/step2-web-<script>.log`). `npm run lint`,
    `npm run format` and `npm run test` write nothing shared and run together (DEC-152 (4)); the dotnet commands of
    steps 2–3 (they share `bin/` and `obj/`) and `npm run typecheck` and `npm run build` (they write `.next/`) run

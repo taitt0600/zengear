@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
-import { accounts, disableStaff, newSalesConsultant, PASSWORD } from './support/backend'
+import { accounts, disableStaff, newSalesConsultant, PASSWORD, usernames } from './support/backend'
 import { failOnCspViolations, signIn } from './support/pages'
 
 // SCR-AUT-01, SCR-AUT-02 and SCR-ADM-01 (docs/screens/) against the API, the Firebase Auth Emulator and the web.
@@ -41,6 +41,23 @@ test('the Store Manager does not see the settings', async ({ page }) => {
   await expect(menu(page).getByRole('link', { name: 'Danh sách nhân viên' })).toBeVisible()
   await expect(menu(page).getByText('Cài đặt')).toHaveCount(0)
   await expect(menu(page).getByRole('link', { name: 'Địa điểm kinh doanh' })).toHaveCount(0)
+})
+
+test('the Store Manager signs in with the username, typed in any case', async ({ page }) => {
+  await page.goto('/admin/sign-in')
+  // The username of accounts.manager, in mixed case (R-USR-24, DEC-146): the web turns it into that email.
+  await signIn(page, usernames.manager, PASSWORD)
+
+  await expect(page).toHaveURL('/admin/staff')
+  await expect(page.getByRole('button', { name: /^Lê Thu Hà/ })).toBeVisible()
+})
+
+test('a username nobody has gets the one sign-in error', async ({ page }) => {
+  await page.goto('/admin/sign-in')
+  await signIn(page, 'NoSuchZG269999', PASSWORD)
+
+  await expect(alert(page)).toHaveText('Tên đăng nhập, email hoặc mật khẩu không đúng.')
+  await expect(page).toHaveURL('/admin/sign-in')
 })
 
 test('a new staff member changes the password first, then sees no entry without staff.read', async ({
