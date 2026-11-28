@@ -4,6 +4,7 @@ import { CircleAlertIcon, LoaderCircleIcon } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { useId } from 'react'
 import { FormProblems } from '@/components/app/form-problems'
+import { RequiredNote } from '@/components/app/required-note'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -25,7 +26,6 @@ import {
 } from '@/components/ui/field'
 import { useDisableForm, type DisableAccount } from '../hooks/use-disable-form'
 import { closedFocus } from '../utils/closed-focus'
-import { RequiredNote } from './required-note'
 import { StaffLeftDateField } from './staff-left-date-field'
 
 /**

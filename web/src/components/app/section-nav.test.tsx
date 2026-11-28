@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { SectionNav } from './section-nav'
 
-// The section navigation of SCR-STF-03 (docs/screens/SCR-STF-03.md, Section navigation): one link per card, the
+// The section navigation of SCR-STF-03 and SCR-ACC-01 (docs/screens/, Section navigation): one link per card, the
 // current one marked, a plain click handed to the page so that it scrolls and moves the focus itself.
 
 const items = [

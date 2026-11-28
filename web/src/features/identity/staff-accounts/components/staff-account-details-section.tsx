@@ -1,12 +1,12 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
+import { ProfilePhoto } from '@/components/app/profile-photo'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useStaffAccountState } from '../hooks/staff-account-context'
 import { useDay } from '../hooks/use-staff-texts'
 import { StaffAccountRow } from './staff-account-row'
-import { StaffPhoto } from './staff-photo'
 
 const SKELETON_WIDTHS = ['w-56', 'w-20', 'w-28', 'w-24', 'w-24']
 
@@ -63,7 +63,7 @@ export function StaffAccountDetailsSection() {
           <div className="grid gap-6 @xl:grid-cols-[minmax(0,1fr)_200px] @xl:gap-8">
             <div className="flex justify-center @xl:col-start-2 @xl:row-start-1 @xl:border-l @xl:pt-3 @xl:pl-8">
               {account ? (
-                <StaffPhoto name={account.name} />
+                <ProfilePhoto name={account.name} />
               ) : (
                 <Skeleton className="size-24 rounded-full @xl:size-40" />
               )}

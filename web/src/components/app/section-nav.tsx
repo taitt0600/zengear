@@ -4,11 +4,11 @@ import { cn } from '@/lib/utils'
 export type SectionNavItem = { id: string; label: string }
 
 /**
- * Presentational: the section navigation of SCR-STF-03 (its Layout, Section navigation), named by its visible title,
- * one link per card in page order, the current one marked. It is navigation on the page ground, not a card (an
- * exception to Grouping). A plain click is handed to `onSelect`, which scrolls and moves the focus; a click with a
- * modifier or another button keeps the link's own behaviour (a new tab, a new window). Moves to components/app/ with
- * SCR-ACC-01, which takes the same layout.
+ * Presentational: the section navigation of a page of cards (SCR-STF-03 and SCR-ACC-01, their Layouts, Section
+ * navigation), named by its visible title, one link per card in page order, the current one marked. It is navigation
+ * on the page ground, not a card (an exception to Grouping). A plain click is handed to `onSelect`, which scrolls and
+ * moves the focus (`useActiveSection` of `@/hooks`); a click with a modifier or another button keeps the link's own
+ * behaviour (a new tab, a new window).
  */
 export function SectionNav({
   label,

@@ -3,13 +3,13 @@
 import { CalendarIcon } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { useEffect, useId, useRef, useState } from 'react'
+import { RequiredMark } from '@/components/app/required-note'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import { Field, FieldDescription, FieldError, FieldLabel } from '@/components/ui/field'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { useDay } from '../hooks/use-staff-texts'
 import { calendarDate, calendarDay } from '../utils/staff-account'
-import { RequiredMark } from './required-note'
 
 /**
  * The field "Ngày nghỉ việc" of the dialog "Khóa tài khoản" (SCR-STF-03), split from it for its size: a date picker of
