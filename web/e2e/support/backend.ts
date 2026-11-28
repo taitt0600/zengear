@@ -15,6 +15,11 @@ export const accounts = {
   itSupport: 'baopqzg260003@zengear.test',
 }
 
+/** The usernames of the fixture accounts (postman/fixtures/STF-01.sql; R-USR-24: each is its email before the `@`). */
+export const usernames = {
+  manager: 'HaLTZG260002',
+}
+
 // The fixed ids of the roles Sales Consultant and Cashier (api/seed/01_roles.sql), which hold no permission by default.
 const SALES_CONSULTANT_ROLE = '0199a000-0000-7000-8000-000000000003'
 const CASHIER_ROLE = '0199a000-0000-7000-8000-000000000005'

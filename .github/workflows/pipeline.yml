@@ -225,6 +225,8 @@ jobs:
       NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: demo-zengear.firebaseapp.com
       NEXT_PUBLIC_FIREBASE_PROJECT_ID: demo-zengear
       NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST: 127.0.0.1:9099
+      # Staff__EmailDomain of api/acceptance/compose.yml (DEC-145).
+      NEXT_PUBLIC_STAFF_EMAIL_DOMAIN: zengear.test
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -711,6 +713,7 @@ jobs:
           NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: demo-zengear.firebaseapp.com
           NEXT_PUBLIC_FIREBASE_PROJECT_ID: demo-zengear
           NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST: 127.0.0.1:9099
+          NEXT_PUBLIC_STAFF_EMAIL_DOMAIN: zengear.test
         run: |
           npm ci --no-audit --no-fund
           npm exec --no -- playwright install --with-deps chromium

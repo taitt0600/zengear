@@ -19,10 +19,12 @@ import {
   type MeOutcome,
   type SignOutReason,
 } from '@/features/identity/access'
+import { env } from '@/env'
 import { useProblemText } from '@/hooks/use-problem-toast'
 import { ApiError, isNetworkError } from '@/lib/api/problems'
 import { hasSession, signInWithPassword, signOutAndClear } from '@/lib/auth/session'
 import { signInSchema, type SignInValues } from '../schemas'
+import { signInEmail } from '../utils/sign-in-email'
 
 /** The reasons of a sign-out that the web words itself, as keys of `signIn.errors` (SCR-AUT-01). */
 const REASON_ERRORS = {
@@ -36,7 +38,7 @@ function reasonOf(reason: string | null): SignOutReason | undefined {
 
 /**
  * The behaviour of SCR-AUT-01 (UC-001, AUT-01): the session already open, `?next=` and `?reason=`, the sign-in with
- * Firebase, then GET /api/v1/admin/me, and the text of the alert.
+ * Firebase by the username or email (DEC-145 (4)), then GET /api/v1/admin/me, and the text of the alert.
  */
 export function useSignIn() {
   const t = useTranslations('signIn')
@@ -62,7 +64,7 @@ export function useSignIn() {
   const schema = useMemo(
     () =>
       signInSchema({
-        emailRequired: t('validation.emailRequired'),
+        identifierRequired: t('validation.identifierRequired'),
         emailInvalid: t('validation.emailInvalid'),
         passwordRequired: t('validation.passwordRequired'),
       }),
@@ -70,7 +72,7 @@ export function useSignIn() {
   )
   const form = useForm<z.input<typeof schema>, unknown, SignInValues>({
     resolver: zodResolver(schema),
-    defaultValues: { email: '', password: '' },
+    defaultValues: { identifier: '', password: '' },
   })
 
   // Step 2 of SCR-AUT-01: GET /api/v1/admin/me decides where a signed-in user goes. Returns whether the page changes.
@@ -144,7 +146,8 @@ export function useSignIn() {
     setError(null)
     setPasswordChanged(false)
     try {
-      await signInWithPassword(values.email, values.password)
+      const email = signInEmail(values.identifier, env.NEXT_PUBLIC_STAFF_EMAIL_DOMAIN)
+      await signInWithPassword(email, values.password)
     } catch (failure) {
       setError(tRoot(firebaseError(failure)))
       return

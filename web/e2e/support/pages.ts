@@ -2,11 +2,13 @@ import { expect, test, type Page } from '@playwright/test'
 
 // Steps the screen flows share: the sign-in of SCR-AUT-01 and the CSP check of every flow.
 
-export async function signIn(page: Page, email: string, password: string) {
+/** Signs in with a username or an email, which the field "Tên đăng nhập hoặc email" takes alike (DEC-145 (4)). */
+export async function signIn(page: Page, identifier: string, password: string) {
   const button = page.getByRole('button', { name: 'Đăng nhập' })
   await expect(button).toBeEnabled()
-  await page.getByLabel('Email công ty').fill(email)
-  await page.getByLabel('Mật khẩu', { exact: true }).fill(password)
+  // Anchored: the labels end with the ` *` of a required field.
+  await page.getByLabel(/^Tên đăng nhập hoặc email/).fill(identifier)
+  await page.getByLabel(/^Mật khẩu/).fill(password)
   await button.click()
 }
 
