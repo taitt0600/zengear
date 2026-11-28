@@ -28,3 +28,10 @@ export function failOnCspViolations() {
     expect(blocked).toEqual([])
   })
 }
+
+/**
+ * Whether the document is taller than the window, so that it scrolls: a flow of the section navigation checks it first,
+ * so that it tests the case it names (SCR-STF-03 and SCR-ACC-01, Section navigation).
+ */
+export const pageScrolls = (page: Page) =>
+  page.evaluate(() => document.documentElement.scrollHeight > document.documentElement.clientHeight)
