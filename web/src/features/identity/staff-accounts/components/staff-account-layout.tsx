@@ -7,7 +7,7 @@ import { SECTIONS_END_ID } from '../utils/sections'
  * PENDING account (STF-09) at the column's width, before the cards at every width; from `xl` the navigation in a
  * sticky column of 200px beside the cards, below `xl` hidden with CSS (still mounted, so a hash still applies) and the
  * cards in the same order. The cards are 24px apart (`gap-6`), which the line of the navigation counts on
- * (hooks/use-active-section.ts), and the empty sentinel after them says when the end of the page is in view. It only
+ * (`useActiveSection` of `@/hooks`), and the empty sentinel after them says when the end of the page is in view. It only
  * places the slots.
  */
 export function StaffAccountLayout({

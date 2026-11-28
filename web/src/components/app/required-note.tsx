@@ -3,8 +3,8 @@
 import { useTranslations } from 'next-intl'
 
 // Required fields (docs/screens/conventions.md): the note a form shows once under its description, and the mark at the
-// end of a required field's label. In this module while only it uses them (DEC-118 (1)); they move to components/app/
-// with the first other module that needs them (SCR-AUT-01, SCR-ACC-01).
+// end of a required field's label, the same on every admin screen (SCR-STF-03, SCR-ACC-01), so their texts are those
+// of the namespace `admin`.
 
 /** "Trường có dấu * là bắt buộc.", its `*` hidden from screen readers, which read `admin.requiredMark` in its place. */
 export function RequiredNote() {
